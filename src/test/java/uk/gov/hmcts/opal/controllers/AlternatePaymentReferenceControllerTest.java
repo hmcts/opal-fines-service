@@ -151,4 +151,59 @@ class AlternatePaymentReferenceControllerTest {
                 defendantAccountId, request, expectedVersion);
         }
     }
+
+    @Nested
+    @DisplayName("Update an alternate payment reference for a defendant account")
+    class UpdateAlternatePaymentReference {
+
+        @ParameterizedTest
+        @ValueSource(longs = {0L, 7L})
+        @DisplayName("Returns the updated reference with an OK status and its version as a quoted ETag")
+        void returnsUpdatedReferenceWithOkStatusAndQuotedVersionEtag(long version) {
+            Long defendantAccountId = 123L;
+            Long alternatePaymentReferenceId = 456L;
+            String expectedVersion = "\"" + version + "\"";
+            AlternatePaymentReferencesWriteRequest request = new AlternatePaymentReferencesWriteRequest()
+                .aprText("UPDATED-REFERENCE");
+            AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
+                .alternatePaymentReferenceId(alternatePaymentReferenceId)
+                .defendantAccountId(defendantAccountId)
+                .aprText("UPDATED-REFERENCE")
+                .version(version);
+            when(alternatePaymentReferenceService.updateAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, request, expectedVersion)).thenReturn(expected);
+
+            ResponseEntity<AlternatePaymentReferencesItem> response = controller.updateAlternatePaymentReference(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion, request);
+
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+                () -> assertSame(expected, response.getBody()),
+                () -> assertEquals("\"" + version + "\"", response.getHeaders().getETag()),
+                () -> verify(alternatePaymentReferenceService).updateAlternatePaymentReferences(
+                    defendantAccountId, alternatePaymentReferenceId, request, expectedVersion)
+            );
+        }
+
+        @Test
+        @DisplayName("Propagates access denied when the service rejects the user's permissions")
+        void propagatesAccessDeniedExceptionWhenServiceRejectsUserPermissions() {
+            Long defendantAccountId = 123L;
+            Long alternatePaymentReferenceId = 456L;
+            String expectedVersion = "\"3\"";
+            AlternatePaymentReferencesWriteRequest request = new AlternatePaymentReferencesWriteRequest()
+                .aprText("UPDATED-REFERENCE");
+            AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
+            when(alternatePaymentReferenceService.updateAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, request, expectedVersion)).thenThrow(expected);
+
+            AccessDeniedException actual = assertThrows(AccessDeniedException.class,
+                () -> controller.updateAlternatePaymentReference(
+                    defendantAccountId, alternatePaymentReferenceId, expectedVersion, request));
+
+            assertSame(expected, actual);
+            verify(alternatePaymentReferenceService).updateAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, request, expectedVersion);
+        }
+    }
 }

@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.common.exceptions.bespoke.BusinessRuleViolationException;
+import uk.gov.hmcts.common.exceptions.standard.NotFoundException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -45,7 +46,16 @@ public class AlternatePaymentReferenceService {
         return defendantAccountEntity;
     }
 
-    List<AlternatePaymentReferenceEntity> getAlternativePaymentReferenceEntities(Long defendantAccountId) {
+    AlternatePaymentReferenceEntity getAlternativePaymentReferenceEntity(
+        Long defendantAccountId, Long alternatePaymentReferenceId) {
+        return repository.findByAlternatePaymentReferenceIdAndDefendantAccount_defendantAccountId(
+                alternatePaymentReferenceId, defendantAccountId)
+            .orElseThrow(() -> new NotFoundException("Alternate Payment Reference not found",
+                "Alternate Payment Reference not found for defendantAccountId: " + defendantAccountId
+                    + " and alternatePaymentReferenceId: " + alternatePaymentReferenceId));
+    }
+
+    public List<AlternatePaymentReferenceEntity> getAlternativePaymentReferenceEntities(Long defendantAccountId) {
         return repository.findByDefendantAccount_defendantAccountId(defendantAccountId);
     }
 
@@ -58,6 +68,43 @@ public class AlternatePaymentReferenceService {
             .stream()
             .map(alternatePaymentReferenceMapper::toAlternatePaymentReferencesItem)
             .toList();
+    }
+
+    @Transactional
+    public AlternatePaymentReferencesItem updateAlternatePaymentReferences(
+        Long defendantAccountId, Long alternatePaymentReferenceId,
+        AlternatePaymentReferencesWriteRequest alternatePaymentReferencesUpdateRequest, String expectedVersion) {
+        final DefendantAccountEntity defendantAccountEntity =
+            verifyDefendantAccountEntityExistAndUserHasCorrectPermission(defendantAccountId);
+
+        AlternatePaymentReferenceEntity alternatePaymentReferenceEntity =
+            getAlternativePaymentReferenceEntity(defendantAccountId, alternatePaymentReferenceId);
+
+        if (!Relationship.APR.equals(alternatePaymentReferenceEntity.getRelationship())) {
+            throw new BusinessRuleViolationException(
+                "Alternate Payment Reference relationship does not have a relationship of APR",
+                "Alternate Payment Reference with relationship: " + alternatePaymentReferenceEntity.getRelationship()
+                    + " cannot be updated for defendant account: " + defendantAccountId);
+        }
+
+        VersionUtils.verifyIfMatch(alternatePaymentReferenceEntity, expectedVersion, alternatePaymentReferenceId,
+            "updateAlternatePaymentReferences");
+
+        String aprText = alternatePaymentReferencesUpdateRequest.getAprText();
+
+        verifyUniqueApr(alternatePaymentReferenceEntity.getBusinessUnit(), aprText);
+        alternatePaymentReferenceEntity.setAprText(aprText);
+        alternatePaymentReferenceEntity = repository.save(alternatePaymentReferenceEntity);
+
+        notesService.addNote(
+            NoteType.AA,
+            AssociatedRecordType.DEFENDANT_ACCOUNTS,
+            defendantAccountId,
+            defendantAccountEntity.getVersion(),
+            "Alternate payment reference updated | " + alternatePaymentReferenceEntity.getAprText(),
+            defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
+        );
+        return alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity);
     }
 
     void verifyUniqueApr(BusinessUnitEntity businessUnit, String aprText) {

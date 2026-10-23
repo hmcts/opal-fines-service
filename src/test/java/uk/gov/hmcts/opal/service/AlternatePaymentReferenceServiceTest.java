@@ -20,10 +20,13 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.InjectMocks;
@@ -31,9 +34,11 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.common.exceptions.bespoke.BusinessRuleViolationException;
+import uk.gov.hmcts.common.exceptions.standard.NotFoundException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteType;
@@ -119,6 +124,50 @@ class AlternatePaymentReferenceServiceTest {
                     FinesPermission.MANAGE_ALTERNATE_PAYMENT_REFERENCES, BUSINESS_UNIT_ID));
                 verifyNoInteractions(repository, alternatePaymentReferenceMapper);
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Find an alternate payment reference belonging to a defendant account")
+    class GetAlternativePaymentReferenceEntity {
+
+        @Test
+        @DisplayName("Returns the APR matching both the reference ID and defendant account ID")
+        void returnsReferenceMatchingBothReferenceAndDefendantAccountIds() {
+            Long referenceId = 456L;
+            AlternatePaymentReferenceEntity expected = AlternatePaymentReferenceEntity.builder()
+                .alternatePaymentReferenceId(referenceId).build();
+            when(repository.findByAlternatePaymentReferenceIdAndDefendantAccount_defendantAccountId(
+                referenceId, DEFENDANT_ACCOUNT_ID)).thenReturn(Optional.of(expected));
+
+            AlternatePaymentReferenceEntity actual =
+                service.getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, referenceId);
+
+            assertSame(expected, actual);
+            verify(repository).findByAlternatePaymentReferenceIdAndDefendantAccount_defendantAccountId(
+                referenceId, DEFENDANT_ACCOUNT_ID);
+            verifyNoInteractions(defendantAccountRepositoryService, notesService,
+                alternatePaymentReferenceMapper, clock);
+        }
+
+        @Test
+        @DisplayName("Reports both IDs when no matching reference belongs to the defendant account")
+        void throwsNotFoundWhenNoReferenceMatchesBothIds() {
+            Long referenceId = 456L;
+            when(repository.findByAlternatePaymentReferenceIdAndDefendantAccount_defendantAccountId(
+                referenceId, DEFENDANT_ACCOUNT_ID)).thenReturn(Optional.empty());
+
+            NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> service.getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, referenceId));
+
+            assertEquals(HttpStatus.NOT_FOUND, exception.getStatus());
+            assertEquals("Alternate Payment Reference not found", exception.getTitle());
+            assertEquals("Alternate Payment Reference not found for defendantAccountId: 123"
+                + " and alternatePaymentReferenceId: 456", exception.getDetail());
+            verify(repository).findByAlternatePaymentReferenceIdAndDefendantAccount_defendantAccountId(
+                referenceId, DEFENDANT_ACCOUNT_ID);
+            verifyNoInteractions(defendantAccountRepositoryService, notesService,
+                alternatePaymentReferenceMapper, clock);
         }
     }
 
@@ -221,6 +270,151 @@ class AlternatePaymentReferenceServiceTest {
             assertSame(expected, actual);
             verify(service, never()).getAlternativePaymentReferenceEntities(DEFENDANT_ACCOUNT_ID);
             verifyNoInteractions(repository, alternatePaymentReferenceMapper);
+        }
+    }
+
+    @Nested
+    @DisplayName("Update an alternate payment reference for a defendant account")
+    class UpdateAlternatePaymentReferences {
+
+        private static final Long REFERENCE_ID = 456L;
+        private static final String EXPECTED_VERSION = "\"5\"";
+        private static final String UPDATED_TEXT = "UPDATED-REFERENCE";
+
+        @Test
+        @DisplayName("Updates the text, saves the reference, adds an activity note, and returns the mapped result")
+        void savesUpdatedReferenceAddsActivityNoteAndReturnsMappedResult() {
+            DefendantAccountEntity account = createDefendantAccount();
+            account.setVersionNumber(3L);
+            doReturn(account).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            doNothing().when(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
+            AlternatePaymentReferenceEntity saved = AlternatePaymentReferenceEntity.builder()
+                .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).versionNumber(6L).build();
+            when(repository.save(reference)).thenReturn(saved);
+            AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
+                .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).version(6L);
+            when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(saved)).thenReturn(expected);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                AlternatePaymentReferencesItem actual = updateReference();
+
+                assertSame(expected, actual);
+                assertEquals(UPDATED_TEXT, reference.getAprText());
+                versionUtils.verify(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences"));
+                verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+                verify(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+                verify(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
+                InOrder order = inOrder(repository, notesService, alternatePaymentReferenceMapper);
+                order.verify(repository).save(reference);
+                order.verify(notesService).addNote(
+                    NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS, DEFENDANT_ACCOUNT_ID,
+                    account.getVersion(), "Alternate payment reference updated | " + UPDATED_TEXT, BUSINESS_UNIT_ID);
+                order.verify(alternatePaymentReferenceMapper).toAlternatePaymentReferencesItem(saved);
+            }
+        }
+
+        @Test
+        @DisplayName("Rejects an unauthorised user without retrieving or updating a reference")
+        void stopsBeforeRetrievingReferenceWhenUserLacksPermission() {
+            AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
+            doThrow(expected).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+
+            AccessDeniedException actual = assertThrows(AccessDeniedException.class, this::updateReference);
+
+            assertSame(expected, actual);
+            verify(service, never()).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+            verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+        }
+
+        @Test
+        @DisplayName("Rejects a reference version mismatch before checking uniqueness or changing the text")
+        void stopsBeforeChangingReferenceWhenVersionDoesNotMatch() {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            ObjectOptimisticLockingFailureException expected = new ObjectOptimisticLockingFailureException(
+                AlternatePaymentReferenceEntity.class, REFERENCE_ID);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                versionUtils.when(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences")).thenThrow(expected);
+
+                ObjectOptimisticLockingFailureException actual = assertThrows(
+                    ObjectOptimisticLockingFailureException.class, this::updateReference);
+
+                assertSame(expected, actual);
+                assertEquals("ORIGINAL-REFERENCE", reference.getAprText());
+                verify(service, never()).verifyUniqueApr(any(BusinessUnitEntity.class), any(String.class));
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        @Test
+        @DisplayName("Rejects duplicate text without changing the reference, saving, or adding a note")
+        void stopsWithoutChangingReferenceWhenUpdatedTextIsNotUnique() {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            BusinessRuleViolationException expected = new BusinessRuleViolationException(
+                "Duplicate reference", "The updated text already exists in this business unit");
+            doThrow(expected).when(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                BusinessRuleViolationException actual = assertThrows(
+                    BusinessRuleViolationException.class, this::updateReference);
+
+                assertSame(expected, actual);
+                assertEquals("ORIGINAL-REFERENCE", reference.getAprText());
+                versionUtils.verify(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences"));
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = Relationship.class, names = {"CONSOLIDATED", "AMALGAMATED"})
+        @DisplayName("Rejects non-APR relationships before version checks, text changes, saving, or adding a note")
+        void rejectsNonAprRelationshipsWithoutChangingReference(Relationship relationship) {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            reference.setRelationship(relationship);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                BusinessRuleViolationException exception = assertThrows(
+                    BusinessRuleViolationException.class, this::updateReference);
+
+                assertEquals("Alternate Payment Reference relationship does not have a relationship of APR",
+                    exception.getTitle());
+                assertEquals("Alternate Payment Reference with relationship: " + relationship
+                    + " cannot be updated for defendant account: " + DEFENDANT_ACCOUNT_ID, exception.getDetail());
+                assertEquals("ORIGINAL-REFERENCE", reference.getAprText());
+                assertEquals(relationship, reference.getRelationship());
+                versionUtils.verifyNoInteractions();
+                verify(service, never()).verifyUniqueApr(any(BusinessUnitEntity.class), any(String.class));
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        private AlternatePaymentReferenceEntity stubExistingReference() {
+            AlternatePaymentReferenceEntity reference = AlternatePaymentReferenceEntity.builder()
+                .alternatePaymentReferenceId(REFERENCE_ID)
+                .relationship(Relationship.APR)
+                .businessUnit(BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build())
+                .aprText("ORIGINAL-REFERENCE")
+                .versionNumber(5L)
+                .build();
+            doReturn(reference).when(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+            return reference;
+        }
+
+        private AlternatePaymentReferencesItem updateReference() {
+            return service.updateAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID, REFERENCE_ID,
+                new AlternatePaymentReferencesWriteRequest().aprText(UPDATED_TEXT), EXPECTED_VERSION);
         }
     }
 
