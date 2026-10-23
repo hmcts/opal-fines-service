@@ -5,25 +5,30 @@ CREATE PROCEDURE p_int_payments_in(
     IN pi_business_unit_id interface_jobs.business_unit_id%TYPE,
     IN pi_posted_by tills.owned_by%TYPE,
     IN pi_posted_by_name tills.owned_by_name%TYPE,
+    IN pi_records_json json,
     OUT po_till_id tills.till_id%TYPE
 )
-    LANGUAGE plpgsql
-    AS $$
+LANGUAGE plpgsql
+AS $$
 /**
 * OPAL Program
 *
-* MODULE      : alter_p_int_payments_in_json_additional_information.sql
+* MODULE      : p_int_payments_in
 *
 * DESCRIPTION : This procedure was written by Capita required for interface files
 *
 * VERSION HISTORY:
 *
 * Date          Author      Version     Nature of Change
-* ----------    -------     --------    ------------------------------------------------------------------------
+* ----------    -------     --------    --------------------------------------------------------------------------------------
 * 25/11/2024    Capita      1.0         PO-1010 This procedure was written by Capita required for interface files
 * 03/06/2026    TMc         2.0         PO-3839 - Update columns on PAYMENTS_IN table to use PostgreSQL ENUM
 * 25/06/2026    C Cho       3.0         PO-2616 Amend p_int_payments_in for Auto Payments In processing.
-* 09/09/2026    C Cho       4.0         PO-3410 - Build JSON additional information for Auto Payments In.
+* 02/09/2026    TMc         4.0         PO-5784 Alter INTERFACE_FILES table for EI2.
+*                                               Now receives records JSON as a parameter instead of the interface_files table.
+*                                               Amended field names for updated records JSON definition.
+*                                               Enforces 1-2-1 relationship between interface_jobs and interface_files
+* 09/09/2026    C Cho       5.0         PO-3410 - Build JSON additional information for Auto Payments In.
 **/
 DECLARE
     k_valid_transaction_codes varchar[] := ARRAY['00','68','99'];
@@ -79,6 +84,7 @@ DECLARE
     v_total_suspense numeric(18,2) := 0;
     v_till_number tills.till_number%TYPE;
     v_interface_file_id interface_files.interface_file_id%TYPE;
+    v_interface_file_count integer;
 BEGIN
     SELECT business_unit_id,
            interface_name
@@ -113,6 +119,20 @@ BEGIN
                     || ', not ' || pi_business_unit_id;
     END IF;
 
+    SELECT COUNT(*),
+           MAX(interface_file_id)
+    INTO   v_interface_file_count,
+           v_interface_file_id
+    FROM   interface_files
+    WHERE  interface_job_id = pi_interface_job_id;
+
+    IF v_interface_file_count <> 1 THEN
+        RAISE EXCEPTION 'Interface job must be linked to exactly one interface file.'
+            USING ERRCODE = 'P3205'
+                , DETAIL = 'p_int_payments_in: Interface job ' || pi_interface_job_id
+                    || ' is linked to ' || v_interface_file_count || ' interface files';
+    END IF;
+
     po_till_id := NULL;
 
     FOR r_payment IN (
@@ -124,20 +144,22 @@ BEGIN
                             f.source,
                             f.override_inhibits,
                             CASE WHEN ba.value->>'account_number' IS NOT NULL THEN true ELSE false END AS is_bu_bank,
-                            rec.obj->>'receiving_sort_code' AS receiving_sort_code,
-                            rec.obj->>'receiving_bank_account_number' AS receiving_bank_account_number,
-                            rec.obj->>'receiving_account_type' AS receiving_account_type,
+                            rec.obj->>'destination_sort_code' AS destination_sort_code,
+                            rec.obj->>'destination_bank_account_number' AS destination_bank_account_number,
+                            rec.obj->>'destination_account_type' AS destination_account_type,
+                            rec.obj->>'destination_beneficiary_name' AS destination_beneficiary_name,
                             rec.obj->>'transaction_code' AS transaction_code,
                             rec.obj->>'originator_sort_code' AS originator_sort_code,
                             rec.obj->>'originator_bank_account_number' AS originator_bank_account_number,
                             (rec.obj->>'amount_pence')::bigint AS amount_pence,
                             rec.obj->>'originator_name' AS originator_name,
                             rec.obj->>'originator_reference' AS originator_reference,
-                            rec.obj->>'originator_beneficiary_name' AS originator_beneficiary_name,
                             da.defendant_account_id
         FROM                interface_jobs j
-        INNER JOIN          interface_files f ON f.interface_job_id = j.interface_job_id
-        CROSS JOIN LATERAL  json_array_elements(f.records) WITH ORDINALITY AS rec(obj, rec_index)
+        INNER JOIN          interface_files f
+                                ON f.interface_job_id = j.interface_job_id
+                                AND f.interface_file_id = v_interface_file_id
+        CROSS JOIN LATERAL  json_array_elements(pi_records_json) WITH ORDINALITY AS rec(obj, rec_index)
         LEFT JOIN LATERAL   (
                                 SELECT ci.item_values
                                 FROM   configuration_items ci
@@ -147,15 +169,14 @@ BEGIN
                                 LIMIT 1
                             ) bank_ci ON true
         LEFT JOIN LATERAL   json_array_elements(COALESCE(bank_ci.item_values, '[]'::json)) AS ba(value)
-                                ON ba.value->>'account_number' = rec.obj->>'receiving_bank_account_number'
-                                AND ba.value->>'sort_code' = rec.obj->>'receiving_sort_code'
+                                ON ba.value->>'account_number' = rec.obj->>'destination_bank_account_number'
+                                AND ba.value->>'sort_code' = rec.obj->>'destination_sort_code'
         LEFT JOIN           defendant_accounts da
                                 ON da.business_unit_id = pi_business_unit_id
                                 AND da.account_number = rec.obj->>'originator_reference'
         WHERE               j.interface_job_id = pi_interface_job_id
         AND                 rec.obj->>'amount_pence' IS NOT NULL
-        ORDER BY            f.interface_file_id,
-                            rec.rec_index)
+        ORDER BY            rec.rec_index)
     LOOP
         SELECT NULL::bigint AS defendant_account_id,
                NULL::character varying AS account_number,
@@ -211,10 +232,10 @@ BEGIN
             v_msg_text := k_msg_unknown_bank;
             v_msg_type := k_msg_type_exc;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -248,10 +269,10 @@ BEGIN
             v_msg_text := k_msg_invalid_transaction;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -265,10 +286,10 @@ BEGIN
             v_msg_text := k_msg_account_notfound;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -282,10 +303,10 @@ BEGIN
             v_msg_text := k_msg_account_written_off;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -299,10 +320,10 @@ BEGIN
             v_msg_text := k_msg_account_consolidated;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -316,10 +337,10 @@ BEGIN
             v_msg_text := k_msg_account_tfo_not_ack;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -333,10 +354,10 @@ BEGIN
             v_msg_text := k_msg_account_tfo_ack;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -350,10 +371,10 @@ BEGIN
             v_msg_text := k_msg_account_tfo_sc_ni;
             v_msg_type := k_msg_type_warn;
             v_msg_data := json_build_object(
-                'court_sort_code', r_payment.receiving_sort_code,
-                'court_account_number', r_payment.receiving_bank_account_number,
-                'court_account_type', r_payment.receiving_account_type,
-                'court_beneficiary_name', r_payment.originator_beneficiary_name,
+                'court_sort_code', r_payment.destination_sort_code,
+                'court_account_number', r_payment.destination_bank_account_number,
+                'court_account_type', r_payment.destination_account_type,
+                'court_beneficiary_name', r_payment.destination_beneficiary_name,
                 'court_transaction', r_payment.transaction_code,
                 'court_amount', v_payment_amount,
                 'court_transaction_account', r_payment.originator_reference,
@@ -388,14 +409,14 @@ BEGIN
                 pi_destination_type := (CASE WHEN v_msg_text IS NULL THEN k_dest_fines ELSE k_dest_suspense END)::t_pi_destination_type_enum,
                 pi_allocation_type := (CASE WHEN v_msg_text IS NULL THEN NULL ELSE k_alloc_unidentified END)::varchar,
                 pi_associated_record_type := CASE WHEN v_msg_text IS NULL THEN k_tbl_defendant_accounts::t_associated_record_type_enum ELSE NULL::t_associated_record_type_enum END,
-                pi_associated_record_id := (CASE WHEN v_msg_text IS NULL THEN r_master_account.defendant_account_id::text ELSE NULL::text END)::varchar,
+                pi_associated_record_id := (CASE WHEN v_msg_text IS NULL THEN r_master_account.defendant_account_id ELSE NULL END)::varchar,
                 pi_third_party_payer_name := NULL,
                 pi_additional_information := json_build_object(
                     'interface_name', v_interface_name,
                     'additional_information', json_build_object(
                         'originator_reference', r_payment.originator_reference
                     )
-                )::TEXT,
+                ),
                 pi_receipt := false,
                 pi_auto_payment := true);
 
