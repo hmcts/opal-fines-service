@@ -1,4 +1,5 @@
 SET SCHEMA 'public';
+\timing
 /*
 
 Defendant Accounts
@@ -62,20 +63,24 @@ DECLARE
     v_till_id_2 tills.till_id%TYPE;
     v_till_id_3 tills.till_id%TYPE;
     v_till_id_4 tills.till_id%TYPE;
+    v_test_till_id tills.till_id%TYPE;
+    v_records_json_1 json;
+    v_records_json_2 json;
+    v_records_json_3 json := '[]'::json;
 BEGIN
     DELETE FROM defendant_transactions WHERE defendant_account_id <= 11;
     DELETE FROM defendant_accounts WHERE defendant_account_id <= 11;
-    DELETE FROM interface_messages WHERE interface_job_id IN (1,2,3,4);
-    DELETE FROM interface_files WHERE interface_job_id IN (1,2,3,4);
-    DELETE FROM interface_jobs WHERE interface_job_id IN (1,2,3,4);
+    DELETE FROM interface_messages WHERE interface_job_id BETWEEN 1 AND 10;
+    DELETE FROM interface_files WHERE interface_job_id BETWEEN 1 AND 10;
+    DELETE FROM interface_jobs WHERE interface_job_id BETWEEN 1 AND 10;
 
     -- BUs
     INSERT INTO business_units (business_unit_id, business_unit_name, business_unit_code, business_unit_type)
-    VALUES(4, 'TEST BU 4', 'T004', 'Accounting Division')
+    VALUES(4, 'TEST BU 4', '0004', 'Accounting Division')
     ON CONFLICT (business_unit_id) DO NOTHING;
 
     INSERT INTO business_units (business_unit_id, business_unit_name, business_unit_code, business_unit_type)
-    VALUES(18, 'TEST BU 18', 'T018', 'Accounting Division')
+    VALUES(18, 'TEST BU 18', '0018', 'Accounting Division')
     ON CONFLICT (business_unit_id) DO NOTHING;
 
     -- config
@@ -125,40 +130,73 @@ BEGIN
     VALUES      (3,24,'p_int_payments_in');
     INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
     VALUES      (4,5,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (5,5,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (6,NULL,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (7,5,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (8,5,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (9,5,'p_int_payments_in');
+    INSERT INTO interface_jobs(interface_job_id,business_unit_id,interface_name)
+    VALUES      (10,5,'p_int_payments_in');
     -- files
-    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name,records)
-    VALUES      (1,1,'test-a',
-        '[{"id":1,"receiving_sort_code":"123456","receiving_bank_account_number":"01234567","receiving_account_type":"5","transaction_code":"99","originator_sort_code":"654321","originator_bank_account_number":"98765432","amount_pence":"1","originator_name":"John Smith","originator_reference":"25000001A","originator_beneficiary_name":"BENA"}
-        , {"id":2,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"222","originator_name":"John Smith","originator_reference":"25000002B","originator_beneficiary_name":"BENB"}
-        , {"id":3,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"33333","originator_name":"John Smith","originator_reference":"25000003C","originator_beneficiary_name":"BENC"}
-        , {"id":4,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"4444","originator_name":"Bill Bates","originator_reference":"25000004D","originator_beneficiary_name":"BEND"}
-        , {"id":5,"receiving_sort_code":"123456","receiving_bank_account_number":"01234567","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"5555","originator_name":"Jon Bird","originator_reference":"25000005E","originator_beneficiary_name":"BENE"}
-        , {"id":6,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"6666","originator_name":"Carly Schmidt","originator_reference":"25000006F","originator_beneficiary_name":"BENF"}
-        , {"id":7,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"7777","originator_name":"Kevin Peters","originator_reference":"25000007G","originator_beneficiary_name":"BENG"}
-        , {"id":8,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"8888","originator_name":"Paul Jacobs","originator_reference":"25000008H","originator_beneficiary_name":"BENH"}
-        , {"id":9,"receiving_sort_code":"123456","receiving_bank_account_number":"01234567","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"9999","originator_name":"Richard Webb","originator_reference":"25000009I","originator_beneficiary_name":"BENI"}
-        , {"id":10,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1000000","originator_name":"Lisa Walker","originator_reference":"25000010J","originator_beneficiary_name":"BENJ"}
-        , {"id":11,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"20000000","originator_name":"Abdul Ahmad","originator_reference":"25000011K","originator_beneficiary_name":"BENK"}
-        , {"id":12,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"300000000","originator_name":"Sally Smith","originator_reference":"25000026$","originator_beneficiary_name":"BENZ"}
-        , {"id":13,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"01","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1000001","originator_name":"Richard Webb","originator_reference":"25123456Z","originator_beneficiary_name":"BENI"}
-        , {"id":14,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"0","originator_name":"Richard Webb","originator_reference":"25000009I","originator_beneficiary_name":"BENI"}
-        , {"id":15,"receiving_sort_code":"000000","receiving_bank_account_number":"00000088","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"99999999999","originator_name":"Frank Graham","originator_reference":"25000009I","originator_beneficiary_name":"BENI"}
-        , {"id":16,"receiving_sort_code":"000000","receiving_bank_account_number":":~@<^&^&&*(*>?/","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"$%^$&*&^_","originator_beneficiary_name":"BENI"}
-        , {"id":17,"receiving_sort_code":"^&*$\"sz","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"_________","originator_beneficiary_name":"BENI"}
-        , {"id":18,"receiving_sort_code":"bcnbmn","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"25000025$","originator_beneficiary_name":"BENI"}
-        , {"id":19,"receiving_sort_code":"123456","receiving_bank_account_number":"01234567","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"00000000000","originator_name":"Frank Graham","originator_reference":"25000009I","originator_beneficiary_name":"BENI"}
-        , {"id":20,"receiving_sort_code":"123457","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"0","originator_name":"Frank Graham","originator_reference":"25000009I","originator_beneficiary_name":"BENI"}
-        ]');
-    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name,records)
-    VALUES      (2,2,'test-b',
-    '[{"receiving_sort_code":"000000","receiving_bank_account_number":"01234568","receiving_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"200002","originator_name":"Fred Jones","originator_reference":"25000002B","originator_beneficiary_name":"Mr & Mrs Jones"}]');
-    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name,records)
-    VALUES      (3,3,'test-c','[{}]');
-    -- execute stored prcoedure
-    CALL p_int_payments_in(1, 5::smallint,  'test.user', 'Test User', v_till_id_1);
-    CALL p_int_payments_in(2, 14::smallint, 'test.user', 'Test User', v_till_id_2);
-    CALL p_int_payments_in(3, 24::smallint, 'test.user', 'Test User', v_till_id_3);
-    CALL p_int_payments_in(4, 5::smallint,  'test.user', 'Test User', v_till_id_4);
+    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name)
+    VALUES      (1,1,'test-a');
+    v_records_json_1 :=
+        '[{"id":1,"destination_sort_code":"123456","destination_bank_account_number":"01234567","destination_account_type":"5","transaction_code":"99","originator_sort_code":"654321","originator_bank_account_number":"98765432","amount_pence":"1","originator_name":"John Smith","originator_reference":"25000001A","destination_beneficiary_name":"BENA"}
+        , {"id":2,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"222","originator_name":"John Smith","originator_reference":"25000002B","destination_beneficiary_name":"BENB"}
+        , {"id":3,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"33333","originator_name":"John Smith","originator_reference":"25000003C","destination_beneficiary_name":"BENC"}
+        , {"id":4,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"4444","originator_name":"Bill Bates","originator_reference":"25000004D","destination_beneficiary_name":"BEND"}
+        , {"id":5,"destination_sort_code":"123456","destination_bank_account_number":"01234567","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"5555","originator_name":"Jon Bird","originator_reference":"25000005E","destination_beneficiary_name":"BENE"}
+        , {"id":6,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"6666","originator_name":"Carly Schmidt","originator_reference":"25000006F","destination_beneficiary_name":"BENF"}
+        , {"id":7,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"7777","originator_name":"Kevin Peters","originator_reference":"25000007G","destination_beneficiary_name":"BENG"}
+        , {"id":8,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"8888","originator_name":"Paul Jacobs","originator_reference":"25000008H","destination_beneficiary_name":"BENH"}
+        , {"id":9,"destination_sort_code":"123456","destination_bank_account_number":"01234567","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"9999","originator_name":"Richard Webb","originator_reference":"25000009I","destination_beneficiary_name":"BENI"}
+        , {"id":10,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1000000","originator_name":"Lisa Walker","originator_reference":"25000010J","destination_beneficiary_name":"BENJ"}
+        , {"id":11,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"20000000","originator_name":"Abdul Ahmad","originator_reference":"25000011K","destination_beneficiary_name":"BENK"}
+        , {"id":12,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"300000000","originator_name":"Sally Smith","originator_reference":"25000026$","destination_beneficiary_name":"BENZ"}
+        , {"id":13,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"01","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1000001","originator_name":"Richard Webb","originator_reference":"25123456Z","destination_beneficiary_name":"BENI"}
+        , {"id":14,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"0","originator_name":"Richard Webb","originator_reference":"25000009I","destination_beneficiary_name":"BENI"}
+        , {"id":15,"destination_sort_code":"000000","destination_bank_account_number":"00000088","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"99999999999","originator_name":"Frank Graham","originator_reference":"25000009I","destination_beneficiary_name":"BENI"}
+        , {"id":16,"destination_sort_code":"000000","destination_bank_account_number":":~@<^&^&&*(*>?/","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"$%^$&*&^_","destination_beneficiary_name":"BENI"}
+        , {"id":17,"destination_sort_code":"^&*$\"sz","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"_________","destination_beneficiary_name":"BENI"}
+        , {"id":18,"destination_sort_code":"bcnbmn","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"1","originator_name":"Frank Graham","originator_reference":"25000025$","destination_beneficiary_name":"BENI"}
+        , {"id":19,"destination_sort_code":"123456","destination_bank_account_number":"01234567","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"00000000000","originator_name":"Frank Graham","originator_reference":"25000009I","destination_beneficiary_name":"BENI"}
+        , {"id":20,"destination_sort_code":"123457","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"0","originator_name":"Frank Graham","originator_reference":"25000009I","destination_beneficiary_name":"BENI"}
+        ]';
+    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name)
+    VALUES      (2,2,'test-b');
+    v_records_json_2 :=
+        '[{"destination_sort_code":"000000","destination_bank_account_number":"01234568","destination_account_type":"5","transaction_code":"68","originator_sort_code":"664321","originator_bank_account_number":"99765432","amount_pence":"200002","originator_name":"Fred Jones","originator_reference":"25000002B","destination_beneficiary_name":"Mr & Mrs Jones"}]';
+    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name)
+    VALUES      (3,3,'test-c');
+    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name)
+    VALUES      (4,5,'test-multiple-a'), (5,5,'test-multiple-b');
+    INSERT INTO interface_files(interface_file_id,interface_job_id,file_name)
+    VALUES      (6,6,'test-null-bu'), (7,7,'test-null-json'), (8,8,'test-object-json'),
+                (9,9,'test-invalid-amount'), (10,10,'test-missing-amount');
+
+    -- execute stored procedure
+    CALL p_int_payments_in(1, 5::smallint,  'test.user', 'Test User', v_records_json_1, v_till_id_1);
+    CALL p_int_payments_in(2, 14::smallint, 'test.user', 'Test User', v_records_json_2, v_till_id_2);
+    CALL p_int_payments_in(3, 24::smallint, 'test.user', 'Test User', v_records_json_3, v_till_id_3);
+
+    BEGIN
+        CALL p_int_payments_in(4, 5::smallint, 'test.user', 'Test User', '[]'::json, v_till_id_4);
+        RAISE NOTICE 'P3205 no-file test: Failed';
+    EXCEPTION WHEN SQLSTATE 'P3205' THEN
+        RAISE NOTICE 'P3205 no-file test: Passed';
+    END;
+
+    BEGIN
+        CALL p_int_payments_in(5, 5::smallint, 'test.user', 'Test User', '[]'::json, v_test_till_id);
+        RAISE NOTICE 'P3205 multiple-file test: Failed';
+    EXCEPTION WHEN SQLSTATE 'P3205' THEN
+        RAISE NOTICE 'P3205 multiple-file test: Passed';
+    END;
     -- verify results
     /*
     SELECT 'Passed'
@@ -541,8 +579,7 @@ To verify that a 'records_ignored' Info message is created showing the count for
     RAISE NOTICE 'Test 29: %', COALESCE(v_test_status,'Failed');
 /* Test 30
 To verify that all payments created have payment method 'CT', auto_payment true, allocated false, receipt false, additional_information
-as JSON containing the interface name, and are either for fines with no allocation_type or for suspense with 'UN' (unidentified)
-allocation_type
+set to the interface name, and are either for fines with no allocation_type or for suspense with 'UN' (unidentified) allocation_type
 */
     SELECT 'Passed'
     INTO v_test_status
@@ -555,7 +592,7 @@ allocation_type
         AND auto_payment = true
         AND allocated = false
         AND receipt = false
-        AND additional_information::json ->> 'interface_name' = 'p_int_payments_in'
+        AND additional_information = 'p_int_payments_in'
         ) = 13;
     RAISE NOTICE 'Test 30: %', COALESCE(v_test_status,'Failed');
 /* Test 31
@@ -574,20 +611,18 @@ are Info with a message text
         ) = 0;
     RAISE NOTICE 'Test 31: %', COALESCE(v_test_status,'Failed');
 /* Test 32
-To verify that processing an empty file (job 3) or a job without a file (job 4) still completes and produces the summary Info messages
-with zero counts/values. Expect 5 messages per job (records_read, records_accepted, records_fines, records_suspense,
-records_ignored_rejected) so 10 in total across jobs 3 and 4.
+To verify that processing an empty JSON array (job 3) with one interface file produces the five zero-value summary Info messages.
 */
     SELECT 'Passed'
     INTO v_test_status
     WHERE (
         SELECT COUNT(*)
         FROM interface_messages
-        WHERE interface_job_id IN (3,4)
+        WHERE interface_job_id = 3
             AND message_type = 'Info'
             AND (message_data->>'number')::bigint = 0
             AND (message_data->>'value')::numeric = 0
-        ) = 10;
+        ) = 5;
     RAISE NOTICE 'Test 32: %', COALESCE(v_test_status,'Failed');
 /* Test 33
 To verify that a payment is accepted, assigned to fines and associated with the payment destination account where the account is
@@ -602,14 +637,13 @@ in credit (i.e. positive balance)
         AND destination_type = 'F';
     RAISE NOTICE 'Test 33: %', COALESCE(v_test_status,'Failed');
 /* Test 34
-To verify that no till is created for jobs where no records are accepted (job 2 all rejected, job 3 empty file, job 4 no file)
+To verify that no till is created for jobs where no records are accepted (job 2 all rejected and job 3 empty JSON array)
 and that the OUT till_id parameter returns NULL for those jobs
 */
     SELECT 'Passed'
     INTO v_test_status
     WHERE v_till_id_2 IS NULL
-        AND v_till_id_3 IS NULL
-        AND v_till_id_4 IS NULL;
+        AND v_till_id_3 IS NULL;
     RAISE NOTICE 'Test 34: %', COALESCE(v_test_status,'Failed');
 /* Test 35
 To verify that a 'records_ignored_rejected' Info message is created summarising the total number of records that were either
@@ -625,6 +659,75 @@ ignored or rejected along with the total rejected value
           AND (message_data->>'value')::numeric = 1000000000.02
         ) = 1;
     RAISE NOTICE 'Test 35: %', COALESCE(v_test_status,'Failed');
+/* Test 36
+To verify that record indexes preserve the order of the supplied JSON array.
+*/
+    SELECT 'Passed'
+    INTO v_test_status
+    WHERE (
+        SELECT COUNT(*)
+        FROM interface_messages
+        WHERE interface_job_id = 1
+          AND ((record_index = 4 AND record_detail::json->>'id' = '4')
+            OR (record_index = 5 AND record_detail::json->>'id' = '5'))
+        ) = 2;
+    RAISE NOTICE 'Test 36: %', COALESCE(v_test_status,'Failed');
+
+    BEGIN
+        CALL p_int_payments_in(999, 5::smallint, 'test.user', 'Test User', '[]'::json, v_test_till_id);
+        RAISE NOTICE 'Test 37 (P3201 missing job): Failed';
+    EXCEPTION WHEN SQLSTATE 'P3201' THEN
+        RAISE NOTICE 'Test 37 (P3201 missing job): Passed';
+    END;
+
+    BEGIN
+        CALL p_int_payments_in(6, 5::smallint, 'test.user', 'Test User', '[]'::json, v_test_till_id);
+        RAISE NOTICE 'Test 38 (P3202 job without BU): Failed';
+    EXCEPTION WHEN SQLSTATE 'P3202' THEN
+        RAISE NOTICE 'Test 38 (P3202 job without BU): Passed';
+    END;
+
+    BEGIN
+        CALL p_int_payments_in(1, NULL::smallint, 'test.user', 'Test User', '[]'::json, v_test_till_id);
+        RAISE NOTICE 'Test 39 (P3203 NULL BU parameter): Failed';
+    EXCEPTION WHEN SQLSTATE 'P3203' THEN
+        RAISE NOTICE 'Test 39 (P3203 NULL BU parameter): Passed';
+    END;
+
+    BEGIN
+        CALL p_int_payments_in(1, 14::smallint, 'test.user', 'Test User', '[]'::json, v_test_till_id);
+        RAISE NOTICE 'Test 40 (P3204 mismatched BU): Failed';
+    EXCEPTION WHEN SQLSTATE 'P3204' THEN
+        RAISE NOTICE 'Test 40 (P3204 mismatched BU): Passed';
+    END;
+
+    v_test_till_id := NULL;
+    CALL p_int_payments_in(7, 5::smallint, 'test.user', 'Test User', NULL::json, v_test_till_id);
+    RAISE NOTICE 'Test 41 (NULL JSON): %', CASE WHEN v_test_till_id IS NULL THEN 'Passed' ELSE 'Failed' END;
+
+    BEGIN
+        CALL p_int_payments_in(8, 5::smallint, 'test.user', 'Test User', '{}'::json, v_test_till_id);
+        RAISE NOTICE 'Test 42 (non-array JSON): Failed';
+    EXCEPTION WHEN SQLSTATE '22023' THEN
+        RAISE NOTICE 'Test 42 (non-array JSON): Passed';
+    END;
+
+    BEGIN
+        CALL p_int_payments_in(
+            9,
+            5::smallint,
+            'test.user',
+            'Test User',
+            '[{"amount_pence":"not-a-number"}]'::json,
+            v_test_till_id);
+        RAISE NOTICE 'Test 43 (invalid amount_pence): Failed';
+    EXCEPTION WHEN SQLSTATE '22P02' THEN
+        RAISE NOTICE 'Test 43 (invalid amount_pence): Passed';
+    END;
+
+    v_test_till_id := NULL;
+    CALL p_int_payments_in(10, 5::smallint, 'test.user', 'Test User', '[{}]'::json, v_test_till_id);
+    RAISE NOTICE 'Test 44 (missing amount_pence): %', CASE WHEN v_test_till_id IS NULL THEN 'Passed' ELSE 'Failed' END;
 END $$;
 
 ROLLBACK;
