@@ -112,15 +112,14 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     public void requestHeaderSummaryTwiceForCreatedMinorCreditorAccount() {
         long accountId = createdMinorCreditorAccountIdOrFail();
         Response first = getHeaderSummary(accountId);
-        String firstBody = first.asString();
-        String firstEtag = first.header(HttpHeaders.ETAG);
         Response second = getHeaderSummary(accountId);
 
         assertEquals(200, first.statusCode(), "Unexpected first header-summary status");
         assertEquals(200, second.statusCode(), "Unexpected second header-summary status");
-        assertNotNull(firstEtag, "The first response should contain an ETag");
-        assertEquals(firstEtag, second.header(HttpHeaders.ETAG), "ETag changed between identical reads");
-        assertEquals(firstBody, second.asString(), "Response body changed between identical reads");
+        assertNotNull(first.header(HttpHeaders.ETAG), "The first response should contain an ETag");
+        assertEquals(first.header(HttpHeaders.ETAG), second.header(HttpHeaders.ETAG),
+            "ETag changed between identical reads");
+        assertEquals(first.asString(), second.asString(), "Response body changed between identical reads");
         assertFalse(second.jsonPath().getBoolean("party.organisation_flag"),
             "The fixture should represent an individual minor creditor");
     }
