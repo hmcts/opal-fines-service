@@ -399,6 +399,6 @@ components:
           type: string
           format: date-time
           description: DB Mapping - alternate_payment_references.updated_datetime
-        version_number:
+        version:
           $ref: "./types.yaml#/components/schemas/BigInt"
           description: DB Mapping - alternate_payment_references.version_number
