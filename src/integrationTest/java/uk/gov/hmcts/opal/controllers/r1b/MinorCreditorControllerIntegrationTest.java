@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -1305,6 +1306,34 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.party.party_id").value("99008"))
             .andExpect(jsonPath("$.party.organisation_details").doesNotExist())
             .andExpect(jsonPath("$.party.individual_details").exists());
+
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    void getHeaderSummaryImpl_pdplQueueFailureReturns503WithoutPersonalData(Logger log) throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        ResultActions result = mockMvc.perform(
+            get(URL_BASE + "/{id}/header-summary", 607L).accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
+
+        String body = result.andReturn().getResponse().getContentAsString();
+        log.info(":pdplQueueFailureReturns503WithoutPersonalData: Response body: \n{}",
+            ToJsonString.toPrettyJson(body));
+
+        result.andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(503))
+            .andExpect(jsonPath("$.title").value("Service Unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.creditor").doesNotExist())
+            .andExpect(jsonPath("$.party").doesNotExist())
+            .andExpect(jsonPath("$.business_unit").doesNotExist())
+            .andExpect(jsonPath("$.financials").doesNotExist())
+            .andExpect(jsonPath("$.repayment").doesNotExist());
 
         verify(loggingService).personalDataAccessLogAsync(any());
     }
