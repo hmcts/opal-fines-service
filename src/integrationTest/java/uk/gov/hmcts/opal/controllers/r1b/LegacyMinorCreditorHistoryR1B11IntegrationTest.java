@@ -17,8 +17,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -34,9 +36,10 @@ public class LegacyMinorCreditorHistoryR1B11IntegrationTest extends AbstractInte
 
     private static final String HISTORY_URL = "/minor-creditor-accounts/{accountId}/history";
 
-    private static final String LEGACY_ACTION = "LIBRA.get_minor_creditor_account_history";
-
     private static final long MINOR_CREDITOR_ID = 99000000000808L;
+
+    @MockitoBean
+    private MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
 
     @Test
     @JiraEpic("PO-2653")
