@@ -38,6 +38,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -48,6 +50,7 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -122,7 +125,7 @@ class DraftAccountTransactionalTest {
     void testGetDraftAccounts_withSourceFilter() {
         // Arrange
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
-        when(sfq.sortBy(any())).thenReturn(sfq);
+        when(sfq.sortBy(Sort.by(Direction.ASC, DraftAccountEntity_.DRAFT_ACCOUNT_ID))).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
                 BusinessUnitEntity.builder().businessUnitId((short) 77).build())

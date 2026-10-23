@@ -271,7 +271,7 @@ public class DraftAccountVpfpoIntegrationTest extends AbstractIntegrationTest {
 
             resultActions.andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-                .andExpect(jsonPath("$.detail").value("The request does not conform to the required JSON schema"));
+                .andExpect(jsonPath("$.detail").value("required property 'source' not found"));
         }
 
         @Test

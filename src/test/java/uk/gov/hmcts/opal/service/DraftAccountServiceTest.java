@@ -141,8 +141,15 @@ class DraftAccountServiceTest {
                 BusinessUnitEntity.builder().businessUnitId((short)77).build())
             .build();
         when(draftAccountMapper.toDto(draftAccountEntity)).thenReturn(DraftAccountSummaryDto.builder().build());
-        when(draftAccountTransactional.getDraftAccounts(any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(List.of(draftAccountEntity));
+        when(draftAccountTransactional.getDraftAccounts(
+            List.of((short) 1),
+            List.of(DraftAccountStatus.REJECTED),
+            List.of(),
+            List.of(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        )).thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(featureToggleApi.isFeatureEnabled(eq(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))).thenReturn(false);

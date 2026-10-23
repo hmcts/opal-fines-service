@@ -173,7 +173,13 @@ class DraftAccountControllerTest {
         DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.countOnly(3);
 
         when(draftAccountService.countDraftAccounts(
-            any(), any(), any(), any(), any(), any(), any()
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
         )).thenReturn(responseDto);
 
         // Act
