@@ -35,7 +35,7 @@ services:
       - opal-db
       - redis
       - azure-sb-emulator
-      - azurite
+      - azurite-init
     networks:
       - default
       - sb-emulator
