@@ -363,7 +363,7 @@ components:
         - apr_text
         - created_at
         - updated_at
-        - version_number
+        - version
       properties:
         alternate_payment_reference_id:
           description: DB Mapping - alternate_payment_references.alternate_payment_reference_id
