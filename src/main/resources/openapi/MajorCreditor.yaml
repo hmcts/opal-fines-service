@@ -427,6 +427,65 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /major-creditors/{majorCreditorId}:
+    get:
+      tags:
+        - Major Creditor
+      summary: Get major creditor by ID
+      description: Returns the major creditor for the supplied major creditor identifier.
+      operationId: getMajorCreditorById
+      parameters:
+        - in: path
+          name: majorCreditorId
+          description: The unique major creditor identifier. DB Mapping - major_creditors.major_creditor_id
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: Major creditor found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MajorCreditorObject'
+        400:
+          description: Invalid major creditor identifier
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Major creditor not found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 
 
 
@@ -438,6 +497,60 @@ components:
       bearerFormat: JWT
 
   schemas:
+    MajorCreditorObject:
+      title: Major Creditor
+      type: object
+      additionalProperties: false
+      required:
+        - majorCreditorId
+        - businessUnitId
+        - name
+      properties:
+        majorCreditorId:
+          type: integer
+          format: int64
+          description: DB Mapping - major_creditors.major_creditor_id
+        businessUnitId:
+          type: integer
+          format: int16
+          description: DB Mapping - major_creditors.business_unit_id
+        majorCreditorCode:
+          type: string
+          maxLength: 4
+          description: DB Mapping - major_creditors.major_creditor_code
+        name:
+          type: string
+          maxLength: 35
+          description: DB Mapping - major_creditors.name
+        addressLine1:
+          type: string
+          maxLength: 80
+          description: DB Mapping - major_creditors.address_line_1
+        addressLine2:
+          type: string
+          maxLength: 35
+          description: DB Mapping - major_creditors.address_line_2
+        addressLine3:
+          type: string
+          maxLength: 35
+          description: DB Mapping - major_creditors.address_line_3
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - major_creditors.postcode
+        contactName:
+          type: string
+          maxLength: 35
+          description: DB Mapping - major_creditors.contact_name
+        contactTelephone:
+          type: string
+          maxLength: 35
+          description: DB Mapping - major_creditors.contact_telephone
+        contactEmail:
+          type: string
+          maxLength: 80
+          description: DB Mapping - major_creditors.contact_email
+
     majorCreditorReferenceData:
       type: object
       description: Major creditor reference data (joined from major_creditors and creditor_accounts).
