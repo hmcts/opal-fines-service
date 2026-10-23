@@ -1,0 +1,188 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Prosecutors
+  version: 1.0.0
+  description: APIs for retrieving prosecutor reference data.
+
+paths:
+  /prosecutors:
+    get:
+      tags:
+        - Prosecutors
+      summary: Get prosecutors
+      description: Returns prosecutor reference data, sorted by prosecutor name ascending.
+      operationId: getProsecutorsRefData
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Optional filter applied to prosecutor reference data.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Prosecutors retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProsecutorsReferenceDataResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /prosecutors/{prosecutorId}:
+    get:
+      tags:
+        - Prosecutors
+      summary: Get prosecutor by ID
+      description: Returns the prosecutor for the supplied prosecutor identifier.
+      operationId: getProsecutorById
+      parameters:
+        - name: prosecutorId
+          in: path
+          required: true
+          description: The unique prosecutor identifier. DB Mapping - prosecutors.prosecutor_id
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Prosecutor found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProsecutorsObject'
+        '400':
+          description: Invalid prosecutor identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Prosecutor not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    ProsecutorsReferenceDataResponse:
+      title: Get Prosecutors response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - ref_data
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: Number of prosecutors returned.
+        ref_data:
+          type: array
+          description: Prosecutors sorted by name ascending.
+          items:
+            $ref: '#/components/schemas/ProsecutorsObject'
+
+    ProsecutorsObject:
+      title: Prosecutor
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - prosecutor_id
+        - name
+      properties:
+        prosecutor_id:
+          type: integer
+          format: int16
+          description: DB Mapping - prosecutors.prosecutor_id
+        name:
+          type: string
+          maxLength: 200
+          description: DB Mapping - prosecutors.name
+        prosecutor_code:
+          type: string
+          maxLength: 4
+          description: DB Mapping - prosecutors.prosecutor_code
+        address_line_1:
+          type: string
+          maxLength: 60
+          description: DB Mapping - prosecutors.address_line_1
+        address_line_2:
+          type: string
+          maxLength: 35
+          description: DB Mapping - prosecutors.address_line_2
+        address_line_3:
+          type: string
+          maxLength: 35
+          description: DB Mapping - prosecutors.address_line_3
+        address_line_4:
+          type: string
+          maxLength: 35
+          description: DB Mapping - prosecutors.address_line_4
+        address_line_5:
+          type: string
+          maxLength: 35
+          description: DB Mapping - prosecutors.address_line_5
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - prosecutors.postcode
+        end_date:
+          type: string
+          format: date-time
+          description: DB Mapping - prosecutors.end_date
