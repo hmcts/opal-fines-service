@@ -86,6 +86,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUpAuthorisedUser() {
         userStateStub.setupWithNoPermissions();
+        userStateStub.getUserState().setUserId(1L);
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         userStateStub.createAuthentication(userServiceWireMock);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
@@ -498,6 +499,6 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
         String itemPath = "$.historyItems[" + index + "]";
         result.andExpect(jsonPath(itemPath + ".type").value("Note"))
             .andExpect(jsonPath(itemPath + ".postedDetails.posted_date").value(postedDate))
-            .andExpect(jsonPath(itemPath + ".details.noteText").value(noteText));
+            .andExpect(jsonPath(itemPath + ".details.noteText").value(noteText))
     }
 }
