@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,6 +20,9 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
@@ -152,5 +157,46 @@ class DefendantAccountPartyPdplLoggingServiceTest {
             () -> service.logViewedDefendant("98765", userState));
 
         assertThat(exception).hasMessage("Unable to queue PDPO log for viewing a party");
+    }
+
+    @Test
+    void queuePdpoForViewedParty_whenPartyIsDefendant_logsViewedDefendant() {
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = spy(
+            new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
+        PartyResponseDefendantAccount response = responseWithParty(
+            "98765", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
+        doNothing().when(service).logViewedDefendant("98765", userState);
+
+        service.queuePdpoForViewedParty(response, userState);
+
+        verify(service).logViewedDefendant("98765", userState);
+    }
+
+    @Test
+    void queuePdpoForViewedParty_whenPartyIsParentGuardian_logsViewedParentGuardian() {
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = spy(
+            new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
+        PartyResponseDefendantAccount response = responseWithParty(
+            "98765", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
+        doNothing().when(service).logViewedParentGuardian("98765", userState);
+
+        service.queuePdpoForViewedParty(response, userState);
+
+        verify(service).logViewedParentGuardian("98765", userState);
+    }
+
+    private PartyResponseDefendantAccount responseWithParty(
+        String partyId, DefendantAccountParty.DefendantAccountPartyTypeEnum partyType) {
+
+        return PartyResponseDefendantAccount.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(partyType)
+                .partyDetails(PartyDetailsCommonStrict.builder().partyId(partyId).build())
+                .build())
+            .build();
     }
 }
