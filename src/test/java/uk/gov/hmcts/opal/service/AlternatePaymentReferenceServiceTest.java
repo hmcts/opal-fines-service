@@ -34,6 +34,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
@@ -270,6 +271,134 @@ class AlternatePaymentReferenceServiceTest {
             assertSame(expected, actual);
             verify(service, never()).getAlternativePaymentReferenceEntities(DEFENDANT_ACCOUNT_ID);
             verifyNoInteractions(repository, alternatePaymentReferenceMapper);
+        }
+    }
+
+    @Nested
+    @DisplayName("Delete an alternate payment reference for a defendant account")
+    class DeleteAlternatePaymentReferences {
+
+        private static final Long REFERENCE_ID = 456L;
+        private static final String EXPECTED_VERSION = "\"5\"";
+        private static final String APR_TEXT = "REFERENCE-TO-DELETE";
+
+        @Test
+        @DisplayName("Maps the reference before deletion, adds an activity note, and returns the deleted reference")
+        void deletesReferenceAddsActivityNoteAndReturnsMappedReference() {
+            DefendantAccountEntity account = createDefendantAccount();
+            account.setVersionNumber(3L);
+            doReturn(account).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
+                .alternatePaymentReferenceId(REFERENCE_ID).aprText(APR_TEXT).version(5L);
+            when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(reference)).thenReturn(expected);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                AlternatePaymentReferencesItem actual = deleteReference();
+
+                assertSame(expected, actual);
+                versionUtils.verify(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences"));
+                verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+                verify(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+                InOrder order = inOrder(alternatePaymentReferenceMapper, repository, notesService);
+                order.verify(alternatePaymentReferenceMapper).toAlternatePaymentReferencesItem(reference);
+                order.verify(repository).delete(reference);
+                order.verify(notesService).addNote(
+                    NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS, DEFENDANT_ACCOUNT_ID,
+                    account.getVersion(), "Alternate payment reference deleted | " + APR_TEXT, BUSINESS_UNIT_ID);
+            }
+        }
+
+        @Test
+        @DisplayName("Rejects an unauthorised user without retrieving or deleting a reference")
+        void stopsBeforeRetrievingReferenceWhenUserLacksPermission() {
+            AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
+            doThrow(expected).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                AccessDeniedException actual = assertThrows(AccessDeniedException.class, this::deleteReference);
+
+                assertSame(expected, actual);
+                verify(service, never()).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+                versionUtils.verifyNoInteractions();
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        @Test
+        @DisplayName("Propagates a missing reference without deleting a reference or adding a note")
+        void stopsWithoutDeletingOrAddingNoteWhenReferenceDoesNotExist() {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            NotFoundException expected = new NotFoundException("Reference not found", "No reference for this account");
+            doThrow(expected).when(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                NotFoundException actual = assertThrows(NotFoundException.class, this::deleteReference);
+
+                assertSame(expected, actual);
+                versionUtils.verifyNoInteractions();
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        @Test
+        @DisplayName("Rejects an APR version mismatch without mapping, deleting, or adding a note")
+        void stopsBeforeDeletingReferenceWhenVersionDoesNotMatch() {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            ObjectOptimisticLockingFailureException expected = new ObjectOptimisticLockingFailureException(
+                AlternatePaymentReferenceEntity.class, REFERENCE_ID);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                versionUtils.when(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences")).thenThrow(expected);
+
+                ObjectOptimisticLockingFailureException actual = assertThrows(
+                    ObjectOptimisticLockingFailureException.class, this::deleteReference);
+
+                assertSame(expected, actual);
+                verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+            }
+        }
+
+        @Test
+        @DisplayName("Propagates a repository deletion failure without adding an activity note")
+        void propagatesDeletionFailureWithoutAddingActivityNote() {
+            doReturn(createDefendantAccount()).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            DataIntegrityViolationException expected = new DataIntegrityViolationException("Reference deletion failed");
+            doThrow(expected).when(repository).delete(reference);
+
+            try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
+                DataIntegrityViolationException actual = assertThrows(
+                    DataIntegrityViolationException.class, this::deleteReference);
+
+                assertSame(expected, actual);
+                versionUtils.verify(() -> VersionUtils.verifyIfMatch(
+                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences"));
+                verify(repository).delete(reference);
+                verifyNoInteractions(notesService);
+            }
+        }
+
+        private AlternatePaymentReferenceEntity stubExistingReference() {
+            AlternatePaymentReferenceEntity reference = AlternatePaymentReferenceEntity.builder()
+                .alternatePaymentReferenceId(REFERENCE_ID)
+                .aprText(APR_TEXT)
+                .versionNumber(5L)
+                .build();
+            doReturn(reference).when(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
+            return reference;
+        }
+
+        private AlternatePaymentReferencesItem deleteReference() {
+            return service.deleteAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID, REFERENCE_ID, EXPECTED_VERSION);
         }
     }
 
