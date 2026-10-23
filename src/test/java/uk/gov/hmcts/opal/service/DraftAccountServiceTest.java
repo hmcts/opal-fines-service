@@ -148,7 +148,7 @@ class DraftAccountServiceTest {
             List.of(),
             Optional.empty(),
             Optional.empty(),
-            Optional.empty()
+            Optional.of(DraftAccountSource.MAC)
         )).thenReturn(List.of(draftAccountEntity));
         var userState = UserStateUtil.allPermissionsUser();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
