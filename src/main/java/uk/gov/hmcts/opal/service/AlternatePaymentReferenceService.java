@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.util.VersionUtils;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j(topic = "opal.AlternatePaymentReferenceController")
+@Slf4j(topic = "opal.AlternatePaymentReferenceService")
 public class AlternatePaymentReferenceService {
 
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
