@@ -4,12 +4,16 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.time.Clock;
+import java.util.List;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +40,7 @@ import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFi
 import static org.mockito.ArgumentMatchers.eq;
 import static uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.PaymentType.CASH;
 
+import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
 
 @ExtendWith(MockitoExtension.class)
@@ -251,47 +256,99 @@ class InterfaceFileProcessorServiceTest {
 
         Resource resource = mock(Resource.class);
 
-        InterfaceFileCommonDataExtract extract = mock(InterfaceFileCommonDataExtract.class);
+        InterfaceFileCommonDataExtract extract =
+            mock(InterfaceFileCommonDataExtract.class);
 
-        BusinessUnitEntity businessUnit = mock(BusinessUnitEntity.class);
+        BusinessUnitEntity businessUnit =
+            mock(BusinessUnitEntity.class);
 
         when(businessUnit.getBusinessUnitCode()).thenReturn("BU01");
 
-        TransformedInterfaceFileData transformed = mock(TransformedInterfaceFileData.class);
+        TransformedInterfaceFileData transformed =
+            mock(TransformedInterfaceFileData.class);
 
-        when(interfaceFileRepository.findBySourceJsonId(123L)).thenReturn(Optional.empty());
+        when(interfaceFileRepository.findBySourceJsonId(123L))
+            .thenReturn(Optional.empty());
 
-        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,123L))
+        when(fileHandlerAPIService.getInterfaceFile(
+            SystemUserEnum.OPAL_SYSTEM_USER,
+            123L))
             .thenReturn(validSourceJson());
 
-        when(fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER,123L))
+        when(fileHandlerAPIService.getInterfaceFileContent(
+            SystemUserEnum.OPAL_SYSTEM_USER,
+            123L))
             .thenReturn(resource);
 
-        when(resource.getContentAsByteArray()).thenReturn("{}".getBytes());
+        when(resource.getContentAsByteArray())
+            .thenReturn("{}".getBytes());
 
-        when(objectMapper.readValue(any(byte[].class), eq(InterfaceFileCommonDataExtract.class)))
+        when(objectMapper.readValue(
+            any(byte[].class),
+            eq(InterfaceFileCommonDataExtract.class)))
             .thenReturn(extract);
 
-        when(businessUnitResolver.resolve(extract)).thenReturn(businessUnit);
+        when(businessUnitResolver.resolve(extract))
+            .thenReturn(businessUnit);
 
-        when(accountNumberTranslationService.process(null, extract, businessUnit))
+        when(accountNumberTranslationService.process(
+            null,
+            extract,
+            businessUnit))
             .thenReturn(transformed);
 
-        when(transformed.getFileName()).thenReturn("transformed.json");
+        when(transformed.getFileName())
+            .thenReturn("transformed.json");
 
-        // THIS WAS MISSING
-        when(transformed.getPaymentType()).thenReturn(CASH);
+        when(transformed.getPaymentType())
+            .thenReturn(CASH);
 
-        when(objectMapper.writeValueAsBytes(transformed)).thenReturn("{}".getBytes());
+        when(transformed.getTransactions())
+            .thenReturn(List.of(mock(Transaction.class)));
 
-        InterfaceFileObject transformedFile = new InterfaceFileObject().interfaceFileId(999L);
+        when(transformed.getTotalAmount())
+            .thenReturn(100L);
 
-        when(fileHandlerAPIService.addInterfaceFile(any(), any(), any())).thenReturn(transformedFile);
+        when(objectMapper.writeValueAsBytes(transformed))
+            .thenReturn("{}".getBytes());
+
+        InterfaceFileObject transformedFile =
+            new InterfaceFileObject().interfaceFileId(999L);
+
+        when(fileHandlerAPIService.addInterfaceFile(
+            any(),
+            any(),
+            any()))
+            .thenReturn(transformedFile);
+
+        // ADD THESE CLOCK STUBS
+        when(clock.getZone())
+            .thenReturn(ZoneId.systemDefault());
+
+        when(clock.instant())
+            .thenReturn(Instant.now());
+
+        // EXECUTE THE TRANSACTION CALLBACK
+        doAnswer(invocation -> {
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<
+                org.springframework.transaction.TransactionStatus> consumer =
+                invocation.getArgument(0);
+
+            consumer.accept(
+                mock(org.springframework.transaction.TransactionStatus.class));
+
+            return null;
+        }).when(transactionTemplate).executeWithoutResult(any());
 
         interfaceFileProcessorService.process(123L);
 
-        verify(fileHandlerAPIService).addInterfaceFile(any(), any(), any());
+        verify(fileHandlerAPIService).addInterfaceFile(
+            any(),
+            any(),
+            any());
 
+        verify(interfaceJobRepository).save(any());
     }
 
     @Test
@@ -396,6 +453,7 @@ class InterfaceFileProcessorServiceTest {
         return new InterfaceFileObject()
             .interfaceFileId(123L)
             .fileName("source.json")
+            .source(InterfaceFileEnum.CAPS_REPORT)
             .type(InterfaceFileTypeEnum.SOURCE_JSON)
             .domain(InterfaceFileObject.DomainEnum.FINES)
             .target(InterfaceFileEnum.OPAL)
