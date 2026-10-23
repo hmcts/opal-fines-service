@@ -148,7 +148,7 @@ class InterfaceFileProcessorServiceTest {
         InterfaceFileObject interfaceFile = validSourceJson();
         interfaceFile.setStatus(null);
 
-        when(interfaceFileRepository.findBySourceJsonId(123L)) .thenReturn(Optional.empty());
+        when(interfaceFileRepository.findBySourceJsonId(123L)).thenReturn(Optional.empty());
 
         when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,
             123L)).thenReturn(interfaceFile);
