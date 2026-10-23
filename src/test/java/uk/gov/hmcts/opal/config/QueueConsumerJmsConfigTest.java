@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
-import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
 import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
@@ -45,7 +44,10 @@ class QueueConsumerJmsConfigTest {
             .run(context -> {
                 assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
-                assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
+                //assertThat(context).hasSingleBean(DefaultJmsListenerContainerFactory.class);
+                assertThat(context)
+                    .hasBean("reportListenerContainerFactory")
+                    .hasBean("interfaceFileListenerContainerFactory");
                 assertThat(context).hasSingleBean(ReportQueueListener.class);
             });
     }
