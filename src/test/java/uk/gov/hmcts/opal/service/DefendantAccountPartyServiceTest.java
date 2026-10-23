@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -26,6 +27,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
@@ -57,12 +59,13 @@ class DefendantAccountPartyServiceTest {
     private ArgumentCaptor<String> stringCaptor;
 
     @Test
-    void getDefendantAccountParty_whenUserHasPermission_returnsResponse() {
+    void getDefendantAccountParty_whenUserHasPermissionAndPartyIsDefendant_returnsResponse() {
         // Arrange
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
-        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
+        PartyResponseDefendantAccount expectedResponse = responseWithParty(
+            "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
 
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
@@ -78,6 +81,92 @@ class DefendantAccountPartyServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPartyServiceProxy).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+        verify(pdplLoggingService).queuePdpoForViewedParty(expectedResponse, userState);
+    }
+
+    @Test
+    void getDefendantAccountParty_whenPartyIsParentGuardian_queuesPdpoLogBeforeReturningResponse() {
+        // Arrange
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        PartyResponseDefendantAccount response = responseWithParty(
+            "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
+
+        //Act
+        PartyResponseDefendantAccount actual = defendantAccountPartyService
+            .getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
+
+        //Assert
+        assertThat(actual).isSameAs(response);
+        verify(pdplLoggingService).queuePdpoForViewedParty(response, userState);
+    }
+
+    @Test
+    void getDefendantAccountParty_whenDefendantLogQueueRejects_doesNotReturnPersonalData() {
+        //Arrange
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        PartyResponseDefendantAccount response = responseWithParty(
+            "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
+
+        //Act & Assert
+        doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
+            .when(pdplLoggingService).queuePdpoForViewedParty(response, userState);
+
+        PdplLoggingException exception = assertThrows(PdplLoggingException.class,
+            () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
+
+        assertThat(exception).hasMessage("Unable to queue PDPO log for viewing a party");
+    }
+
+    @Test
+    void getDefendantAccountParty_whenParentGuardianLogQueueThrows_doesNotReturnPersonalData() {
+        //Arrange
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        PartyResponseDefendantAccount response = responseWithParty(
+            "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenReturn(response);
+        doThrow(new PdplLoggingException("Unable to queue PDPO log for viewing a party"))
+            .when(pdplLoggingService).queuePdpoForViewedParty(response, userState);
+
+        //Act & Assert
+        assertThrows(PdplLoggingException.class,
+            () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
+    }
+
+    @Test
+    void getDefendantAccountParty_whenPartyIsNotFound_doesNotQueuePdpoLog() {
+        //Arrange
+        Long defendantAccountId = 1L;
+        Long defendantAccountPartyId = 2L;
+        ResponseStatusException notFound = new ResponseStatusException(HttpStatus.NOT_FOUND);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+            .thenReturn(true);
+        when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
+            .thenThrow(notFound);
+
+        //Act
+        ResponseStatusException actual = assertThrows(ResponseStatusException.class,
+            () -> defendantAccountPartyService.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId));
+
+        //Assert
+        assertThat(actual).isSameAs(notFound);
+        verifyNoInteractions(pdplLoggingService);
     }
 
     @Test
@@ -100,7 +189,7 @@ class DefendantAccountPartyServiceTest {
 
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(defendantAccountPartyServiceProxy);
+        verifyNoInteractions(defendantAccountPartyServiceProxy, pdplLoggingService);
     }
 
     @Test
@@ -352,9 +441,16 @@ class DefendantAccountPartyServiceTest {
     }
 
     private PartyResponseDefendantAccount responseWithPartyId(String partyId) {
+        return responseWithParty(partyId, null);
+    }
+
+    private PartyResponseDefendantAccount responseWithParty(
+        String partyId, DefendantAccountParty.DefendantAccountPartyTypeEnum partyType) {
+
         return PartyResponseDefendantAccount.builder()
             .defendantAccountParty(DefendantAccountParty.builder()
                 .partyDetails(PartyDetailsCommonStrict.builder().partyId(partyId).build())
+                .defendantAccountPartyType(partyType)
                 .build())
             .build();
     }
