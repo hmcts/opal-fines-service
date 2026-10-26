@@ -145,10 +145,18 @@ paths:
           schema:
             $ref: '#/components/schemas/interfaceFileEnum'
         - in: query
+          name: not_target
+          description: DB Mapping - interface_files.target
+          schema:
+            $ref: '#/components/schemas/interfaceFileEnum'
+        - in: query
           name: type
+          explode: false
           description: DB Mapping - interface_files.type
           schema:
-            $ref: '#/components/schemas/interfaceFileTypeEnum'
+            type: array
+            items:
+              $ref: '#/components/schemas/interfaceFileTypeEnum'
         - in: query
           name: domain
           description: DB Mapping - interface_files.domain
@@ -159,6 +167,19 @@ paths:
           description: DB Mapping - interface_files.status
           schema:
             $ref: '#/components/schemas/statusEnum'
+        - in: query
+          name: not_status
+          explode: false
+          description: DB Mapping - interface_files.status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/statusEnum'
+        - in: query
+          name: business_unit_code
+          description: DB Mapping - interface_files.business_unit_code
+          schema:
+            type: string
         - in: query
           name: from_date
           description: DB Mapping - interface_files.created_datetime
@@ -379,6 +400,11 @@ components:
           type: string
           maxLength: 32
           description: DB Mapping - interface_files.checksum (MD5 checksum)
+        business_unit_codes:
+          type: array
+          description: DB Mapping - interface_files.business_unit_code (MD5 checksum)
+          items:
+            type: string
         source:
           $ref: '#/components/schemas/interfaceFileEnum'
         target:

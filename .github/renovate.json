@@ -13,8 +13,7 @@
       "description": "Lock the cucumber dependencies to version 7.23.0 for serenity-bdd gradle plugin 4.2.34",
       "matchPackageNames": ["cucumber-core", "cucumber-java", "cucumber-junit", "io.cucumber{/,}**"],
       "rangeStrategy": "pin",
-      "allowedVersions": "7.23.0",
-      "versioning": "fixed"
+      "allowedVersions": "7.23.0"
     },
     {
       "description": "Keep com.networknt:json-schema-validator on v1 because JsonSchemaValidationService and DefendantDto still depend on the pre-v2 API removed in later major versions",
