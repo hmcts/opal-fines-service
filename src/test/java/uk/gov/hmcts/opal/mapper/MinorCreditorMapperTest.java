@@ -4,6 +4,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
@@ -60,6 +62,7 @@ class MinorCreditorMapperTest {
             .creditorAccountBalance(250)
             .forenames("John")
             .defendantAccountId(456L)
+            .defendantOrganisation(false)
             .organisation(false)
             .organisationName(null)
             .defendantFornames("Jane")
@@ -78,5 +81,31 @@ class MinorCreditorMapperTest {
         assertThat(result.getDefendant().getOrganisationName()).isNull();
         assertThat(result.getDefendant().getFirstnames()).isEqualTo("Jane");
         assertThat(result.getDefendant().getSurname()).isEqualTo("Smith");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"false, true", "true, false", "false, false", "true, true"})
+    void mapsOrganisationFlagsIndependently(boolean creditorOrganisation, boolean defendantOrganisation) {
+        MinorCreditorEntity entity = MinorCreditorEntity.builder()
+            .creditorId(123L)
+            .organisation(creditorOrganisation)
+            .defendantAccountId(456L)
+            .defendantOrganisation(defendantOrganisation)
+            .build();
+
+        MinorCreditorAccountSearchResultMinorCreditor result = minorCreditorMapper.toCreditorAccountDto(entity);
+
+        assertThat(result.getOrganisation()).isEqualTo(creditorOrganisation);
+        assertThat(result.getDefendant().getOrganisation()).isEqualTo(defendantOrganisation);
+    }
+
+    @Test
+    void missingDefendantPreservesExistingResponse() {
+        MinorCreditorEntity entity = MinorCreditorEntity.builder().creditorId(123L).build();
+
+        MinorCreditorAccountSearchResultMinorCreditor result = minorCreditorMapper.toCreditorAccountDto(entity);
+
+        assertThat(result.getDefendant().getDefendantAccountId()).isNull();
+        assertThat(result.getDefendant().getOrganisation()).isFalse();
     }
 }

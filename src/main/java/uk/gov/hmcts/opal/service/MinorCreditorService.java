@@ -16,14 +16,15 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
@@ -38,6 +39,7 @@ public class MinorCreditorService {
 
     private final MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
     private final MinorCreditorPdplLoggingService pdplLoggingService;
+    private final MinorCreditorSearchPdplLoggingService searchPdplLoggingService;
 
     private final MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
@@ -48,7 +50,9 @@ public class MinorCreditorService {
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             validateMinorCreditorSearch(entity);
-            return minorCreditorSearchProxy.searchMinorCreditors(entity);
+            MinorCreditorAccountsSearchResponse response = minorCreditorSearchProxy.searchMinorCreditors(entity);
+            searchPdplLoggingService.logSearchResults(userState, response);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
