@@ -80,6 +80,9 @@ class DraftAccountServiceTest {
     private DraftAccountTransactional draftAccountTransactional;
 
     @Mock
+    private DraftAccountReferenceValidationServiceLocator referenceValidationServiceLocator;
+
+    @Mock
     private DraftAccountReferenceValidationService referenceValidationService;
 
     @Mock
@@ -252,6 +255,7 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.submitDraftAccount(any(), any(), any())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
@@ -368,6 +372,7 @@ class DraftAccountServiceTest {
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
@@ -415,6 +420,7 @@ class DraftAccountServiceTest {
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
@@ -441,6 +447,7 @@ class DraftAccountServiceTest {
             .thenReturn(existingAccount);
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService
