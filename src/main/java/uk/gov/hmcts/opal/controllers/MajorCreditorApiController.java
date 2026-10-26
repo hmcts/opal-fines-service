@@ -17,12 +17,15 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
+import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
+import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -36,6 +39,18 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     private final CentralFundService centralFundService;
     private final MajorCreditorAccountService majorCreditorAccountService;
     private final MajorCreditorService majorCreditorService;
+    private final MajorCreditorMapper majorCreditorMapper;
+
+    @Override
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY
+    )
+    public ResponseEntity<MajorCreditorObject> getMajorCreditorById(Long majorCreditorId) {
+
+        MajorCreditorEntity entity = majorCreditorService.getMajorCreditorById(majorCreditorId);
+        return buildResponse(majorCreditorMapper.toObject(entity));
+    }
 
     @Override
     @FeatureToggle(
