@@ -7,14 +7,6 @@ def type = "java"
 def product = "opal"
 def component = "fines-service"
 
-def enableExtendedTestsForLabel() {
-  def githubApi = new GithubAPI(this)
-  if (githubApi.getLabels(env.BRANCH_NAME).any { it.equalsIgnoreCase("ExtendedTests") }) {
-    env.EXTENDED_TESTS = "true"
-    echo "PR label 'ExtendedTests' found; extended test lane enabled for Gradle test tasks"
-  }
-}
-
 def determineDevEnvironmentDeployment() {
   env.TEST_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}.dev.platform.hmcts.net"
 
@@ -187,7 +179,7 @@ def publishSmokeResults(String reportNameSuffix = '') {
 
 withPipeline(type, product, component) {
   env.FAIL_FAST = false
-  env.EXTENDED_TESTS = "false"
+  env.EXTENDED_TESTS = env.BRANCH_NAME == 'master' ? 'false' : 'true'
   env.STAGING_DB_SCHEMA = 'public'
   env.OPAL_LEGACY_GATEWAY_URL = 'https://opal-legacy-db-stub-staging.platform.hmcts.net/opal'
   env.OPAL_LEGACY_STUB_IMAGE = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
@@ -205,12 +197,6 @@ withPipeline(type, product, component) {
   before('akschartsinstall') {
     onPR {
       determineDevEnvironmentDeployment()
-    }
-  }
-
-  before('test') {
-    onPR {
-      enableExtendedTestsForLabel()
     }
   }
 
