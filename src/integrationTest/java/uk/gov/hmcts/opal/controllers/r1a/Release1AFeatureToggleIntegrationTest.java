@@ -65,7 +65,8 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
                 .param("q", "1").param("lja_type", "LJA,SJCRT"))),
 
             // MajorCreditorController
-            args("GET /major-creditors/{id}", withAuth(get("/major-creditors/1"))),
+            // todo PO-11081 re-enable when BE is completed for this endpoint
+            // args("GET /major-creditors/{id}", withAuth(get("/major-creditors/1"))),
             args("GET /major-creditors", withAuth(get("/major-creditors")
                 .param("q", ""))),
 
@@ -101,7 +102,7 @@ class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegra
     @JiraTestKey(value = "PO-8507", name = "\"PATCH /draft-accounts/{id}\"")
     @JiraTestKey(value = "PO-8508", name = "\"GET /local-justice-areas/{id}\"")
     @JiraTestKey(value = "PO-8509", name = "\"GET /local-justice-areas\"")
-    @JiraTestKey(value = "PO-8510", name = "\"GET /major-creditors/{id}\"")
+    // todo PO-11081 @JiraTestKey(value = "PO-8510", name = "\"GET /major-creditors/{id}\"")
     @JiraTestKey(value = "PO-8511", name = "\"GET /major-creditors\"")
     @JiraTestKey(value = "PO-8512", name = "\"GET /offences/{id}\"")
     @JiraTestKey(value = "PO-8513", name = "\"POST /offences/search\"")
