@@ -19,6 +19,13 @@ public class PermissionUtil {
             AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
+    public static BusinessUnitUser getRequiredBusinessUnitUser(DomainBusinessUnitUsers businessUnitUsers,
+                                                              Short businessUnitId) {
+
+        return businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() ->
+            new AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
+    }
+
     public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUser businessUnitUser,
                                                              FinesPermission permission) {
         if (businessUnitUser.doesNotHavePermission(permission)) {

@@ -24,9 +24,8 @@ public class InterfaceBusinessUnitResolver {
     public BusinessUnitEntity resolve(InterfaceFileCommonDataExtract sourceData) {
         BankDetails bankDetails = sourceData.getDestinationDetails().getBankDetails();
 
-        return configurationItemRepository.findByItemNameAndBusinessUnitIdIsNull(BANK_ACCOUNTS).stream()
-            .filter(configurationItem ->
-                matchesBankAccount(configurationItem.getItemValues(), bankDetails))
+        return configurationItemRepository.findByItemName(BANK_ACCOUNTS).stream()
+            .filter(configurationItem -> matchesBankAccount(configurationItem.getItemValues(), bankDetails))
             .map(ConfigurationItemEntity::getBusinessUnit)
             .filter(Objects::nonNull)
             .findFirst()
