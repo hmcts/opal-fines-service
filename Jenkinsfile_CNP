@@ -1,5 +1,6 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
+import uk.gov.hmcts.contino.Kubectl
 
 @Library("Infrastructure@2.13.4")
 
