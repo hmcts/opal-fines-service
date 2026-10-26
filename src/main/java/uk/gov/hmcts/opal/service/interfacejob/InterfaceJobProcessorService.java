@@ -25,7 +25,8 @@ public class InterfaceJobProcessorService {
                 interfaceJob.getInterfaceJobId(),
                 interfaceJob.getBusinessUnit().getBusinessUnitId(),
                 SYSTEM_POSTED_BY,
-                SYSTEM_POSTED_BY_NAME));
+                SYSTEM_POSTED_BY_NAME,
+                interfaceJob.getInterfaceFiles().getFirst().getRecords()));
         } catch (Exception e) {
             throw new IllegalStateException("Failed to process interface job " + interfaceJobId, e);
         }

@@ -78,7 +78,7 @@ INSERT INTO payments_in (
     'defendant_accounts',
     '99000000353200',
     'A Payer',
-    'Account payment',
+    '{"payment_received_from":"T"}'::json,
     true,
     false,
     false

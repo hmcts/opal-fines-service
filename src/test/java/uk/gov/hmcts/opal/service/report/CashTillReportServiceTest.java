@@ -604,7 +604,9 @@ class CashTillReportServiceTest {
             .receipt(false)
             .autoPayment(true)
             .allocated(false)
-            .additionalInformation("PAYMENTS_IN")
+            .additionalInformation("""
+                {"interface_name":"PAYMENTS_IN","additional_information":{"originator_reference":"99000001A"}}
+                """)
             .build();
     }
 

@@ -102,7 +102,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
             assertThat(reportJson).contains("\"suspense\":\"UN\"");
             assertThat(reportJson).contains("\"accountNumber\":\"Suspense Ref\"");
             assertThat(reportJson).contains("\"name\":\"1\"");
-            assertThat(reportJson).contains("\"nameAdditionalInformation\":\"Auto - Suspense payment\"");
+            assertThat(reportJson).contains("\"nameAdditionalInformation\":\"Auto - PAYMENTS_IN\"");
             assertThat(reportJson).contains("\"total\":165.50");
         }
     }

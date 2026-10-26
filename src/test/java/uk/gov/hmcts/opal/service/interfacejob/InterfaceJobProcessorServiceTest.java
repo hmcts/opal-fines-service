@@ -7,6 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
@@ -23,6 +25,8 @@ class InterfaceJobProcessorServiceTest {
 
     private static final Long INTERFACE_JOB_ID = 123L;
     private static final Short BUSINESS_UNIT_ID = 77;
+
+    private static final String RECORDS_JSON = "[{\"amount_pence\":12345}]";
 
     @Mock
     private InterfaceJobRepository interfaceJobRepository;
@@ -48,7 +52,7 @@ class InterfaceJobProcessorServiceTest {
         InterfaceJobEntity interfaceJob = interfaceJob();
         when(interfaceJobRepository.findById(INTERFACE_JOB_ID)).thenReturn(Optional.of(interfaceJob));
         when(interfaceJobRepository.processPaymentsInJob(INTERFACE_JOB_ID, BUSINESS_UNIT_ID,
-            "interface-jobs", "interface-jobs")).thenReturn(456L);
+            "interface-jobs", "interface-jobs", RECORDS_JSON)).thenReturn(456L);
 
         // Act
         Optional<Long> tillId = interfaceJobProcessorService.processPaymentsInJob(INTERFACE_JOB_ID);
@@ -57,7 +61,7 @@ class InterfaceJobProcessorServiceTest {
         assertThat(tillId).contains(456L);
         verify(interfaceJobRepository).findById(INTERFACE_JOB_ID);
         verify(interfaceJobRepository).processPaymentsInJob(INTERFACE_JOB_ID, BUSINESS_UNIT_ID,
-            "interface-jobs", "interface-jobs");
+            "interface-jobs", "interface-jobs", RECORDS_JSON);
     }
 
     @Test
@@ -66,7 +70,7 @@ class InterfaceJobProcessorServiceTest {
         InterfaceJobEntity interfaceJob = interfaceJob();
         when(interfaceJobRepository.findById(INTERFACE_JOB_ID)).thenReturn(Optional.of(interfaceJob));
         when(interfaceJobRepository.processPaymentsInJob(INTERFACE_JOB_ID, BUSINESS_UNIT_ID,
-            "interface-jobs", "interface-jobs")).thenReturn(null);
+            "interface-jobs", "interface-jobs", RECORDS_JSON)).thenReturn(null);
 
         // Act
         Optional<Long> tillId = interfaceJobProcessorService.processPaymentsInJob(INTERFACE_JOB_ID);
@@ -94,7 +98,7 @@ class InterfaceJobProcessorServiceTest {
         InterfaceJobEntity interfaceJob = interfaceJob();
         when(interfaceJobRepository.findById(INTERFACE_JOB_ID)).thenReturn(Optional.of(interfaceJob));
         when(interfaceJobRepository.processPaymentsInJob(eq(INTERFACE_JOB_ID), eq(BUSINESS_UNIT_ID),
-            eq("interface-jobs"), eq("interface-jobs")))
+            eq("interface-jobs"), eq("interface-jobs"), eq(RECORDS_JSON)))
             .thenThrow(new RuntimeException("db down"));
 
         // Act / Assert
@@ -108,6 +112,7 @@ class InterfaceJobProcessorServiceTest {
     private static InterfaceJobEntity interfaceJob() {
         return InterfaceJobEntity.builder()
             .interfaceJobId(INTERFACE_JOB_ID)
+            .interfaceFiles(List.of(InterfaceFileEntity.builder().records(RECORDS_JSON).build()))
             .businessUnit(BusinessUnitEntity.builder()
                 .businessUnitId(BUSINESS_UNIT_ID)
                 .build())

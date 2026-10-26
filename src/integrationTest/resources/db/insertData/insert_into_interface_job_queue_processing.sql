@@ -63,15 +63,15 @@ INSERT INTO interface_files (
     'payments-in-int-01.json',
     'NATWEST',
     '[{
-        "receiving_sort_code": "123456",
-        "receiving_bank_account_number": "01234567",
-        "receiving_account_type": "5",
+        "destination_sort_code": "123456",
+        "destination_bank_account_number": "01234567",
+        "destination_account_type": "5",
         "transaction_code": "68",
         "originator_sort_code": "654321",
         "originator_bank_account_number": "98765432",
         "amount_pence": "12345",
         "originator_name": "Test Payer",
         "originator_reference": "99000001A",
-        "originator_beneficiary_name": "Test Court"
+        "destination_beneficiary_name": "Test Court"
     }]'::json
 );
