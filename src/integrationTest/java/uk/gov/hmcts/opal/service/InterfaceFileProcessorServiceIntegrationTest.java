@@ -10,6 +10,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
@@ -22,6 +24,9 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,9 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -45,6 +52,7 @@ import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFile
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
+import uk.gov.hmcts.opal.service.filehandler.FileHandlerAPIService;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.BankDetails;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.DestinationDetails;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.InterfaceFileCommonDataExtract;
@@ -85,6 +93,9 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
     @Autowired
     private InterfaceJobRepository interfaceJobRepository;
+
+    @MockitoSpyBean
+    private FileHandlerAPIService fileHandlerAPIService;
 
     @ParameterizedTest
     @EnumSource(PaymentType.class)
@@ -151,6 +162,57 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
         wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
         assertThat(interfaceFileRepository.findBySourceJsonId(SOURCE_ID)).isPresent();
+    }
+
+    @Test
+    @DisplayName("Concurrent deliveries create one transformed file and one job/file pair")
+    @JiraStory("PO-6460")
+    @JiraEpic("PO-3497")
+    void process_concurrentDeliveriesUploadOnce() throws Exception {
+        stubSuccessfulFileHandler(PaymentType.CASH);
+        long filesBefore = interfaceFileRepository.count();
+        long jobsBefore = interfaceJobRepository.count();
+        CyclicBarrier requestsPassedInitialCheck = new CyclicBarrier(2);
+
+        doAnswer(invocation -> {
+            requestsPassedInitialCheck.await(10, TimeUnit.SECONDS);
+            return invocation.callRealMethod();
+        }).when(fileHandlerAPIService).getInterfaceFile(eq(SystemUserEnum.OPAL_SYSTEM_USER), eq(SOURCE_ID));
+
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var first = executor.submit(() -> service.process(SOURCE_ID));
+            var second = executor.submit(() -> service.process(SOURCE_ID));
+            first.get(30, TimeUnit.SECONDS);
+            second.get(30, TimeUnit.SECONDS);
+        }
+
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
+        assertThat(interfaceFileRepository.count()).isEqualTo(filesBefore + 1);
+        assertThat(interfaceJobRepository.count()).isEqualTo(jobsBefore + 1);
+        assertThat(interfaceFileRepository.findBySourceJsonId(SOURCE_ID)).isPresent();
+    }
+
+    @Test
+    @DisplayName("An upload failure rolls back the claim so a retry can succeed")
+    @JiraStory("PO-6460")
+    @JiraEpic("PO-3497")
+    void process_retriesAfterUploadFailure() {
+        stubSuccessfulFileHandler(PaymentType.CASH);
+        wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
+            .atPriority(1).willReturn(fileHandlerError()));
+        long jobsBefore = interfaceJobRepository.count();
+
+        assertThrows(DownstreamServiceUnavailableException.class, () -> service.process(SOURCE_ID));
+        assertThat(interfaceFileRepository.findBySourceJsonId(SOURCE_ID)).isEmpty();
+        assertThat(interfaceJobRepository.count()).isEqualTo(jobsBefore);
+
+        wireMockServer.resetAll();
+        stubSuccessfulFileHandler(PaymentType.CASH);
+        service.process(SOURCE_ID);
+
+        assertThat(interfaceFileRepository.findBySourceJsonId(SOURCE_ID)).isPresent();
+        assertThat(interfaceJobRepository.count()).isEqualTo(jobsBefore + 1);
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
     }
 
     private void assertJobAndFileSaved(PaymentType paymentType, LocalDateTime before, LocalDateTime after) {

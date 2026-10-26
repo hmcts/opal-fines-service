@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -56,29 +57,41 @@ public class InterfaceFileProcessorService {
             return;
         }
 
+        try {
+            Long transformedJsonId = transactionTemplate.execute(status -> processSourceJson(sourceJsonId));
+            log.info("Processed source JSON interfaceFileId={} into transformed interfaceFileId={}",
+                sourceJsonId, transformedJsonId);
+        } catch (DataIntegrityViolationException exception) {
+            if (interfaceFileRepository.findBySourceJsonId(sourceJsonId).isEmpty()) {
+                throw exception;
+            }
+
+            log.info("Source JSON interfaceFileId={} has already been processed", sourceJsonId);
+        }
+    }
+
+    private Long processSourceJson(Long sourceJsonId) {
         InterfaceFileObject sourceJson = getSourceJson(sourceJsonId);
         InterfaceFileCommonDataExtract sourceData = deserialiseSourceJson(
             fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, sourceJsonId));
         BusinessUnitEntity businessUnit = businessUnitResolver.resolve(sourceData);
+        InterfaceFileEntity file = claimSourceJson(sourceJson, sourceData, businessUnit);
 
         TransformedInterfaceFileData transformedData = accountNumberTranslationService.process(
-            null, sourceData, businessUnit);
+            file, sourceData, businessUnit);
         InterfaceFileObject transformedJson = uploadTransformedJson(sourceJson, transformedData, businessUnit);
 
-        transactionTemplate.executeWithoutResult(transactionStatus ->
-            persistInterfaceJobAndFile(sourceJson, transformedJson, transformedData, businessUnit));
+        file.setRecordCount((short) transformedData.getTransactions().size());
+        file.setTotalAmount(BigDecimal.valueOf(transformedData.getTotalAmount()));
+        file.setTransformedJsonId(transformedJson.getInterfaceFileId());
 
-        log.info("Processed source JSON interfaceFileId={} into transformed interfaceFileId={}",
-            sourceJsonId, transformedJson.getInterfaceFileId());
+        return transformedJson.getInterfaceFileId();
     }
 
-    private void persistInterfaceJobAndFile(
-        InterfaceFileObject sourceJson,
-        InterfaceFileObject transformedJson,
-        TransformedInterfaceFileData transformedData,
-        BusinessUnitEntity businessUnit
-    ) {
-        String interfaceName = switch (transformedData.getPaymentType()) {
+    private InterfaceFileEntity claimSourceJson(InterfaceFileObject sourceJson,
+        InterfaceFileCommonDataExtract sourceData, BusinessUnitEntity businessUnit) {
+
+        String interfaceName = switch (sourceData.getPaymentType()) {
             case CASH -> PAYMENTS_IN;
             case CHEQUE -> PRESENTED_CHEQUES;
         };
@@ -95,14 +108,13 @@ public class InterfaceFileProcessorService {
             .fileName(sourceJson.getFileName())
             .createdDateTime(LocalDateTime.now(clock))
             .source(sourceJson.getSource().toString())
-            .recordCount((short) transformedData.getTransactions().size())
-            .totalAmount(BigDecimal.valueOf(transformedData.getTotalAmount()))
             .sourceJsonId(sourceJson.getInterfaceFileId())
-            .transformedJsonId(transformedJson.getInterfaceFileId())
             .build();
 
         job.getInterfaceFiles().add(file);
-        interfaceJobRepository.save(job);
+        interfaceJobRepository.saveAndFlush(job);
+
+        return file;
     }
 
     private InterfaceFileObject getSourceJson(Long sourceJsonId) {

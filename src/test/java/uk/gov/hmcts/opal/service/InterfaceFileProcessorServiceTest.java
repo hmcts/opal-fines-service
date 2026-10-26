@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.ArgumentMatchers.nullable;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -19,7 +21,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.transaction.TransactionStatus;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -77,7 +79,9 @@ class InterfaceFileProcessorServiceTest {
     private InterfaceJobRepository interfaceJobRepository;
 
     @Mock
-    private TransactionTemplate transactionTemplate;
+    private PlatformTransactionManager transactionManager;
+
+    private SimpleTransactionStatus transactionStatus;
 
     @Mock
     private FileHandlerAPIService fileHandlerAPIService;
@@ -94,9 +98,11 @@ class InterfaceFileProcessorServiceTest {
     @BeforeEach
     void setUp() {
         Clock clock = Clock.fixed(Instant.parse("2026-10-12T10:00:00Z"), ZoneOffset.UTC);
+        transactionStatus = new SimpleTransactionStatus();
+        lenient().when(transactionManager.getTransaction(any())).thenReturn(transactionStatus);
         service = new InterfaceFileProcessorService(clock, objectMapper, interfaceFileRepository,
-            interfaceJobRepository, transactionTemplate, fileHandlerAPIService, businessUnitResolver,
-            accountNumberTranslationService);
+            interfaceJobRepository, new TransactionTemplate(transactionManager), fileHandlerAPIService,
+            businessUnitResolver, accountNumberTranslationService);
     }
 
     @ParameterizedTest
@@ -109,18 +115,25 @@ class InterfaceFileProcessorServiceTest {
         when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any()))
             .thenReturn(InterfaceFileObject.builder().interfaceFileId(988L).build());
 
-        doAnswer(invocation -> {
-            Consumer<TransactionStatus> callback = invocation.getArgument(0);
-            callback.accept(new SimpleTransactionStatus());
-            return null;
-        }).when(transactionTemplate).executeWithoutResult(any());
-
-        when(interfaceJobRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
-
         service.process(SOURCE_ID);
 
         assertTransformedFileUploaded(paymentType);
         assertLinkedRowsSaved(paymentType);
+    }
+
+    @Test
+    @DisplayName("Claims the source before transforming or uploading it")
+    void process_claimsSourceBeforeUpload() {
+        stubSuccessfulProcessing(PaymentType.CASH);
+        when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any()))
+            .thenReturn(InterfaceFileObject.builder().interfaceFileId(988L).build());
+
+        service.process(SOURCE_ID);
+
+        var order = inOrder(interfaceJobRepository, accountNumberTranslationService, fileHandlerAPIService);
+        order.verify(interfaceJobRepository).saveAndFlush(any());
+        order.verify(accountNumberTranslationService).process(any(), any(), any());
+        order.verify(fileHandlerAPIService).addInterfaceFile(eq(SYSTEM_USER), any(), any());
     }
 
     @Test
@@ -132,7 +145,7 @@ class InterfaceFileProcessorServiceTest {
 
         service.process(SOURCE_ID);
 
-        verifyNoInteractions(fileHandlerAPIService, interfaceJobRepository, transactionTemplate);
+        verifyNoInteractions(fileHandlerAPIService, interfaceJobRepository, transactionManager);
     }
 
     @ParameterizedTest
@@ -155,7 +168,8 @@ class InterfaceFileProcessorServiceTest {
 
         assertThatThrownBy(() -> service.process(SOURCE_ID)).isInstanceOf(IllegalArgumentException.class);
 
-        verifyNoInteractions(interfaceJobRepository, transactionTemplate);
+        verifyNoInteractions(interfaceJobRepository);
+        verify(transactionManager).rollback(transactionStatus);
     }
 
     @ParameterizedTest
@@ -171,7 +185,7 @@ class InterfaceFileProcessorServiceTest {
         assertThatThrownBy(() -> service.process(SOURCE_ID)).isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("transformed interface file ID");
 
-        verifyNoInteractions(interfaceJobRepository, transactionTemplate);
+        verify(transactionManager).rollback(transactionStatus);
     }
 
     @ParameterizedTest
@@ -198,7 +212,49 @@ class InterfaceFileProcessorServiceTest {
         }
 
         assertThatThrownBy(() -> service.process(SOURCE_ID)).isSameAs(failure);
-        verifyNoInteractions(interfaceJobRepository, transactionTemplate);
+        verify(transactionManager).rollback(transactionStatus);
+    }
+
+    @Test
+    @DisplayName("A concurrent claim stops processing before translation or upload")
+    void process_skipsConcurrentClaim() {
+        stubSuccessfulProcessing(PaymentType.CASH);
+        when(interfaceFileRepository.findBySourceJsonId(SOURCE_ID))
+            .thenReturn(Optional.empty()).thenReturn(Optional.of(new InterfaceFileEntity()));
+        when(interfaceJobRepository.saveAndFlush(any()))
+            .thenThrow(new DataIntegrityViolationException("Duplicate source JSON"));
+
+        service.process(SOURCE_ID);
+
+        verifyNoInteractions(accountNumberTranslationService);
+        verify(fileHandlerAPIService, never()).addInterfaceFile(any(), any(), any());
+        verify(transactionManager).rollback(transactionStatus);
+    }
+
+    @Test
+    @DisplayName("An unrelated integrity failure is propagated")
+    void process_propagatesIntegrityFailure() {
+        stubSuccessfulProcessing(PaymentType.CASH);
+        DataIntegrityViolationException failure = new DataIntegrityViolationException("Invalid job");
+        when(interfaceJobRepository.saveAndFlush(any())).thenThrow(failure);
+
+        assertThatThrownBy(() -> service.process(SOURCE_ID)).isSameAs(failure);
+
+        verifyNoInteractions(accountNumberTranslationService);
+        verify(fileHandlerAPIService, never()).addInterfaceFile(any(), any(), any());
+        verify(transactionManager).rollback(transactionStatus);
+    }
+
+    @Test
+    @DisplayName("A commit failure is propagated after uploading")
+    void process_propagatesCommitFailure() {
+        stubSuccessfulProcessing(PaymentType.CASH);
+        when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any()))
+            .thenReturn(InterfaceFileObject.builder().interfaceFileId(988L).build());
+        IllegalStateException failure = new IllegalStateException("Commit failed");
+        doThrow(failure).when(transactionManager).commit(transactionStatus);
+
+        assertThatThrownBy(() -> service.process(SOURCE_ID)).isSameAs(failure);
     }
 
     private void assertTransformedFileUploaded(PaymentType paymentType) throws Exception {
@@ -228,7 +284,7 @@ class InterfaceFileProcessorServiceTest {
     private void assertLinkedRowsSaved(PaymentType paymentType) {
         ArgumentCaptor<InterfaceJobEntity> jobCaptor = ArgumentCaptor.forClass(InterfaceJobEntity.class);
 
-        verify(interfaceJobRepository).save(jobCaptor.capture());
+        verify(interfaceJobRepository).saveAndFlush(jobCaptor.capture());
         verify(interfaceFileRepository, never()).save(any());
 
         InterfaceJobEntity job = jobCaptor.getValue();
@@ -262,7 +318,8 @@ class InterfaceFileProcessorServiceTest {
         when(fileHandlerAPIService.getInterfaceFileContent(SYSTEM_USER, SOURCE_ID))
             .thenReturn(new ByteArrayResource(objectMapper.writeValueAsBytes(sourceData)));
         when(businessUnitResolver.resolve(any())).thenReturn(businessUnit);
-        when(accountNumberTranslationService.process(isNull(), any(), eq(businessUnit))).thenReturn(transformedData);
+        lenient().when(accountNumberTranslationService.process(
+            nullable(InterfaceFileEntity.class), any(), eq(businessUnit))).thenReturn(transformedData);
     }
 
     private InterfaceFileObject.Builder sourceFile() {
