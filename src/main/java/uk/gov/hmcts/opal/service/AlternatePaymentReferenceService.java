@@ -97,7 +97,7 @@ public class AlternatePaymentReferenceService {
 
         verifyUniqueApr(alternatePaymentReferenceEntity.getBusinessUnit(), aprText);
         alternatePaymentReferenceEntity.setAprText(aprText);
-        alternatePaymentReferenceEntity = repository.save(alternatePaymentReferenceEntity);
+        alternatePaymentReferenceEntity = repository.saveAndFlush(alternatePaymentReferenceEntity);
 
         notesService.addNote(
             NoteType.AA,

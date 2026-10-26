@@ -296,7 +296,7 @@ class AlternatePaymentReferenceServiceTest {
             doNothing().when(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
             AlternatePaymentReferenceEntity saved = AlternatePaymentReferenceEntity.builder()
                 .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).versionNumber(6L).build();
-            when(repository.save(reference)).thenReturn(saved);
+            when(repository.saveAndFlush(reference)).thenReturn(saved);
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
                 .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).version(6L);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(saved)).thenReturn(expected);
@@ -312,7 +312,7 @@ class AlternatePaymentReferenceServiceTest {
                 verify(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
                 verify(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
                 InOrder order = inOrder(repository, notesService, alternatePaymentReferenceMapper);
-                order.verify(repository).save(reference);
+                order.verify(repository).saveAndFlush(reference);
                 order.verify(notesService).addNote(
                     NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS, DEFENDANT_ACCOUNT_ID,
                     account.getVersion(), "Alternate payment reference updated | " + UPDATED_TEXT, BUSINESS_UNIT_ID);
