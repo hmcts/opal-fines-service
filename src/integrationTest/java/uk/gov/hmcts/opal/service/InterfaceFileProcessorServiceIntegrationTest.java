@@ -170,15 +170,15 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     @JiraEpic("PO-3497")
     void process_concurrentDeliveriesUploadOnce() throws Exception {
         stubSuccessfulFileHandler(PaymentType.CASH);
-        long filesBefore = interfaceFileRepository.count();
-        long jobsBefore = interfaceJobRepository.count();
         CyclicBarrier requestsPassedInitialCheck = new CyclicBarrier(2);
-
         doAnswer(invocation -> {
             requestsPassedInitialCheck.await(10, TimeUnit.SECONDS);
             return invocation.callRealMethod();
         }).when(fileHandlerAPIService).getInterfaceFile(eq(SystemUserEnum.OPAL_SYSTEM_USER), eq(SOURCE_ID));
 
+        final long filesBefore = interfaceFileRepository.count();
+        final long jobsBefore = interfaceJobRepository.count();
+        
         try (var executor = Executors.newFixedThreadPool(2)) {
             var first = executor.submit(() -> service.process(SOURCE_ID));
             var second = executor.submit(() -> service.process(SOURCE_ID));
