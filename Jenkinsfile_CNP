@@ -77,6 +77,39 @@ def determineDevEnvironmentDeployment() {
   echo "Deploying Opal logging service (${env.OPAL_LOGGING_SERVICE_API_URL} - ${env.DEV_OPAL_LOGGING_SERVICE_IMAGE_SUFFIX}) instance in PR environment"
 }
 
+def configureFunctionalTestDatabase(String valuesFile, String releaseName, String namespace) {
+  Map values = steps.readYaml(file: valuesFile)
+  Map globalValues = values.global as Map
+  Map javaValues = values.java as Map
+  Map javaEnvironment = javaValues.environment as Map
+  Map postgresql = javaValues.postgresql as Map
+
+  if (!postgresql?.enabled) {
+    throw new RuntimeException("PostgreSQL must be enabled in ${valuesFile}")
+  }
+
+  String databaseHost = javaEnvironment.OPAL_FINES_DB_HOST
+    ?.toString()
+    ?.replace('{{ .Release.Name }}', releaseName)
+  String databaseName = globalValues.postgresDatabase?.toString()?.trim() ?: 'opal-fines-db'
+  String databaseUsername = globalValues.postgresUsername?.toString()?.trim()
+  String databasePassword = globalValues.postgresPassword?.toString()
+  String databaseOptions = globalValues.postgresOptions?.toString() ?: ''
+
+  if (!databaseHost || databaseHost.contains('{{') || !databaseUsername || !databasePassword) {
+    throw new RuntimeException("Missing functional-test database values in ${valuesFile}")
+  }
+
+  env.OPAL_FINES_DB_HOST = "${databaseHost}.${namespace}.svc.cluster.local"
+  env.OPAL_FINES_DB_PORT = '5432'
+  env.OPAL_FINES_DB_NAME = databaseName
+  env.OPAL_FINES_DB_USERNAME = databaseUsername
+  env.OPAL_FINES_DB_PASSWORD = databasePassword
+  env.OPAL_FINES_DB_OPTIONS = databaseOptions
+
+  steps.echo "Configured functional-test database ${databaseName} on ${env.OPAL_FINES_DB_HOST}"
+}
+
 def copyReportOutputIfPresent(String targetDirectory, String sourceDirectory) {
   steps.sh """
     mkdir -p ${targetDirectory}
@@ -185,7 +218,39 @@ def publishSmokeResults(String reportNameSuffix = '') {
   ]
 }
 
+def secrets = [
+  'opal-${env}': [
+    secret('bais-private-key', 'FUNCTIONAL_TEST_SFTP_PRIVATE_KEY')
+  ]
+]
+
+def stagingFunctionalTestSecrets = [
+  'opal-${env}': [
+    secret('fines-service-POSTGRES-HOST', 'OPAL_FINES_DB_HOST'),
+    secret('fines-service-POSTGRES-PORT', 'OPAL_FINES_DB_PORT'),
+    secret('fines-service-POSTGRES-DATABASE', 'OPAL_FINES_DB_NAME'),
+    secret('fines-service-POSTGRES-USER', 'OPAL_FINES_DB_USERNAME'),
+    secret('fines-service-POSTGRES-PASS', 'OPAL_FINES_DB_PASSWORD')
+  ]
+]
+
+static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
+  [$class     : 'AzureKeyVaultSecret',
+   secretType : 'Secret',
+   name       : secretName,
+   version    : '',
+   envVariable: envVar]
+}
+
 withPipeline(type, product, component) {
+  enableDbMigration(product)
+  onPR {
+    loadVaultSecrets(secrets)
+  }
+  onMaster {
+    loadVaultSecrets(stagingFunctionalTestSecrets)
+  }
+
   env.FAIL_FAST = false
   env.EXTENDED_TESTS = "false"
   env.STAGING_DB_SCHEMA = 'public'
@@ -211,6 +276,56 @@ withPipeline(type, product, component) {
   before('test') {
     onPR {
       enableExtendedTestsForLabel()
+    }
+  }
+
+  afterSuccess('akschartsinstall') {
+    onPR {
+      configureFunctionalTestDatabase(
+        devValuesFile, "opal-${component}-pr-${env.CHANGE_ID}", product
+      )
+    }
+  }
+
+  before('functionalTest:dev') {
+    onPR {
+      withAksClient('dev', 'dev', product) {
+        def kubectl = new Kubectl(this, 'dev', product)
+        kubectl.login()
+        configureFunctionalTestDatabase(
+          devValuesFile, "opal-${component}-pr-${env.CHANGE_ID}", product
+        )
+        steps.sh(
+          script: "kubectl --namespace '${product}' port-forward "
+            + "pod/opal-${component}-pr-${env.CHANGE_ID}-postgresql-0 15432:5432 "
+            + "> .functional-test-db-port-forward.log 2>&1 & "
+            + "echo \$! > .functional-test-db-port-forward.pid && sleep 2"
+        )
+        env.FUNCTIONAL_TEST_DB_URL = "jdbc:postgresql://127.0.0.1:15432/" +
+          env.OPAL_FINES_DB_NAME + (env.OPAL_FINES_DB_OPTIONS ?: '')
+      }
+    }
+  }
+
+  before('functionalTest:stg') {
+    onMaster {
+      if (!env.OPAL_FINES_DB_HOST?.trim() || !env.OPAL_FINES_DB_PORT?.trim()
+        || !env.OPAL_FINES_DB_NAME?.trim() || !env.OPAL_FINES_DB_USERNAME?.trim()
+        || !env.OPAL_FINES_DB_PASSWORD?.trim()) {
+        throw new RuntimeException('Missing staging functional-test fines database credentials')
+      }
+    }
+  }
+
+  afterAlways('functionalTest:dev') {
+    onPR {
+      steps.sh(
+        script: "if [ -f .functional-test-db-port-forward.pid ]; then "
+          + "kill \$(cat .functional-test-db-port-forward.pid) 2>/dev/null || true; "
+          + "rm -f .functional-test-db-port-forward.pid; fi",
+        returnStatus: true
+      )
+      env.FUNCTIONAL_TEST_DB_URL = ''
     }
   }
 
