@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.mapper;
 
 import java.math.BigDecimal;
+import java.util.Map;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -20,18 +22,22 @@ public interface MinorCreditorMapper {
     @Mapping(target = "accountBalance", source = "creditorAccountBalance", qualifiedByName = "toBalance")
     @Mapping(target = "firstnames", source = "forenames")
     @Mapping(target = "defendant", source = ".")
-    MinorCreditorAccountSearchResultMinorCreditor toCreditorAccountDto(MinorCreditorEntity entity);
+    MinorCreditorAccountSearchResultMinorCreditor toCreditorAccountDto(
+        MinorCreditorEntity entity, @Context Map<Long, Boolean> defendantOrganisations);
 
     @Named("toBalance")
     default BigDecimal toBalance(Integer balance) {
         return balance != null ? BigDecimal.valueOf(balance) : BigDecimal.ZERO;
     }
 
-    default MinorCreditorAccountSearchDefendant toDefendantDto(MinorCreditorEntity entity) {
+    default MinorCreditorAccountSearchDefendant toDefendantDto(
+        MinorCreditorEntity entity, @Context Map<Long, Boolean> defendantOrganisations) {
+
         return MinorCreditorAccountSearchDefendant.builder()
             .defendantAccountId(entity.getDefendantAccountId() != null
                 ? String.valueOf(entity.getDefendantAccountId()) : null)
-            .organisation(Boolean.TRUE.equals(entity.getDefendantOrganisation()))
+            .organisation(entity.getDefendantAccountId() == null
+                ? Boolean.FALSE : defendantOrganisations.get(entity.getDefendantAccountId()))
             .organisationName(entity.getDefendantOrganisationName())
             .firstnames(entity.getDefendantFornames())
             .surname(entity.getDefendantSurname())

@@ -54,9 +54,6 @@ public class MinorCreditorEntity {
     @Column(name = "defendant_account_id")
     private Long defendantAccountId;
 
-    @Column(name = "defendant_organisation")
-    private Boolean defendantOrganisation;
-
     @Column(name = "defendant_organisation_name")
     private String defendantOrganisationName;
 
