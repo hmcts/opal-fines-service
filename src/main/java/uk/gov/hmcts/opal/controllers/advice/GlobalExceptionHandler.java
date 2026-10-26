@@ -22,7 +22,6 @@ import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -288,15 +287,6 @@ public class GlobalExceptionHandler {
             ex.getMessage(), "unauthorized", false, ex);
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
-
-    @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ProblemDetail> handleBadRequestException(BadRequestException ex) {
-        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(),
-            "bad-request", false, ex);
-
-        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
-    }
-
 
     private ProblemDetail createProblemDetail(HttpStatus status, String title, String detail,
                                               String typeUri, boolean retry, Throwable exception) {

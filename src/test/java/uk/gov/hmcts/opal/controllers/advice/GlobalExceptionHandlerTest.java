@@ -36,7 +36,6 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
-import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -490,18 +489,6 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals("Not Authorised for Connection", response.getBody().getTitle());
-        assertEquals(false, response.getBody().getProperties().get("retriable"));
-    }
-
-    @Test
-    void handlebadRequestException_returnsBadRequestProblem() {
-        BadRequestException ex = new BadRequestException("title", "parameter X is missing");
-
-        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleBadRequestException(ex);
-
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        assertEquals("parameter X is missing", response.getBody().getDetail());
-        assertEquals("Bad Request", response.getBody().getTitle());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 
