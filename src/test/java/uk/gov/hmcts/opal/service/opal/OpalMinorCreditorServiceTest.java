@@ -1,6 +1,22 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,55 +30,38 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.TypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
-import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.TypeEnum;
-import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
-import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 import uk.gov.hmcts.opal.repository.PartyRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OpalMinorCreditorServiceTest {
@@ -119,6 +118,7 @@ class OpalMinorCreditorServiceTest {
             .defendantAccountId(0L)
             .defendantOrganisationName(null)
             .defendantFornames("Anna")
+            .defendantOrganisation(false)
             .defendantSurname("Graham")
             .creditorAccountBalance(150)
             .build();
@@ -137,6 +137,7 @@ class OpalMinorCreditorServiceTest {
             .defendantAccountId(0L)
             .defendantOrganisationName(null)
             .defendantFornames(null)
+            .defendantOrganisation(true)
             .defendantSurname(null)
             .creditorAccountBalance(0)
             .build();
