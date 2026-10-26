@@ -122,3 +122,10 @@ Feature: Report Instances
     When I request the created report instance content
     Then the request is rejected as forbidden
     And the latest get report instance content error response matches the standard problem detail contract for status 403
+
+  @JIRA-STORY:PO-10580 @ReportTemplateDbFixture
+  Scenario: Create operational payment report instance with a template name
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I create the operational payment report instance for business unit 77
+    Then the request creates a resource
+    And the report instance create response contains a report instance id
