@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
-class DraftAccountReferenceValidationServiceTest {
+class OpalDraftAccountReferenceValidationServiceTest {
 
     private static final short BUSINESS_UNIT_ID = 78;
     private static final long VALID_MAJOR_CREDITOR_ID = 780000000041L;
@@ -59,7 +59,7 @@ class DraftAccountReferenceValidationServiceTest {
     private ProsecutorRepository prosecutorRepository;
 
     @InjectMocks
-    private DraftAccountReferenceValidationService service;
+    private OpalDraftAccountReferenceValidationService service;
 
     @BeforeEach
     void setUp() {
