@@ -680,6 +680,7 @@ components:
             - Weekly
             - Monthly
             - Fortnightly
+
     defendantAccountPostedDetails:
       title: Defendant Account Posted Details
       type:
@@ -702,6 +703,7 @@ components:
           type:
             - string
             - 'null'
+
     suspenseItemSummary:
       title: Suspense Item Summary Details
       type: object
@@ -724,3 +726,300 @@ components:
           type:
             - integer
             - 'null'
+
+    suspenseItemHistory:
+      title: Suspense Item History
+      type: object
+      additionalProperties: false
+      properties:
+        business_unit_id:
+          type:
+            - integer
+        suspense_item_id:
+          type:
+            - integer
+        suspense_notes:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/suspenseNote'
+
+    suspense_note:
+      title: Suspense Note
+      type: object
+      additionalProperties: false
+      properties:
+        note:
+          ref: '#/components/schemas/suspenseNote'
+        posted_details:
+          ref: '#/components/schemas/postedDetails'
+
+    suspenseNote:
+      title: Suspense Note
+      type: object
+      additionalProperties: false
+      properties:
+        note:
+          type:
+            - object
+          additionalProperties: false
+          required:
+            - record_type
+            - record_id
+          properties:
+            record_type:
+              type:
+                - string
+              enum:
+                - defendant_accounts
+                - creditor_accounts
+                - suspense_ items
+                - report_instances
+            record_id:
+              type:
+                - string
+            note_text:
+              type:
+                - string
+                - 'null'
+            note_type:
+              type:
+                - string
+
+    postedDetails:
+      title: Posted Details
+      additionalProperties: false
+      type: object
+      properties:
+        posted_date:
+          type: string
+          format: date-time
+        posted_by:
+          type: string
+        posted_by_name:
+          type: string
+
+    suspenseTransaction:
+      title: Suspense Transaction
+      additionalProperties: false
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+          format: int64
+        transaction_type:
+          ref: '#/components/schemas/transactionType'
+        posted_details:
+          ref: '#/components/schemas/postedDetails'
+        amount:
+          type:
+            - integer
+        details:
+          oneOf:
+            - $ref: '#/components/schemas/manualPaymentPayerDetails'
+            - $ref: '#/components/schemas/manualPaymentUnidentifiedDetails'
+            - $ref: '#/components/schemas/manualPaymentCourtFeeDetails'
+            - $ref: '#/components/schemas/autoPaymentDetails'
+            - $ref: '#/components/schemas/defendantDetails'
+            - $ref: '#/components/schemas/thirdPartyRepayDetails'
+            - $ref: '#/components/schemas/reversalDetails'
+            - $ref: '#/components/schemas/adjustmentDetails'
+              
+    transactionType:
+      title: Transaction Type
+      type: object
+      additionalProperties: false
+      properties:
+        transaction_type_code:
+          type: string
+          enum:
+            - SUSPENDED
+            - UNSUSPENDED
+            - REVERSED
+        transaction_type_display_namew:
+          type: string
+
+    manualPaymentPayerDetails:
+      title: Manual Payment Payer Details
+      type: object
+      additionalProperties: false
+      properties:
+        payment_details:
+          $ref: '#/components/schemas/paymentDetails'
+        payer_details:
+          $ref: '#/components/schemas/payerDetails'
+
+    manualPaymentUnidentifiedDetails:
+      title: Manual Payment Unidentified Details
+      type: object
+      additionalProperties: false
+      properties:
+        payment_details:
+          $ref: '#/components/schemas/paymentDetails'
+        relevant_details:
+          type: string
+
+    manualPaymentCourtFeeDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        court_fee_code:
+          type: string
+        payment_details:
+          $ref: '#/components/schemas/paymentDetails'
+        payer_details:
+          $ref: '#/components/schemas/payerDetails'
+
+    autoPaymentDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        defendent_account_number:
+          type:
+            - integer
+            - 'null'
+          format: int64
+        originator_reference:
+          type:
+            - string
+            - 'null'
+        payment_source:
+          type: string
+
+    defendantDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        defendant_account_number:
+          type: integer
+          format: int64
+        defendant_name:
+          $ref: '#/components/schemas/partyDetails'
+
+    thirdPartyRepayDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        creditor_account_number:
+          type: string
+        creditor_summary:
+          $ref: './common.yaml#/components/schemas/creditorSummary'
+        creditor_address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+        creditor_payment_method:
+          type: string
+          enum:
+            - Pay by BACS
+            - Pay by Cheque
+
+    reversalDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        reversal_description:
+          type: string
+
+    adjustmentDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        defendant_account_number:
+          type: integer
+          format: int64
+        defendant_name:
+          $ref: '#/components/schemas/partyDetails'
+        imposition_id:
+          type: integer
+          format: int64
+        creditor_summary:
+          $ref: './common.yaml#/components/schemas/creditorSummary'
+        creditor_address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+
+    creditor_details:
+      title: Creditor Details
+      type: object
+      additionalProperties: false
+      properties:
+        creditor_account_number:
+          type: string
+        creditor_summary:
+          $ref: './common.yaml#/components/schemas/creditorSummary'
+        creditor_address:
+          $ref: './common.yaml#/components/schemas/addressDetails'
+
+    paymentDetails:
+      title: Payment Details
+      type: object
+      additionalProperties: false
+      properties:
+        received_from:
+          type: string
+          enum:
+            - Defendant
+            - Third Party
+            - Applicant
+        payment_method:
+          type: string
+          enum:
+            - NC
+            - PO
+            - CQ
+            - CT
+        payment_source:
+          $ref: '#/components/schemas/paymentSource'
+        payment_reference:
+          type:
+            - string
+            - 'null'
+
+    payerDetails:
+      title: Payer Details
+      type: object
+      additionalProperties: false
+      properties:
+        payer_type:
+          type: string
+          enum:
+            - Individual
+            - Organisation
+        defendant_details:
+          $ref: './common.yaml#/components/schemas/defendantAccountParty'
+        payer_name:
+          type:
+            - string
+            - 'null'
+        payer_address:
+          type:
+            - string
+            - 'null'
+
+    paymentSource:
+      title: Payment Source
+      type: object
+      additionalProperties: false
+      properties:
+        payment_source:
+          type: string
+          oneOf:
+          - title: NATWEST
+            description: NatWest
+          - title: ALLPAY
+            description: allpay
+          - title: ALLPAY_DD
+            description: allpay DD
+          - title: BARCLAYCARD
+            description: Barclaycard
+          - title: BTECKOH
+            description: British Telecom
+          - title: OTHER
+            description: Other
+          - title: DWP
+            description: DWP
+          - title: CDER
+            description: CDER
+          - title: JACOBS
+            description: Jacobs
+          - title: MARSTON
+            description: Marston
