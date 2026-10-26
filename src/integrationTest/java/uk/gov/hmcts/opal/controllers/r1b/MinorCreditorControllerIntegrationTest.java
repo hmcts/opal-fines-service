@@ -20,9 +20,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -48,6 +50,14 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
  */
 abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
+    @MockitoBean
+    protected LoggingService loggingService;
+
+    @BeforeEach
+    void acceptPdpoLogs() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
     protected static final String URL_BASE = "/minor-creditor-accounts";
     private static final Long GET_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final Long GET_MINOR_CREDITOR_PARTY_ID = 99008L;
@@ -61,9 +71,6 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
-
-    @MockitoSpyBean
-    private LoggingService loggingService;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -12,14 +14,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequest;
 
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -34,6 +39,14 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 )
 @DisplayName("Minor Creditor Controller Search Integration Test")
 public class MinorCreditorSearchTest extends AbstractIntegrationTest {
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void acceptPdpoLogs() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     private static final String MINOR_CREDITOR_SEARCH_URL = "/minor-creditor-accounts/search";
 
