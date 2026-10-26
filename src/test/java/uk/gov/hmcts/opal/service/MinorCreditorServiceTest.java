@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -8,8 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -37,6 +40,7 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
@@ -49,16 +53,20 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
 class MinorCreditorServiceTest {
 
     @Mock
-    UserStateService userStateService;
+    private UserStateService userStateService;
 
     @Mock
-    MinorCreditorSearchProxy minorCreditorSearchProxy;
+    private MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    private MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
     @Mock
     MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
@@ -119,6 +127,62 @@ class MinorCreditorServiceTest {
                 () -> minorCreditorService.getMinorCreditorAccountHeaderSummary(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_organisationDoesNotTriggerLogging() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(true)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
+
+        verify(minorCreditorSummaryPdplLoggingService, never()).logIndividualMinorCreditorSummary(123L,
+            UserState.builder().build(), response);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_logsIndividualMinorCreditorAccounts() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(false)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
+
+        verify(minorCreditorSearchProxy).getHeaderSummary(id);
+        verify(minorCreditorSummaryPdplLoggingService).logIndividualMinorCreditorSummary(123L,
+            UserStateUtil.allFinesPermissionUser(), response);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_propagatesFailure() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(false)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        doThrow(new PdplLoggingException("BOOM")).when(minorCreditorSummaryPdplLoggingService)
+            .logIndividualMinorCreditorSummary(123L, UserStateUtil.allFinesPermissionUser(), response);
+
+        assertThatThrownBy(() -> minorCreditorService.getMinorCreditorAccountHeaderSummary(id))
+            .isInstanceOf(PdplLoggingException.class)
+            .hasMessageContaining("BOOM");
     }
 
     @Test
