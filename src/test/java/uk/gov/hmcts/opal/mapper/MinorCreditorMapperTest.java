@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.math.BigDecimal;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -51,7 +52,7 @@ class MinorCreditorMapperTest {
 
     @Test
     void shouldReturnNullWhenEntityIsNull() {
-        assertThat(minorCreditorMapper.toCreditorAccountDto(null)).isNull();
+        assertThat(minorCreditorMapper.toCreditorAccountDto(null, Map.of())).isNull();
     }
 
     @Test
@@ -62,14 +63,14 @@ class MinorCreditorMapperTest {
             .creditorAccountBalance(250)
             .forenames("John")
             .defendantAccountId(456L)
-            .defendantOrganisation(false)
             .organisation(false)
             .organisationName(null)
             .defendantFornames("Jane")
             .defendantSurname("Smith")
             .build();
 
-        MinorCreditorAccountSearchResultMinorCreditor result = minorCreditorMapper.toCreditorAccountDto(entity);
+        MinorCreditorAccountSearchResultMinorCreditor result =
+            minorCreditorMapper.toCreditorAccountDto(entity, Map.of(456L, false));
 
         assertThat(result).isNotNull();
         assertThat(result.getCreditorAccountId()).isEqualTo("123");
@@ -90,10 +91,10 @@ class MinorCreditorMapperTest {
             .creditorId(123L)
             .organisation(creditorOrganisation)
             .defendantAccountId(456L)
-            .defendantOrganisation(defendantOrganisation)
             .build();
 
-        MinorCreditorAccountSearchResultMinorCreditor result = minorCreditorMapper.toCreditorAccountDto(entity);
+        MinorCreditorAccountSearchResultMinorCreditor result =
+            minorCreditorMapper.toCreditorAccountDto(entity, Map.of(456L, defendantOrganisation));
 
         assertThat(result.getOrganisation()).isEqualTo(creditorOrganisation);
         assertThat(result.getDefendant().getOrganisation()).isEqualTo(defendantOrganisation);
@@ -103,9 +104,21 @@ class MinorCreditorMapperTest {
     void missingDefendantPreservesExistingResponse() {
         MinorCreditorEntity entity = MinorCreditorEntity.builder().creditorId(123L).build();
 
-        MinorCreditorAccountSearchResultMinorCreditor result = minorCreditorMapper.toCreditorAccountDto(entity);
+        MinorCreditorAccountSearchResultMinorCreditor result =
+            minorCreditorMapper.toCreditorAccountDto(entity, Map.of());
 
         assertThat(result.getDefendant().getDefendantAccountId()).isNull();
         assertThat(result.getDefendant().getOrganisation()).isFalse();
+    }
+
+    @Test
+    void unresolvedDefendantRemainsUnknown() {
+        MinorCreditorEntity entity = MinorCreditorEntity.builder()
+            .creditorId(123L).defendantAccountId(456L).build();
+
+        MinorCreditorAccountSearchResultMinorCreditor result =
+            minorCreditorMapper.toCreditorAccountDto(entity, Map.of());
+
+        assertThat(result.getDefendant().getOrganisation()).isNull();
     }
 }

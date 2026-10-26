@@ -8,29 +8,36 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
@@ -41,6 +48,7 @@ import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMa
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
@@ -60,6 +68,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private static final String MINOR_CREDITOR_ACCOUNT_NOT_FOUND = "Minor creditor account not found: ";
 
     private final MinorCreditorRepository minorCreditorRepository;
+    private final DefendantAccountRepository defendantAccountRepository;
     private final MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
     private final MinorCreditorAccountAtAGlanceRepository minorCreditorAccountAtAGlanceRepository;
     private final CreditorAccountRepository creditorAccountRepository;
@@ -78,6 +87,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final MinorCreditorMapper minorCreditorMapper;
 
     @Override
+    @Transactional(readOnly = true, isolation = Isolation.REPEATABLE_READ)
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest criteria) {
         Specification<MinorCreditorEntity> spec = specs.findBySearchCriteria(criteria);
         List<MinorCreditorEntity> results = minorCreditorRepository.findAll(spec);
@@ -286,14 +296,35 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     }
 
     private MinorCreditorAccountsSearchResponse toResponse(List<MinorCreditorEntity> entities) {
+        Map<Long, Boolean> defendantOrganisations = loadDefendantOrganisations(entities);
         List<MinorCreditorAccountSearchResultMinorCreditor> accounts = entities.stream()
-            .map(minorCreditorMapper::toCreditorAccountDto)
+            .map(entity -> minorCreditorMapper.toCreditorAccountDto(entity, defendantOrganisations))
             .toList();
 
         return MinorCreditorAccountsSearchResponse.builder()
             .count(accounts.size())
             .creditorAccounts(accounts.isEmpty() ? null : accounts)
             .build();
+    }
+
+    private Map<Long, Boolean> loadDefendantOrganisations(List<MinorCreditorEntity> entities) {
+        List<Long> defendantAccountIds = entities.stream()
+            .map(MinorCreditorEntity::getDefendantAccountId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .toList();
+        if (defendantAccountIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return defendantAccountRepository.findAllByDefendantAccountIdIn(defendantAccountIds).stream()
+            .collect(Collectors.toMap(DefendantAccountEntity::getDefendantAccountId,
+                account -> account.getParties().stream()
+                    .filter(association -> association.getAssociationType() == AssociationType.DEFENDANT)
+                    .map(association -> association.getParty().isOrganisation())
+                    .findFirst()
+                    .orElseThrow(() -> new PdplLoggingException(
+                        "Unable to determine PDPO participants for minor creditor search"))));
     }
 
     private void validatePartyId(String requestPartyId, Long existingPartyId) {
