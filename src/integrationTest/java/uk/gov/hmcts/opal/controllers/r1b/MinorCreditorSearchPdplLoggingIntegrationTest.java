@@ -12,11 +12,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -26,6 +28,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/deleteData/delete_minor_creditor_search_pdpo.sql", executionPhase = AFTER_TEST_METHOD)
 @DisplayName("Minor creditor search consultation logging in Opal mode")
 class MinorCreditorSearchPdplLoggingIntegrationTest extends MinorCreditorSearchPdplTestSupport {
+
+    @Autowired
+    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
     @Test
     @JiraStory("PO-10764")
@@ -106,6 +111,15 @@ class MinorCreditorSearchPdplLoggingIntegrationTest extends MinorCreditorSearchP
 
         assertLog(logs(1).getFirst(), "Search Account Results - Individual Minor Creditors",
             PdplIdentifierType.MINOR_CREDITOR, "10764007");
+    }
+
+    @Test
+    @JiraStory("PO-10764")
+    @JiraEpic("PO-10729")
+    void missingDefendantPartyWithholdsPersonalData() throws Exception {
+        defendantAccountPartiesRepository.deleteById(10764101L);
+
+        assertQueueFailure(search("PDPO6401"), 0);
     }
 
     @ParameterizedTest
