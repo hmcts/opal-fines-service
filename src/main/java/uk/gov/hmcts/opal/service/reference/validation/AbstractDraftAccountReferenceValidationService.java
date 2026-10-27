@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
-public abstract class AbstractDraftAccountReferenceValidationService implements DraftAccountReferenceValidationService{
+abstract class AbstractDraftAccountReferenceValidationService implements DraftAccountReferenceValidationService{
 
     @Transactional(readOnly = true)
     @Override
