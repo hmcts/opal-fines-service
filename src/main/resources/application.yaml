@@ -185,12 +185,13 @@ opal:
     service-bus:
       consumer-enabled: ${REFDATA_CONSUMER_ENABLED:true}
       fully-qualified-namespace: ${SERVICEBUS_FULLY_QUALIFIED_NAMESPACE:}
-      topic-name: ${SERVICEBUS_REFDATA_TOPIC_NAME:topic.refdata}
-      subscription-name: ${SERVICEBUS_REFDATA_SUBSCRIPTION_NAME:subscription.refdata}
+      topic-name: ${SERVICEBUS_REFDATA_TOPIC_NAME:opal-reference-data-topic}
+      subscription-name: ${SERVICEBUS_REFDATA_SUBSCRIPTION_NAME:opal-fines-reference-data-subscription}
       max-messages-per-session: ${REFDATA_MAX_MESSAGES_PER_SESSION:100}
       receive-timeout-seconds: ${REFDATA_RECEIVE_TIMEOUT_SECONDS:3}
       initial-delay-seconds: ${REFDATA_INITIAL_DELAY_SECONDS:30}
       fixed-delay-seconds: ${REFDATA_FIXED_DELAY_SECONDS:60}
+      try-timeout-seconds: ${REFDATA_TRY_TIMEOUT_SECONDS:5}
 
   hmrc:
     url: ${OPAL_HMRC_URL:http://localhost:4455}

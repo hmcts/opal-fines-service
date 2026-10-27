@@ -19,8 +19,8 @@ public class EmulatorUtil implements AutoCloseable {
 
     private final String connectionString;
 
-    public static final String TOPIC = "topic.refdata";
-    public static final String SUBSCRIPTION = "subscription.refdata";
+    public static final String TOPIC = "opal-reference-data-topic";
+    public static final String SUBSCRIPTION = "opal-fines-reference-data-subscription";
 
     EmulatorUtil(String connectionString) {
         this.connectionString = connectionString;

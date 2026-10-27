@@ -1229,7 +1229,7 @@ dependencies {
 
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
-  implementation 'uk.gov.hmcts:opal-refdata-common-lib:0.0.16'
+  implementation 'uk.gov.hmcts:opal-refdata-common-lib:0.0.1TUES'
 
   implementation 'org.openapitools:jackson-databind-nullable:0.2.12'
   implementation 'org.flywaydb:flyway-core:13.10.0'

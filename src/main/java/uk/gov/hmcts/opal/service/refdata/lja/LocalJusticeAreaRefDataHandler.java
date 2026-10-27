@@ -2,10 +2,12 @@ package uk.gov.hmcts.opal.service.refdata.lja;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
+import uk.gov.hmcts.opal.refdata.dto.PrisonRecord;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 @Component
@@ -39,13 +41,21 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public LocalJusticeAreaEntity createEntity(LjaRecord dto) {
-        return LocalJusticeAreaEntity.builder().build();
+    public LocalJusticeAreaEntity createEntityFromDto(LjaRecord dto) {
+        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+        entity.setLjaCode(dto.getLjaCode());
+        updateEntityFromDto(dto, entity);
+        return entity;
     }
 
     @Override
     public LocalJusticeAreaEntity saveEntity(LocalJusticeAreaEntity entity) {
         return repository.save(entity);
+    }
+
+    @Override
+    public void deleteEntity(LocalJusticeAreaEntity entity) {
+        throw new UnsupportedOperationException("delete method not needed to test message processor");
     }
 
     @Override
