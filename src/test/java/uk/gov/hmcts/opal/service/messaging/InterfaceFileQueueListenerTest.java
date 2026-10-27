@@ -4,6 +4,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.BeforeEach;
 import tools.jackson.databind.ObjectMapper;
 
 import jakarta.jms.Message;
@@ -25,24 +29,25 @@ class InterfaceFileQueueListenerTest {
     @InjectMocks
     private InterfaceFileQueueListener listener;
 
-    @Mock
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private InterfaceFileProcessorService interfaceFileProcessorService;
+
+    @BeforeEach
+    void setUp() {
+        listener = new InterfaceFileQueueListener(
+            objectMapper,
+            interfaceFileProcessorService
+        );
+    }
 
     @Test
     void shouldProcessInterfaceFileMessage() throws Exception {
 
         String payload = "{\"interfaceFileId\":123}";
-        InterfaceFileQueueMessage queueMessage =
-            new InterfaceFileQueueMessage(123L);
 
         when(textMessage.getText()).thenReturn(payload);
-        when(objectMapper.readValue(
-            payload,
-            InterfaceFileQueueMessage.class
-        )).thenReturn(queueMessage);
 
         listener.onMessage(textMessage);
 
@@ -50,16 +55,18 @@ class InterfaceFileQueueListenerTest {
             .process(123L);
     }
 
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {" ", "  ", "\t", "\n"})
+    void shouldThrowExceptionWhenPayloadIsBlank(String payload) throws Exception {
 
-    @Test
-    void shouldThrowExceptionWhenPayloadIsBlank() throws Exception {
-
-        when(textMessage.getText()).thenReturn("");
+        when(textMessage.getText()).thenReturn(payload);
 
         assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Interface file message payload is blank");
     }
+
 
     @Test
     void shouldThrowExceptionWhenPayloadCannotBeParsed() throws Exception {
@@ -67,11 +74,6 @@ class InterfaceFileQueueListenerTest {
         String payload = "invalid-json";
 
         when(textMessage.getText()).thenReturn(payload);
-
-        when(objectMapper.readValue(
-            payload,
-            InterfaceFileQueueMessage.class
-        )).thenThrow(new JacksonException("Bad JSON") {});
 
         assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(IllegalArgumentException.class)

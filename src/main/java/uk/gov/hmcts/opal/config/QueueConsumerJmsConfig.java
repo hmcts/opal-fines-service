@@ -23,7 +23,7 @@ public class QueueConsumerJmsConfig {
     private final ServiceBusConnectionStringParser serviceBusConnectionStringParser;
 
     @Bean
-    public ConnectionFactory reportConsumerConnectionFactory(ServiceBusProperties properties) {
+    public ConnectionFactory opalFinesConsumerConnection(ServiceBusProperties properties) {
         ServiceBusConnectionStringParser.ConnectionDetails details =
             serviceBusConnectionStringParser.parse(properties.getConnectionString());
 
@@ -49,7 +49,7 @@ public class QueueConsumerJmsConfig {
     }
 
     @Bean
-    public DefaultJmsListenerContainerFactory interfaceFileListenerContainerFactory(
+    public DefaultJmsListenerContainerFactory opalFinesConsumerConnectionFactory(
         ConnectionFactory reportConsumerConnectionFactory) {
 
         DefaultJmsListenerContainerFactory factory =
