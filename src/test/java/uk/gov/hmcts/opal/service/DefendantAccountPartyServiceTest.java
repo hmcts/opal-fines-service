@@ -6,13 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,15 +20,20 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountPartyPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +44,9 @@ class DefendantAccountPartyServiceTest {
 
     @Mock
     private UserStateService userStateService;
+
+    @Mock
+    private DefendantAccountPartyPdplLoggingService pdplLoggingService;
 
     @Mock
     private UserState userState;
@@ -99,27 +107,22 @@ class DefendantAccountPartyServiceTest {
     @Test
     void replaceDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        Long defendantAccountId = 10L;
-        Long defendantAccountPartyId = 20L;
-        String ifMatch = "W/\"1\"";
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
-
-        DefendantAccountParty request = new DefendantAccountParty();
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
-
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
-        when(userState.getUserName()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(buId, "theUserName", Optional.of(buUser));
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
             anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
             anyString()))
             .thenReturn(expectedResponse);
+
+        Long defendantAccountId = 10L;
+        Long defendantAccountPartyId = 20L;
+        String ifMatch = "W/\"1\"";
+        DefendantAccountParty request = new DefendantAccountParty();
 
         // Act
         PartyResponseDefendantAccount actual = defendantAccountPartyService.replaceDefendantAccountParty(
@@ -152,28 +155,21 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        Long defendantAccountId = 10L;
-        Long defendantAccountPartyId = 20L;
-        String ifMatch = "W/\"1\"";
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
-
-        // DTO - constructor should exist
-        AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
-
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
-        when(userState.getUserName()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(buId, "theUserName", Optional.of(buUser));
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
             anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
             any(AddPartyRequestDefendantAccount.class)))
             .thenReturn(expectedResponse);
+
+        Long defendantAccountId = 10L;
+        String ifMatch = "W/\"1\"";
+        AddPartyRequestDefendantAccount request = defendantRequest();
 
         // Act
         PartyResponseDefendantAccount actual = defendantAccountPartyService.addDefendantAccountParty(
@@ -202,6 +198,148 @@ class DefendantAccountPartyServiceTest {
         assertThat(buUserIdCaptor.getValue()).isEqualTo("b-user-id");
     }
 
+    @Test
+    void addDefendantAccountParty_nonPayingParentGuardianCallsLoggerAndReturnsResponse() {
+        boolean isDebtor = false;
+        AddPartyRequestDefendantAccount request = parentGuardianRequest(isDebtor);
+        PartyResponseDefendantAccount response = responseWithPartyId("12345");
+        stubPermittedAdd(response);
+        when(pdplLoggingService.logAddedParentGuardian("12345", userState)).thenReturn(true);
+
+        PartyResponseDefendantAccount result = defendantAccountPartyService.addDefendantAccountParty(
+            10L, "\"1\"", "5", request);
+
+        assertThat(result).isSameAs(response);
+        verify(pdplLoggingService).logAddedParentGuardian("12345", userState);
+    }
+
+    @Test
+    void addDefendantAccountParty_payingParentGuardianDoesNotCallPdpoLogger() {
+        boolean isDebtor = true;
+        stubPermittedAdd(responseWithPartyId("12345"));
+
+        defendantAccountPartyService.addDefendantAccountParty(10L, "\"1\"", "5", parentGuardianRequest(isDebtor));
+
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void addDefendantAccountParty_defendantDoesNotCallPdpoLogger() {
+        boolean isDebtor = false;
+        stubPermittedAdd(responseWithPartyId("12345"));
+        AddPartyRequestDefendantAccount request = parentGuardianRequest(isDebtor);
+        request.getDefendantAccountParty().setDefendantAccountPartyType(
+            DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
+
+        defendantAccountPartyService.addDefendantAccountParty(10L, "\"1\"", "5", request);
+
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void addDefendantAccountParty_missingAddedPartyIdDoesNotReturnSuccess() {
+        boolean isDebtor = false;
+        stubPermittedAdd(responseWithPartyId(null));
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
+            defendantAccountPartyService.addDefendantAccountParty(
+                10L, "\"1\"", "5", parentGuardianRequest(isDebtor)));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+        assertThat(exception.getReason()).isEqualTo("Unable to record required Parent/Guardian PDPO log");
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void addDefendantAccountParty_queueRejectionDoesNotReturnSuccess() {
+        boolean isDebtor = false;
+        stubPermittedAdd(responseWithPartyId("12345"));
+        when(pdplLoggingService.logAddedParentGuardian("12345", userState)).thenReturn(false);
+
+        ResponseStatusException exception = assertThrows(ResponseStatusException.class, () ->
+            defendantAccountPartyService.addDefendantAccountParty(
+                10L, "\"1\"", "5", parentGuardianRequest(isDebtor)));
+
+        assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.SERVICE_UNAVAILABLE);
+        verify(pdplLoggingService).logAddedParentGuardian("12345", userState);
+    }
+
+    @Test
+    void addDefendantAccountParty_queueExceptionDoesNotReturnSuccess() {
+        boolean isDebtor = false;
+        stubPermittedAdd(responseWithPartyId("12345"));
+        when(pdplLoggingService.logAddedParentGuardian("12345", userState))
+            .thenThrow(new IllegalStateException("queue unavailable"));
+
+        assertThrows(IllegalStateException.class, () -> defendantAccountPartyService.addDefendantAccountParty(
+            10L, "\"1\"", "5", parentGuardianRequest(isDebtor)));
+    }
+
+    @Test
+    void addDefendantAccountParty_proxyFailureDoesNotCallPdpoLogger() {
+        stubAccountMaintenanceUser((short) 5, "user", Optional.empty());
+        ResponseStatusException proxyFailure = new ResponseStatusException(HttpStatus.CONFLICT);
+        when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
+            anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(), any()))
+            .thenThrow(proxyFailure);
+
+        ResponseStatusException actual = assertThrows(ResponseStatusException.class, () ->
+            defendantAccountPartyService.addDefendantAccountParty(
+                10L, "\"1\"", "5", parentGuardianRequest(false)));
+
+        assertThat(actual).isSameAs(proxyFailure);
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void addDefendantAccountParty_nonPayingParentGuardianWithoutPermissionDoesNotCallPdpoLogger() {
+        short businessUnitId = 3;
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(false);
+
+        PermissionNotAllowedException exception = assertThrows(PermissionNotAllowedException.class, () ->
+            defendantAccountPartyService.addDefendantAccountParty(
+                100L, "W/\"1\"", String.valueOf(businessUnitId), parentGuardianRequest(false)));
+
+        assertThat(exception.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
+        assertThat(exception.getBusinessUnitId()).isEqualTo(businessUnitId);
+        verifyNoInteractions(defendantAccountPartyServiceProxy, pdplLoggingService);
+    }
+
+    private void stubPermittedAdd(PartyResponseDefendantAccount response) {
+        stubAccountMaintenanceUser((short) 5, "user", Optional.empty());
+        when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
+            anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(), any()))
+            .thenReturn(response);
+    }
+
+    private AddPartyRequestDefendantAccount parentGuardianRequest(boolean debtor) {
+        return AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN)
+                .isDebtor(debtor)
+                .build())
+            .build();
+    }
+
+    private AddPartyRequestDefendantAccount defendantRequest() {
+        return AddPartyRequestDefendantAccount.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT)
+                .isDebtor(true)
+                .build())
+            .build();
+    }
+
+    private PartyResponseDefendantAccount responseWithPartyId(String partyId) {
+        return PartyResponseDefendantAccount.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .partyDetails(PartyDetailsCommonStrict.builder().partyId(partyId).build())
+                .build())
+            .build();
+    }
+
 
     @Test
     void replaceDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
@@ -216,11 +354,7 @@ class DefendantAccountPartyServiceTest {
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.empty());
-        when(userState.getUserName()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(buId, "theUserName", Optional.empty());
 
         when(defendantAccountPartyServiceProxy.replaceDefendantAccountParty(
             anyLong(), anyLong(), any(DefendantAccountParty.class), anyString(), anyString(), anyString(), anyString(),
@@ -265,15 +399,11 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
 
-        AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
+        AddPartyRequestDefendantAccount request = defendantRequest();
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.empty());
-        when(userState.getUserName()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(buId, "theUserName", Optional.empty());
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
             anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
@@ -381,11 +511,7 @@ class DefendantAccountPartyServiceTest {
 
         BusinessUnitUser buUser = mock(BusinessUnitUser.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.of(buUser));
-        when(userState.getUserName()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(businessUnitId, "theUserName", Optional.of(buUser));
         when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
             defendantAccountId,
             defendantAccountPartyId,
@@ -404,6 +530,8 @@ class DefendantAccountPartyServiceTest {
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
+        verify(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, expectedResponse, userState);
 
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
@@ -440,11 +568,7 @@ class DefendantAccountPartyServiceTest {
             mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(Optional.empty());
-        when(userState.getUserName()).thenReturn("fallback-user");
-        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(businessUnitId, "fallback-user", Optional.empty());
         when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
             defendantAccountId,
             defendantAccountPartyId,
@@ -463,6 +587,8 @@ class DefendantAccountPartyServiceTest {
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
+        verify(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, expectedResponse, userState);
 
         ArgumentCaptor<String> buUserIdCaptor = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> postedByCaptor = ArgumentCaptor.forClass(String.class);
@@ -513,5 +639,41 @@ class DefendantAccountPartyServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
+        verifyNoInteractions(pdplLoggingService);
+    }
+
+    @Test
+    void removeDefendantAccountParty_whenPdpoQueueFails_doesNotReturnSuccess() {
+        Long defendantAccountId = 99L;
+        Long defendantAccountPartyId = 100L;
+        short businessUnitId = 12;
+        String ifMatch = "W/\"5\"";
+        RemoveDefendantAccountPartyRequestDefendantAccount request =
+            new RemoveDefendantAccountPartyRequestDefendantAccount();
+        RemoveDefendantAccountPartyResponseDefendantAccount response =
+            new RemoveDefendantAccountPartyResponseDefendantAccount();
+        PdplLoggingException queueFailure = new PdplLoggingException("queue unavailable");
+
+        stubAccountMaintenanceUser(businessUnitId, "fallback-user", Optional.empty());
+        when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
+            defendantAccountId, defendantAccountPartyId, businessUnitId, "", "fallback-user", "fallback-user",
+            ifMatch, request)).thenReturn(response);
+        doThrow(queueFailure).when(pdplLoggingService).logRemovedParentGuardian(
+            defendantAccountPartyId, request, response, userState);
+
+        PdplLoggingException result = assertThrows(PdplLoggingException.class, () ->
+            defendantAccountPartyService.removeDefendantAccountParty(
+                defendantAccountId, defendantAccountPartyId, businessUnitId, ifMatch, request));
+
+        assertThat(result).isSameAs(queueFailure);
+    }
+
+    private void stubAccountMaintenanceUser(short businessUnitId, String userName,
+        Optional<BusinessUnitUser> businessUnitUser) {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(businessUnitUser);
+        when(userState.getUserName()).thenReturn(userName);
+        when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
+            .thenReturn(true);
     }
 }

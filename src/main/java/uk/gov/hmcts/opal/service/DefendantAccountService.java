@@ -34,6 +34,9 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -54,6 +57,12 @@ public class DefendantAccountService {
 
     private final DefendantAccountRepository defendantAccountRepository;
 
+    private final DefendantAccountHistoryPdplLoggingService defendantAccountHistoryPdplLoggingService;
+
+    private final DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
+
+    private final DefendantAccountSummaryPdplLoggingService defendantAccountSummaryPdplLoggingService;
+
     public DefendantAccountHeaderSummary getHeaderSummary(Long defendantAccountId) {
         log.debug(":getHeaderSummary:");
 
@@ -62,8 +71,9 @@ public class DefendantAccountService {
         if (!userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
-
-        return defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
+        DefendantAccountHeaderSummary response = defendantAccountServiceProxy.getHeaderSummary(defendantAccountId);
+        defendantAccountSummaryPdplLoggingService.logHeaderSummary(response, userState.getUserId());
+        return response;
     }
 
     public GetDefendantAccountConsolidatedAccountsResult getConsolidatedAccounts(Long defendantAccountId) {
@@ -96,7 +106,9 @@ public class DefendantAccountService {
             .itemTypes(toHistoryItemTypes(itemTypes))
             .build();
 
-        return defendantAccountServiceProxy.getHistory(defendantAccountId, filter);
+        DefendantAccountHistoryResponse response = defendantAccountServiceProxy.getHistory(defendantAccountId, filter);
+        defendantAccountHistoryPdplLoggingService.logHistoryItems(userState, response);
+        return response;
     }
 
     public PostDefendantAccountSearchResponseDefendantAccount searchDefendantAccounts(
@@ -116,8 +128,10 @@ public class DefendantAccountService {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
+            DefendantAccountSearchResultsDto results =
+                defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
+            defendantAccountSearchPdplLoggingService.logSearchResults(userState, results);
+            return results;
         } else {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }
@@ -138,7 +152,10 @@ public class DefendantAccountService {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
-            return defendantAccountServiceProxy.getAtAGlance(defendantAccountId);
+            GetDefendantAccountAtAGlanceResponse response = defendantAccountServiceProxy
+                .getAtAGlance(defendantAccountId);
+            defendantAccountSummaryPdplLoggingService.logAtAGlance(response, userState.getUserId());
+            return response;
         } else {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);
         }

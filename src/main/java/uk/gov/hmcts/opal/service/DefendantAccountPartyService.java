@@ -2,17 +2,22 @@ package uk.gov.hmcts.opal.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty.DefendantAccountPartyTypeEnum;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountPartyServiceProxy;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountPartyPdplLoggingService;
 
 @Service
 @Slf4j(topic = "opal.DefendantAccountPartyService")
@@ -22,6 +27,8 @@ public class DefendantAccountPartyService {
     private final DefendantAccountPartyServiceProxy defendantAccountPartyServiceProxy;
 
     private final UserStateService userStateService;
+
+    private final DefendantAccountPartyPdplLoggingService pdplLoggingService;
 
     public PartyResponseDefendantAccount getDefendantAccountParty(
         Long defendantAccountId,
@@ -57,16 +64,49 @@ public class DefendantAccountPartyService {
 
         if (userState.hasBusinessUnitUserWithPermission(buId,
                                                         FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
+            PartyResponseDefendantAccount response =
+                defendantAccountPartyServiceProxy.addDefendantAccountParty(defendantAccountId,
                                                                businessUnitId,
                                                                getBusinessUnitUserIdForBusinessUnit(userState, buId),
                                                                postedBy,
                                                                userState.getUserName(),
                                                                ifMatch,
                                                                request);
+
+            queuePdpoIfNonPayingParentGuardian(request, response, userState);
+            return response;
+
         } else {
             throw new PermissionNotAllowedException(buId, FinesPermission.ACCOUNT_MAINTENANCE);
         }
+    }
+
+    private void queuePdpoIfNonPayingParentGuardian(AddPartyRequestDefendantAccount request,
+        PartyResponseDefendantAccount response, UserState userState) {
+
+        if (isNonPayingParentGuardian(request)) {
+            String partyId = requireAddedPartyId(response);
+            if (!pdplLoggingService.logAddedParentGuardian(partyId, userState)) {
+                throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Unable to queue Parent/Guardian PDPO log");
+            }
+        }
+    }
+
+    private boolean isNonPayingParentGuardian(AddPartyRequestDefendantAccount request) {
+        DefendantAccountParty party = request.getDefendantAccountParty();
+        return party.getDefendantAccountPartyType() == DefendantAccountPartyTypeEnum.PARENT_GUARDIAN
+            && Boolean.FALSE.equals(party.getIsDebtor());
+    }
+
+    private String requireAddedPartyId(PartyResponseDefendantAccount response) {
+        String partyId = response.getDefendantAccountParty().getPartyDetails().getPartyId();
+        if (partyId == null || partyId.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                "Unable to record required Parent/Guardian PDPO log");
+        }
+
+        return partyId;
     }
 
 
@@ -95,6 +135,7 @@ public class DefendantAccountPartyService {
         }
     }
 
+    @Transactional
     public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String ifMatch,
         RemoveDefendantAccountPartyRequestDefendantAccount request) {
@@ -110,10 +151,13 @@ public class DefendantAccountPartyService {
 
         if (userState.hasBusinessUnitUserWithPermission(businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            RemoveDefendantAccountPartyResponseDefendantAccount response = defendantAccountPartyServiceProxy
+                .removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, businessUnitId,
                 getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId), postedBy, userState.getUserName(),
                 ifMatch, request);
+            pdplLoggingService.logRemovedParentGuardian(defendantAccountPartyId, request, response, userState);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }

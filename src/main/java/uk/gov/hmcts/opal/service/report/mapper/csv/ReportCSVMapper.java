@@ -23,7 +23,7 @@ public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
     String reportToCSVString(RDIT rdi);
 
     default String dataListToFullCSVRow(List<String> dataRow) {
-        return dataRow.stream().map(this::checkAndConvertSpecialCharacters).collect(Collectors.joining(COMMA))
+        return dataRow.stream().map(CommonReportHelper::escapeCsv).collect(Collectors.joining(COMMA))
             + NEW_LINE;
     }
 

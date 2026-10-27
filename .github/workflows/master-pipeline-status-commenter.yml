@@ -1,0 +1,51 @@
+---
+name: Comment on master pipeline status
+
+on:
+  status: { }
+  check_run:
+    types:
+      - created
+      - rerequested
+      - completed
+      - requested_action
+  check_suite:
+    types:
+      - completed
+  workflow_run:
+    branches:
+      - master
+    workflows:
+      - Template CI
+      - CodeQL
+    types:
+      - requested
+      - in_progress
+      - completed
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  statuses: read
+
+concurrency:
+  group: master-pipeline-status-commenter
+  cancel-in-progress: true
+
+jobs:
+  comment:
+    if: >-
+      (github.event_name == 'status' && contains(github.event.branches.*.name, 'master')) ||
+      (github.event_name == 'check_run' && github.event.check_run.check_suite.head_branch == 'master') ||
+      (github.event_name == 'check_suite' && github.event.check_suite.head_branch == 'master') ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.head_branch == 'master')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Update PR comments for master pipeline status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BASE_BRANCH: master
+        run: ./bin/ci/master-pipeline-status-commenter.sh --run "${{ github.repository }}"

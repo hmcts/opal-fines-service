@@ -56,7 +56,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5975")
     void testGetMajorCreditorById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1").accept(MediaType.APPLICATION_JSON));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMajorCreditorById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -138,7 +138,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(145))
+            .andExpect(jsonPath("$.count").value(146))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].major_creditor_code").value(hasItem("AAAA")))
             .andExpect(jsonPath("$.refData[?(@.major_creditor_id == 1)].name")
                 .value(hasItem("AAAA Credit Services")))

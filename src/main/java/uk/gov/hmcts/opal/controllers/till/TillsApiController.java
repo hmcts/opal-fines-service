@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.TillsApi;
+import uk.gov.hmcts.opal.generated.model.TillsAllocateRequest;
+import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
 import uk.gov.hmcts.opal.generated.model.TillsGetResponse;
 import uk.gov.hmcts.opal.generated.model.TillsResponse;
-import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
-import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
+import uk.gov.hmcts.opal.service.opal.till.TillAllocationService;
 import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
 import uk.gov.hmcts.opal.service.opal.till.TillSearchService.TillSearchCriteria;
 import uk.gov.hmcts.opal.service.opal.till.TillsService;
@@ -34,6 +36,20 @@ public class TillsApiController implements TillsApi {
     private final TillsService tillsService;
 
     private final CreateTillService createTillService;
+
+    private final TillAllocationService tillAllocationService;
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
+    public ResponseEntity<Void> allocateTills(TillsAllocateRequest request) {
+        if (dynamicConfigService.isLegacyMode()) {
+            log.debug(":POST:allocateTills: rejecting request because service is in legacy mode");
+            throw new FeatureDisabledException("Allocate tills is only available in OPAL mode");
+        }
+
+        tillAllocationService.allocate(request);
+        return buildResponse(HttpStatus.OK);
+    }
 
     @Override
     @FeatureToggle(feature = RELEASE_1C_PAYMENT,

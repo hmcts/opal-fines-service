@@ -23,9 +23,10 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Offence;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.PostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.AccountTypeEnum;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon.DisplayNameEnum;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
 class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapperTest {
@@ -57,7 +58,7 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertResult(imposition),
                 () -> assertCreditor(imposition),
                 () -> assertOffence(imposition),
-                () -> assertNull(imposition.getImposedBy())
+                () -> assertImposingCourt(imposition)
             );
         }
 
@@ -108,7 +109,13 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                 () -> assertNull(imposition.getCreditor()),
                 () -> assertNull(imposition.getImposedAmount()),
                 () -> assertNull(imposition.getOffence()),
-                () -> assertNull(imposition.getImposedBy())
+                () -> {
+                    var courtRef = imposition.getImposedBy();
+                    assertNotNull(courtRef);
+                    assertNull(courtRef.getCourtId());
+                    assertNull(courtRef.getCourtCode());
+                    assertNull(courtRef.getCourtName());
+                }
             );
         }
 
@@ -139,19 +146,35 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
     private void assertCreditor(DefendantAccountImpositionCommon imposition) {
         assertAll(
             () -> assertEquals(77L, imposition.getCreditor().getCreditorAccountId()),
-            () -> assertEquals(AccountTypeEnum.CF, imposition.getCreditor().getAccountType()),
-            () -> assertEquals(DisplayNameEnum.CENTRAL_FUND, imposition.getCreditor().getDisplayName()),
-            () -> assertNull(imposition.getCreditor().getMajorCreditorId()),
-            () -> assertNull(imposition.getCreditor().getMinorCreditorPartyId()),
-            () -> assertEquals("HM Courts & Tribunals Service", imposition.getCreditor().getName())
+            () -> assertEquals(
+                CreditorAccountTypeEnum.CF,
+                imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountType()
+            ),
+            () -> assertEquals(
+                CreditorAccountDisplayNameEnum.CENTRAL_FUND,
+                imposition.getCreditor().getCreditorAccountTypeReference().getCreditorAccountDisplayName()
+            ),
+            () -> assertEquals("HM Courts & Tribunals Service", imposition.getCreditor().getMajorCreditorName()),
+            () -> assertNull(imposition.getCreditor().getMinorCreditorOrganisationFlag()),
+            () -> assertNull(imposition.getCreditor().getIndividualName()),
+            () -> assertNull(imposition.getCreditor().getCompanyName())
         );
     }
 
     private void assertOffence(DefendantAccountImpositionCommon imposition) {
         assertAll(
-            () -> assertEquals(33369L, imposition.getOffence().getId()),
-            () -> assertEquals("HY35014", imposition.getOffence().getCode()),
-            () -> assertEquals("Riding a bicycle on a footpath", imposition.getOffence().getTitle())
+            () -> assertEquals(33369L, imposition.getOffence().getOffenceId()),
+            () -> assertEquals("HY35014", imposition.getOffence().getCjsCode()),
+            () -> assertEquals("Riding a bicycle on a footpath", imposition.getOffence().getOffenceTitle())
+        );
+    }
+
+    private void assertImposingCourt(DefendantAccountImpositionCommon imposition) {
+        assertAll(
+            () -> assertNotNull(imposition.getImposedBy()),
+            () -> assertEquals(101L, imposition.getImposedBy().getCourtId()),
+            () -> assertNull(imposition.getImposedBy().getCourtCode()),
+            () -> assertEquals("Legacy Court", imposition.getImposedBy().getCourtName())
         );
     }
 
@@ -178,6 +201,10 @@ class DefendantAccountImpositionsLegacyResponseMapperTest extends AbstractMapper
                     .offenceId(33369L)
                     .cjsCode("HY35014")
                     .offenceTitle("Riding a bicycle on a footpath")
+                    .build())
+                .imposingCourt(CourtReference.builder()
+                    .courtId(101L)
+                    .courtName("Legacy Court")
                     .build())
                 .impositionId(770000027211L)
                 .build()))

@@ -11,11 +11,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.jms.JmsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -33,6 +35,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
@@ -106,19 +109,19 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleEntityNotFoundException(EntityNotFoundException ex) {
-        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Entity Not Found",
-            "The requested entity could not be found",
-            "entity-not-found", false, ex);
-
-        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+        return entityNotFoundResponse(ex);
     }
 
     @ExceptionHandler(DefendantAccountNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleDefendantAccountNotFoundException(
         DefendantAccountNotFoundException ex) {
 
-        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Defendant Account Not Found",
-            "Defendant account not found with id: " + ex.getDefendantAccountId(),
+        return entityNotFoundResponse(ex);
+    }
+
+    private ResponseEntity<ProblemDetail> entityNotFoundResponse(RuntimeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Entity Not Found",
+            "The requested entity could not be found",
             "entity-not-found", false, ex);
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
@@ -144,14 +147,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReportGenerationException.class)
     public ResponseEntity<ProblemDetail> handleReportGenerationException(ReportGenerationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Report Generation Failed",
-            "Unable to generate the requested report",
-            "report-generation-failed",
-            true,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Report Generation Failed",
+            "Unable to generate the requested report", "report-generation-failed", true, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
@@ -179,6 +176,30 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
             "The interface job queue is currently unavailable",
             "interface-job-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    // Common-lib handles JPA timeouts but not Spring's translated repository exception.
+    @ExceptionHandler(QueryTimeoutException.class)
+    public ResponseEntity<ProblemDetail> handleQueryTimeoutException(QueryTimeoutException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.REQUEST_TIMEOUT, "Request Timeout",
+            "The request did not receive a response from the database within the timeout period",
+            "query-timeout", true, ex);
+        return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
+    }
+
+    @ExceptionHandler(JmsException.class)
+    public ResponseEntity<ProblemDetail> handleJmsException(JmsException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The message queue is currently unavailable", "message-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    @ExceptionHandler(PdplLoggingException.class)
+    public ResponseEntity<ProblemDetail> handlePdplLoggingException(PdplLoggingException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The personal data logging queue is currently unavailable",
+            "pdpl-logging-unavailable", true, ex);
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
