@@ -1,10 +1,12 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,9 +22,12 @@ import lombok.NoArgsConstructor;
 public class CreditorAccountTypeReference {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    @XmlElement(name = "account_type")
-    @JsonProperty("account_type")
-    private String accountType;
+    @JsonAlias("account_type")
+    @XmlElements({
+        @XmlElement(name = "creditor_account_type", type = String.class),
+        @XmlElement(name = "account_type", type = String.class)
+    })
+    @JsonProperty("creditor_account_type")
+    private String creditorAccountType;
 
 }
-

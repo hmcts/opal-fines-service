@@ -30,6 +30,9 @@ import uk.gov.hmcts.opal.dto.legacy.utils.ValidationUtils;
 @XmlRootElement(name = "response")
 public class LegacyUpdateDefendantAccountResponse implements ToXmlString, HasErrorResponse {
 
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
+
     @XmlElement(name = "defendant_account_id")
     @NotNull
     private String defendantAccountId;
@@ -50,9 +53,6 @@ public class LegacyUpdateDefendantAccountResponse implements ToXmlString, HasErr
 
     @XmlElement(name = "enforcement_override")
     private EnforcementOverride enforcementOverride;
-
-    @XmlElement(name = "error_response")
-    private ErrorResponse errorResponse;
 
     @AssertTrue(message = "Exactly one of comment_and_notes, enforcement_court_id, collection_order "
         + "or enforcement_override must be present")

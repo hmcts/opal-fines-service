@@ -4,8 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Builder;
 import org.mapstruct.Mapper;
@@ -15,10 +13,13 @@ import org.mapstruct.Named;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountType;
 import uk.gov.hmcts.opal.entity.projection.DefendantAccountImpositionData;
+import uk.gov.hmcts.opal.generated.model.CompanyNameCommon;
 import uk.gov.hmcts.opal.generated.model.CourtReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionsResponseCommon;
-import uk.gov.hmcts.opal.generated.model.ImpositionCreditorReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualNameCommon;
 import uk.gov.hmcts.opal.generated.model.OffenceReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.ResultReferenceCommon;
 
@@ -67,17 +68,17 @@ public interface DefendantAccountImpositionMapper {
             .resultTitle(imposition.resultTitle());
     }
 
-    default ImpositionCreditorReferenceCommon toCreditorReference(DefendantAccountImpositionData imposition) {
+    default CreditorSummaryCommon toCreditorReference(DefendantAccountImpositionData imposition) {
         if (imposition == null) {
             return null;
         }
-        return new ImpositionCreditorReferenceCommon()
+        return new CreditorSummaryCommon()
+            .creditorAccountTypeReference(toCreditorAccountTypeReference(imposition.creditorAccountType()))
             .creditorAccountId(imposition.creditorAccountId())
-            .accountType(toAccountType(imposition.creditorAccountType()))
-            .displayName(toDisplayName(imposition.creditorAccountType()))
-            .majorCreditorId(imposition.majorCreditorId())
-            .minorCreditorPartyId(imposition.minorCreditorPartyId())
-            .name(toCreditorName(imposition));
+            .majorCreditorName(toMajorCreditorName(imposition))
+            .minorCreditorOrganisationFlag(toMinorCreditorOrganisationFlag(imposition))
+            .individualName(toIndividualName(imposition))
+            .companyName(toCompanyName(imposition));
     }
 
     default BigDecimal toBalance(DefendantAccountImpositionData imposition) {
@@ -96,9 +97,9 @@ public interface DefendantAccountImpositionMapper {
             return null;
         }
         return new OffenceReferenceCommon()
-            .id(imposition.offenceId())
-            .code(firstNonBlank(imposition.impositionOffenceCode(), imposition.offenceCode()))
-            .title(firstNonBlank(imposition.impositionOffenceTitle(), imposition.offenceTitle()));
+            .offenceId(imposition.offenceId())
+            .cjsCode(firstNonBlank(imposition.impositionOffenceCode(), imposition.offenceCode()))
+            .offenceTitle(firstNonBlank(imposition.impositionOffenceTitle(), imposition.offenceTitle()));
     }
 
     default CourtReferenceCommon toImposedByReference(DefendantAccountImpositionData imposition) {
@@ -113,42 +114,59 @@ public interface DefendantAccountImpositionMapper {
             .courtName(imposition.imposingCourtName());
     }
 
-    private ImpositionCreditorReferenceCommon.AccountTypeEnum toAccountType(CreditorAccountType creditorAccountType) {
-        return creditorAccountType == null
-            ? null
-            : ImpositionCreditorReferenceCommon.AccountTypeEnum.fromValue(creditorAccountType.name());
+    private CreditorAccountTypeReferenceCommon toCreditorAccountTypeReference(CreditorAccountType creditorAccountType) {
+        if (creditorAccountType == null) {
+            return null;
+        }
+        return new CreditorAccountTypeReferenceCommon()
+            .creditorAccountType(
+                CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.fromValue(creditorAccountType.name()))
+            .creditorAccountDisplayName(
+                CreditorAccountTypeReferenceCommon.CreditorAccountDisplayNameEnum.fromValue(
+                    creditorAccountType.getLabel()));
     }
 
-    private ImpositionCreditorReferenceCommon.DisplayNameEnum toDisplayName(CreditorAccountType creditorAccountType) {
-        return creditorAccountType == null
-            ? null
-            : ImpositionCreditorReferenceCommon.DisplayNameEnum.fromValue(creditorAccountType.getLabel());
+    private String toMajorCreditorName(DefendantAccountImpositionData imposition) {
+        if (imposition.creditorAccountType() != CreditorAccountType.MJ) {
+            return null;
+        }
+        return trimToNull(imposition.majorCreditorName());
     }
 
-    private String toCreditorName(DefendantAccountImpositionData imposition) {
+    private Boolean toMinorCreditorOrganisationFlag(DefendantAccountImpositionData imposition) {
+        if (imposition.creditorAccountType() != CreditorAccountType.MN) {
+            return null;
+        }
+        return Boolean.TRUE.equals(imposition.minorCreditorOrganisation());
+    }
+
+    private IndividualNameCommon toIndividualName(DefendantAccountImpositionData imposition) {
+        if (imposition.creditorAccountType() != CreditorAccountType.MN
+            || Boolean.TRUE.equals(imposition.minorCreditorOrganisation())
+            || !hasText(imposition.minorCreditorSurname())) {
+            return null;
+        }
+        return new IndividualNameCommon()
+            .forenames(trimToNull(imposition.minorCreditorForenames()))
+            .surname(imposition.minorCreditorSurname().trim());
+    }
+
+    private CompanyNameCommon toCompanyName(DefendantAccountImpositionData imposition) {
         if (imposition.creditorAccountType() == null) {
             return null;
         }
-        return switch (imposition.creditorAccountType()) {
-            case MJ -> imposition.majorCreditorName();
-            case MN -> toMinorCreditorName(imposition);
-            case CF -> firstNonBlank(imposition.majorCreditorName(), CreditorAccountType.CF.getLabel());
+        String organisationName = switch (imposition.creditorAccountType()) {
+            case MN -> Boolean.TRUE.equals(imposition.minorCreditorOrganisation())
+                ? imposition.minorCreditorOrganisationName()
+                : null;
+            case CF -> null;
+            case MJ -> null;
         };
-    }
-
-    private String toMinorCreditorName(DefendantAccountImpositionData imposition) {
-        if (Boolean.TRUE.equals(imposition.minorCreditorOrganisation())) {
-            return firstNonBlank(imposition.minorCreditorOrganisationName());
+        String trimmedOrganisationName = trimToNull(organisationName);
+        if (trimmedOrganisationName == null) {
+            return null;
         }
-        String individualName = Stream.of(
-                imposition.minorCreditorTitle(),
-                imposition.minorCreditorForenames(),
-                imposition.minorCreditorSurname()
-            )
-            .filter(this::hasText)
-            .map(String::trim)
-            .collect(Collectors.joining(" "));
-        return firstNonBlank(individualName, imposition.minorCreditorOrganisationName());
+        return new CompanyNameCommon().organisationName(trimmedOrganisationName);
     }
 
     private String firstNonBlank(String... values) {
@@ -158,6 +176,10 @@ public interface DefendantAccountImpositionMapper {
             }
         }
         return null;
+    }
+
+    private String trimToNull(String value) {
+        return hasText(value) ? value.trim() : null;
     }
 
     private boolean hasText(String value) {

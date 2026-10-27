@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
@@ -13,6 +15,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -25,6 +28,9 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
 
     @MockitoBean
     private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
+    @MockitoBean
+    private LoggingService loggingService;
 
     @Test
     @JiraStory("PO-1566")
@@ -53,6 +59,7 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-10341")
     @JiraEpic("PO-812")
     void testPostAddNoteThenFetchHeaderSummaryForLegacyOnlyAccount() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
         super.legacyOnlyAccountAddNoteThenFetchHeaderSummary(log);
     }
 
@@ -60,6 +67,8 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-10341")
     @JiraEpic("PO-812")
     void testPostAddNoteThenFetchHistoryForLegacyOnlyAccount() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         super.legacyOnlyAccountAddNoteThenFetchHistory(log);
     }
 

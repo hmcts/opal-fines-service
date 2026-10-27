@@ -25,6 +25,9 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @Service
@@ -35,6 +38,11 @@ public class MinorCreditorService {
     private final MinorCreditorSearchProxy minorCreditorSearchProxy;
 
     private final UserStateService userStateService;
+
+    private final MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
+    private final MinorCreditorPdplLoggingService pdplLoggingService;
+
+    private final MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest entity) {
         log.debug(":searchMinorCreditor:");
@@ -60,7 +68,9 @@ public class MinorCreditorService {
 
         MinorCreditorAccountResponse response =
             minorCreditorSearchProxy.getMinorCreditorAccount(minorCreditorAccountId);
-        return redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+        response = redactBacsDetailsWhenNotPermitted(minorCreditorAccountId, response, userState);
+        pdplLoggingService.logIndividualMinorCreditor(userState, response);
+        return response;
     }
 
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
@@ -74,8 +84,10 @@ public class MinorCreditorService {
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
             MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, itemTypes);
-            return minorCreditorSearchProxy.getMinorCreditorHistory(
+            GetMinorCreditorHistoryResponse response = minorCreditorSearchProxy.getMinorCreditorHistory(
                 minorCreditorAccountId, filters);
+            historyPdplLoggingService.logHistoryItems(userState, response);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
@@ -105,7 +117,11 @@ public class MinorCreditorService {
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return minorCreditorSearchProxy.getHeaderSummary(minorCreditorId);
+            MinorCreditorAccountHeaderSummaryResponse response =
+                minorCreditorSearchProxy.getHeaderSummary(minorCreditorId);
+            minorCreditorSummaryPdplLoggingService.logIndividualMinorCreditorSummary(minorCreditorId, userState,
+                response);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

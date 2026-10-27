@@ -28,6 +28,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
 
 import static org.hamcrest.Matchers.equalTo;
 
@@ -43,14 +44,16 @@ public class TillsStepDef extends BaseStepDef {
     private static final String INTERFACE_JOBS_SUMMARY_PATH = "/interface-jobs/summary";
     private static final String REPORT_INSTANCES_PATH = "/report-instances";
     private static final String TESTING_SUPPORT_INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
-    // TODO(PO-3630): confirm the manual-till cleanup path specified by the TDIA before enabling AC2.
-    private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills/";
+    private static final String TESTING_SUPPORT_TILLS_PATH = "/testing-support/tills";
     private static final String TESTING_SUPPORT_REPORT_INSTANCES_PATH = "/testing-support/report-instances";
     private static final short AUTO_PAYMENT_BUSINESS_UNIT_ID = 77;
+    private static final String MANUAL_TILL_BUSINESS_UNIT_ID = "78";
+    private static final String DEFENDANT_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String AUTO_PAYMENT_INTERFACE_NAME = "PAYMENTS_IN";
     private static final String CASH_TILL_REPORT_ID = "cash_till";
     private static final String PRE_ALLOCATED_REPORT_NAME = "Cash till report - Pre-allocated (%s)";
     private static final long NON_EXISTENT_REPORT_INSTANCE_ID = 999999999999L;
+    private static final long NON_EXISTENT_TILL_ID = 999999999998L;
     private static final Duration TILL_PROCESSING_TIMEOUT = Duration.ofMinutes(2);
     private static final Duration TILL_PROCESSING_POLL_INTERVAL = Duration.ofSeconds(2);
     private static final List<String> DOCUMENTED_TILL_FIELDS = List.of(
@@ -59,8 +62,10 @@ public class TillsStepDef extends BaseStepDef {
         "date_processed",
         "errors",
         "file_name",
+        "payments_count",
         "processed_by",
         "source",
+        "till_id",
         "till_number");
 
     private Long createdInterfaceJobId;
@@ -73,7 +78,13 @@ public class TillsStepDef extends BaseStepDef {
     private Map<String, Object> generatedTill;
     private Set<Long> existingTillIds = Set.of();
     private Long createdTillId;
+    private Long deletedTillId;
+    private Long unrelatedTillId;
+    private Long deletedUnrelatedTillId;
+    private Long createdDefendantAccountId;
     private String uniquePayerName;
+    private final DefendantAccountEnforcementWorkflow defendantAccountWorkflow =
+        new DefendantAccountEnforcementWorkflow();
 
     /**
      * Submits a request that conforms to the current add-till API schema. The request deliberately
@@ -148,7 +159,7 @@ public class TillsStepDef extends BaseStepDef {
      * from the post-create till list.
      */
     @When("I submit a uniquely identifiable valid request to create a till with one criminal payment")
-    public void submitUniqueTillWithOneCriminalPayment() {
+    public void submitUniqueTillWithOneCriminalPayment() throws Exception {
         submitUniqueTillCreateRequest(1);
     }
 
@@ -157,7 +168,7 @@ public class TillsStepDef extends BaseStepDef {
      * persisted on the created till.
      */
     @When("I submit a uniquely identifiable valid request to create a till with two criminal payments")
-    public void submitUniqueTillWithTwoCriminalPayments() {
+    public void submitUniqueTillWithTwoCriminalPayments() throws Exception {
         submitUniqueTillCreateRequest(2);
     }
 
@@ -189,6 +200,23 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
+     * Creates a till that is retained while another till is deleted. This lets the functional test
+     * prove that deletion is limited to the explicitly supplied ID.
+     *
+     * @param businessUnitId business unit in which the unrelated till will be created
+     */
+    @Given("I create a manual till as unrelated data for business unit {int}")
+    public void createManualTillAsUnrelatedData(int businessUnitId) throws Exception {
+        recordExistingTillIdentifiers(businessUnitId);
+        submitUniqueTillWithOneCriminalPayment();
+        then().statusCode(201);
+        retrieveNewlyCreatedTill();
+
+        unrelatedTillId = createdTillId;
+        createdTillId = null;
+    }
+
+    /**
      * Verifies the created till and its single criminal payment through the GET /tills/{id} contract.
      */
     @Then("the till belongs to business unit {int} and contains one linked criminal payment")
@@ -216,7 +244,7 @@ public class TillsStepDef extends BaseStepDef {
         Map<String, Object> till = assertCreatedTill(78, 1);
         Map<String, Object> payment = createdTillPayments(till).getFirst();
 
-        assertEquals("123", payment.get("associated_record_id"));
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
         assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
         assertEquals("NC", payment.get("method"));
         assertEquals("F", payment.get("destination_type"));
@@ -225,12 +253,113 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
-     * Removes the manual till using the expected TDIA testing-support route. This remains a best
-     * guess until that route is implemented and confirmed; AC2 is therefore tagged @Ignore.
+     * Removes the manually created till and its linked payments through the test-support API.
      */
     @Then("I remove the created till using the Testing Support API")
     public void removeCreatedTillUsingTestingSupport() {
         deleteCreatedTill();
+    }
+
+    @When("I delete the created manual till using testing support")
+    public void deleteCreatedManualTillUsingTestingSupport() {
+        deleteCreatedTill();
+    }
+
+    /**
+     * Sends a valid till ID together with a malformed ID so request binding fails before deletion.
+     */
+    @When("I attempt to delete the created manual till with an additional malformed ID")
+    public void attemptToDeleteCreatedManualTillWithMalformedId() {
+        authorisedJsonRequest()
+            .queryParam("ids", createdTillIdOrFail(), "not-a-till-id")
+            .when()
+            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
+    }
+
+    /**
+     * Confirms a failed delete request left the created till and its linked payments available.
+     */
+    @Then("the created manual till and its linked payment remain available")
+    public void createdManualTillAndPaymentRemainAvailable() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + createdTillIdOrFail());
+        assertEquals(200, response.statusCode(), "Expected manual till to remain available");
+
+        Map<String, Object> till = response.as(new TypeRef<>() { });
+        List<Map<String, Object>> payments = createdTillPayments(till);
+        assertNotNull(payments, "The surviving till must still return its linked payments");
+        assertEquals(1, payments.size(), "The failed delete must leave the linked payment intact");
+
+        Map<String, Object> payment = payments.getFirst();
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
+        assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
+        assertEquals(uniquePayerName + "-1", payment.get("third_party_payer_name"));
+    }
+
+    @Then("the created manual till is no longer available")
+    public void createdManualTillIsNoLongerAvailable() {
+        assertNotNull(deletedTillId, "A till must be deleted before verifying it is unavailable");
+        assertTillIsUnavailable(deletedTillId);
+    }
+
+    /**
+     * Deletes the current and retained manual tills in one request, repeating the current ID and
+     * including an absent ID to prove the endpoint tolerates both cases.
+     */
+    @When("I delete both created manual tills using testing support with repeated and absent IDs")
+    public void deleteBothCreatedManualTillsWithRepeatedAndAbsentIds() {
+        Long currentTillId = createdTillIdOrFail();
+        Long retainedTillId = unrelatedTillIdOrFail();
+        Response response = authorisedJsonRequest()
+            .queryParam("ids", retainedTillId, currentTillId, currentTillId, NON_EXISTENT_TILL_ID)
+            .when()
+            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
+
+        assertEquals(200, response.statusCode(), "Expected multi-ID manual till deletion to succeed");
+        deletedTillId = currentTillId;
+        deletedUnrelatedTillId = retainedTillId;
+        createdTillId = null;
+        unrelatedTillId = null;
+    }
+
+    /**
+     * Confirms deleting another till did not affect the retained till.
+     */
+    @Then("the unrelated manual till remains available")
+    public void unrelatedManualTillRemainsAvailable() {
+        assertTillIsAvailable(unrelatedTillIdOrFail());
+    }
+
+    /**
+     * Confirms deleting an unknown ID leaves the unrelated manual till and its payment unchanged.
+     */
+    @Then("the unrelated manual till and its linked payment remain available")
+    public void unrelatedManualTillAndPaymentRemainAvailable() {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + unrelatedTillIdOrFail());
+        assertEquals(200, response.statusCode(), "Expected unrelated manual till to remain available");
+
+        Map<String, Object> till = response.as(new TypeRef<>() { });
+        List<Map<String, Object>> payments = createdTillPayments(till);
+        assertNotNull(payments, "The unrelated till must still return its linked payments");
+        assertEquals(1, payments.size(), "Deleting an unknown ID must leave the payment intact");
+
+        Map<String, Object> payment = payments.getFirst();
+        assertEquals(String.valueOf(createdDefendantAccountId), payment.get("associated_record_id"));
+        assertEquals(12.34d, ((Number) payment.get("amount")).doubleValue(), 0.001d);
+        assertEquals(uniquePayerName + "-1", payment.get("third_party_payer_name"));
+    }
+
+    /**
+     * Confirms the retained till was deleted when its ID was included in a multi-ID request.
+     */
+    @Then("the unrelated manual till is no longer available")
+    public void unrelatedManualTillIsNoLongerAvailable() {
+        assertNotNull(deletedUnrelatedTillId,
+            "The unrelated till must be deleted before verifying it is unavailable");
+        assertTillIsUnavailable(deletedUnrelatedTillId);
     }
 
     /**
@@ -242,6 +371,16 @@ public class TillsStepDef extends BaseStepDef {
     public void requestTillsForBusinessUnit(int businessUnitId) {
         authorisedJsonRequest()
             .queryParam("business_unit_ids", businessUnitId)
+            .when()
+            .get(getTestUrl() + TILLS_PATH);
+    }
+
+    /**
+     * Retrieves tills using the authenticated user's permitted business units.
+     */
+    @When("I request tills without a business unit filter")
+    public void requestTillsWithoutBusinessUnitFilter() {
+        authorisedJsonRequest()
             .when()
             .get(getTestUrl() + TILLS_PATH);
     }
@@ -322,23 +461,8 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     /**
-     * Retrieves a combination of filters that cannot match a till in the deployed environment.
-     *
-     * @param businessUnitId a valid int16 business unit ID reserved here as unmatched test input
-     */
-    @When("I request allocated auto-payment tills for unmatched business unit {int}")
-    public void requestUnmatchedAllocatedAutoPaymentTills(int businessUnitId) {
-        authorisedJsonRequest()
-            .queryParam("business_unit_ids", businessUnitId)
-            .queryParam("statuses", "ALLOCATED")
-            .queryParam("auto_payments", true)
-            .when()
-            .get(getTestUrl() + TILLS_PATH);
-    }
-
-    /**
-     * Confirms row-level permission filtering or unmatched criteria return the documented empty
-     * success contract rather than a permission failure.
+     * Confirms that omitting the BU filter with no qualifying permissions returns the empty
+     * success contract.
      */
     @Then("the tills response is an empty successful response")
     public void tillsResponseIsEmptyAndSuccessful() {
@@ -364,6 +488,8 @@ public class TillsStepDef extends BaseStepDef {
         assertEquals(DOCUMENTED_TILL_FIELDS, generatedTill.keySet().stream().sorted().toList(),
             "The generated till must contain only documented fields");
         assertInstanceOf(Number.class, generatedTill.get("till_number"));
+        assertInstanceOf(Number.class, generatedTill.get("till_id"));
+        assertInstanceOf(Number.class, generatedTill.get("payments_count"));
         assertInstanceOf(Number.class, generatedTill.get("errors"));
         assertInstanceOf(Number.class, generatedTill.get("amount"));
         assertInstanceOf(String.class, generatedTill.get("business_unit_name"));
@@ -532,15 +658,12 @@ public class TillsStepDef extends BaseStepDef {
 
     @After(order = Integer.MAX_VALUE - 1)
     public void cleanUpCreatedManualTill() {
-        if (createdTillId == null) {
+        if (createdTillId == null && unrelatedTillId == null) {
             return;
         }
 
-        try {
-            deleteCreatedTill();
-        } catch (RuntimeException exception) {
-            log.warn("Unable to clean up manually created till {}", createdTillId, exception);
-        }
+        cleanUpManualTill(createdTillId);
+        cleanUpManualTill(unrelatedTillId);
     }
 
     private Long findGeneratedCashTillReportInstanceId() {
@@ -645,26 +768,37 @@ public class TillsStepDef extends BaseStepDef {
             """;
     }
 
-    private void submitUniqueTillCreateRequest(int paymentCount) {
-        uniquePayerName = "PO-3630-functional-" + UUID.randomUUID();
+    private void submitUniqueTillCreateRequest(int paymentCount) throws Exception {
+        createdDefendantAccountId = createDefendantAccount();
+        uniquePayerName = "PO-3630-" + UUID.randomUUID();
         authorisedJsonRequest()
-            .body(uniqueTillCreateRequest(paymentCount))
+            .body(uniqueTillCreateRequest(paymentCount, createdDefendantAccountId))
             .when()
             .post(getTestUrl() + TILLS_PATH);
     }
 
-    private String uniqueTillCreateRequest(int paymentCount) {
-        String firstPayment = criminalPaymentJson(123, "12.34", uniquePayerName + "-1");
+    private String uniqueTillCreateRequest(int paymentCount, long defendantAccountId) {
+        String firstPayment = criminalPaymentJson(defendantAccountId, "12.34", uniquePayerName + "-1");
         if (paymentCount == 1) {
             return """
                 { "business_unit_id": 78, "payments_in": [ %s ] }
                 """.formatted(firstPayment);
         }
 
-        String secondPayment = criminalPaymentJson(124, "23.45", uniquePayerName + "-2");
+        String secondPayment = criminalPaymentJson(defendantAccountId, "23.45", uniquePayerName + "-2");
         return """
             { "business_unit_id": 78, "payments_in": [ %s, %s ] }
             """.formatted(firstPayment, secondPayment);
+    }
+
+    private long createDefendantAccount() throws Exception {
+        defendantAccountWorkflow.createEnforceableDefendantAccount(Map.of(
+            "business_unit_id", MANUAL_TILL_BUSINESS_UNIT_ID,
+            "account", DEFENDANT_ACCOUNT_FIXTURE,
+            "account_type", "Fine",
+            "account_status", "Submitted"
+        ));
+        return Long.parseLong(scenarioContext().getCreatedDefendantAccountIdOrFail());
     }
 
     private String criminalPaymentJson(long defendantAccountId, String amount, String payerName) {
@@ -698,13 +832,57 @@ public class TillsStepDef extends BaseStepDef {
     }
 
     private void deleteCreatedTill() {
-        assertNotNull(createdTillId, "A till must be created before cleanup");
+        Long tillIdToDelete = createdTillIdOrFail();
         Response response = authorisedJsonRequest()
+            .queryParam("ids", tillIdToDelete)
             .when()
-            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH + createdTillId);
+            .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
         assertTrue(response.statusCode() == 200 || response.statusCode() == 204,
             "Manual till cleanup must return 200 or 204");
+        deletedTillId = tillIdToDelete;
         createdTillId = null;
+    }
+
+    private Long createdTillIdOrFail() {
+        assertNotNull(createdTillId, "A till must be created before cleanup");
+        return createdTillId;
+    }
+
+    private Long unrelatedTillIdOrFail() {
+        assertNotNull(unrelatedTillId, "An unrelated till must be created before it can be checked");
+        return unrelatedTillId;
+    }
+
+    private void assertTillIsAvailable(long tillId) {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + tillId);
+        assertEquals(200, response.statusCode(), "Expected manual till to remain available");
+    }
+
+    private void assertTillIsUnavailable(long tillId) {
+        Response response = authorisedJsonRequest()
+            .when()
+            .get(getTestUrl() + TILLS_PATH + "/" + tillId);
+        assertEquals(404, response.statusCode(), "Expected deleted manual till to be unavailable");
+    }
+
+    private void cleanUpManualTill(Long tillId) {
+        if (tillId == null) {
+            return;
+        }
+
+        try {
+            Response response = authorisedJsonRequest()
+                .queryParam("ids", tillId)
+                .when()
+                .delete(getTestUrl() + TESTING_SUPPORT_TILLS_PATH);
+            if (response.statusCode() != 200 && response.statusCode() != 204) {
+                log.warn("Unable to clean up manually created till {}: HTTP {}", tillId, response.statusCode());
+            }
+        } catch (RuntimeException exception) {
+            log.warn("Unable to clean up manually created till {}", tillId, exception);
+        }
     }
 
     private void sleepBeforeTillPoll() {

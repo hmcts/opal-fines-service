@@ -11,12 +11,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.sql.DataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
@@ -68,14 +68,6 @@ class InterfaceJobQueueIntegrationTestHelper {
 
     @Value("${opal.report.storage.container}")
     private String reportContainerName;
-
-    @Transactional
-    void replaceInterfaceFileRecords(Long interfaceFileId, String recordsJson) {
-        InterfaceFileEntity interfaceFile = interfaceFileRepository.findById(interfaceFileId)
-            .orElseThrow();
-        interfaceFile.setRecords(recordsJson);
-        interfaceFileRepository.saveAndFlush(interfaceFile);
-    }
 
     Connection lockInterfaceJobForUpdate(Long interfaceJobId) throws SQLException {
         Connection connection = dataSource.getConnection();
@@ -142,7 +134,7 @@ class InterfaceJobQueueIntegrationTestHelper {
             .singleElement()
             .satisfies(report -> {
                 assertThat(report.getGenerationStatus()).isEqualTo(ReportInstanceGenerationStatus.READY);
-                assertThat(report.getLocation()).isNotBlank();
+                assertThat(report.getLocation()).isNotNull();
                 assertThat(report.getErrors()).isNull();
                 assertThat(reportBlobExists(report.getLocation())).isTrue();
                 assertThat(reportReferencesTill(report,
@@ -217,9 +209,9 @@ class InterfaceJobQueueIntegrationTestHelper {
             .isPresent();
     }
 
-    private boolean reportBlobExists(String location) {
+    private boolean reportBlobExists(UUID location) {
         return blobServiceClient.getBlobContainerClient(reportContainerName)
-            .getBlobClient(location)
+            .getBlobClient(String.valueOf(location))
             .exists();
     }
 }

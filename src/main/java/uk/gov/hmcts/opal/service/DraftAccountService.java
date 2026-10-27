@@ -145,6 +145,58 @@ public class DraftAccountService {
         }
     }
 
+    public DraftAccountsResponseDto countDraftAccounts(
+        Optional<List<Short>> optionalBusinessUnitIds,
+        Optional<List<DraftAccountStatus>> optionalStatus,
+        Optional<List<String>> optionalSubmittedBys,
+        Optional<List<String>> optionalNotSubmittedBys,
+        Optional<LocalDate> accountStatusDateFrom,
+        Optional<LocalDate> accountStatusDateTo) {
+
+        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+
+        if (!userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+        }
+
+        List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
+        List<String> notSubmittedBys = optionalNotSubmittedBys.orElse(Collections.emptyList());
+
+        if (!submittedBys.isEmpty() && !notSubmittedBys.isEmpty()) {
+            throw new IllegalArgumentException(
+                "Cannot include both 'submitted_by' and 'not_submitted_by' parameters.");
+        }
+
+        List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
+
+        List<Short> requestedBusinessUnitIds = optionalBusinessUnitIds.orElseGet(() ->
+            userState.getBusinessUnitUser().stream()
+                .map(BusinessUnitUser::getBusinessUnitId)
+                .toList()
+        );
+
+        List<Short> permittedBusinessUnitIds = requestedBusinessUnitIds.stream()
+            .filter(businessUnitId -> userState.hasBusinessUnitUserWithAnyPermission(
+                businessUnitId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS))
+            .distinct()
+            .toList();
+
+        if (permittedBusinessUnitIds.isEmpty()) {
+            return DraftAccountsResponseDto.countOnly(0);
+        }
+
+        long count = draftAccountTransactional.countDraftAccounts(
+            permittedBusinessUnitIds,
+            statuses,
+            submittedBys,
+            notSubmittedBys,
+            accountStatusDateFrom,
+            accountStatusDateTo
+        );
+
+        return DraftAccountsResponseDto.countOnly(Math.toIntExact(count));
+    }
+
     public String deleteDraftAccount(long draftAccountId, boolean checkExisted) {
         try {
             boolean deleted =  draftAccountTransactional.deleteDraftAccount(draftAccountId, draftAccountTransactional);

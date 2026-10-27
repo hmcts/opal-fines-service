@@ -16,6 +16,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
+import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
@@ -24,7 +28,10 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @NoArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class GetDefendantAccountImpositionsLegacyResponse {
+public class GetDefendantAccountImpositionsLegacyResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "version")
     private BigInteger version;
@@ -64,6 +71,9 @@ public class GetDefendantAccountImpositionsLegacyResponse {
 
         @XmlElement(name = "offence")
         private Offence offence;
+
+        @XmlElement(name = "imposing_court")
+        private CourtReference imposingCourt;
 
         @XmlElement(name = "imposition_id")
         private Long impositionId;
@@ -116,6 +126,15 @@ public class GetDefendantAccountImpositionsLegacyResponse {
 
         @XmlElement(name = "major_creditor_name")
         private String majorCreditorName;
+
+        @XmlElement(name = "minor_creditor_organisation_flag")
+        private Boolean minorCreditorOrganisationFlag;
+
+        @XmlElement(name = "individual_name")
+        private IndividualName individualName;
+
+        @XmlElement(name = "company_name")
+        private CompanyName companyName;
     }
 
     @Data
@@ -127,6 +146,31 @@ public class GetDefendantAccountImpositionsLegacyResponse {
 
         @XmlElement(name = "creditor_account_type")
         private String creditorAccountType;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class IndividualName {
+
+        @XmlElement(name = "forenames")
+        private String forenames;
+
+        @XmlElement(name = "surname")
+        private String surname;
+    }
+
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class CompanyName {
+
+        @XmlElement(name = "organisation_name")
+        private String organisationName;
     }
 
     @Data

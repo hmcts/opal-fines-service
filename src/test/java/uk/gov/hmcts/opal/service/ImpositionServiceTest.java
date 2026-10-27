@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
@@ -14,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.ImpositionTotalsDto;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountImpositionPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.ImpositionServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,6 +45,9 @@ class ImpositionServiceTest {
 
     @Mock
     private ImpositionServiceProxy impositionServiceProxy;
+
+    @Mock
+    private DefendantAccountImpositionPdplLoggingService pdplLoggingService;
 
     @InjectMocks
     private ImpositionService impositionService;
@@ -117,8 +123,7 @@ class ImpositionServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
 
-        GetDefendantAccountImpositionsResponse result =
-            impositionService.getImpositions(defendantAccountId);
+            GetDefendantAccountImpositionsResponse result = impositionService.getImpositions(defendantAccountId);
 
         assertSame(impositionsResponse, result);
         verify(userStateService).getUserStateFromSecurityContext();
@@ -142,6 +147,51 @@ class ImpositionServiceTest {
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(impositionServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
+    }
+    @Nested
+    class GetImpositions {
+
+        @Test
+        void whenUserHasPermission_returnsServiceResult_happyPath() {
+            Long defendantAccountId = 77L;
+            GetDefendantAccountImpositionsResponse impositionsResponse =
+                GetDefendantAccountImpositionsResponse.builder()
+                    .version(BigInteger.valueOf(9))
+                    .build();
+            when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+            when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+                .thenReturn(true);
+            when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
+
+            GetDefendantAccountImpositionsResponse result = impositionService.getImpositions(defendantAccountId);
+
+            assertAll(
+                () -> assertSame(impositionsResponse, result),
+                () -> verify(userStateService).getUserStateV1FromSecurityContext(),
+                () -> verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
+                () -> verify(impositionServiceProxy).getImpositions(defendantAccountId),
+                () -> verify(pdplLoggingService).logIndividualMinorCreditors(userState, impositionsResponse),
+                () -> verifyNoMoreInteractions(userStateService, userState, impositionServiceProxy,
+                    pdplLoggingService)
+            );
+        }
+
+        @Test
+        void whenUserLacksPermission_throwsPermissionNotAllowed_sadPath() {
+            Long defendantAccountId = 77L;
+            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+            when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
+                .thenReturn(false);
+
+            assertAll(
+                () -> assertThrows(PermissionNotAllowedException.class,
+                    () -> impositionService.getImpositions(defendantAccountId)),
+                () -> verify(userStateService).getUserStateFromSecurityContext(),
+                () -> verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
+                () -> verifyNoInteractions(impositionServiceProxy, pdplLoggingService),
+                () -> verifyNoMoreInteractions(userStateService, userState)
+            );
+        }
     }
 
     private ImpositionEntity buildImpositionEntityWith50PoundImposition(String resultId) {

@@ -1,10 +1,12 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -13,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,6 +24,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -28,6 +32,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -47,6 +52,14 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
 
     @MockitoSpyBean
     private GatewayService gatewayService;
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void queuePdplLogs() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("PO-2647 legacy history returns mixed items and maps them")
@@ -93,7 +106,35 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
         assertThat(requestCaptor.getValue().getDefendantAccountId()).isEqualTo("99000000000001");
         assertThat(requestCaptor.getValue().getFromDate()).isNull();
         assertThat(requestCaptor.getValue().getToDate()).isNull();
-        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
+    }
+
+    @Test
+    @JiraStory("PO-10874")
+    @JiraEpic("PO-2621")
+    @DisplayName("PO-10874 legacy history with empty item types sends all types to Legacy")
+    void getDefendantAccountHistory_emptyItemTypes_defaultsToAllLegacyItemTypes() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        mockMvc.perform(get(HISTORY_URL, DEFENDANT_ACCOUNT_ID)
+                .queryParam("itemTypes", "")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .accept(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk());
+
+        ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
+            ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
+        verify(gatewayService).postToGateway(
+            eq(GET_DEFENDANT_ACCOUNT_HISTORY),
+            eq(GetDefendantAccountHistoryLegacyResponse.class),
+            requestCaptor.capture(),
+            isNull()
+        );
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Enforcement", "Financial", "Note", "Payment terms");
     }
 
     @Test
@@ -114,7 +155,7 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[1].type").value("Financial"));
+            .andExpect(jsonPath("$.historyItems[3].type").value("Enforcement"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
@@ -143,7 +184,9 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").isString())
+            .andExpect(jsonPath("$.detail").isString());
     }
 
     @Test

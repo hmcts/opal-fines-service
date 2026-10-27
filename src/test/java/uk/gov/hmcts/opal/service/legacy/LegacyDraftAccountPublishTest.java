@@ -6,6 +6,8 @@ import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -18,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
@@ -37,6 +40,8 @@ import java.util.concurrent.ExecutionException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -58,6 +63,9 @@ class LegacyDraftAccountPublishTest {
     private LegacyGatewayProperties gatewayProperties;
 
     private GatewayService gatewayService;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
 
     @Mock
     private DraftAccountTransactional draftAccountTransactional;
@@ -367,7 +375,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testcreateDefendantAccountRequest_emptyAccount() {
 
-        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+        LegacyCreateDefendantAccountRequest lcdar = legacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
                     BusinessUnitEntity.builder()
@@ -385,7 +393,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testcreateDefendantAccountRequest_nullAccount() {
 
-        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+        LegacyCreateDefendantAccountRequest lcdar = legacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
                     BusinessUnitEntity.builder()
@@ -403,7 +411,7 @@ class LegacyDraftAccountPublishTest {
     @Test
     void testcreateDefendantAccountRequest_blankAccount() {
 
-        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+        LegacyCreateDefendantAccountRequest lcdar = legacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
                     BusinessUnitEntity.builder()
@@ -427,14 +435,14 @@ class LegacyDraftAccountPublishTest {
         BusinessUnitUserV2 user = BusinessUnitUserV2.builder().businessUnitUserId("testUser").build();
 
         assertThrows(JsonSchemaValidationException.class, () -> {
-            LegacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
         });
     }
 
     @Test
     void testcreateDefendantAccountRequest() {
 
-        LegacyCreateDefendantAccountRequest lcdar = LegacyDraftAccountPublish.createDefendantAccountRequest(
+        LegacyCreateDefendantAccountRequest lcdar = legacyDraftAccountPublish.createDefendantAccountRequest(
             DraftAccountEntity.builder()
                 .businessUnit(
                     BusinessUnitEntity.builder()
@@ -452,6 +460,221 @@ class LegacyDraftAccountPublishTest {
                 .put("accountNumber", "77-007"),
             new ObjectMapper().valueToTree(lcdar.getDefendantAccount())
         );
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenFlagEnabledAndRegistrationNull_usesNV() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(true);
+
+        String originalAccount = """
+            {
+              "fp_ticket_detail": {
+                "fp_registration_number": null
+              }
+            }
+            """;
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account(originalAccount)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = new ObjectMapper().valueToTree(request.getDefendantAccount());
+
+        assertEquals(
+            "NV",
+            account.get("fp_ticket_detail").get("fp_registration_number").asText()
+        );
+        assertEquals(originalAccount, entity.getAccount());
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenFlagDisabled_preservesNullRegistration() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account("""
+            {
+              "fp_ticket_detail": {
+                "fp_registration_number": null
+              }
+            }
+            """)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = new ObjectMapper().valueToTree(request.getDefendantAccount());
+        JsonNode registrationNumber =
+            account.get("fp_ticket_detail").get("fp_registration_number");
+
+        assertTrue(registrationNumber.isNull());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "\t"})
+    void createDefendantAccountRequest_whenRegistrationBlank_usesNV(String registrationNumber) {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode fpTicketDetail = objectMapper.createObjectNode()
+            .put("fp_registration_number", registrationNumber);
+        String accountJson = objectMapper.createObjectNode()
+            .set("fp_ticket_detail", fpTicketDetail)
+            .toString();
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account(accountJson)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = objectMapper.valueToTree(request.getDefendantAccount());
+
+        assertEquals("NV", account.get("fp_ticket_detail").get("fp_registration_number").asText());
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenRegistrationHasContent_preservesOriginalValue() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        String registrationNumber = " ABC123 ";
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode fpTicketDetail = objectMapper.createObjectNode()
+            .put("fp_registration_number", registrationNumber);
+        String accountJson = objectMapper.createObjectNode()
+            .set("fp_ticket_detail", fpTicketDetail)
+            .toString();
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account(accountJson)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = objectMapper.valueToTree(request.getDefendantAccount());
+
+        assertEquals(
+            registrationNumber,
+            account.get("fp_ticket_detail").get("fp_registration_number").asText()
+        );
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenRegistrationOmitted_usesNV() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(true);
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account("""
+            {
+              "fp_ticket_detail": {
+                "notice_number": "TEST123"
+              }
+            }
+            """)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = new ObjectMapper().valueToTree(request.getDefendantAccount());
+
+        assertEquals(
+            "NV",
+            account.get("fp_ticket_detail").get("fp_registration_number").asText()
+        );
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenFpTicketDetailAbsent_doesNotAddIt() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(true);
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account("""
+            {
+              "defendant_account_id": 12345
+            }
+            """)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = new ObjectMapper().valueToTree(request.getDefendantAccount());
+
+        assertFalse(account.has("fp_ticket_detail"));
+    }
+
+    @Test
+    void createDefendantAccountRequest_whenFpTicketDetailNull_preservesNull() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY,
+            false
+        )).thenReturn(true);
+
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
+            .account("""
+            {
+              "fp_ticket_detail": null
+            }
+            """)
+            .build();
+        BusinessUnitUser user = BusinessUnitUser.builder()
+            .businessUnitUserId("testUser")
+            .build();
+
+        LegacyCreateDefendantAccountRequest request =
+            legacyDraftAccountPublish.createDefendantAccountRequest(entity, user);
+
+        JsonNode account = new ObjectMapper().valueToTree(request.getDefendantAccount());
+
+        assertTrue(account.get("fp_ticket_detail").isNull());
     }
 
     private String emptyTimelineData() {

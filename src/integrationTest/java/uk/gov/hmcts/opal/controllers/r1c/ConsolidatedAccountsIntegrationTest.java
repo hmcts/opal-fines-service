@@ -162,8 +162,9 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.retriable").value(false))
-            .andExpect(jsonPath("$.title").value("Defendant Account Not Found"))
-            .andExpect(jsonPath("$.detail").value("Defendant account not found with id: 999999999"));
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
     }
 
     @Test

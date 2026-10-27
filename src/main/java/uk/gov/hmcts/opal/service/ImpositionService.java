@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.ImpositionTotalsDto;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountImpositionPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.ImpositionServiceProxy;
 
 @Service
@@ -50,6 +51,7 @@ public class ImpositionService {
     private final ImpositionRepository impositionRepository;
     private final ImpositionServiceProxy impositionServiceProxy;
     private final UserStateService userStateService;
+    private final DefendantAccountImpositionPdplLoggingService pdplLoggingService;
 
     public GetDefendantAccountImpositionsResponse getImpositions(
         Long defendantAccountId) {
@@ -59,7 +61,10 @@ public class ImpositionService {
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            return impositionServiceProxy.getImpositions(defendantAccountId);
+            GetDefendantAccountImpositionsResponse response = impositionServiceProxy.getImpositions(
+                defendantAccountId);
+            pdplLoggingService.logIndividualMinorCreditors(userState, response);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

@@ -9,12 +9,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorAccountHistoryItem;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse.LegacyMinorCreditorHistoryPostedDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorAccountHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
@@ -35,7 +35,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(101L, filters);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(101L, filters, false);
 
         // Assert
         assertEquals("101", result.getCreditorAccountId());
@@ -52,7 +52,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, List.of("note"));
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(202L, filters);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(202L, filters, false);
 
         // Assert
         assertEquals("202", result.getCreditorAccountId());
@@ -71,7 +71,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         );
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(303L, filters);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(303L, filters, false);
 
         // Assert
         assertNull(result.getItemTypes());
@@ -87,7 +87,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         );
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, false);
 
         // Assert
         assertEquals(List.of("Financial", "Note"), result.getItemTypes());
@@ -108,11 +108,11 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_mapsItemsAndSortsNewestToOldest() {
         // Arrange
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(
-                noteItem(LocalDate.of(2026, 1, 11), "note one"),
-                amendmentItem(LocalDate.of(2026, 1, 12), "Address", "Old", "New"),
-                financialItem(LocalDate.of(2026, 1, 13), "PAYMNT", "P", BigDecimal.valueOf(25.50))
+                noteItem(LocalDateTime.of(2026, 1, 11, 9, 0), "note one"),
+                amendmentItem(LocalDateTime.of(2026, 1, 12, 10, 0), "Address", "Old", "New"),
+                financialItem(LocalDateTime.of(2026, 1, 13, 11, 0), "PAYMNT", "P", BigDecimal.valueOf(25.50))
             ))
             .build();
 
@@ -123,7 +123,8 @@ class MinorCreditorHistoryLegacyMapperTest {
         List<MinorCreditorHistoryItemHistory> historyItems = result.getPayload().getHistoryItems();
         assertEquals(3, historyItems.size());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, historyItems.get(0).getType());
-        assertEquals(LocalDate.of(2026, 1, 13), historyItems.get(0).getPostedDetails().getPostedDate());
+        assertEquals(LocalDateTime.of(2026, 1, 13, 11, 0),
+                     historyItems.get(0).getPostedDetails().getPostedDate());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.AMENDMENT, historyItems.get(1).getType());
         assertEquals(MinorCreditorHistoryItemHistory.TypeEnum.NOTE, historyItems.get(2).getType());
     }
@@ -131,8 +132,8 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_preservesDuplicateItemsAndOrdersSameDayItemsDeterministically() {
         // Arrange
-        LocalDate postedDate = LocalDate.of(2026, 3, 1);
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        LocalDateTime postedDate = LocalDateTime.of(2026, 3, 1, 10, 0);
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(
                 financialItem(postedDate, "PAYMNT", "C", BigDecimal.valueOf(10L), "PAY-1"),
                 amendmentItem(postedDate, "Hold Pay Out", "false", "true"),
@@ -186,8 +187,9 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_mapsAmendmentDetails() {
         // Arrange
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
-            .historyItems(List.of(amendmentItem(LocalDate.of(2026, 2, 1), "Sort code", "123456", "654321")))
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
+            .historyItems(List.of(amendmentItem(LocalDateTime.of(2026, 2, 1, 10, 0),
+                                                "Sort code", "123456", "654321")))
             .build();
 
         // Act
@@ -205,9 +207,9 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_masksBacsAmendmentValues() {
         // Arrange
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(amendmentItem(
-                LocalDate.of(2026, 2, 1),
+                LocalDateTime.of(2026, 2, 1, 10, 0),
                 "BACS Account Number",
                 "12345678",
                 "87654321"
@@ -229,8 +231,8 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_mapsNoteDetails() {
         // Arrange
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
-            .historyItems(List.of(noteItem(LocalDate.of(2026, 2, 2), "Minor creditor note")))
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
+            .historyItems(List.of(noteItem(LocalDateTime.of(2026, 2, 2, 11, 0), "Minor creditor note")))
             .build();
 
         // Act
@@ -247,9 +249,9 @@ class MinorCreditorHistoryLegacyMapperTest {
     @Test
     void toOpal_mapsFinancialDetailsUsingCodeAsDisplayName() {
         // Arrange
-        LegacyGetMinorCreditorAccountHistoryResponse legacy = LegacyGetMinorCreditorAccountHistoryResponse.builder()
+        MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(financialItem(
-                LocalDate.of(2026, 2, 3),
+                LocalDateTime.of(2026, 2, 3, 12, 0),
                 "PAYMNT",
                 "P",
                 BigDecimal.valueOf(15.25)
@@ -276,7 +278,7 @@ class MinorCreditorHistoryLegacyMapperTest {
             details.getStatus().getCreditorTransactionStatus()
         );
         assertEquals("P", details.getStatus().getCreditorTransactionStatusDisplayName());
-        assertEquals(LocalDateTime.of(2026, 2, 3, 12, 30), details.getStatusDate());
+        assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
         assertEquals("Minor creditor", details.getAssociatedRecordType());
         assertEquals("777", details.getAssociatedRecordId());
         assertEquals("MC-1", details.getAccountNumber());
@@ -284,8 +286,37 @@ class MinorCreditorHistoryLegacyMapperTest {
         assertEquals(909L, details.getDefendantAccountId());
     }
 
+    @Test
+    void toOpal_whenItemTypesAreNull_mapsToAllSupportedItemTypes() {
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+
+        assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
+    }
+
+    @Test
+    void toOpal_whenAllItemTypesProvided_mapsToAllSupportedItemTypes() {
+        MinorCreditorHistoryFilters filters =
+            MinorCreditorHistoryFilters.from(null, null, List.of("note,financial,amendment"));
+
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+
+        assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
+    }
+
+    @Test
+    void toOpal_whenSelectedItemTypesProvided_mapsOnlySelectedItemTypes() {
+        MinorCreditorHistoryFilters filters =
+            MinorCreditorHistoryFilters.from(null, null, List.of("amendment"));
+
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+
+        assertEquals(List.of("Amendment"), result.getItemTypes());
+    }
+
     private LegacyMinorCreditorAccountHistoryItem amendmentItem(
-        LocalDate postedDate,
+        LocalDateTime postedDate,
         String attributeName,
         String oldValue,
         String newValue) {
@@ -302,7 +333,7 @@ class MinorCreditorHistoryLegacyMapperTest {
             .build();
     }
 
-    private LegacyMinorCreditorAccountHistoryItem noteItem(LocalDate postedDate, String noteText) {
+    private LegacyMinorCreditorAccountHistoryItem noteItem(LocalDateTime postedDate, String noteText) {
         return LegacyMinorCreditorAccountHistoryItem.builder()
             .postedDetails(postedDetails(postedDate))
             .type("Note")
@@ -313,7 +344,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     private LegacyMinorCreditorAccountHistoryItem financialItem(
-        LocalDate postedDate,
+        LocalDateTime postedDate,
         String transactionType,
         String status,
         BigDecimal amount) {
@@ -322,7 +353,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     private LegacyMinorCreditorAccountHistoryItem financialItem(
-        LocalDate postedDate,
+        LocalDateTime postedDate,
         String transactionType,
         String status,
         BigDecimal amount,
@@ -341,7 +372,7 @@ class MinorCreditorHistoryLegacyMapperTest {
                     .creditorTransactionStatus(status)
                     .creditorTransactionStatusDisplayName("Ignored status")
                     .build())
-                .statusDate(LocalDateTime.of(2026, 2, 3, 12, 30))
+                .statusDate(LocalDate.of(2026, 2, 3))
                 .associatedRecordType("Minor creditor")
                 .associatedRecordId("777")
                 .accountNumber("MC-1")
@@ -352,7 +383,7 @@ class MinorCreditorHistoryLegacyMapperTest {
             .build();
     }
 
-    private LegacyMinorCreditorHistoryPostedDetails postedDetails(LocalDate postedDate) {
+    private LegacyMinorCreditorHistoryPostedDetails postedDetails(LocalDateTime postedDate) {
         return LegacyMinorCreditorHistoryPostedDetails.builder()
             .postedDate(postedDate)
             .postedBy("user1")
