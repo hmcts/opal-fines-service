@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.reference.validation;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.when;
@@ -8,9 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountReferenceValidationService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.opal.OpalDraftAccountReferenceValidationService;
 
 @ExtendWith(MockitoExtension.class)
 public class DraftAccountReferenceValidationServiceLocatorTest {

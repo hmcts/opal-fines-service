@@ -60,6 +60,8 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationService;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationServiceLocator;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {

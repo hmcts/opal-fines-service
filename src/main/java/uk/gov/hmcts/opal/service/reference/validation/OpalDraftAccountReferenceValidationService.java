@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.reference.validation;
 
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadList;
@@ -30,12 +30,11 @@ import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.service.DraftAccountReferenceValidationService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
 @Service
 @RequiredArgsConstructor
-public class OpalDraftAccountReferenceValidationService implements DraftAccountReferenceValidationService {
+public class OpalDraftAccountReferenceValidationService extends AbstractDraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
     private static final String ACCOUNT_TYPE_PATH = ROOT_PATH + ".account_type";
@@ -58,29 +57,9 @@ public class OpalDraftAccountReferenceValidationService implements DraftAccountR
     private final LocalJusticeAreaRepository localJusticeAreaRepository;
     private final ProsecutorRepository prosecutorRepository;
 
-    @Transactional(readOnly = true)
+
     @Override
-    public void validateReferences(Short businessUnitId, String accountJson) {
-        JsonPathUtil.DocContext docContext;
-        try {
-            docContext = createDocContext(accountJson, "DraftAccountReferenceValidationService");
-        } catch (IllegalArgumentException ex) {
-            throw new JsonSchemaValidationException("Unable to parse draft account JSON: " + ex.getMessage(), ex);
-        }
-
-        List<String> failures = new ArrayList<>();
-
-        validateEnforcementCourt(docContext, failures);
-        validateOffences(businessUnitId, docContext, failures);
-        validatePaymentTermsEnforcements(docContext, failures, new HashMap<>());
-        validateOriginator(docContext, failures);
-
-        if (!failures.isEmpty()) {
-            throw new InvalidReferenceValidationException(buildFailureMessage(failures));
-        }
-    }
-
-    private void validateEnforcementCourt(JsonPathUtil.DocContext docContext, List<String> failures) {
+    void validateEnforcementCourt(JsonPathUtil.DocContext docContext, List<String> failures) {
         Long enforcementCourtId = safeReadLong(docContext, ENFORCEMENT_COURT_ID_PATH);
         if (enforcementCourtId == null) {
             return;
@@ -91,7 +70,9 @@ public class OpalDraftAccountReferenceValidationService implements DraftAccountR
         }
     }
 
-    private void validateOffences(Short businessUnitId, JsonPathUtil.DocContext docContext, List<String> failures) {
+
+    @Override
+    void validateOffences(Short businessUnitId, JsonPathUtil.DocContext docContext, List<String> failures) {
         List<?> offences = safeReadList(docContext, ROOT_PATH + ".offences");
         if (offences == null) {
             return;
@@ -141,7 +122,8 @@ public class OpalDraftAccountReferenceValidationService implements DraftAccountR
         }
     }
 
-    private void validatePaymentTermsEnforcements(
+    @Override
+    void validatePaymentTermsEnforcements(
         JsonPathUtil.DocContext docContext,
         List<String> failures,
         Map<String, Optional<ResultEntity>> resultCache) {
@@ -293,7 +275,8 @@ public class OpalDraftAccountReferenceValidationService implements DraftAccountR
         }
     }
 
-    private void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures) {
+    @Override
+    void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures) {
         Long originatorId = safeReadLong(docContext, ORIGINATOR_ID_PATH);
         String originatorName = safeReadString(docContext, ORIGINATOR_NAME_PATH, null);
         DraftAccountType accountType = readDraftAccountType(docContext, failures);
