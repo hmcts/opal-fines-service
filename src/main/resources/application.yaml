@@ -213,6 +213,9 @@ logging:
     root: ${ROOT_LOG_LEVEL:INFO}
     opal: ${OPAL_LOG_LEVEL:INFO}
     org:
+      springframework:
+          boot:
+            diagnostics: DEBUG
       hibernate:
         stat: INFO
         SQL: INFO
