@@ -1,10 +1,8 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.reference.validation;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountReferenceValidationService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.opal.OpalDraftAccountReferenceValidationService;
 import uk.gov.hmcts.opal.service.proxy.ProxyInterface;
 
 @Service

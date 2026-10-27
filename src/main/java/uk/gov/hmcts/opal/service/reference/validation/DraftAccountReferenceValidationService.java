@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service;
+package uk.gov.hmcts.opal.service.reference.validation;
 
 public interface DraftAccountReferenceValidationService {
 
