@@ -42,6 +42,10 @@ public class HttpUtil {
         return buildResponse(contents, HttpStatus.OK);
     }
 
+    public static ResponseEntity<Void> buildResponse(HttpStatus status) {
+        return ResponseEntity.status(status).build();
+    }
+
     public static <T> ResponseEntity<T> buildResponse(T contents, HttpStatus status) {
         if (contents == null) {
             contents = (T) NOT_FOUND_MESSAGE;

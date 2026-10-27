@@ -82,4 +82,21 @@ public class DefendantAccountPaymentCardRequestStepDef extends BaseStepDef {
             .body("status", equalTo(400))
             .body("retriable", equalTo(false));
     }
+
+    /**
+     * Asserts that payment-card requests fail for accounts without an outstanding balance.
+     */
+    @Then("the payment card request response reports the positive-balance account is not eligible")
+    public void paymentCardRequestResponseReportsPositiveBalanceAccountIsNotEligible() {
+        then()
+            .log().ifValidationFails()
+            .body("title", equalTo("Unprocessable Content"))
+            .body("type", equalTo("https://hmcts.gov.uk/problems/unprocessable-entity"))
+            .body("detail", equalTo(
+                "Defendant account update blocked: Zero balance check failed because account_balance is 300.00."))
+            .body("status", equalTo(422))
+            .body("retriable", equalTo(false))
+            .body("unprocessableReason", equalTo(
+                "Defendant account update blocked: Zero balance check failed because account_balance is 300.00."));
+    }
 }

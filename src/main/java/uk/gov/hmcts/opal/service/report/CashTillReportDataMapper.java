@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -71,6 +72,10 @@ public class CashTillReportDataMapper {
     private static String resolveDetails(PaymentInEntity payment,
                                          Map<Long, String> defendantAccountNumbers,
                                          Map<Long, String> miscellaneousAccountNumbers) {
+        if (isUnlinkedSuspensePayment(payment)) {
+            return suspenseDetails(payment);
+        }
+
         long associatedRecordId = parseAssociatedRecordId(payment);
         return switch (associatedRecordType(payment)) {
             case DEFENDANT_ACCOUNTS -> requireAccountNumber(
@@ -120,7 +125,7 @@ public class CashTillReportDataMapper {
 
     private Map<Long, String> loadDefendantAccountNumbers(List<PaymentInEntity> payments) {
         List<Long> defendantAccountIds = payments.stream()
-            .filter(payment -> associatedRecordType(payment) == AssociatedRecordType.DEFENDANT_ACCOUNTS)
+            .filter(payment -> payment.getAssociatedRecordType() == AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .map(CashTillReportDataMapper::parseAssociatedRecordId)
             .distinct()
             .toList();
@@ -136,7 +141,7 @@ public class CashTillReportDataMapper {
 
     private Map<Long, String> loadMiscellaneousAccountNumbers(List<PaymentInEntity> payments) {
         List<Long> miscellaneousAccountIds = payments.stream()
-            .filter(payment -> associatedRecordType(payment) == AssociatedRecordType.MISCELLANEOUS_ACCOUNTS)
+            .filter(payment -> payment.getAssociatedRecordType() == AssociatedRecordType.MISCELLANEOUS_ACCOUNTS)
             .map(CashTillReportDataMapper::parseAssociatedRecordId)
             .distinct()
             .toList();
@@ -152,12 +157,23 @@ public class CashTillReportDataMapper {
 
     private static List<ParticipantIdentifier> pdpoParticipants(List<PaymentInEntity> payments) {
         return payments.stream()
-            .filter(payment -> associatedRecordType(payment) == AssociatedRecordType.DEFENDANT_ACCOUNTS)
+            .filter(payment -> payment.getAssociatedRecordType() == AssociatedRecordType.DEFENDANT_ACCOUNTS)
             .map(CashTillReportDataMapper::parseAssociatedRecordId)
             .distinct()
             .map(defendantAccountId -> new ParticipantIdentifier(
                 String.valueOf(defendantAccountId),
                 PdplIdentifierType.DEFENDANT_ACCOUNT))
             .toList();
+    }
+
+    private static boolean isUnlinkedSuspensePayment(PaymentInEntity payment) {
+        return payment.getDestinationType() == DestinationType.S
+            && payment.getAssociatedRecordType() == null
+            && (payment.getAssociatedRecordId() == null || payment.getAssociatedRecordId().isBlank());
+    }
+
+    private static String suspenseDetails(PaymentInEntity payment) {
+        String additionalInformation = payment.getAdditionalInformation();
+        return additionalInformation == null || additionalInformation.isBlank() ? "Suspense" : additionalInformation;
     }
 }

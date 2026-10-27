@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Transactional
 @DisplayName("Cash Till Report Generation Integration Tests")
 @RequiredArgsConstructor
+@Tag("ExtendedTest")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
 

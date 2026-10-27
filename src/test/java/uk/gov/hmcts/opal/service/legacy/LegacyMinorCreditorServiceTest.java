@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -15,6 +14,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -25,11 +25,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
-import uk.gov.hmcts.opal.dto.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
@@ -39,29 +37,40 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceReques
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory.TypeEnum;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
-import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorHistoryMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyMinorCreditorServiceTest {
@@ -73,7 +82,7 @@ class LegacyMinorCreditorServiceTest {
     private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
 
     @Mock
-    private GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
 
     @Mock
     private LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
@@ -93,22 +102,227 @@ class LegacyMinorCreditorServiceTest {
     @Spy
     private final MinorCreditorMapper minorCreditorMapper = Mappers.getMapper(MinorCreditorMapper.class);
 
+    @Mock
+    private LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
+
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
 
     @Test
-    void getMinorCreditorHistory_throwsNotImplemented() {
-        // Act
-        ResponseStatusException result = assertThrows(
-            ResponseStatusException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorHistory(
-                101L, MinorCreditorHistoryFilters.from(null, null, null))
+    void getMinorCreditorHistory_shouldCallGatewayAndReturnMappedResponse() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31),
+            List.of("amendment,note")
         );
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .fromDate(LocalDate.of(2026, 1, 1))
+                .toDate(LocalDate.of(2026, 1, 31))
+                .itemTypes(List.of("Amendment", "Note"))
+                .build();
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
 
         // Assert
-        assertEquals(HttpStatus.NOT_IMPLEMENTED, result.getStatusCode());
-        assertEquals("Not yet implemented", result.getReason());
-        verifyNoMoreInteractions(gatewayService);
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        verify(gatewayService).postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        );
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldCallGatewayAndReturnMappedResponseInRelease1B11Mode() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31),
+            null
+        );
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .fromDate(LocalDate.of(2026, 1, 1))
+                .toDate(LocalDate.of(2026, 1, 31))
+                .itemTypes(List.of("Amendment", "Financial", "Note"))
+                .build();
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of(
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.AMENDMENT).build(),
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.FINANCIAL).build(),
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.NOTE).build())))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, true)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, true);
+        verify(gatewayService).postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        );
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldHandleGatewayException() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                null,
+                null,
+                new RuntimeException("Gateway error")
+            );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        // Act
+        GetMinorCreditorHistoryResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(null);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldHandleLegacyFailure() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().historyItems(List.of()).build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                legacyResponse,
+                "<legacy-failure/>",
+                null
+            );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        // Act
+        GetMinorCreditorHistoryResponse result =
+            assertDoesNotThrow(() -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldDelegateNullLegacyPayload() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, null, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toOpal(null);
     }
 
     @Test
@@ -499,9 +713,9 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(gatewayResponse);
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder()
-                .creditor(GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader.builder()
+        MinorCreditorAccountHeaderSummaryResponse mapperResponse =
+            MinorCreditorAccountHeaderSummaryResponse.builder()
+                .creditor(MinorCreditorAccountHeaderSummaryResponseCreditor.builder()
                     .accountId("101")
                     .build())
                 .build();
@@ -513,7 +727,7 @@ class LegacyMinorCreditorServiceTest {
                 .repayment(true)
                 .build()));
 
-        GetMinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
+        MinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
 
         assertEquals("101", result.getCreditor().getAccountId());
         assertEquals(BigInteger.ONE, result.getVersion());
@@ -533,10 +747,10 @@ class LegacyMinorCreditorServiceTest {
 
         GatewayService.Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> gatewayResponse =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
-        GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder()
-                .businessUnit(BusinessUnitSummary.builder().businessUnitId("77").build())
-                .creditor(GetMinorCreditorAccountHeaderSummaryResponse.CreditorHeader.builder().build())
+        MinorCreditorAccountHeaderSummaryResponse mapperResponse =
+            MinorCreditorAccountHeaderSummaryResponse.builder()
+                .businessUnit(BusinessUnitSummaryCommon.builder().businessUnitId((short) 77).build())
+                .creditor(MinorCreditorAccountHeaderSummaryResponseCreditor.builder().build())
                 .build();
 
         when(gatewayService.postToGateway(
@@ -548,7 +762,7 @@ class LegacyMinorCreditorServiceTest {
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mapperResponse);
         when(legacyBusinessUnitCodeResolver.resolve("77", "77")).thenReturn("0046");
 
-        GetMinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
+        MinorCreditorAccountHeaderSummaryResponse result = legacyMinorCreditorService.getHeaderSummary(101L);
 
         assertEquals("0046", result.getBusinessUnit().getBusinessUnitCode());
     }
@@ -567,12 +781,12 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithException);
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
+        MinorCreditorAccountHeaderSummaryResponse mapperResponse =
+            MinorCreditorAccountHeaderSummaryResponse.builder().build();
 
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mapperResponse);
 
-        GetMinorCreditorAccountHeaderSummaryResponse result =
+        MinorCreditorAccountHeaderSummaryResponse result =
             assertDoesNotThrow(() -> legacyMinorCreditorService.getHeaderSummary(101L));
 
         assertSame(mapperResponse, result);
@@ -601,12 +815,12 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithFailure);
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapperResponse =
-            GetMinorCreditorAccountHeaderSummaryResponse.builder().build();
+        MinorCreditorAccountHeaderSummaryResponse mapperResponse =
+            MinorCreditorAccountHeaderSummaryResponse.builder().build();
 
         when(headerSummaryResponseMapper.toOpal(legacyResponse)).thenReturn(mapperResponse);
 
-        GetMinorCreditorAccountHeaderSummaryResponse result =
+        MinorCreditorAccountHeaderSummaryResponse result =
             assertDoesNotThrow(() -> legacyMinorCreditorService.getHeaderSummary(101L));
 
         assertSame(mapperResponse, result);

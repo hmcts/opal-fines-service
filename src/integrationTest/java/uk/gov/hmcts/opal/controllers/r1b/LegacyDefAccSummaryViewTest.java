@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -9,22 +11,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Defendant Account Summary View Legacy Integration Test")
+@Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyDefAccSummaryViewTest")
 public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurityTest {
 
     private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
+
+    @MockitoBean
+    private LoggingService loggingService;
 
     @Test
     @JiraEpic("PO-2332")
@@ -32,6 +41,8 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
     @DisplayName("PO-2336 INT.01 - Get defendant account header summary maps has_consolidated_accounts to true")
     @JiraTestKey("PO-9417")
     void int01_getDefendantAccountHeaderSummary_mapsHasConsolidatedAccountsTrue() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())

@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,14 +26,16 @@ import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
-import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
+import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -96,6 +97,12 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private LocalJusticeAreaService localJusticeAreaService;
+
+    @MockitoBean
+    private ReportInstanceDeletionService reportInstanceDeletionService;
+
+    @MockitoBean
+    private TestingSupportTillService testingSupportTillService;
 
     @Test
     void isLegacyMode() {
@@ -168,6 +175,36 @@ class TestingSupportControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertFalse(response.hasBody());
         verify(interfaceJobService).deleteInterfaceJobs(interfaceJobIds);
+    }
+
+    @Test
+    void markInterfaceJobProcessing_shouldMarkJobWithoutQueuing() {
+        ResponseEntity<Void> response = controller.markInterfaceJobProcessing(1L);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(interfaceJobService).markProcessingForTesting(1L);
+    }
+
+    @Test
+    void deleteReportInstances_shouldDeleteRequestedReportInstances() {
+        List<Long> reportInstanceIds = List.of(1L, 2L);
+
+        ResponseEntity<Void> response = controller.deleteReportInstances(reportInstanceIds);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.hasBody());
+        verify(reportInstanceDeletionService).deleteReportInstances(reportInstanceIds);
+    }
+
+    @Test
+    void deleteManualTills_shouldDeleteRequestedTills() {
+        List<Long> tillIds = List.of(1L, 2L);
+
+        ResponseEntity<Void> response = controller.deleteManualTills(tillIds);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertFalse(response.hasBody());
+        verify(testingSupportTillService).deleteManualTills(tillIds);
     }
 
     @Test

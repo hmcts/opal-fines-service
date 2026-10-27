@@ -28,6 +28,8 @@ import uk.gov.hmcts.opal.config.FeignConfiguration;
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
 public class Application {
 
+    static final String AUTOMATED_TASK_PROPERTY = "opal.automated-task";
+
     public static void main(final String[] args) {
         final var application = new SpringApplication(Application.class);
         application.setRegisterShutdownHook(false);

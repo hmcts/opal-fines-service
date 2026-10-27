@@ -1,0 +1,36 @@
+meta {
+  name: Search - Non Consolidation
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/search
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+body:json {
+  {
+    "active_accounts_only": true,
+    "business_unit_ids": [
+      77
+    ],
+    "reference_number": {
+      "organisation": false,
+      "account_number": "12345678",
+      "prosecutor_case_reference": null
+    },
+    "defendant": null,
+    "consolidation_search": false
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

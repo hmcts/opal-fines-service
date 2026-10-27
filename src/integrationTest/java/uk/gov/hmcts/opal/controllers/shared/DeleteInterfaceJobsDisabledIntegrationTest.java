@@ -4,6 +4,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -15,6 +16,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {"opal.testing-support-endpoints.enabled=false"})
 @DisplayName("Testing Support Interface Jobs Delete Disabled Controller Integration Tests")
+@Tag("ExtendedTest")
 public class DeleteInterfaceJobsDisabledIntegrationTest extends AbstractIntegrationTest {
     private static final String URL = "/testing-support/interface-jobs";
 

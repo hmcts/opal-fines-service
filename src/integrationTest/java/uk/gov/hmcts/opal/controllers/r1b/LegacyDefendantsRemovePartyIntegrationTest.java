@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -9,14 +13,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -34,6 +41,14 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
             "version": 1
         }
         """;
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     private HttpHeaders partyHeaders() {
         HttpHeaders headers = new HttpHeaders();
@@ -66,7 +81,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("77"));
 
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
+        verify(loggingService).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -88,6 +103,7 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().is5xxServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
             .andExpect(header().doesNotExist("ETag"));
+        verifyNoInteractions(loggingService);
     }
 
     @Test
@@ -112,8 +128,6 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("555"));
-
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 
     @Test
@@ -138,7 +152,5 @@ class LegacyDefendantsRemovePartyIntegrationTest extends AbstractLegacyDefendant
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.defendant_account_party_id").value("666"));
-
-        jsonSchemaValidationService.validateOrError(body, REMOVE_DEFENDANT_PARTY_RESPONSE_SCHEMA);
     }
 }

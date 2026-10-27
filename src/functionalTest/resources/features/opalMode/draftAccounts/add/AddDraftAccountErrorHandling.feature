@@ -45,3 +45,59 @@ Feature: Add Draft Account Error Handling
       | submitted_by      | BUUID                                       |
       | submitted_by_name | Laura Clerk                                 |
     Then the request is rejected as bad request
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Creating a draft account with an unknown originator id is rejected
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                  |
+      | account                  | draftAccounts/accountJson/account.json |
+      | account_type             | Fine                                 |
+      | account_status           | Submitted                            |
+      | submitted_by             | BUUID                                |
+      | submitted_by_name        | Laura Clerk                          |
+      | account_originator_type   | NEW                                  |
+      | account_originator_id     | 999999                               |
+      | account_originator_name   | Missing Originator                   |
+    Then the request is rejected as bad request
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Creating a draft account with a prosecutor id in the wrong source is rejected
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                    |
+      | account                  | draftAccounts/accountJson/account.json                 |
+      | account_type             | Fine                                                   |
+      | account_status           | Submitted                                              |
+      | submitted_by             | BUUID                                                  |
+      | submitted_by_name        | Laura Clerk                                            |
+      | account_originator_type   | NEW                                                    |
+      | account_originator_id     | 1                                                      |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the request is rejected as bad request
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Creating a draft account with a mismatched originator name is rejected
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                   |
+      | account                  | draftAccounts/accountJson/account.json                |
+      | account_type             | Fine                                                  |
+      | account_status           | Submitted                                             |
+      | submitted_by             | BUUID                                                 |
+      | submitted_by_name        | Laura Clerk                                           |
+      | account_originator_type   | TFO                                                   |
+      | account_originator_id     | 3190                                                  |
+      | account_originator_name   | Wrong Originator Name                                 |
+    Then the request is rejected as bad request
+
+  @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
+  Scenario: Creating a draft account with an unsupported originator-account combination is rejected
+    When I create a draft account with the following details
+      | business_unit_id         | 73                                                   |
+      | account                  | draftAccounts/accountJson/account.json                |
+      | account_type             | Conditional Caution                                   |
+      | account_status           | Submitted                                             |
+      | submitted_by             | BUUID                                                 |
+      | submitted_by_name        | Laura Clerk                                           |
+      | account_originator_type   | FP                                                    |
+      | account_originator_id     | 1                                                     |
+      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+    Then the request is rejected as bad request

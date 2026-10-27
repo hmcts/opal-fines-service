@@ -1,5 +1,13 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.absent;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -8,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +36,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsCommentNotesIntegrationTest")
 class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
+
+    private static final String UPDATE_DEFENDANT_ACCOUNT = "updateDefendantAccount";
 
     @Test
     @DisplayName("LEGACY: PATCH Update Defendant Account - Update Comment Notes [@PO-1908]")
@@ -72,6 +83,55 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
             .andExpect(jsonPath("$.comment_and_notes.free_text_note_3")
                 .value("patch DefAcc note three legacy test"))
             .andExpect(header().string("ETag", OVER_LONG_VERSION_ETAG));
+    }
+
+    @Test
+    @DisplayName("LEGACY: PATCH Update Defendant Account - sends comment notes to legacy in snake case [@PO-10342]")
+    @JiraStory("PO-10342")
+    @JiraEpic("PO-812")
+    void testUpdateDefAcc_CommentNotes_SendsSnakeCaseToLegacyGateway() throws Exception {
+        stubUpdateCommentNotesResponse();
+        Integer currentVersion = versionFor(77L);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, String.valueOf(currentVersion));
+
+        String requestJson = commentAndNotesPayload(
+            "legacy gateway comment",
+            "legacy gateway note one",
+            "legacy gateway note two",
+            "legacy gateway note three"
+        );
+
+        mockMvc.perform(
+                patch(URL_BASE + "/77")
+                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(requestJson)
+            )
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(UPDATE_DEFENDANT_ACCOUNT))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("77")))
+            .withRequestBody(matchingJsonPath("$.business_unit_id", equalTo("78")))
+            .withRequestBody(matchingJsonPath("$.business_unit_user_id", equalTo("L078JG")))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.account_comment",
+                equalTo("legacy gateway comment")))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.free_text_note_1",
+                equalTo("legacy gateway note one")))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.free_text_note_2",
+                equalTo("legacy gateway note two")))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.free_text_note_3",
+                equalTo("legacy gateway note three")))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.accountComment", absent()))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.freeTextNote1", absent()))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.freeTextNote2", absent()))
+            .withRequestBody(matchingJsonPath("$.comment_and_notes.freeTextNote3", absent())));
     }
 
     @Test
@@ -170,5 +230,25 @@ class LegacyDefendantsCommentNotesIntegrationTest extends AbstractLegacyDefendan
                 .value("https://hmcts.gov.uk/problems/message-not-readable"))
             .andExpect(jsonPath("$.status").value(400))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    private void stubUpdateCommentNotesResponse() {
+        stubFor(post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(UPDATE_DEFENDANT_ACCOUNT))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", MediaType.APPLICATION_XML_VALUE)
+                .withBody("""
+                    <response>
+                      <defendant_account_id>77</defendant_account_id>
+                      <version>%s</version>
+                      <comment_and_notes>
+                        <account_comment>legacy gateway comment</account_comment>
+                        <free_text_note_1>legacy gateway note one</free_text_note_1>
+                        <free_text_note_2>legacy gateway note two</free_text_note_2>
+                        <free_text_note_3>legacy gateway note three</free_text_note_3>
+                      </comment_and_notes>
+                    </response>
+                    """.formatted(OVER_LONG_VERSION))));
     }
 }

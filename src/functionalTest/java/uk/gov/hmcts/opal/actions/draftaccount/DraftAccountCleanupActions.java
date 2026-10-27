@@ -126,13 +126,19 @@ public class DraftAccountCleanupActions extends BaseStepDef {
      *                              missing.
      */
     private void deleteWithConcurrency(String id, String user, boolean ignoreMissingResource) {
+        if (ignoreMissingResource) {
+            Response deleteResponse = deleteWithIfMatch(id, null, user, true);
+            assertThat("DELETE should succeed", deleteResponse.getStatusCode(), anyOf(is(200), is(204), is(404)));
+            return;
+        }
+
         String etag = fetchStrongEtag(getTestUrl(), id, BearerTokenStepDef.getAccessTokenForUser(user));
-        boolean ignore = ignoreMissingResource || etag == null;
+        boolean ignore = etag == null;
 
         Response deleteResponse = deleteWithIfMatch(id, etag, user, ignore);
         int code = deleteResponse.getStatusCode();
 
-        if (code == 409 && etag != null && !ignore) {
+        if (code == 409 && etag != null) {
             log.info("409 on delete for {}. Refreshing ETag and retrying once.", id);
             String refreshedEtag = fetchStrongEtag(getTestUrl(), id, BearerTokenStepDef.getAccessTokenForUser(user));
             deleteResponse = deleteWithIfMatch(id, refreshedEtag, user, false);

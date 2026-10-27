@@ -27,17 +27,29 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 @ActiveProfiles({"integration"})
 @Sql(
     scripts = {
+        "classpath:db/deleteData/delete_from_draft_account_reference_validation_data.sql",
+        "classpath:db/insertData/insert_into_draft_account_reference_validation_data.sql",
         "classpath:db/deleteData/delete_from_draft_accounts.sql",
         "classpath:db/insertData/insert_into_draft_accounts.sql"
     },
     executionPhase = BEFORE_TEST_CLASS
 )
-@Sql(scripts = "classpath:db/deleteData/delete_from_draft_accounts.sql", executionPhase = AFTER_TEST_CLASS)
+@Sql(
+    scripts = {
+        "classpath:db/deleteData/delete_from_draft_accounts.sql",
+        "classpath:db/deleteData/delete_from_draft_account_reference_validation_data.sql"
+    },
+    executionPhase = AFTER_TEST_CLASS
+)
 @DisplayName("CommonDraftAccountControllerIntegrationTest")
 class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTest {
 
     static final Short BU_ID = (short)73;
     static final String URL_BASE = "/draft-accounts";
+    static final int VALID_FINE_ORIGINATOR_ID = 32001;
+    static final String VALID_FINE_ORIGINATOR_NAME = "Draft Account Validation LJA";
+    static final long VALID_PROSECUTOR_ORIGINATOR_ID = 32010L;
+    static final String VALID_PROSECUTOR_ORIGINATOR_NAME = "Draft Account Validation Prosecutor";
     static final String GET_DRAFT_ACCOUNT_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
     static final String GET_DRAFT_ACCOUNTS_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";
     static final LocalDate TIMELINE_STATUS_DATE = LocalDate.of(2026, 4, 22);

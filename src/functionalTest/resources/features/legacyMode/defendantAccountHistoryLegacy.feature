@@ -1,8 +1,20 @@
-@Legacy @JIRA-LABEL:account-enquiry
+@Legacy @R1BDrop1 @JIRA-LABEL:account-enquiry
 Feature: Defendant Account History API In Legacy Mode
 
+  # Select one known dataset by account number and ID; account numbers alone differ across environments.
+  @Legacy @JIRA-DEFECT:PO-11110 @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
+  Scenario: Original bug account history includes monthly payment terms without losing other history
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request defendant account history for a known dataset in business unit 77 with query "itemTypes=amendment,enforcement,financial,note,paymentTerms"
+      | environment | account_number | defendant_account_id | minimum_financial_items | minimum_note_items | minimum_payment_terms_items |
+      | preprod     | 26014465A      | 770000486008         | 1                       | 1                  | 1                           |
+      | jcde        | 26000318F      | 770000003331         | 1                       | 0                  | 1                           |
+    Then the defendant account history request succeeds
+    And the defendant account history contains the minimum item counts for the selected dataset
+    And the defendant account history contains instalment payment terms with period "M"
+
   @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
-  Scenario: E2E.01 Happy path history retrieval
+  Scenario: Legacy defendant account history - E2E.01 Happy path history retrieval
     Given a defendant account with history exists for submitted by "DEFHST101"
     When I request defendant account history for the created defendant account
     Then the defendant account history response is returned as documented
@@ -17,7 +29,7 @@ Feature: Defendant Account History API In Legacy Mode
     And the defendant account history is ordered newest first
 
   @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
-  Scenario: E2E.02 Filter contract and idempotence
+  Scenario: Legacy defendant account history - E2E.02 Filter contract and idempotence
     Given a defendant account with history exists for submitted by "DEFHST102"
     When I request defendant account history for the created defendant account
     Then the defendant account history response is returned as documented
@@ -48,7 +60,7 @@ Feature: Defendant Account History API In Legacy Mode
     Then the repeated defendant account history responses are identical
 
   @cleanUpData @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621 @JIRA-NFR:PO-2507
-  Scenario: E2E.03 Authentication and authorization
+  Scenario: Legacy defendant account history - E2E.03 Authentication and authorization
     Given a defendant account with history exists for submitted by "DEFHST103"
     When I request defendant account history for the created defendant account without a token
     Then the defendant account history error response matches the standard problem detail contract for status 401
@@ -58,7 +70,7 @@ Feature: Defendant Account History API In Legacy Mode
     Then the defendant account history request succeeds
 
   @JIRA-STORY:PO-2647 @JIRA-EPIC:PO-2621
-  Scenario: E2E.04 Not found behaviour
+  Scenario: Legacy defendant account history - E2E.04 Not found behaviour
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request defendant account history for a non-existent defendant account
     Then the defendant account history error response matches the standard problem detail contract for status 404

@@ -11,12 +11,15 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.jms.JmsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -32,8 +35,10 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -49,41 +54,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<ProblemDetail> handleMissingRequestHeaderException(MissingRequestHeaderException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            "Missing Required Header",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Missing Required Header",
             String.format("Required request header \"%s\" is missing", ex.getHeaderName()),
-            "missing-header",
-            false,
-            ex
-        );
+            "missing-header", false, ex);
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(RequiredPermissionException.class)
     public ResponseEntity<ProblemDetail> handleRequiredPermissionException(RequiredPermissionException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.FORBIDDEN,
-            "Forbidden",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.FORBIDDEN, "Forbidden",
             "User requires permission: " + ex.getPermission().getDescription(),
-            "forbidden",
-            false,
-            ex
-        );
+            "forbidden", false, ex);
 
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
     @ExceptionHandler(PermissionNotAllowedException.class)
     public ResponseEntity<ProblemDetail> handlePermissionNotAllowedException(PermissionNotAllowedException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.FORBIDDEN,
-            "Forbidden",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.FORBIDDEN, "Forbidden",
             "You do not have permission to access this resource",
-            "forbidden",
-            false,
-            ex
-        );
+            "forbidden", false, ex);
         if (ex.getBusinessUnitId() != null) {
             problemDetail.setProperty("businessUnitId", ex.getBusinessUnitId());
         }
@@ -93,28 +83,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ProblemDetail> handleUnauthorizedException(UnauthorizedException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Unauthorized",
-            "Missing or invalid access token",
-            "unauthorized",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.UNAUTHORIZED, "Unauthorized",
+            "Missing or invalid access token", "unauthorized", false, ex);
 
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
     @ExceptionHandler(UnprocessableException.class)
     public ResponseEntity<ProblemDetail> handleUnprocessableException(UnprocessableException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNPROCESSABLE_CONTENT,
-            "Unprocessable Content",
-            ex.getDetailedReason(),
-            "unprocessable-entity",
-            ex.isRetriable(),
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, "Unprocessable Content",
+            ex.getDetailedReason(), "unprocessable-entity", ex.isRetriable(), ex);
 
         problemDetail.setProperty("unprocessableReason", ex.getDetailedReason());
 
@@ -123,44 +101,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UnsupportedContentTypeException.class)
     public ResponseEntity<ProblemDetail> handleUnsupportedContentTypeException(UnsupportedContentTypeException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNPROCESSABLE_CONTENT,
-            "Report Content Type Not Supported",
-            ex.getMessage(),
-            "unsupported-report-content-type",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT,
+            "Report Content Type Not Supported", ex.getMessage(), "unsupported-report-content-type", false, ex);
 
         return responseWithProblemDetail(HttpStatus.UNPROCESSABLE_CONTENT, problemDetail);
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleEntityNotFoundException(EntityNotFoundException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.NOT_FOUND,
-            "Entity Not Found",
-            "The requested entity could not be found",
-            "entity-not-found",
-            false,
-            ex
-        );
-
-        return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
+        return entityNotFoundResponse(ex);
     }
 
     @ExceptionHandler(DefendantAccountNotFoundException.class)
     public ResponseEntity<ProblemDetail> handleDefendantAccountNotFoundException(
         DefendantAccountNotFoundException ex) {
 
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.NOT_FOUND,
-            "Defendant Account Not Found",
-            "Defendant account not found with id: " + ex.getDefendantAccountId(),
-            "entity-not-found",
-            false,
-            ex
-        );
+        return entityNotFoundResponse(ex);
+    }
+
+    private ResponseEntity<ProblemDetail> entityNotFoundResponse(RuntimeException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Entity Not Found",
+            "The requested entity could not be found",
+            "entity-not-found", false, ex);
 
         return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
     }
@@ -169,42 +131,31 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleMissingStoredReportContentException(
         MissingStoredReportContentException ex) {
 
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Missing Data In Storage Account",
-            ex.getMessage(),
-            "missing-report-data-in-storage-account",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR,
+            "Missing Data In Storage Account", ex.getMessage(), "missing-report-data-in-storage-account", false, ex);
 
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(MissingReportServiceException.class)
     public ResponseEntity<ProblemDetail> handleMissingReportServiceException(MissingReportServiceException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Missing Report Service",
-            ex.getMessage(),
-            "missing-report-service",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Missing Report Service",
+            ex.getMessage(), "missing-report-service", false, ex);
 
+        return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
+    }
+
+    @ExceptionHandler(ReportGenerationException.class)
+    public ResponseEntity<ProblemDetail> handleReportGenerationException(ReportGenerationException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Report Generation Failed",
+            "Unable to generate the requested report", "report-generation-failed", true, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(UnsupportedMappingTypeException.class)
     public ResponseEntity<ProblemDetail> handleUnsupportedMappingTypeException(UnsupportedMappingTypeException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            "Unsupported Mapping Type",
-            ex.getMessage(),
-            "unsupported-mapping-type",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Unsupported Mapping Type",
+            ex.getMessage(), "unsupported-mapping-type", false, ex);
         problemDetail.setProperty("mapping_type", ex.getMappingType());
         problemDetail.setProperty("supported_types", ex.getSupportedTypes());
 
@@ -213,14 +164,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MissingMappingTypeException.class)
     public ResponseEntity<ProblemDetail> handleMissingMappingTypeException(MissingMappingTypeException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            "Missing Mapping Type",
-            ex.getMessage(),
-            "missing-mapping-type",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Missing Mapping Type",
+            ex.getMessage(), "missing-mapping-type", false, ex);
         problemDetail.setProperty("supported_types", ex.getSupportedTypes());
 
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
@@ -228,14 +173,33 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InterfaceJobQueueException.class)
     public ResponseEntity<ProblemDetail> handleInterfaceJobQueueException(InterfaceJobQueueException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.SERVICE_UNAVAILABLE,
-            "Service Unavailable",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
             "The interface job queue is currently unavailable",
-            "interface-job-queue-unavailable",
-            true,
-            ex
-        );
+            "interface-job-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    // Common-lib handles JPA timeouts but not Spring's translated repository exception.
+    @ExceptionHandler(QueryTimeoutException.class)
+    public ResponseEntity<ProblemDetail> handleQueryTimeoutException(QueryTimeoutException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.REQUEST_TIMEOUT, "Request Timeout",
+            "The request did not receive a response from the database within the timeout period",
+            "query-timeout", true, ex);
+        return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
+    }
+
+    @ExceptionHandler(JmsException.class)
+    public ResponseEntity<ProblemDetail> handleJmsException(JmsException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The message queue is currently unavailable", "message-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    @ExceptionHandler(PdplLoggingException.class)
+    public ResponseEntity<ProblemDetail> handlePdplLoggingException(PdplLoggingException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The personal data logging queue is currently unavailable",
+            "pdpl-logging-unavailable", true, ex);
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 
@@ -243,14 +207,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handleHttpClientErrorException(HttpClientErrorException ex) {
         HttpStatus status = HttpStatus.valueOf(ex.getStatusCode().value());
 
-        ProblemDetail problemDetail = createProblemDetail(
-            status,
-            status.getReasonPhrase(),
+        ProblemDetail problemDetail = createProblemDetail(status, status.getReasonPhrase(),
             Optional.ofNullable(ex.getStatusText()).filter(text -> !text.isBlank()).orElse(ex.getMessage()),
-            "http-client-error",
-            false,
-            ex
-        );
+            "http-client-error", false, ex);
 
         return responseWithProblemDetail(status, problemDetail);
     }
@@ -258,14 +217,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(JsonSchemaValidationException.class)
     public ResponseEntity<ProblemDetail> handleJsonSchemaValidationException(JsonSchemaValidationException ex) {
         String detail = getJsonSchemaValidationDetail(ex);
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            "Bad Request",
-            detail,
-            "json-schema-validation",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request", detail,
+            "json-schema-validation", false, ex);
+        return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request",
+            "The request does not conform to the required JSON schema",
+            "json-schema-validation", false, ex);
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
@@ -286,41 +247,24 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SchemaConfigurationException.class)
     public ResponseEntity<ProblemDetail> handleSchemaConfigurationException(SchemaConfigurationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Internal Server Error",
-            ex.getMessage(),
-            "internal-server-error",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
+            ex.getMessage(), "internal-server-error", false, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
     @ExceptionHandler(InvalidReferenceValidationException.class)
     public ResponseEntity<ProblemDetail> handleInvalidReferenceValidationException(
         InvalidReferenceValidationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.BAD_REQUEST,
-            "Bad Request",
-            ex.getMessage(),
-            "invalid-reference-validation",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.BAD_REQUEST, "Bad Request", ex.getMessage(),
+            "invalid-reference-validation", false, ex);
         return responseWithProblemDetail(HttpStatus.BAD_REQUEST, problemDetail);
     }
 
     @ExceptionHandler(ResourceConflictException.class)
     public ResponseEntity<ProblemDetail> handleResourceConflictException(ResourceConflictException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.CONFLICT,
-            "Conflict",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.CONFLICT, "Conflict",
             "A conflict occurred with the requested resource",
-            "resource-conflict",
-            false,
-            ex
-        );
+            "resource-conflict", false, ex);
         problemDetail.setProperty("resourceType", ex.getResourceType());
         problemDetail.setProperty("resourceId", ex.getResourceId());
         problemDetail.setProperty("conflictReason", ex.getConflictReason());
@@ -329,14 +273,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(SubmitterDeniedException.class)
     public ResponseEntity<ProblemDetail> handleActionDeniedForSubmitterException(SubmitterDeniedException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.FORBIDDEN,
-            "Submitter cannot " + ex.getUpdateType(),
+        String title = "Submitter cannot " + ex.getUpdateType();
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.FORBIDDEN, title,
             "A single user cannot submit and " + ex.getUpdateType() + " the same Draft Account",
-            "submitter-cannot-" + ex.getUpdateType(),
-            false,
-            ex
-        );
+            "submitter-cannot-" + ex.getUpdateType(), false, ex);
         return responseWithProblemDetail(HttpStatus.FORBIDDEN, problemDetail);
     }
 
@@ -344,14 +284,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ProblemDetail> handlePaymentCardRequestAlreadyExists(
         PaymentCardRequestAlreadyExistsException ex) {
 
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.CONFLICT,
-            "Conflict",
-            ex.getMessage(),
-            "resource-conflict",
-            true,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.CONFLICT, "Conflict", ex.getMessage(),
+            "resource-conflict", true, ex);
 
         problemDetail.setProperty("resourceType", ex.getResourceType());
         problemDetail.setProperty("resourceId", ex.getResourceId());
@@ -361,14 +295,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FeignException.Unauthorized.class)
     public ResponseEntity<ProblemDetail> handleFeignExceptionUnauthorized(FeignException.Unauthorized ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.UNAUTHORIZED,
-            "Not Authorised for Connection",
-            ex.getMessage(),
-            "unauthorized",
-            false,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.UNAUTHORIZED, "Not Authorised for Connection",
+            ex.getMessage(), "unauthorized", false, ex);
         return responseWithProblemDetail(HttpStatus.UNAUTHORIZED, problemDetail);
     }
 
@@ -403,25 +331,15 @@ public class GlobalExceptionHandler {
 
         if (isDisabledTestingSupportEndpoint(request.getRequestURI())) {
             log.info("Call to disabled testing support endpoint for request URI {}", request.getRequestURI());
-            ProblemDetail problemDetail = createProblemDetail(
-                HttpStatus.NOT_FOUND,
-                "Not Found",
+            ProblemDetail problemDetail = createProblemDetail(HttpStatus.NOT_FOUND, "Not Found",
                 "The requested endpoint could not be found",
-                "not-found",
-                false,
-                ex
-            );
+                "not-found", false, ex);
             return responseWithProblemDetail(HttpStatus.NOT_FOUND, problemDetail);
         }
 
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Internal Server Error",
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error",
             "An unexpected error occurred while processing your request",
-            "servlet-error",
-            false,
-            ex
-        );
+            "servlet-error", false, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
@@ -433,7 +351,6 @@ public class GlobalExceptionHandler {
             || path.equals("/major-creditors/search")
             || path.matches("/minor-creditor-accounts/\\d+$");
     }
-
 
     @Getter
     public static class PaymentCardRequestAlreadyExistsException extends RuntimeException {

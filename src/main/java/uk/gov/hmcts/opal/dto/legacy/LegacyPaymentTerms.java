@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.dto.legacy;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
@@ -12,6 +13,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.jackson.Jacksonized;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 
 @Data
@@ -19,6 +22,7 @@ import uk.gov.hmcts.opal.util.LocalDateAdapter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Jacksonized
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @XmlRootElement(name = "payment_terms")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyPaymentTerms {
@@ -43,13 +47,19 @@ public class LegacyPaymentTerms {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate effectiveDate;
 
-    @XmlElement(name = "installment_period")
+    @XmlElements({
+        @XmlElement(name = "instalment_period", type = LegacyInstalmentPeriod.class),
+        @XmlElement(name = "installment_period", type = LegacyInstalmentPeriod.class)
+    })
     private LegacyInstalmentPeriod instalmentPeriod;
 
     @XmlElement(name = "lump_sum_amount")
     private BigDecimal lumpSumAmount;
 
-    @XmlElement(name = "installment_amount")
+    @XmlElements({
+        @XmlElement(name = "instalment_amount", type = BigDecimal.class),
+        @XmlElement(name = "installment_amount", type = BigDecimal.class)
+    })
     private BigDecimal instalmentAmount;
 
     @XmlElement(name = "posted_details")

@@ -118,5 +118,8 @@ public abstract class SearchDefendantAccount {
     @SuperBuilder
     @NoArgsConstructor
     public static class BasicEntity extends SearchDefendantAccount {
+
+        @Column(name = "collection_order")
+        private Boolean collectionOrder;
     }
 }

@@ -16,7 +16,7 @@ INSERT INTO defendant_accounts (
     account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques, account_type,
     collection_order, payment_card_requested, originator_name
 ) VALUES (
-    262200, 0, 78, '262200A', 0.00, 500.00, 500.00, 'L', 'N', 'N', 'Fine', 'N', 'N',
+    262200, 0, 78, '262200A', 0.00, -500.00, -500.00, 'L', 'N', 'N', 'Fine', 'N', 'N',
     'History Sending Court'
 ) ON CONFLICT (defendant_account_id) DO NOTHING;
 

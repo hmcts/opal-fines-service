@@ -1,31 +1,3 @@
-INSERT INTO reports (
-    report_id,
-    report_title,
-    report_group,
-    audited_report,
-    report_parameters,
-    supports_multi_bu,
-    is_bespoke_journey,
-    shown_as_worklist,
-    retention_period,
-    permission,
-    supported_file_types,
-    can_manually_create
-) VALUES (
-    'cash_list',
-    'Cash List',
-    'Fines',
-    true,
-    NULL,
-    false,
-    false,
-    false,
-    NULL,
-    NULL,
-    NULL,
-    false
-);
-
 INSERT INTO business_units (
     business_unit_id,
     business_unit_name,
@@ -66,9 +38,9 @@ INSERT INTO defendant_accounts (
     99000000343200,
     1777,
     'ACC123',
-    250.00,
+    -250.00,
     125.50,
-    124.50,
+    -124.50,
     CAST('L' AS t_da_account_status_enum),
     CAST('Fine' AS t_da_account_type_enum),
     1

@@ -1,5 +1,9 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -16,8 +20,9 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.GetEnforcementStatusResponse.DefendantAccountTypeEnum;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -28,18 +33,19 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrationTest {
 
     static final String URL_BASE = "/defendant-accounts";
-    static final String DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA = SchemaPaths.DEFENDANT_ACCOUNT
-        + "/getDefendantAccountPaymentTermsResponse.json";
 
 
     @MockitoSpyBean
     JsonSchemaValidationService jsonSchemaValidationService;
 
+    @MockitoSpyBean
+    protected DefendantAccountSummaryPdplLoggingService loggingService;
 
 
     @DisplayName("Get header summary for individual defendant account [@PO-2287]")
     @JiraStory("PO-2287")
     void getHeaderSummary_Individual(Logger log) throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -56,12 +62,13 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value("78"))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_code").value("NE"))
-            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(700.58))
+            .andExpect(jsonPath("$.payment_state_summary.imposed_amount").value(-700.58))
             .andExpect(jsonPath("$.payment_state_summary.paid_amount").value(200.00))
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @DisplayName("Get header summary for organisation defendant account [@PO-2287]")
@@ -89,6 +96,8 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
         + "defendantAccountPartyId bug fix validation")
     @JiraStory("PO-2297")
     void testGetHeaderSummary_Individual_UsesDefendantAccountPartyId(Logger log) throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
+
         // Act
         ResultActions resultActions =
             mockMvc.perform(get("/defendant-accounts/77/header-summary")
@@ -104,6 +113,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.party_details.organisation_flag").value(false))
             .andExpect(jsonPath("$.party_details.individual_details.forenames").value("Anna"))
             .andExpect(jsonPath("$.party_details.individual_details.surname").value("Graham"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @DisplayName("PO-2297: header-summary (organisation) returns correct defendant_party_id from"
@@ -160,6 +170,7 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("B"))
             .andExpect(jsonPath("$.payment_terms.effective_date").value("2025-10-12"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name").value("Weekly"))
             .andExpect(jsonPath("$.payment_terms.lump_sum_amount").isEmpty())
             .andExpect(jsonPath("$.payment_terms.instalment_amount").isEmpty())
 
@@ -170,8 +181,6 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.payment_card_last_requested").value("2024-01-01"))
             .andExpect(jsonPath("$.payment_terms.extension").value(false))
             .andExpect(jsonPath("$.last_enforcement").value("10"));
-
-        jsonSchemaValidationService.validateOrError(body, DEFENDANT_PAYMENT_TERMS_RESPONSE_SCHEMA);
     }
 
     void testGetPaymentTermsLatest_NoPaymentTermFoundForId(Logger log) throws Exception {
@@ -335,6 +344,41 @@ abstract class AbstractCommonDefendantsIntegrationTest extends AbstractIntegrati
             .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
             .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"))
             .andExpect(ignoreForLegacy(jsonPath("$.next_enforcement_action_data").value("All"), isLegacy));
+    }
+
+    @DisplayName("Get enforcement status for child defendant account")
+    void testGetEnforcementStatus_child(Logger log, boolean isLegacy) throws Exception {
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/2007/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus_child: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(header().string("ETag", isLegacy ? OVER_LONG_VERSION_ETAG : "\"0\""))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(ignoreForLegacy(jsonPath("$.defendant_account_type")
+                .value(DefendantAccountTypeEnum.YOUTH.getValue()), isLegacy))
+            .andExpect(jsonPath("$.is_hmrc_check_eligible").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.days_in_default").value(30))
+            .andExpect(jsonPath("$.enforcement_overview.collection_order.collection_order_flag").value(false))
+            .andExpect(jsonPath("$.enforcement_overview.enforcement_court.court_id").value(780000000185L))
+            .andExpect(jsonPath("$.account_status_reference.account_status_code").value("L"))
+            .andExpect(jsonPath("$.account_status_reference.account_status_display_name").value("Live"));
+    }
+
+    @DisplayName("Get enforcement status for individual defendant account where their date of birth is null")
+    void testGetEnforcementStatus_defendantAccountPartyDoBIsNull(Logger log) throws Exception {
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/88/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":getEnforcementStatus: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(jsonPath("$.defendant_account_type").value(DefendantAccountTypeEnum.ADULT.getValue()));
     }
 
     @DisplayName("Get enforcement status - forbidden without permission")

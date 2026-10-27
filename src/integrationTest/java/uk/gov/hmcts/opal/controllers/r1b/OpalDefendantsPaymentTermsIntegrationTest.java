@@ -216,6 +216,62 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     }
 
     @Test
+    @DisplayName("OPAL: Add Payment Terms - nullable instalment request payload is accepted [@PO-8988]")
+    @JiraStory("PO-8988")
+    @JiraEpic("PO-977")
+    void test_Opal_AddPaymentTerms_NullableInstalmentPayload() throws Exception {
+        authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+
+        Integer currentVersion = versionFor(77L);
+        HttpHeaders headers = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + currentVersion + "\"");
+
+        String requestJson = """
+            {
+              "payment_terms": {
+                "days_in_default": null,
+                "date_days_in_default_imposed": null,
+                "reason_for_extension": "Updated instalments",
+                "extension": true,
+                "payment_terms_type": {
+                  "payment_terms_type_code": "I",
+                  "payment_terms_type_display_name": "Instalments"
+                },
+                "effective_date": "2026-05-12",
+                "instalment_period": {
+                  "instalment_period_code": "M",
+                  "instalment_period_display_name": "Monthly"
+                },
+                "lump_sum_amount": null,
+                "instalment_amount": 45,
+                "posted_details": {
+                  "posted_by": null,
+                  "posted_date": "2026-09-08T14:31:02",
+                  "posted_by_name": null
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": null
+            }
+            """;
+
+        ResultActions result = mockMvc.perform(
+            post("/defendant-accounts/77/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestJson)
+        ).andDo(MockMvcResultHandlers.print());
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.payment_terms.payment_terms_type.payment_terms_type_code").value("I"))
+            .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("M"))
+            .andExpect(jsonPath("$.payment_terms.instalment_amount").value(45))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by").value("L078JG"))
+            .andExpect(jsonPath("$.payment_terms.posted_details.posted_by_name").value("opal-test@HMCTS.NET"));
+    }
+
+    @Test
     @DisplayName("OPAL: Add Payment Terms - Forbidden when missing auth header [@PO-1718]")
     @JiraStory("PO-1718")
     @JiraEpic("PO-977")
@@ -500,13 +556,13 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
-        mockMvc.perform(
+        ResultActions resultActions = mockMvc.perform(
                 post("/defendant-accounts/77/payment-terms")
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content("{\"request_payment_card\": true}")
-            )
-            .andExpect(status().isBadRequest())
+                    .content("{\"request_payment_card\": true}"));
+
+        resultActions.andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/json-schema-validation"));
     }

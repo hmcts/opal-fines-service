@@ -1,14 +1,14 @@
-@Legacy @JIRA-LABEL:account-enquiry @MajorCreditorHistory
+@Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MajorCreditorHistory
 Feature: Major Creditor Account History API In Legacy Mode
 
   @JIRA-STORY:PO-2659 @JIRA-EPIC:PO-2655
-  Scenario: E2E.01 Happy path history retrieval
+  Scenario: Legacy major creditor account history - E2E.01 Happy path history retrieval
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for the created major creditor account
     Then the major creditor account history response is returned as documented
 
   @JIRA-STORY:PO-2659 @JIRA-EPIC:PO-2655 @JIRA-NFR:PO-2507
-  Scenario: E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
+  Scenario: Legacy major creditor account history - E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
     When I request major creditor account history for the created major creditor account without a token
     Then the major creditor account history error response matches the standard problem detail contract for status 401
     And the major creditor account history error response contains no account data
@@ -17,13 +17,13 @@ Feature: Major Creditor Account History API In Legacy Mode
     And the major creditor account history error response contains no account data
 
   @JIRA-STORY:PO-2659 @JIRA-EPIC:PO-2655 @JIRA-NFR:PO-2507
-  Scenario: E2E.03 Authorization propagation returns 403 when permission is missing
+  Scenario: Legacy major creditor account history - E2E.03 Authorization propagation returns 403 when permission is missing
     When the "opal-test-2@dev.platform.hmcts.net" user requests major creditor account history for the created major creditor account
     Then the major creditor account history error response matches the standard problem detail contract for status 403
     And the major creditor account history error response contains no account data
 
   @JIRA-STORY:PO-2659 @JIRA-EPIC:PO-2655
-  Scenario: E2E.04 Unknown creditor returns 404
+  Scenario: Legacy major creditor account history - E2E.04 Unknown creditor returns 404
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for a non-existent major creditor account
     Then the major creditor account history error response matches the standard problem detail contract for status 404

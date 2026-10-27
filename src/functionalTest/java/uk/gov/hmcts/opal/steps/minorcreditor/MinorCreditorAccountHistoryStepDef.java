@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -27,7 +28,6 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,6 +38,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
+    private static final String HEADER_SUMMARY_PATH = "/minor-creditor-accounts/%d/header-summary";
+    private static final long LEGACY_HISTORY_ACCOUNT_ID = 99264500000001L;
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
@@ -89,6 +91,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode body = readJson(response);
         createdMinorCreditorAccountId = assertLong(body.path("creditor_account_id"));
+        scenarioContext().setCreatedMinorCreditorAccountId(createdMinorCreditorAccountId);
         rememberedDateFrom = LocalDate.parse(assertText(body.path("date_from"), "date_from"));
         rememberedDateTo = LocalDate.parse(assertText(body.path("date_to"), "date_to"));
         excludedDate = LocalDate.parse(assertText(body.path("excluded_date"), "excluded_date"));
@@ -100,6 +103,35 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @When("I request minor creditor account history for the created minor creditor account")
     public void requestMinorCreditorHistoryForCreatedMinorCreditorAccount() {
         getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(), null);
+    }
+
+    /**
+     * Requests the header summary twice and verifies that logging does not alter its body or ETag.
+     */
+    @When("I request the header summary twice for the created minor creditor account")
+    public void requestHeaderSummaryTwiceForCreatedMinorCreditorAccount() {
+        long accountId = createdMinorCreditorAccountIdOrFail();
+        Response first = getHeaderSummary(accountId);
+        Response second = getHeaderSummary(accountId);
+
+        assertEquals(200, first.statusCode(), "Unexpected first header-summary status");
+        assertEquals(200, second.statusCode(), "Unexpected second header-summary status");
+        assertNotNull(first.header(HttpHeaders.ETAG), "The first response should contain an ETag");
+        assertEquals(first.header(HttpHeaders.ETAG), second.header(HttpHeaders.ETAG),
+            "ETag changed between identical reads");
+        assertEquals(first.asString(), second.asString(), "Response body changed between identical reads");
+        assertFalse(second.jsonPath().getBoolean("party.organisation_flag"),
+            "The fixture should represent an individual minor creditor");
+    }
+
+    /**
+     * Requests history for the created minor creditor with a raw query string.
+     *
+     * @param query query string to append to the request URI.
+     */
+    @When("I request minor creditor account history for the created minor creditor account with query {string}")
+    public void requestCreatedMinorCreditorHistoryWithQuery(String query) {
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(), query);
     }
 
     /**
@@ -117,6 +149,27 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
             createdMinorCreditorAccountIdOrFail(),
             "dateFrom=" + rememberedDateFrom + "&dateTo=" + rememberedDateTo + "&itemTypes=" + itemTypes
         );
+    }
+
+    /**
+     * Requests history using the fixture's inclusive lower date boundary.
+     */
+    @When("I request minor creditor account history for the created minor creditor account using the remembered "
+        + "dateFrom")
+    public void requestCreatedMinorCreditorHistoryUsingRememberedDateFrom() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(),
+            "dateFrom=" + rememberedDateFrom);
+    }
+
+    /**
+     * Requests history using the fixture's inclusive upper date boundary.
+     */
+    @When("I request minor creditor account history for the created minor creditor account using the remembered dateTo")
+    public void requestCreatedMinorCreditorHistoryUsingRememberedDateTo() {
+        assertRememberedDateRange();
+        getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(),
+            "dateTo=" + rememberedDateTo);
     }
 
     /**
@@ -151,6 +204,42 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @When("I request minor creditor account history for a non-existent minor creditor account with an invalid token")
     public void requestMinorCreditorHistoryForNonExistentMinorCreditorAccountWithInvalidToken() {
         getHistory("invalid-token", nonExistentMinorCreditorAccountId(), null);
+    }
+
+    /**
+     * Requests history for the account seeded in the legacy API stub.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account")
+    public void requestMinorCreditorHistoryForSeededLegacyAccount() {
+        getHistory(BearerTokenStepDef.getToken(), LEGACY_HISTORY_ACCOUNT_ID, null);
+    }
+
+    /**
+     * Requests history for the seeded legacy account with a raw query string.
+     *
+     * @param query query string to append to the request URI.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account with query {string}")
+    public void requestSeededLegacyMinorCreditorHistoryWithQuery(String query) {
+        getHistory(BearerTokenStepDef.getToken(), LEGACY_HISTORY_ACCOUNT_ID, query);
+    }
+
+    /**
+     * Requests history for the seeded legacy account without an Authorization header.
+     */
+    @When("I request minor creditor account history for the seeded legacy minor creditor account without a token")
+    public void requestSeededLegacyMinorCreditorHistoryWithoutToken() {
+        getHistory(null, LEGACY_HISTORY_ACCOUNT_ID, null);
+    }
+
+    /**
+     * Requests history for the seeded legacy account using a specific test user.
+     *
+     * @param user user email used to resolve a bearer token.
+     */
+    @When("the {string} user requests minor creditor account history for the seeded legacy minor creditor account")
+    public void userRequestsSeededLegacyMinorCreditorHistory(String user) {
+        getHistory(BearerTokenStepDef.getAccessTokenForUser(user), LEGACY_HISTORY_ACCOUNT_ID, null);
     }
 
     /**
@@ -200,9 +289,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
      */
     @Then("the minor creditor account history is ordered newest first")
     public void minorCreditorHistoryIsOrderedNewestFirst() {
-        LocalDate previous = null;
+        LocalDateTime previous = null;
         for (JsonNode historyItem : historyItems()) {
-            LocalDate current = postedDateOf(historyItem);
+            LocalDateTime current = postedDateOf(historyItem);
             if (previous != null) {
                 assertFalse(
                     current.isAfter(previous),
@@ -222,7 +311,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         assertTrue(
-            historyItems().stream().map(this::postedDateOf).anyMatch(excludedDate::equals),
+            historyItems().stream().map(this::postedDateOf)
+                .anyMatch(postedDate -> isOnDate(postedDate, excludedDate)),
             "Expected unfiltered history to contain records outside the remembered date range"
         );
     }
@@ -236,7 +326,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         assertExcludedDate();
 
         for (JsonNode historyItem : historyItems()) {
-            assertNotEquals(excludedDate, postedDateOf(historyItem),
+            assertFalse(isOnDate(postedDateOf(historyItem), excludedDate),
                 "History item outside the requested date range was returned");
         }
     }
@@ -280,9 +370,11 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the minor creditor account history response contains only items on or after the remembered dateFrom")
     public void minorCreditorHistoryContainsOnlyItemsOnOrAfterRememberedDateFrom() {
         assertRememberedDateRange();
+        LocalDateTime inclusiveBoundary = rememberedDateFrom.atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
+            LocalDateTime postedDate = postedDateOf(historyItem);
             assertFalse(
-                postedDateOf(historyItem).isBefore(rememberedDateFrom),
+                postedDate.isBefore(inclusiveBoundary),
                 "History item was before dateFrom boundary"
             );
         }
@@ -295,11 +387,43 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @Then("the minor creditor account history response contains only items on or before the remembered dateTo")
     public void minorCreditorHistoryContainsOnlyItemsOnOrBeforeRememberedDateTo() {
         assertRememberedDateRange();
+        LocalDateTime exclusiveBoundary = rememberedDateTo.plusDays(1).atStartOfDay();
         for (JsonNode historyItem : historyItems()) {
-            assertFalse(
-                postedDateOf(historyItem).isAfter(rememberedDateTo),
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(
+                postedDate.isBefore(exclusiveBoundary),
                 "History item was after dateTo boundary"
             );
+        }
+    }
+
+    /**
+     * Asserts every returned item is on or after an explicitly supplied date.
+     *
+     * @param dateFrom inclusive lower date boundary.
+     */
+    @Then("the minor creditor account history response contains only items on or after {string}")
+    public void minorCreditorHistoryContainsOnlyItemsOnOrAfter(String dateFrom) {
+        LocalDateTime inclusiveBoundary = LocalDate.parse(dateFrom).atStartOfDay();
+        for (JsonNode historyItem : historyItems()) {
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertFalse(postedDate.isBefore(inclusiveBoundary),
+                "History item was before dateFrom boundary " + inclusiveBoundary);
+        }
+    }
+
+    /**
+     * Asserts every returned item is on or before an explicitly supplied date.
+     *
+     * @param dateTo inclusive upper date boundary.
+     */
+    @Then("the minor creditor account history response contains only items on or before {string}")
+    public void minorCreditorHistoryContainsOnlyItemsOnOrBefore(String dateTo) {
+        LocalDateTime exclusiveBoundary = LocalDate.parse(dateTo).plusDays(1).atStartOfDay();
+        for (JsonNode historyItem : historyItems()) {
+            LocalDateTime postedDate = postedDateOf(historyItem);
+            assertTrue(postedDate.isBefore(exclusiveBoundary),
+                "History item was after dateTo boundary " + exclusiveBoundary);
         }
     }
 
@@ -361,6 +485,14 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
             .get(getTestUrl() + HISTORY_PATH.formatted(accountId) + querySuffix(query));
     }
 
+    private Response getHeaderSummary(long accountId) {
+        return net.serenitybdd.rest.SerenityRest.given()
+            .accept("*/*")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + BearerTokenStepDef.getToken())
+            .when()
+            .get(getTestUrl() + HEADER_SUMMARY_PATH.formatted(accountId));
+    }
+
     private String querySuffix(String query) {
         return query == null || query.isBlank() ? "" : "?" + query;
     }
@@ -415,7 +547,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode postedDetails = historyItem.path("postedDetails");
         assertTrue(postedDetails.isObject(), "postedDetails should be an object");
-        LocalDate.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
+        LocalDateTime.parse(assertText(postedDetails.path("posted_date"), "postedDetails.posted_date"));
         assertOptionalText(postedDetails.path("posted_by"), "postedDetails.posted_by");
         assertOptionalText(postedDetails.path("posted_by_name"), "postedDetails.posted_by_name");
 
@@ -435,8 +567,8 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         return assertText(historyItem.path("type"), "type");
     }
 
-    private LocalDate postedDateOf(JsonNode historyItem) {
-        return LocalDate.parse(
+    private LocalDateTime postedDateOf(JsonNode historyItem) {
+        return LocalDateTime.parse(
             assertText(historyItem.path("postedDetails").path("posted_date"), "postedDetails.posted_date")
         );
     }
@@ -448,6 +580,12 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private void assertExcludedDate() {
         assertNotNull(excludedDate, "No excluded history fixture date found");
+    }
+
+    private boolean isOnDate(LocalDateTime postedDate, LocalDate expectedDate) {
+        LocalDateTime inclusiveBoundary = expectedDate.atStartOfDay();
+        LocalDateTime exclusiveBoundary = expectedDate.plusDays(1).atStartOfDay();
+        return !postedDate.isBefore(inclusiveBoundary) && postedDate.isBefore(exclusiveBoundary);
     }
 
     private String assertText(JsonNode node, String fieldName) {

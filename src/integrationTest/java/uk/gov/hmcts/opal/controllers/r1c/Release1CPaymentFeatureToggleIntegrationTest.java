@@ -2,14 +2,17 @@ package uk.gov.hmcts.opal.controllers.r1c;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -24,6 +27,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.Release1CPaymentFeatureToggleIntegrationTest")
 @DisplayName("Release 1C Payment - returns 404 when flag is disabled")
+@Tag("ExtendedTest")
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-payment=false"
@@ -32,11 +36,34 @@ class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggle
 
     private static final String OUTSTANDING_AUTO_PAYMENT_PATH = "/business-units/outstanding-auto-payment-count";
     private static final String INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
+    private static final String DEFENDANT_ACCOUNTS_MASTER_PATH = "/defendant-accounts/%d/master";
+    private static final String TILLS_PATH = "/tills";
+    private static final String VALID_TILLS_REQUEST = """
+        {
+          "business_unit_id": 3630,
+          "payments_in": [
+            {
+              "payment_details": {
+                "amount": 12.34,
+                "method": "Notes & Coins",
+                "destination_type": "Fines",
+                "allocation_type": "FULL",
+                "additional_information": "Defendant"
+              }
+            }
+          ]
+        }
+        """;
 
     static Stream<Arguments> release1cPaymentEndpoints() {
         return Stream.of(
             endpoint("GET " + OUTSTANDING_AUTO_PAYMENT_PATH, get(OUTSTANDING_AUTO_PAYMENT_PATH)),
-            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")));
+            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
+            endpoint("GET " + DEFENDANT_ACCOUNTS_MASTER_PATH, get(DEFENDANT_ACCOUNTS_MASTER_PATH.formatted(1))),
+            endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
+            args("POST " + TILLS_PATH, withAuthAndJson(post(TILLS_PATH)
+                .content(VALID_TILLS_REQUEST))
+                .accept(MediaType.valueOf("application/json+problem"))));
     }
 
     private static Arguments endpoint(String description, MockHttpServletRequestBuilder request) {

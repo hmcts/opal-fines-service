@@ -119,6 +119,9 @@ public class DraftAccountPatchSteps extends BaseStepDef {
             .patch(getTestUrl() + "/draft-accounts/" + id);
     }
 
+    /**
+     * Asserts that the account-status date in the latest patch response matches the rejected date.
+     */
     @Then("the account status date matches the rejected date")
     public void patchDraftAccountStatusDateMatchesTheRejectedDate() {
         assertions.assertAccountStatusDateMatchesRejectedDate(SerenityRest.lastResponse());

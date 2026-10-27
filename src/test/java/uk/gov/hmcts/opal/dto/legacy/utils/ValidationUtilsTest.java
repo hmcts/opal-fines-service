@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 class ValidationUtilsTest {
+
     @Nested
     @DisplayName("hasExactlyOneNonNull(...)")
     class HasExactlyOneNonNull {
@@ -60,4 +61,6 @@ class ValidationUtilsTest {
             assertFalse(ValidationUtils.hasExactlyOneNonNull());
         }
     }
+
+
 }

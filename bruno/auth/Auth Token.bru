@@ -28,8 +28,8 @@ script:post-response {
   const token = json.access_token;
   const tokenExpiresAt = getTokenExpiresAt(token) ?? Date.now() + (20 * 60 * 1000);
 
-  bru.setEnvVar("BEARER_TOKEN", token, { persist: true });
-  bru.setEnvVar("tokenExpiresAt", String(tokenExpiresAt), { persist: true });
+  bru.setVar("BEARER_TOKEN", token);
+  bru.setVar("tokenExpiresAt", String(tokenExpiresAt));
   console.log(`[auth/Auth Token post-response] Stored newly requested bearer token; expires ${new Date(tokenExpiresAt).toISOString()}`);
 }
 

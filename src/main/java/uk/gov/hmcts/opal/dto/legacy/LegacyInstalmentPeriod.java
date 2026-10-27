@@ -3,19 +3,26 @@ package uk.gov.hmcts.opal.dto.legacy;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.databind.annotation.JsonNaming;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@XmlRootElement(name = "installment_period")
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+@XmlRootElement(name = "instalment_period")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class LegacyInstalmentPeriod {
 
-    @XmlElement(name = "installment_period_code")
+    @XmlElements({
+        @XmlElement(name = "instalment_period_code", type = InstalmentPeriodCode.class),
+        @XmlElement(name = "installment_period_code", type = InstalmentPeriodCode.class)
+    })
     private InstalmentPeriodCode instalmentPeriodCode;
 
     public enum InstalmentPeriodCode {

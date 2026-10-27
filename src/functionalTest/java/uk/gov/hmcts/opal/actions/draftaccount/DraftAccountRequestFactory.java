@@ -12,6 +12,7 @@ import java.util.Map;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addAllToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addIntToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addLongToJsonObject;
+import static uk.gov.hmcts.opal.steps.BaseStepDef.dataExists;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObject;
 import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 
@@ -21,7 +22,6 @@ import static uk.gov.hmcts.opal.steps.BaseStepDef.addToJsonObjectOrNull;
 public class DraftAccountRequestFactory {
 
     public static final String DEFAULT_ACCOUNT_PATH = "draftAccounts/accountJson/account.json";
-    public static final String DEFAULT_TIMELINE_PATH = "draftAccounts/timelineJson/default.json";
 
     private static final String MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT =
         "features/opalMode/manualAccountCreation/";
@@ -48,7 +48,9 @@ public class DraftAccountRequestFactory {
         addLongToJsonObject(postBody, dataToPost, "business_unit_id");
         addAllToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-        postBody.put("account", loadAccountFixture(dataToPost.get("account")));
+        JSONObject accountObject = loadAccountFixture(dataToPost.get("account"));
+        applyAccountOverrides(accountObject, dataToPost);
+        postBody.put("account", accountObject);
         return postBody;
     }
 
@@ -93,7 +95,9 @@ public class DraftAccountRequestFactory {
 
         addToJsonObject(postBody, dataToPost, "account_type");
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
-        postBody.put("account", loadAccountFixture(dataToPost.get("account")));
+        JSONObject accountObject = loadAccountFixture(dataToPost.get("account"));
+        applyAccountOverrides(accountObject, dataToPost);
+        postBody.put("account", accountObject);
         return postBody;
     }
 
@@ -130,14 +134,45 @@ public class DraftAccountRequestFactory {
     }
 
     /**
-     * Loads the standard timeline fixture used by draft-account functional tests.
+     * Applies optional account-level overrides from the scenario data to the loaded fixture.
      *
-     * @return parsed default timeline JSON array.
-     * @throws IOException if the fixture cannot be read.
-     * @throws JSONException if the fixture does not contain valid JSON.
+     * @param accountObject account JSON fixture to mutate.
+     * @param dataToPost scenario data containing optional override fields.
+     * @throws JSONException if the JSON payload cannot be updated.
      */
-    public JSONArray loadDefaultTimelineFixture() throws IOException, JSONException {
-        return new JSONArray(readResource(MANUAL_ACCOUNT_CREATION_RESOURCE_ROOT + DEFAULT_TIMELINE_PATH));
+    private void applyAccountOverrides(JSONObject accountObject, Map<String, String> dataToPost)
+        throws JSONException {
+        String accountType = dataToPost.get("account_type");
+        if (dataExists(accountType)) {
+            accountObject.put("account_type", accountType);
+        }
+
+        String originatorType = dataToPost.get("account_originator_type");
+        if (dataExists(originatorType)) {
+            accountObject.put("originator_type", originatorType);
+        }
+
+        String originatorName = dataToPost.get("account_originator_name");
+        if (dataExists(originatorName)) {
+            accountObject.put("originator_name", originatorName);
+        }
+
+        String originatorId = dataToPost.get("account_originator_id");
+        if (dataExists(originatorId)) {
+            accountObject.put("originator_id", Long.parseLong(originatorId));
+        }
+
+        String enforcementCourtId = dataToPost.get("account_enforcement_court_id");
+        if (dataExists(enforcementCourtId)) {
+            long courtId = Long.parseLong(enforcementCourtId);
+            accountObject.put("enforcement_court_id", courtId);
+            if (accountObject.has("offences")) {
+                JSONArray offences = accountObject.getJSONArray("offences");
+                for (int i = 0; i < offences.length(); i++) {
+                    offences.getJSONObject(i).put("imposing_court_id", courtId);
+                }
+            }
+        }
     }
 
     /**

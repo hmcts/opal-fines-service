@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -13,11 +15,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -29,6 +33,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -50,6 +55,14 @@ class MinorCreditorLocalFlagIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLoggingService() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
     @Test
     @JiraStory("PO-1992")
     @JiraEpic("PO-2234")
@@ -59,9 +72,7 @@ class MinorCreditorLocalFlagIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID,
-            FinesPermission.ACCOUNT_MAINTENANCE,
-            FinesPermission.ADD_AND_REMOVE_PAYMENT_HOLD,
-            FinesPermission.VIEW_CREDITOR_BACS
+            FinesPermission.ACCOUNT_MAINTENANCE_MINOR_CREDITOR
         );
 
         ResultActions result = mockMvc.perform(patch("/minor-creditor-accounts/" + MINOR_CREDITOR_ACCOUNT_ID)
@@ -113,16 +124,16 @@ class MinorCreditorLocalFlagIntegrationTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.historyItems.length()").value(3))
             .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
-            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-01-31T10:00:00"))
             .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("AMENDUSR"))
             .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("Hold Pay Out"))
             .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("false"))
             .andExpect(jsonPath("$.historyItems[0].details.newValue").value("true"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-30"))
+            .andExpect(jsonPath("$.historyItems[1].postedDetails.posted_date").value("2026-01-30T09:00:00"))
             .andExpect(jsonPath("$.historyItems[1].details.noteText").value("Review creditor"))
             .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
-            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-29"))
+            .andExpect(jsonPath("$.historyItems[2].postedDetails.posted_date").value("2026-01-29T08:00:00"))
             .andExpect(jsonPath("$.historyItems[2].amount").value(42.00))
             .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
             .andExpect(jsonPath("$.historyItems[2].details.status.creditorTransactionStatus").value("C"))

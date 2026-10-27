@@ -1,6 +1,11 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -28,12 +33,11 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5811")
     void int01_getAtAGlance_returnsActivePaymentTermsSummary() throws Exception {
-
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-        );
+            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_MULTI_TERMS_ONE_ACTIVE).with(
+                    userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()));
 
         resultActions.andExpect(status().isOk())
             .andExpect(content().contentType(APPLICATION_JSON))
@@ -44,7 +48,11 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_code").value("W"))
             .andExpect(jsonPath("$.payment_terms.instalment_period.instalment_period_display_name").value("Weekly"))
             .andExpect(jsonPath("$.payment_terms.instalment_amount").doesNotExist())
-            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").doesNotExist());
+            .andExpect(jsonPath("$.payment_terms.lump_sum_amount").doesNotExist())
+            .andExpect(jsonPath("$.account_status_code").value("L"))
+            .andExpect(jsonPath("$.account_balance").value("-500.0"));
+
+        verify(loggingService).logAtAGlance(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -55,11 +63,9 @@ class DefendantAccountAtAGlanceIntegrationTest extends AbstractOpalDefendantsInt
     void int02_getAtAGlance_returnsNotFound_whenNoActivePaymentTermsExist() throws Exception {
 
         ResultActions resultActions = mockMvc.perform(
-            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_NO_ACTIVE_TERMS)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .accept(APPLICATION_PROBLEM_JSON)
-        );
+            get(URL_BASE + "/{defendantAccountId}/at-a-glance", ACCOUNT_NO_ACTIVE_TERMS).with(
+                    userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()).accept(APPLICATION_PROBLEM_JSON));
 
         resultActions.andExpect(status().isNotFound())
             .andExpect(content().contentType(APPLICATION_PROBLEM_JSON))

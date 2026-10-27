@@ -1,5 +1,12 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,6 +17,7 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ADD_ACCOUNT_
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.allFinesPermissionsToken;
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionsToken;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +28,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.AddNoteRequest;
-import uk.gov.hmcts.opal.dto.Note;
-import uk.gov.hmcts.opal.dto.RecordType;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
+import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
+import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 abstract class NotesIntegrationTest extends AbstractIntegrationTest {
@@ -40,25 +49,25 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotesImpl(Logger log) throws Exception {
         // Arrange
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
 
         final String payload = objectMapper.writeValueAsString(request);
         log.info(":testPostNotes payload: {}", payload);
-
         // Read the current version immediately before use
         final Integer versionBefore = defendantAccountVersionFor(77L);
         assertThat(versionBefore).isNotNull();
         // Act
         ResultActions result =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(payload)
                     .header("authorization", userStateStub.getBearerToken())
@@ -81,19 +90,18 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_IDNotFoundError(Logger log) throws Exception {
 
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("7");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("7")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -113,17 +121,16 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_badRequest(Logger log) throws Exception {
 
-        Note note = new Note();
-        note.setRecordId("ABC1");
-        note.setRecordType(RecordType.CREDITOR_ACCOUNTS);
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .recordId("ABC1")
+                .recordType(RecordTypeEnum.CREDITOR_ACCOUNTS)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -141,17 +148,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-1566")
     void postNotes_UserWithoutPermission(FinesPermission permission) throws Exception {
 
-        Note note = new Note();
-        note.setNoteText("test note");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test note")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions = mockMvc.perform(
-            post(URL_BASE + "/add")
+            post(URL_BASE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -178,17 +185,17 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
             userStateStub.addPermissions(scenario.authenticationBusinessUnitId(), scenario.permission());
         }
 
-        Note note = new Note();
-        note.setNoteText("test note");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test note")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         var requestBuilder =
-            post(URL_BASE + "/add")
+            post(URL_BASE)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -274,19 +281,18 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
-        Note note = new Note();
-        note.setNoteText("test");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("test")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -308,19 +314,18 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
 
-        Note note = new Note();
-        note.setNoteText("FAIL");
-        note.setRecordId("77");
-        note.setRecordType(RecordType.DEFENDANT_ACCOUNTS);
-        note.setNoteType("AA");
-
-        AddNoteRequest request = new AddNoteRequest();
-
-        request.setActivityNote(note);
+        AddNoteRequestNotes request = AddNoteRequestNotes.builder()
+            .activityNote(NoteCommon.builder()
+                .noteText("FAIL")
+                .recordId("77")
+                .recordType(RecordTypeEnum.DEFENDANT_ACCOUNTS)
+                .noteType(NoteCommon.NoteTypeEnum.AA)
+                .build())
+            .build();
 
         ResultActions resultActions =
             mockMvc.perform(
-                post(URL_BASE + "/add")
+                post(URL_BASE)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(objectMapper.writeValueAsString(request))
                     .header("authorization", userStateStub.getBearerToken())
@@ -335,5 +340,176 @@ abstract class NotesIntegrationTest extends AbstractIntegrationTest {
 
         resultActions.andExpect(status().is5xxServerError());
 
+    }
+
+    @DisplayName("post notes for a legacy-only defendant account [PO-10341]")
+    @JiraStory("PO-10341")
+    void legacyOnlyAccountAddNoteSuccess(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
+
+        NoteCommon note = new NoteCommon();
+        note.setNoteText("legacy-only account note");
+        note.setRecordId("770000004141");
+        note.setRecordType(RecordTypeEnum.DEFENDANT_ACCOUNTS);
+        note.setNoteType(NoteTypeEnum.AA);
+
+        AddNoteRequestNotes request = new AddNoteRequestNotes();
+        request.setActivityNote(note);
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .header(HttpHeaders.IF_MATCH, OVER_LONG_VERSION_ETAG)
+                .header("Business-Unit-Id", 77)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyOnlyAccountAddNoteSuccess: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isCreated());
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("addNote"))
+            .withRequestBody(matchingJsonPath("$.business_unit_id", equalTo("77")))
+            .withRequestBody(matchingJsonPath("$.business_unit_user_id"))
+            .withRequestBody(matchingJsonPath("$.activity_note.record_id", equalTo("770000004141")))
+            .withRequestBody(matchingJsonPath("$.activity_note.record_type", equalTo("defendant_accounts")))
+            .withRequestBody(matchingJsonPath("$.activity_note.note_text", equalTo("legacy-only account note")))
+            .withRequestBody(matchingJsonPath("$.activity_note.note_type", equalTo("AA"))));
+    }
+
+    @DisplayName("post notes then fetch header summary for a legacy-only defendant account [PO-10341]")
+    @JiraStory("PO-10341")
+    void legacyOnlyAccountAddNoteThenFetchHeaderSummary(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        stubFor(WireMock.post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHeaderSummary"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141")))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/xml")
+                .withBody(legacyOnlyHeaderSummaryXml())));
+
+        legacyOnlyAccountAddNoteSuccess(log);
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/770000004141/header-summary")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyOnlyAccountAddNoteThenFetchHeaderSummary: Response body:\n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.defendant_account_id").value("770000004141"))
+            .andExpect(jsonPath("$.account_number").value("770000004141A"))
+            .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value(77));
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHeaderSummary"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141"))));
+    }
+
+    @DisplayName("post notes then fetch history for a legacy-only defendant account [PO-10341]")
+    @JiraStory("PO-10341")
+    void legacyOnlyAccountAddNoteThenFetchHistory(Logger log) throws Exception {
+
+        userStateStub.addPermissions((short) 77, ADD_ACCOUNT_ACTIVITY_NOTES);
+        userStateStub.addPermissions((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+
+        stubFor(WireMock.post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHistory"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141")))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("Content-Type", "application/xml")
+                .withBody(legacyOnlyHistoryXml())));
+
+        legacyOnlyAccountAddNoteSuccess(log);
+
+        ResultActions resultActions = mockMvc.perform(
+            get("/defendant-accounts/770000004141/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .accept(MediaType.APPLICATION_JSON)
+        );
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":legacyOnlyAccountAddNoteThenFetchHistory: Response body:\n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[0].details.noteText").value("legacy-only account note"));
+
+        WireMock.verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo("getDefendantAccountHistory"))
+            .withRequestBody(matchingJsonPath("$.defendant_account_id", equalTo("770000004141"))));
+    }
+
+    private static String legacyOnlyHeaderSummaryXml() {
+        return """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <response>
+              <version>9223372036854775808</version>
+              <defendant_account_id>770000004141</defendant_account_id>
+              <account_number>770000004141A</account_number>
+              <defendant_party_id>7</defendant_party_id>
+              <debtor_type>Defendant</debtor_type>
+              <is_youth>false</is_youth>
+              <account_status_reference>
+                <account_status_code>L</account_status_code>
+              </account_status_reference>
+              <account_type>Fine</account_type>
+              <business_unit_summary>
+                <business_unit_id>77</business_unit_id>
+                <business_unit_name>Legacy Unit</business_unit_name>
+                <business_unit_code>77</business_unit_code>
+                <welsh_speaking>N</welsh_speaking>
+              </business_unit_summary>
+              <payment_state_summary>
+                <imposed_amount>700.58</imposed_amount>
+                <arrears_amount>300.00</arrears_amount>
+                <paid_amount>200.00</paid_amount>
+                <account_balance>5000.00</account_balance>
+              </payment_state_summary>
+              <has_consolidated_accounts>false</has_consolidated_accounts>
+            </response>
+            """;
+    }
+
+    private static String legacyOnlyHistoryXml() {
+        return """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <response>
+              <version>9223372036854775808</version>
+              <history_items>
+                <history_items_element>
+                  <posted_details>
+                    <posted_date>2026-09-03T09:58:34</posted_date>
+                    <posted_by>01000000A</posted_by>
+                    <posted_by_name>Opal Test User</posted_by_name>
+                  </posted_details>
+                  <type>Note</type>
+                  <details>
+                    <note_details>
+                      <note_text>legacy-only account note</note_text>
+                    </note_details>
+                  </details>
+                </history_items_element>
+              </history_items>
+            </response>
+            """;
     }
 }

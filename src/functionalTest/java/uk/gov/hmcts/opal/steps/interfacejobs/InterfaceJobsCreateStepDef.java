@@ -26,7 +26,10 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
 
     private final JsonSchemaValidationService jsonSchemaValidationService = new JsonSchemaValidationService();
 
-    @When("I call POST \\/interface-jobs without a token")
+    /**
+     * Calls the interface-jobs create endpoint without an access token.
+     */
+    @When("^I call POST /interface-jobs without a token$")
     public void callPostInterfaceJobsWithoutAToken() {
         scenarioContext().setLatestHttpResponse(TestHttpClient.request(
             "POST",
@@ -39,21 +42,33 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
         ));
     }
 
-    @When("I call POST \\/interface-jobs as a user without permission")
+    /**
+     * Calls the interface-jobs create endpoint as a user without the required permission.
+     */
+    @When("^I call POST /interface-jobs as a user without permission$")
     public void callPostInterfaceJobsAsUserWithoutPermission() {
         postInterfaceJobs(BearerTokenStepDef.getAccessTokenForUser(USER_WITHOUT_PERMISSION), happyPathRequestBody());
     }
 
+    /**
+     * Submits the documented happy-path interface-jobs create request.
+     */
     @When("I submit the interface jobs create happy path request")
     public void submitInterfaceJobsCreateHappyPathRequest() {
         postInterfaceJobs(BearerTokenStepDef.getToken(), happyPathRequestBody());
     }
 
+    /**
+     * Submits an interface-jobs create request expected to roll back without persisted partial data.
+     */
     @When("I submit the interface jobs rollback request")
     public void submitInterfaceJobsRollbackRequest() {
         postInterfaceJobs(BearerTokenStepDef.getToken(), rollbackRequestBody());
     }
 
+    /**
+     * Asserts that the interface-jobs create response matches the documented JSON schema.
+     */
     @Then("the interface jobs create response matches the documented schema")
     public void interfaceJobsCreateResponseMatchesDocumentedSchema() {
         TestHttpResponse response = requireResponse();
@@ -62,6 +77,9 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
         assertTrue(response.body().contains("\"interface_jobs\""), "Expected interface_jobs in response");
     }
 
+    /**
+     * Asserts that the rollback request failed and did not leave persisted interface jobs behind.
+     */
     @Then("the interface jobs rollback request leaves no partial data behind")
     public void interfaceJobsRollbackRequestLeavesNoPartialDataBehind() {
         TestHttpResponse response = requireResponse();
@@ -87,13 +105,9 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
         return TestHttpClient.request(
             "GET",
             getTestUrl() + SUMMARY_URL + "?business_unit_ids=" + BUSINESS_UNIT_ID
-                + "&interface_name=" + encodeQueryParameter("Rollback Interface Jobs"),
+                + "&interface_name=" + URLEncoder.encode("Rollback Interface Jobs", StandardCharsets.UTF_8),
             authorisedJsonHeaders(BearerTokenStepDef.getToken()),
             null);
-    }
-
-    private String encodeQueryParameter(String value) {
-        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private Map<String, String> authorisedJsonHeaders(String token) {
@@ -117,6 +131,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                  "interface_jobs": [
                    {
                      "file_name": "e2e-interface-jobs-ok.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": %d,
@@ -134,6 +150,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                  "interface_jobs": [
                    {
                      "file_name": "e2e-interface-jobs-1.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": 78,
@@ -142,6 +160,8 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                    },
                    {
                      "file_name": "e2e-interface-jobs-2.dat",
+                     "record_count": 1,
+                     "total_amount": 123.45,
                      "source": "NATWEST",
                      "records": "[{\\"account\\":\\"abc123\\"}]",
                      "business_unit_id": 99999,
@@ -150,6 +170,6 @@ public class InterfaceJobsCreateStepDef extends BaseStepDef {
                    }
                  ]
                }
-               """.formatted(BUSINESS_UNIT_ID);
+               """;
     }
 }

@@ -1,18 +1,18 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
-import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -23,6 +23,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=false"
 })
 @DisplayName("Defendant Account History Feature Flag Integration Test")
+@Tag("ExtendedTest")
 class DefAccHistoryFlagTest extends AbstractFeatureToggleIntegrationTest {
 
     @Test

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,6 +25,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @Slf4j(topic = "opal.CentralFundFlagTest")
 @DisplayName("Central Fund Controller Feature Flag Integration Tests")
+@Tag("ExtendedTest")
 class CentralFundFlagTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";

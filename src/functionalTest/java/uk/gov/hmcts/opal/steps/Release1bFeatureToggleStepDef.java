@@ -16,7 +16,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     private static final String MINOR_CREDITOR_ACCOUNTS_URI = "/minor-creditor-accounts";
     private static final String NOTES_URI = "/notes";
     private static final String RESULTS_URI = "/results";
-    private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_ID = "999999";
+    private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_ID = "990000999999";
     private static final String PLACEHOLDER_DEFENDANT_ACCOUNT_PARTY_ID = "999999";
     private static final String PLACEHOLDER_MINOR_CREDITOR_ACCOUNT_ID = "999999";
     private static final String PLACEHOLDER_RESULT_ID = "FCOMP";
@@ -49,7 +49,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                 );
             case "Add Note" ->
                 callPost(
-                    NOTES_URI + "/add",
+                    NOTES_URI,
                     Map.of("If-Match", DEFAULT_IF_MATCH),
                     buildAddNoteRequest()
                 );
@@ -68,7 +68,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
                     DEFENDANT_ACCOUNTS_URI + "/" + PLACEHOLDER_DEFENDANT_ACCOUNT_ID
                         + "/defendant-account-parties",
                     defaultBusinessUnitHeaders(),
-                    buildAddDefendantAccountPartyRequest()
+                    buildAddPartyRequestDefendantAccount()
                 );
             case "Remove Defendant Account Party" ->
                 callRemoveDefendantAccountParty(
@@ -298,7 +298,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
     /**
      * Builds a representative add-note request body.
      *
-     * @return request body for POST /notes/add.
+     * @return request body for POST /notes.
      */
     private JSONObject buildAddNoteRequest() {
         return jsonObject("""
@@ -339,7 +339,7 @@ public class Release1bFeatureToggleStepDef extends BaseStepDef {
      *
      * @return request body for POST /defendant-accounts/{id}/defendant-account-parties.
      */
-    private JSONObject buildAddDefendantAccountPartyRequest() {
+    private JSONObject buildAddPartyRequestDefendantAccount() {
         return jsonObject("""
             {
               "defendant_account_party": {

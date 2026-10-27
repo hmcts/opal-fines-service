@@ -11,7 +11,6 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -121,7 +120,6 @@ class OpalDefendantAccountServiceCoreTest {
                 DefendantAccountPartiesEntity.builder()
                     .associationType(AssociationType.DEFENDANT)
                     .party(PartyEntity.builder()
-                        .birthDate(LocalDate.of(1990, 1, 1))
                         .build())
                     .build()))
             .defendantAccountId(1L)
@@ -145,6 +143,41 @@ class OpalDefendantAccountServiceCoreTest {
         assertNull(response.getNextEnforcementActionData());
         assertFalse(response.getEmployerFlag());
         assertEquals(DefendantAccountTypeEnum.ADULT, response.getDefendantAccountType());
+        assertFalse(response.getIsHmrcCheckEligible());
+    }
+
+    @Test
+    void testGetEnforcementStatus_useAge() {
+        // Arrange
+        DefendantAccountEntity defAccount = DefendantAccountEntity.builder()
+            .parties(List.of(
+                DefendantAccountPartiesEntity.builder()
+                    .associationType(AssociationType.DEFENDANT)
+                    .party(PartyEntity.builder()
+                        .age((short)15)
+                        .build())
+                    .build()))
+            .defendantAccountId(1L)
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .build();
+
+        EnforcementEntity enforcementEntity = EnforcementEntity.builder()
+            .build();
+
+        when(defendantAccountRepositoryService.findById(anyLong())).thenReturn(defAccount);
+        when(enforcementRepositoryService.getEnforcementMostRecent(
+            any(), any())).thenReturn(Optional.of(enforcementEntity));
+        lenient().when(enforcerRepoService.findById(any())).thenReturn(Optional.empty());
+        when(debtorDetailRepoService.findByPartyId(any())).thenReturn(Optional.empty());
+
+        // Act
+        EnforcementStatus response = enforcementService.getEnforcementStatus(1L);
+
+        // Assert
+        assertNotNull(response);
+        assertNull(response.getNextEnforcementActionData());
+        assertFalse(response.getEmployerFlag());
+        assertEquals(DefendantAccountTypeEnum.YOUTH, response.getDefendantAccountType());
         assertFalse(response.getIsHmrcCheckEligible());
     }
 }

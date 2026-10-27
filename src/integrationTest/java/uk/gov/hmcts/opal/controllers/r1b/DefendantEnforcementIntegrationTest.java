@@ -10,14 +10,18 @@ import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertion
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementInstalmentPeriodCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsCommonStrict;
@@ -25,17 +29,25 @@ import uk.gov.hmcts.opal.generated.model.EnforcementPaymentTermsTypeCommonStrict
 import uk.gov.hmcts.opal.generated.model.EnforcementPostedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultIdCommonStrict;
 import uk.gov.hmcts.opal.generated.model.EnforcementResultResponseDefendantAccount;
+import uk.gov.hmcts.opal.repository.EnforcementRepository;
 
 abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTest {
+    @Autowired
+    private EnforcementRepository enforcementRepository;
 
     protected static final String URL_BASE = "/defendant-accounts";
     protected static final Long BUSINESS_UNIT_ID = 77L;
     protected static final Long DEFENDANT_ACCOUNT_ID = 99000000000006L;
     protected static final Long COLLO_BUSINESS_UNIT_ID = 77L;
-    protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 99000000000007L;
+    protected static final Long COLLO_DEFENDANT_ACCOUNT_ID = 90007L;
     protected static final Long INVALID_DEFENDANT_ACCOUNT_ID = 404L;
     protected static final Long SCRIPTED_BUSINESS_UNIT_ID = 78L;
     protected static final Long SCRIPTED_DEFENDANT_ACCOUNT_ID = 77L;
+    private static final Long HEARING_BUSINESS_UNIT_ID = 78L;
+    private static final Long HEARING_DEFENDANT_ACCOUNT_ID = 78L;
+    private static final String HEARING_COURT_CODE = "7";
+    private static final Long HEARING_COURT_ID = 1L;
+    private static final LocalDate HEARING_DATE = LocalDate.of(2026, 6, 1);
 
     protected static final List<EnforcementResultResponseDefendantAccount> fullResponses = List.of(
         new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
@@ -53,6 +65,23 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
     protected static final List<EnforcementResultResponseDefendantAccount> minimumResponses = List.of(
         new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason")
+    );
+
+    protected static final List<EnforcementResultResponseDefendantAccount> nawtResponses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response(HEARING_COURT_CODE),
+        new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response(HEARING_DATE.toString())
+    );
+
+    protected static final List<EnforcementResultResponseDefendantAccount> release1b11Responses = List.of(
+        new EnforcementResultResponseDefendantAccount().parameterName("reason").response("another test reason"),
+        new EnforcementResultResponseDefendantAccount().parameterName("jail_days").response("7"),
+        new EnforcementResultResponseDefendantAccount().parameterName("daysindefault").response("14"),
+        new EnforcementResultResponseDefendantAccount().parameterName("enforcer").response("21"),
+        new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+            .response("2026-10-01T00:00:00"),
+        new EnforcementResultResponseDefendantAccount().parameterName("courtcode").response(HEARING_COURT_CODE),
+        new EnforcementResultResponseDefendantAccount().parameterName("hearingdate").response(HEARING_DATE.toString())
     );
 
     protected static final List<EnforcementResultResponseDefendantAccount> scriptedFullResponses = List.of(
@@ -79,6 +108,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .postedDate(LocalDate.of(2026, 5, 28).atStartOfDay())
             .postedBy("The Republic")
             .postedByName("Master Yoda"));
+
 
     void postEnforcementImpl_fullRequest_Success(Logger log) throws Exception {
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
@@ -112,21 +142,21 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             "/defendant-accounts/{defendantAccountId}/enforcements", "POST", 200, "application/json");
     }
 
-    void postEnforcementImpl_minimumRequest_Success(Logger log) throws Exception {
+    void postEnforcementImpl_nawtWithHearingDetails_Success(Logger log) throws Exception {
 
         AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
-            .resultId(EnforcementResultIdCommonStrict.ABDC)
-            .enforcementResultResponses(minimumResponses)
+            .resultId(EnforcementResultIdCommonStrict.NAWT)
+            .enforcementResultResponses(nawtResponses)
             .paymentTerms(paymentTerms)
             .build();
 
-        String version = getCurrentDefendantAccountVersion(DEFENDANT_ACCOUNT_ID).toString();
+        String version = getCurrentDefendantAccountVersion(HEARING_DEFENDANT_ACCOUNT_ID).toString();
 
         ResultActions resultActions = mockMvc.perform(
-            post(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/enforcements")
+            post(URL_BASE + "/" + HEARING_DEFENDANT_ACCOUNT_ID + "/enforcements")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .header("Authorization", userStateStub.getBearerToken())
-                .header("Business-Unit-ID", BUSINESS_UNIT_ID.toString())
+                .header("Business-Unit-ID", HEARING_BUSINESS_UNIT_ID.toString())
                 .header("IF-MATCH", version)
                 .content(objectMapper.writeValueAsString(request))
                 .contentType(MediaType.APPLICATION_JSON));
@@ -137,9 +167,108 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
 
         resultActions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("defendant_account_id").value("99000000000006"))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(HEARING_DEFENDANT_ACCOUNT_ID)))
             .andExpect(jsonPath("version").exists())
             .andExpect(jsonPath("enforcement_id").exists());
+
+        EnforcementEntity enforcement = enforcementRepository.findById(
+            objectMapper.readTree(body).get("enforcement_id").asLong()
+        ).orElseThrow();
+        assertEquals(HEARING_COURT_ID, enforcement.getHearingCourtId());
+        assertEquals(HEARING_DATE.atStartOfDay(), enforcement.getHearingDate());
+
+        JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
+        assertEquals(HEARING_COURT_CODE, resultResponses.get("courtcode").asText());
+        assertEquals(HEARING_DATE.toString(), resultResponses.get("hearingdate").asText());
+    }
+
+    void postEnforcementImpl_release1b11WithNewResponseNames_persistsEnforcementDetails(Logger log)
+        throws Exception {
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.ABDC)
+            .enforcementResultResponses(release1b11Responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion(HEARING_DEFENDANT_ACCOUNT_ID).toString();
+
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + HEARING_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", HEARING_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":postEnforcementImpl_release1b11WithNewResponseNames_persistsEnforcementDetails: "
+                + "response body: \n{}", ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(HEARING_DEFENDANT_ACCOUNT_ID)))
+            .andExpect(jsonPath("enforcement_id").exists());
+
+        EnforcementEntity enforcement = enforcementRepository.findById(
+            objectMapper.readTree(body).get("enforcement_id").asLong()
+        ).orElseThrow();
+
+        assertEquals(14, enforcement.getJailDays());
+        assertEquals(780000000021L, enforcement.getEnforcerId());
+        assertEquals(HEARING_COURT_ID, enforcement.getHearingCourtId());
+        assertEquals(HEARING_DATE.atStartOfDay(), enforcement.getHearingDate());
+
+        JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
+        assertEquals("another test reason", resultResponses.get("reason").asString());
+        assertEquals("7", resultResponses.get("jail_days").asString());
+        assertEquals("14", resultResponses.get("daysindefault").asString());
+        assertEquals("21", resultResponses.get("enforcer").asString());
+        assertEquals("2026-10-01T00:00:00", resultResponses.get("earliestreleasedate").asString());
+        assertEquals(HEARING_COURT_CODE, resultResponses.get("courtcode").asString());
+        assertEquals(HEARING_DATE.toString(), resultResponses.get("hearingdate").asString());
+    }
+
+    void postEnforcementImpl_release1b11WithPris_persistsEarliestReleaseDate(Logger log) throws Exception {
+        LocalDateTime earliestReleaseDate = LocalDateTime.of(2026, 10, 1, 0, 0);
+        List<EnforcementResultResponseDefendantAccount> responses = List.of(
+            new EnforcementResultResponseDefendantAccount().parameterName("earliestreleasedate")
+                .response(earliestReleaseDate.toString())
+        );
+        AddEnforcementRequestDefendantAccount request = AddEnforcementRequestDefendantAccount.builder()
+            .resultId(EnforcementResultIdCommonStrict.PRIS)
+            .enforcementResultResponses(responses)
+            .paymentTerms((EnforcementPaymentTermsCommonStrict) null)
+            .build();
+
+        String version = getCurrentDefendantAccountVersion(HEARING_DEFENDANT_ACCOUNT_ID).toString();
+        ResultActions resultActions = mockMvc.perform(
+            post(URL_BASE + "/" + HEARING_DEFENDANT_ACCOUNT_ID + "/enforcements")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("Authorization", userStateStub.getBearerToken())
+                .header("Business-Unit-ID", HEARING_BUSINESS_UNIT_ID.toString())
+                .header("IF-MATCH", version)
+                .content(objectMapper.writeValueAsString(request))
+                .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":postEnforcementImpl_release1b11WithPris_persistsEarliestReleaseDate: response body: \n{}",
+            ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("defendant_account_id").value(String.valueOf(HEARING_DEFENDANT_ACCOUNT_ID)))
+            .andExpect(jsonPath("enforcement_id").exists());
+
+        EnforcementEntity enforcement = enforcementRepository.findById(
+            objectMapper.readTree(body).get("enforcement_id").asLong()
+        ).orElseThrow();
+
+        assertEquals("PRIS", enforcement.getResultId());
+        assertEquals(earliestReleaseDate, enforcement.getEarliestReleaseDate());
+
+        JsonNode resultResponses = objectMapper.readTree(enforcement.getResultResponses());
+        assertEquals(earliestReleaseDate.toString(), resultResponses.get("earliestreleasedate").asString());
     }
 
     void postEnforcementImpl_fullRequest_blockedByAccountControls(Logger log) throws Exception {
@@ -166,7 +295,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
             ))
             .andExpect(jsonPath("retriable").value(false));
 
@@ -201,7 +330,7 @@ abstract class DefendantEnforcementIntegrationTest extends AbstractIntegrationTe
             .andExpect(jsonPath("title").value("Unprocessable Content"))
             .andExpect(jsonPath("status").value(422))
             .andExpect(jsonPath("detail").value(
-                "Defendant account update blocked: Zero balance check failed because account_balance is -500.58."
+                "Defendant account update blocked: Zero balance check failed because account_balance is 99.42."
             ))
             .andExpect(jsonPath("retriable").value(false));
 

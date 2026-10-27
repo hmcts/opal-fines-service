@@ -18,6 +18,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcementIntegrationTest {
 
     @Test
+    @JiraStory("PO-10826")
+    @JiraEpic("PO-978")
+    public void testAddEnforcement_withNawtHearingDetails_persistsHearingDetails() throws Exception {
+        super.postEnforcementImpl_nawtWithHearingDetails_Success(log);
+    }
+
+    @Test
     @JiraStory("PO-5757")
     @JiraEpic("PO-2990")
     @JiraTestKey("PO-9443")
@@ -74,6 +81,10 @@ public class OpalDefendantEnforcementIntegrationTest extends DefendantEnforcemen
     @JiraStory("PO-7193")
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-8269")
+    @Sql(scripts = "classpath:db/insertData/insert_into_collo_with_payment_terms.sql",
+        executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_collo_with_payment_terms.sql",
+        executionPhase = AFTER_TEST_METHOD)
     public void testAddEnforcement_whenGivenColloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses()
         throws Exception {
         super.postEnforcementImpl_colloWithPaymentTerms_preservesLastEnforcementAndReturnsResponses(log);

@@ -9,6 +9,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,11 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
     private ProcessJob alreadyProcessingJob;
     private ProcessJob unprocessedJob;
 
+    /**
+     * Creates two eligible interface jobs and stores them for later processing assertions.
+     *
+     * @throws JSONException if the interface-job request body cannot be created.
+     */
     @Given("I create two eligible interface jobs for processing")
     public void createEligibleInterfaceJobs() throws JSONException {
         eligibleJobs.clear();
@@ -45,42 +51,77 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         eligibleJobs.add(createInterfaceJob());
     }
 
+    /**
+     * Creates one processing interface job and one unprocessed job for mixed-status processing.
+     *
+     * @throws JSONException if an interface-job request body cannot be created.
+     */
     @Given("I create an interface job that has already begun processing and an unprocessed interface job")
     public void createMixedStatusInterfaceJobs() throws JSONException {
         alreadyProcessingJob = createInterfaceJob();
         unprocessedJob = createInterfaceJob();
-        submitProcessRequest(buildProcessRequest(alreadyProcessingJob), authorisedJsonRequest());
+        authorisedJsonRequest()
+            .post(getTestUrl() + TESTING_SUPPORT_PATH + "/" + alreadyProcessingJob.id() + "/processing");
         then()
             .log().ifValidationFails()
-            .statusCode(200);
+            .statusCode(204);
+        assertJobStatus(alreadyProcessingJob, "PROCESSING");
     }
 
+    /**
+     * Submits the eligible interface jobs created earlier in the scenario for processing.
+     *
+     * @throws JSONException if the process request body cannot be created.
+     */
     @When("I submit the eligible interface jobs for processing")
     public void submitEligibleInterfaceJobs() throws JSONException {
         submitProcessRequest(buildProcessRequest(eligibleJobs), authorisedJsonRequest());
     }
 
+    /**
+     * Submits the mixed-status interface jobs for processing.
+     *
+     * @throws JSONException if the process request body cannot be created.
+     */
     @When("I submit the mixed-status interface jobs for processing")
     public void submitMixedStatusInterfaceJobs() throws JSONException {
         submitProcessRequest(buildProcessRequest(alreadyProcessingJob, unprocessedJob), authorisedJsonRequest());
     }
 
+    /**
+     * Submits eligible interface jobs as a user without payment-processing permission.
+     *
+     * @throws JSONException if the process request body cannot be created.
+     */
     @When("a user without payment processing permission submits the eligible interface jobs for processing")
     public void submitEligibleJobsWithoutPermission() throws JSONException {
         submitProcessRequest(buildProcessRequest(eligibleJobs), jsonRequestWithToken(
             BearerTokenStepDef.getAccessTokenForUser(USER_WITHOUT_PERMISSION)));
     }
 
+    /**
+     * Submits eligible interface jobs for processing without an access token.
+     *
+     * @throws JSONException if the process request body cannot be created.
+     */
     @When("I submit the eligible interface jobs for processing without a token")
     public void submitEligibleJobsWithoutToken() throws JSONException {
         submitProcessRequest(buildProcessRequest(eligibleJobs), jsonRequestWithOptionalToken(null));
     }
 
+    /**
+     * Submits eligible interface jobs for processing with an invalid access token.
+     *
+     * @throws JSONException if the process request body cannot be created.
+     */
     @When("I submit the eligible interface jobs for processing with an invalid token")
     public void submitEligibleJobsWithInvalidToken() throws JSONException {
         submitProcessRequest(buildProcessRequest(eligibleJobs), jsonRequestWithToken("invalid-token"));
     }
 
+    /**
+     * Asserts that all eligible jobs are returned as processing by the summary API.
+     */
     @Then("the eligible jobs are returned as processing by the summary API")
     public void eligibleJobsAreReturnedAsProcessingBySummaryApi() {
         for (ProcessJob job : eligibleJobs) {
@@ -98,11 +139,17 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
         }
     }
 
+    /**
+     * Asserts that the unprocessed job in the mixed-status scenario remains created.
+     */
     @Then("the unprocessed mixed-status job remains created")
     public void unprocessedMixedStatusJobRemainsCreated() {
         assertJobStatus(unprocessedJob, "CREATED");
     }
 
+    /**
+     * Asserts that the process response succeeded and returned no body.
+     */
     @Then("the process response is 200 with an empty body")
     public void processResponseIsSuccessfulAndEmpty() {
         then()
@@ -138,6 +185,8 @@ public class InterfaceJobsProcessStepDef extends BaseStepDef {
             .put("interface_jobs", new JSONArray().put(new JSONObject()
                 .put("file_name", "e2e-process-" + UUID.randomUUID() + ".dat")
                 .put("source", "NATWEST")
+                .put("record_count", 1)
+                .put("total_amount", new BigDecimal("123.45"))
                 .put("records", "[{\"account\":\"abc123\"}]")
                 .put("business_unit_id", BUSINESS_UNIT_ID)
                 .put("interface_name", INTERFACE_NAME)

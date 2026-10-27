@@ -1,28 +1,46 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalToJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountEnforcementService.REMOVE_ENFORCEMENT_HOLD;
 
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.math.BigInteger;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsEnforcementIntegrationTest")
@@ -195,6 +213,48 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
+    @ParameterizedTest(name = "If-Match {0}")
+    @CsvSource(value = {"1|1", "\"9223372036854775808\"|9223372036854775808"}, delimiter = '|')
+    @DisplayName("LEGACY: PATCH Remove Enforcement Hold - sends the expected JSON request to legacy")
+    @JiraStory("PO-11051")
+    @JiraEpic("PO-1675")
+    void testPatchRemoveEnforcementHold_RequestShape(String ifMatch, String expectedVersion) throws Exception {
+        stubFor(WireMock.post(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(REMOVE_ENFORCEMENT_HOLD))
+            .willReturn(aResponse()
+                .withStatus(200)
+                .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML_VALUE)
+                .withBody("""
+                    <response>
+                      <defendant_account_id>72</defendant_account_id>
+                      <version>1</version>
+                    </response>
+                    """)));
+
+        HttpHeaders headers = removeEnforcementHeaders(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.IF_MATCH, ifMatch);
+
+        mockMvc.perform(MockMvcRequestBuilders.patch("/defendant-accounts/72/remove-enf-hold")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(REMOVE_ENFORCEMENT_REQUEST))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+
+        verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(REMOVE_ENFORCEMENT_HOLD))
+            .withRequestBody(equalToJson("""
+                {
+                  "defendant_account_id": "72",
+                  "business_unit_id": "78",
+                  "business_unit_user_id": "L078JG",
+                  "version": %s,
+                  "reason": "remove hold reason"
+                }
+                """.formatted(expectedVersion), false, false)));
+    }
+
     @Test
     @DisplayName("LEGACY: PATCH Remove Enforcement Hold - forbidden without ENTER_ENFORCEMENT")
     @JiraStory("PO-1919")
@@ -246,7 +306,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
 
         mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
@@ -269,7 +329,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
         headers.add(HttpHeaders.IF_MATCH, "not-a-version");
 
         mockMvc.perform(
-                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                MockMvcRequestBuilders
                     .patch("/defendant-accounts/72/remove-enf-hold")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .headers(headers)
@@ -278,5 +338,35 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
             )
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @JiraEpic("PO-978")
+    @JiraStory("PO-10829")
+    @DisplayName("LEGACY: Next enforcement action data not included in response when in R1B mode")
+    void testGetEnforcementStatus_hasNoLastEnforcementActionWhenR1bIsEnabled() throws Exception {
+        ResultActions result = mockMvc.perform(get("/defendant-accounts/1234/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("Authorization", userStateStub.getBearerToken()));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("MPSO"))
+            .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
+    }
+
+    @Test
+    @JiraEpic("PO-978")
+    @JiraStory("PO-10829")
+    @DisplayName("LEGACY: Get enforcement status has no last enforcement action")
+    void testGetEnforcementStatus_hasNoLastEnforcementAction() throws Exception {
+        ResultActions result = mockMvc.perform(get("/defendant-accounts/2009/enforcement-status")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("Authorization", userStateStub.getBearerToken()));
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.last_enforcement_action").doesNotExist())
+            .andExpect(jsonPath("$.next_enforcement_action_data").doesNotExist());
     }
 }

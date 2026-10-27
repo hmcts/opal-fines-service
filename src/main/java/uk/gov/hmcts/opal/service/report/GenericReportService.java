@@ -6,13 +6,16 @@ import static uk.gov.hmcts.opal.entity.report.ReportInstanceGenerationStatus.REQ
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.UUID;
 import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -83,7 +86,7 @@ public class GenericReportService implements GenericReportServiceInterface {
             instance.setErrors(null);
             saveReportInstance(instance);
             ReportDataInterface data = reportTemplate.generateReportData(instance);
-            final String location = blobStore.storeReport(getDataAsJson(data));
+            final UUID location = blobStore.storeReport(convertReportDataToInputstream(data));
             instance.setLocation(location);
             instance.setGenerationStatus(READY);
             instance.setCreatedTimestamp(currentTimestamp);
@@ -110,8 +113,8 @@ public class GenericReportService implements GenericReportServiceInterface {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit();
-        if (!userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
-            .collect(Collectors.toSet()).containsAll(businessUnitIdsForReportInstance)) {
+        if (userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
+            .noneMatch(businessUnitIdsForReportInstance::contains)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");
         }
         List<BusinessUnitEntity> businessUnitEntities = businessUnitRepository
@@ -225,18 +228,20 @@ public class GenericReportService implements GenericReportServiceInterface {
         }
     }
 
-    private String getDataAsJson(ReportDataInterface data) throws JacksonException {
-        return mapper.writeValueAsString(
-            Data.builder()
-                .reportData(data)
-                .reportMetaData(data.getReportMetaData())
-                .build());
+    private InputStream convertReportDataToInputstream(ReportDataInterface data) throws JacksonException {
+        return new ByteArrayInputStream(
+            mapper.writeValueAsString(
+                    ReportData.builder()
+                        .reportData(data)
+                        .reportMetaData(data.getReportMetaData())
+                        .build())
+                .getBytes(StandardCharsets.UTF_8)
+        );
     }
 
     @Builder
     @lombok.Data
-    static class Data {
-
+    static class ReportData {
         private ReportDataInterface reportData;
         private ReportMetaData reportMetaData;
     }

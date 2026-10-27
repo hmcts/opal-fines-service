@@ -3,17 +3,19 @@ package uk.gov.hmcts.opal.config;
 import jakarta.jms.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.connection.CachingConnectionFactory;
+import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 
 @EnableJms
 @Configuration
-@ConditionalOnProperty(prefix = "opal.interface-jobs.service-bus", name = "consumer-enabled", havingValue = "true")
+@ConditionalOnExpression("${opal.interface-jobs.service-bus.consumer-enabled} == true "
+    + "and '${opal.automated-task:}' == ''")
 @EnableConfigurationProperties(ServiceBusProperties.class)
 @RequiredArgsConstructor
 public class InterfaceJobQueueJmsConfig {

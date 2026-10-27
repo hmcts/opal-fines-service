@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -18,6 +19,7 @@ import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.AccountTypeEnum;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.DebtorTypeEnum;
+import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response.OriginatorTypeEnum;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 
@@ -75,6 +78,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                               .organisationDetails(null)
                               .individualDetails(null)
                               .build())
+            .originatorType(OriginatorTypeEnum.NEW)
+            .originatorName("Originator Name")
+            .collectionOrder(Boolean.TRUE)
             .build();
 
         assertNotNull(actual, "Expected non-null header summary");
@@ -90,6 +96,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
             actual.getResponse().getBusinessUnitSummary().getBusinessUnitCode());
         assertEquals(expected.getPaymentStateSummary().getImposedAmount(),
             actual.getResponse().getPaymentStateSummary().getImposedAmount());
+        assertEquals(expected.getOriginatorType(), actual.getResponse().getOriginatorType());
+        assertEquals(expected.getOriginatorName(), actual.getResponse().getOriginatorName());
+        assertEquals(expected.getCollectionOrder(), actual.getResponse().getCollectionOrder());
     }
 
     @Test
@@ -375,7 +384,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
 
     @Test
     @SuppressWarnings("unchecked")
-    void testGetHeaderSummary_legacyFailure5xx_logsAndMaps() {
+    void testGetHeaderSummary_legacyFailure5xx_logsAndThrowsHttpServerErrorException() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
         when(restClient.responseSpec.body(
@@ -384,9 +393,8 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
-        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
-        assertNotNull(out);
-        assertEquals("SAMPLE", out.getResponse().getAccountNumber());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @Test
@@ -512,6 +520,22 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
+    void getHeaderSummary_mapsLegacyWelshSpeakingTrueToY() {
+        LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
+        resp.getBusinessUnitSummary().setWelshSpeaking("true");
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
+        )).thenReturn(resp);
+        when(restClient.responseSpec.toEntity(String.class))
+            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+
+        DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
+
+        assertEquals("Y", out.getResponse().getBusinessUnitSummary().getWelshSpeaking());
+    }
+
+    @Test
     void getHeaderSummary_returns_false_for_hasConsolidatedAccounts() {
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setHasConsolidatedAccounts(Boolean.FALSE);
@@ -555,6 +579,9 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                     .build()
             )
             .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
+            .originatorType("NEW")
+            .originatorName("Originator Name")
+            .collectionOrder(Boolean.TRUE)
             .build();
     }
 }

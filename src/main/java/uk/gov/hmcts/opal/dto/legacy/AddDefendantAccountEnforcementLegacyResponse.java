@@ -10,6 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
+import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
 @Builder
@@ -17,7 +20,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "response")
-public class AddDefendantAccountEnforcementLegacyResponse {
+public class AddDefendantAccountEnforcementLegacyResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "defendant_account_id")
     @NotBlank
@@ -29,4 +35,8 @@ public class AddDefendantAccountEnforcementLegacyResponse {
     @XmlElement(name = "enforcement_id")
     private String enforcementId;
 
+    @Override
+    public ErrorResponse getErrorResponse() {
+        return errorResponse;
+    }
 }

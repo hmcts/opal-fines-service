@@ -36,6 +36,15 @@
     "account_status_reference": {
       "$ref": "./common-objects/accountStatusReferenceLegacy.json"
     },
+    "account_type": {
+      "type": "string",
+      "enum": [
+        "Fine",
+        "Conditional Caution",
+        "Confiscation",
+        "Fixed Penalty"
+      ]
+    },
     "originator_type": {
       "type": "string",
       "enum": [
@@ -51,15 +60,6 @@
     },
     "collection_order": {
       "type": "boolean"
-    },
-    "account_type": {
-      "type": "string",
-      "enum": [
-        "Fine",
-        "Conditional Caution",
-        "Confiscation",
-        "Fixed Penalty"
-      ]
     },
     "prosecutor_case_reference": {
       "type": "string"

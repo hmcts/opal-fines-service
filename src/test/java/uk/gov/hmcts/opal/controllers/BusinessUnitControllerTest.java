@@ -22,11 +22,12 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers.UserBusinessUnits;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
+import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData.ConfigItemRefData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceDataResults;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
-import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 @ExtendWith(MockitoExtension.class)
 class BusinessUnitControllerTest {
@@ -135,13 +136,11 @@ class BusinessUnitControllerTest {
     }
 
     private BusinessUnitReferenceData createBusinessUnitReferenceData() {
+        ConfigItemRefData configItem = new ConfigItemRefData("Item Name", "Item Value", Map.of("value 1", "value 2"));
+
         return new BusinessUnitReferenceData(
             (short)1, "Main BU", "MNBU", "Big",
-            "Prefix", "Domain", null, List.of(
-                new BusinessUnitReferenceData.ConfigItemRefData("Item Name", "Item Value",
-                                                                Map.of("value 1", "value 2"))
-        ));
-
+            "Prefix", "Domain", null, List.of(configItem));
     }
 
     private class TestUserBusinessUnits implements UserBusinessUnits {

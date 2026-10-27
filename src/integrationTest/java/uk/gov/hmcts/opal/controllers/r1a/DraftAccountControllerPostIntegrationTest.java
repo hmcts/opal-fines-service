@@ -45,7 +45,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountControllerPostIntegrationTest")
 class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
-    // adding a cmment
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 78)
@@ -80,8 +79,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             {
               "account_type": "Fine",
               "defendant_type": "Adult",
-              "originator_name": "Police Force",
-              "originator_id": 12345,
+              "originator_name": "%s",
+              "originator_id": %d,
               "originator_type": "NEW",
               "enforcement_court_id": 260000000048,
               "payment_card_request": true,
@@ -105,7 +104,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "default_days_in_jail": 5
               }
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
     }
 
     private static String validAccountJsonString() {
@@ -113,8 +112,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             {
               "account_type": "Fine",
               "defendant_type": "Adult",
-              "originator_name": "Police Force",
-              "originator_id": 12345,
+              "originator_name": "%s",
+              "originator_id": %d,
               "originator_type": "NEW",
               "enforcement_court_id": 260000000048,
               "payment_card_request": true,
@@ -134,7 +133,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 "default_days_in_jail": 5
               }
             }
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
     }
 
     private static String validTimelineDataString() {
@@ -385,6 +384,143 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("PO-5742: Create draft account - Should reject TFO fine originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11254")
+    void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String request = createRequestBody("Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject NEW confiscation originator from prosecutors")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11251")
+    void shouldRejectNewConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
+        String request = createRequestBody("Confiscation", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject NEW conditional caution originator from LJA data")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11266")
+    void shouldRejectNewConditionalCautionOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
+        String request = createRequestBody("Conditional Caution", "NEW", VALID_FINE_ORIGINATOR_ID,
+            VALID_FINE_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: prosecutor id 32001 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject conditional caution prosecutor name mismatch")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11264")
+    void shouldRejectConditionalCautionOriginatorWhenProsecutorNameDoesNotMatch() throws Exception {
+        String request = createRequestBody("Conditional Caution", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            "Wrong Prosecutor Name");
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_name: originator name 'Wrong Prosecutor Name' does not match prosecutor name "
+                        + "'Draft Account Validation Prosecutor' for id 32010"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft fixed penalty account - Should reject TFO originator from LJA data")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11269")
+    void shouldRejectTfoFixedPenaltyOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
+        String request = fixedPenaltyCreateRequestBody("TFO", VALID_FINE_ORIGINATOR_ID, VALID_FINE_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError("$.originator_id: prosecutor id 32001 does not exist"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("PO-5742: Create draft account - Should reject unsupported NEW fixed penalty combination")
+    @JiraStory("PO-5742")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11257")
+    void shouldRejectUnsupportedNewFixedPenaltyOriginatorCombination() throws Exception {
+        String request = createRequestBody("Fixed Penalty", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
+            VALID_PROSECUTOR_ORIGINATOR_NAME);
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_type: unsupported originator/account type combination: originator_type NEW, "
+                        + "account_type Fixed Penalty"
+                ),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when imposition result is not an imposition")
     @JiraStory("PO-5747")
     @JiraEpic("PO-5741")
@@ -403,12 +539,94 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should accept a valid major creditor id for an Any result rule")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11260")
+    void shouldCreateDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResultAndMajor("FCOMP", 780000000041L)))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when major creditor id is for another business unit")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11250")
+    void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResultAndMajor("FCOMP", 770000000105L)))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMajorCreditorRuleErrorMessage(770000000105L, (short) 78, "Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when an Any result has neither major nor minor creditor")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11263")
+    void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResult("FCOMP")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingMinorCreditorErrorMessage("Any"),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
+    @DisplayName("Create draft account - Should return 400 when no central fund creditor account exists")
+    @JiraStory("PO-5750")
+    @JiraEpic("PO-8248")
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_central_fund_creditor_account.sql",
+        executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
+    )
+    @JiraTestKey("PO-11258")
+    void shouldReturn400WhenCentralFundAccountIsMissingOnPost() throws Exception {
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(createRequestForResult("FO")))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedMissingCentralFundErrorMessage((short) 78),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is missing")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/deleteData/delete_from_results_collo.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
+    @JiraTestKey("PO-11252")
     void shouldReturn400WhenPaymentTermEnforcementResultIsMissing() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -424,12 +642,38 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     }
 
     @Test
+    @DisplayName("Create draft account - Should return 400 when enforcement court does not exist")
+    @JiraStory("PO-5745")
+    @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11253")
+    void shouldReturn400WhenEnforcementCourtDoesNotExist() throws Exception {
+        long countBefore = draftAccountRepository.count();
+
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(invalidEnforcementCourtCreateRequestBody()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedEnforcementCourtValidationErrorMessage(),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
+
+        assertEquals(countBefore, draftAccountRepository.count());
+    }
+
+    @Test
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is not an enforcement")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_non_enforcement.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
+    @JiraTestKey("PO-11265")
     void shouldReturn400WhenPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -448,9 +692,12 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when payment term enforcement result is inactive")
     @JiraStory("PO-5752")
     @JiraEpic("PO-8248")
-    @Sql(scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
-        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    @Sql(
+        scripts = "classpath:db/insertData/insert_into_results_collo_inactive.sql",
+        executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
+    )
     @Transactional
+    @JiraTestKey("PO-11259")
     void shouldReturn400WhenPaymentTermEnforcementResultIsInactive() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -469,6 +716,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5746: Create draft account - Should return 400 for an invalid offence ID")
     @JiraStory("PO-5746")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-11255")
     void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
@@ -493,7 +741,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Post draft account - Should Return 201 For Offences Belonging To The Same Business Unit")
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11261")
     void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
+        long countBefore = draftAccountRepository.count();
         String request = validCreateRequestBody();
 
         ResultActions result = mockMvc.perform(post(URL_BASE)
@@ -502,18 +752,26 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request)).andDo(print());
 
+        String responseBody = result.andReturn().getResponse().getContentAsString();
+        JSONObject responseJson = new JSONObject(responseBody);
+        long draftAccountId = responseJson.getLong("draft_account_id");
+
         result.andExpect(status().isCreated()).andExpect(content()
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.draft_account_id").isNumber())
             .andExpect(jsonPath("$.business_unit_id").value(78))
             .andExpect(jsonPath("$.account.offences[0].offence_id").value(35014))
             .andExpect(jsonPath("$.account.offences[0].business_unit_id").value(78));
+
+        assertEquals(countBefore + 1, draftAccountRepository.count());
+        assertEquals(Short.valueOf((short) 78), getDraftAccount(draftAccountId).getBusinessUnit().getBusinessUnitId());
     }
 
     @Test
     @DisplayName("Post draft account - Should Return 400 For Offences Belonging To Another Business Unit")
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11256")
     void testPostDraftAccount_reject_offence_for_another_business_unit() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"business_unit_id\": 78", "\"business_unit_id\": 65")
@@ -560,6 +818,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should allow token-derived fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
+    @JiraTestKey(value = "PO-11267", name = "[1] propertyName = \"submitted_by\"")
+    @JiraTestKey(value = "PO-11268", name = "[2] propertyName = \"submitted_by_name\"")
     void testPostDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) {
         String request = validCreateRequestBody().replace(
             "\"business_unit_id\": 78,",
@@ -575,6 +835,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should allow top-level field during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-11262")
     void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() {
         String propertyName = "undocumented_client_field";
         String request = validCreateRequestBody().replace(
@@ -792,8 +1053,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "Adult",
-                "originator_name": "Police Force",
-                "originator_id": 12345,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "enforcement_court_id": 260000000048,
                 "collection_order_made": true,
@@ -861,8 +1122,9 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                 ]
               },
               "account_type": "Fine",
-              "account_status": "Submitted"
-            }""";
+              "account_status": "Submitted",
+              "version": 0
+            }""".formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
     }
 
     private static String nonImpositionResultCreateRequestBody() {
@@ -872,6 +1134,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     private static String invalidReferenceCreateRequestBody() {
         return validCreateRequestBody()
+            .replace("\"originator_id\": " + VALID_FINE_ORIGINATOR_ID, "\"originator_id\": 999995")
             .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999")
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998")
             .replace("\"imposing_court_id\": 260000000048", "\"imposing_court_id\": 999997")
@@ -879,14 +1142,19 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             .replace("\"major_creditor_id\": null", "\"major_creditor_id\": 999996");
     }
 
+    private static String invalidEnforcementCourtCreateRequestBody() {
+        return validCreateRequestBody()
+            .replace("\"enforcement_court_id\": 260000000048", "\"enforcement_court_id\": 999999");
+    }
+
     private static String expectedReferenceValidationErrorMessage() {
         return """
             Draft account reference validation failed with 5 error(s):
-             - $.enforcement_court_id: court id 999999 does not exist
+             - account.enforcement_court_id: court id 999999 does not exist
              - account.offences[0].offence_id: offence id 999998 does not exist
              - $.offences[0].imposing_court_id: court id 999997 does not exist
              - $.offences[0].impositions[0].result_id: result id NOT-A-RESULT does not exist
-             - $.offences[0].impositions[0].major_creditor_id: major creditor id 999996 does not exist
+             - $.originator_id: local justice area id 999995 does not exist
             """.stripIndent().stripTrailing();
     }
 
@@ -895,6 +1163,54 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
             Draft account reference validation failed with 1 error(s):
              - $.payment_terms.enforcements[0].result_id: result id %s
             """.formatted(resultError).stripIndent().stripTrailing();
+    }
+
+    private static String createRequestForResult(String resultId) {
+        return validCreateRequestBody().replace("\"result_id\": \"FO\"", "\"result_id\": \"" + resultId + "\"");
+    }
+
+    private static String createRequestForResultAndMajor(String resultId, long majorCreditorId) {
+        return createRequestForResult(resultId)
+            .replace("\"major_creditor_id\": null", "\"major_creditor_id\": " + majorCreditorId);
+    }
+
+    private static String expectedMajorCreditorRuleErrorMessage(long majorCreditorId, short businessUnitId,
+                                                                String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: major creditor id %s is not valid for "
+                + "business unit %s and result creditor rule %s"
+        ).formatted(majorCreditorId, businessUnitId, ruleLabel);
+    }
+
+    private static String expectedMissingMinorCreditorErrorMessage(String ruleLabel) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].minor_creditor: a minor creditor or valid major creditor id "
+                + "is required for result creditor rule %s"
+        ).formatted(ruleLabel);
+    }
+
+    private static String expectedMissingCentralFundErrorMessage(short businessUnitId) {
+        return (
+            "Draft account reference validation failed with 1 error(s):\n"
+                + " - $.offences[0].impositions[0].major_creditor_id: no central fund creditor account exists "
+                + "for business unit %s"
+        ).formatted(businessUnitId);
+    }
+
+    private static String expectedSingleReferenceValidationError(String detail) {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - %s
+            """.formatted(detail).stripIndent().stripTrailing();
+    }
+
+    private static String expectedEnforcementCourtValidationErrorMessage() {
+        return """
+            Draft account reference validation failed with 1 error(s):
+             - account.enforcement_court_id: court id 999999 does not exist
+            """.stripIndent().stripTrailing();
     }
 
     private static String invalidCreateRequestBody() {
@@ -925,8 +1241,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account": {
                 "account_type": "Fine",
                 "defendant_type": "adultOrYouthOnly",
-                "originator_name": "LJS",
-                "originator_id": 123,
+                "originator_name": "%s",
+                "originator_id": %d,
                 "originator_type": "NEW",
                 "prosecutor_case_reference": null,
                 "enforcement_court_id": 260000000048,
@@ -1023,7 +1339,25 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
               "account_type": "Fine"
             }
 
-            """;
+            """.formatted(VALID_FINE_ORIGINATOR_NAME, VALID_FINE_ORIGINATOR_ID);
+    }
+
+    private String createRequestBody(String accountType, String originatorType, long originatorId,
+                                     String originatorName) {
+        return validCreateRequestBody()
+            .replace("\"account_type\": \"Fine\"", "\"account_type\": \"" + accountType + "\"")
+            .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"" + originatorType + "\"")
+            .replace("\"originator_name\": \"" + VALID_FINE_ORIGINATOR_NAME + "\"",
+                "\"originator_name\": \"" + originatorName + "\"")
+            .replace("\"originator_id\": " + VALID_FINE_ORIGINATOR_ID, "\"originator_id\": " + originatorId);
+    }
+
+    private String fixedPenaltyCreateRequestBody(String originatorType, long originatorId, String originatorName) {
+        return validFPPostRequestBody()
+            .replace("\"originator_type\":\"FP\"", "\"originator_type\":\"" + originatorType + "\"")
+            .replace("\"originator_name\":\"" + VALID_PROSECUTOR_ORIGINATOR_NAME + "\"",
+                "\"originator_name\":\"" + originatorName + "\"")
+            .replace("\"originator_id\":" + VALID_PROSECUTOR_ORIGINATOR_ID, "\"originator_id\":" + originatorId);
     }
 
     private String validFPPostRequestBody() {
@@ -1033,8 +1367,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                "account":{
                   "account_type":"Fixed Penalty",
                   "defendant_type":"adultOrYouthOnly",
-                  "originator_name":"undefined",
-                  "originator_id":4,
+                  "originator_name":"%s",
+                  "originator_id":%d,
                   "originator_type":"FP",
                   "prosecutor_case_reference":null,
                   "enforcement_court_id":770000000021,
@@ -1129,7 +1463,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
                "account_type":"Fixed Penalty",
                "account_status":"Submitted"
             }
-            """;
+            """.formatted(VALID_PROSECUTOR_ORIGINATOR_NAME, VALID_PROSECUTOR_ORIGINATOR_ID);
     }
 
 }

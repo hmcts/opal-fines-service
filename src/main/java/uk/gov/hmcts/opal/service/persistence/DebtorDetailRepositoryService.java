@@ -6,13 +6,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.common.AddressDetails;
-import uk.gov.hmcts.opal.dto.common.EmployerDetails;
-import uk.gov.hmcts.opal.dto.common.LanguagePreference;
-import uk.gov.hmcts.opal.dto.common.LanguagePreferences;
-import uk.gov.hmcts.opal.dto.common.VehicleDetails;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
+import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
+import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyVehicleDetailsDefendantAccount;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 
 @Service
@@ -39,9 +40,9 @@ public class DebtorDetailRepositoryService {
 
     @Transactional
     public void addDebtorDetail(Long partyId,
-        VehicleDetails vehicle,
-        EmployerDetails employer,
-        LanguagePreferences language) {
+        PartyVehicleDetailsDefendantAccount vehicle,
+        PartyEmployerDetailsDefendantAccount employer,
+        LanguagePreferencesCommonStrict language) {
 
         log.debug("addDebtorDetail: partyId: {}", partyId);
 
@@ -57,9 +58,9 @@ public class DebtorDetailRepositoryService {
 
     @Transactional
     public void updateDebtorDetail(DebtorDetailEntity debtor,
-        VehicleDetails vehicle,
-        EmployerDetails employer,
-        LanguagePreferences language) {
+        PartyVehicleDetailsDefendantAccount vehicle,
+        PartyEmployerDetailsDefendantAccount employer,
+        LanguagePreferencesCommonStrict language) {
 
         log.debug("updateDebtorDetail: partyId: {}", debtor.getPartyId());
 
@@ -68,60 +69,66 @@ public class DebtorDetailRepositoryService {
     }
 
     private static void applyDebtorFields(DebtorDetailEntity debtor,
-        VehicleDetails vehicle,
-        EmployerDetails employer,
-        LanguagePreferences language) {
+        PartyVehicleDetailsDefendantAccount vehicle,
+        PartyEmployerDetailsDefendantAccount employer,
+        LanguagePreferencesCommonStrict language) {
 
         applyVehicleDetails(debtor, vehicle);
         applyEmployerDetails(debtor, employer);
         applyLanguagePreferences(debtor, language);
     }
 
-    private static void applyVehicleDetails(DebtorDetailEntity debtor, VehicleDetails vehicle) {
-        debtor.setVehicleMake(vehicle != null ? vehicle.getVehicleMakeAndModel() : null);
-        debtor.setVehicleRegistration(vehicle != null ? vehicle.getVehicleRegistration() : null);
+    private static void applyVehicleDetails(DebtorDetailEntity debtor,
+                                            PartyVehicleDetailsDefendantAccount vehicle) {
+        debtor.setVehicleMake(vehicle != null ? value(vehicle.getVehicleMakeAndModel()) : null);
+        debtor.setVehicleRegistration(vehicle != null ? value(vehicle.getVehicleRegistration()) : null);
     }
 
-    private static void applyEmployerDetails(DebtorDetailEntity debtor, EmployerDetails employer) {
+    private static void applyEmployerDetails(DebtorDetailEntity debtor,
+                                             PartyEmployerDetailsDefendantAccount employer) {
         if (employer == null) {
             return;
         }
 
-        debtor.setEmployerName(employer.getEmployerName());
-        debtor.setEmployeeReference(employer.getEmployerReference());
-        debtor.setEmployerEmail(employer.getEmployerEmailAddress());
-        debtor.setEmployerTelephone(employer.getEmployerTelephoneNumber());
+        debtor.setEmployerName(value(employer.getEmployerName()));
+        debtor.setEmployeeReference(value(employer.getEmployerReference()));
+        debtor.setEmployerEmail(value(employer.getEmployerEmailAddress()));
+        debtor.setEmployerTelephone(value(employer.getEmployerTelephoneNumber()));
 
         applyEmployerAddress(debtor, employer.getEmployerAddress());
     }
 
-    private static void applyEmployerAddress(DebtorDetailEntity debtor, AddressDetails address) {
+    private static void applyEmployerAddress(DebtorDetailEntity debtor, AddressDetailsCommonStrict address) {
         if (address == null) {
             return;
         }
 
         debtor.setEmployerAddressLine1(address.getAddressLine1());
-        debtor.setEmployerAddressLine2(address.getAddressLine2());
-        debtor.setEmployerAddressLine3(address.getAddressLine3());
-        debtor.setEmployerAddressLine4(address.getAddressLine4());
-        debtor.setEmployerAddressLine5(address.getAddressLine5());
-        debtor.setEmployerPostcode(address.getPostcode());
+        debtor.setEmployerAddressLine2(value(address.getAddressLine2()));
+        debtor.setEmployerAddressLine3(value(address.getAddressLine3()));
+        debtor.setEmployerAddressLine4(value(address.getAddressLine4()));
+        debtor.setEmployerAddressLine5(value(address.getAddressLine5()));
+        debtor.setEmployerPostcode(value(address.getPostcode()));
     }
 
-    private static void applyLanguagePreferences(DebtorDetailEntity debtor, LanguagePreferences language) {
+    private static void applyLanguagePreferences(DebtorDetailEntity debtor, LanguagePreferencesCommonStrict language) {
         if (language == null) {
             return;
         }
 
-        debtor.setDocumentLanguage(toLanguage(language.getDocumentLanguagePreference()));
-        debtor.setHearingLanguage(toLanguage(language.getHearingLanguagePreference()));
+        debtor.setDocumentLanguage(toLanguage(value(language.getDocumentLanguagePreference())));
+        debtor.setHearingLanguage(toLanguage(value(language.getHearingLanguagePreference())));
 
         LocalDate now = LocalDate.now();
         debtor.setDocumentLanguageDate(now);
         debtor.setHearingLanguageDate(now);
     }
 
-    private static Language toLanguage(LanguagePreference preference) {
-        return preference != null ? Language.fromCode(preference.getLanguageCode()) : null;
+    private static Language toLanguage(LanguagePreferenceCommonStrict preference) {
+        return preference != null ? Language.fromCode(preference.getLanguageCode().getValue()) : null;
+    }
+
+    private static <T> T value(JsonNullable<T> nullable) {
+        return nullable == null ? null : nullable.orElse(null);
     }
 }

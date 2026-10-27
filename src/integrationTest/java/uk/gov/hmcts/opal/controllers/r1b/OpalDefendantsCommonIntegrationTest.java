@@ -107,6 +107,20 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
     }
 
     @Test
+    @JiraStory("PO-9718")
+    @JiraEpic("PO-2821")
+    void testGetEnforcementStatus_child() throws Exception {
+        super.testGetEnforcementStatus_child(log, false);
+    }
+
+    @Test
+    @JiraStory("PO-9718")
+    @JiraEpic("PO-2821")
+    void testGetEnforcementStatus_defendantAccountPartyDoBIsNull() throws Exception {
+        super.testGetEnforcementStatus_defendantAccountPartyDoBIsNull(log);
+    }
+
+    @Test
     @JiraStory("PO-1696")
     @JiraEpic("PO-1675")
     @JiraTestKey("PO-6016")

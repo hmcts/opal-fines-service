@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.controllers.util.UserStateUtil.allPermissionsUser;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -22,26 +23,36 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
+import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
+import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.PostDefendantAccountSearchResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -58,6 +69,15 @@ class DefendantAccountServiceTest {
     private UserState userState;
 
     @Mock
+    private UserStateV2 userStateV2;
+
+    @Mock
+    private DomainBusinessUnitUsers domainBusinessUnitUsers;
+
+    @Mock
+    private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
     private OpalDefendantAccountService opalDefendantAccountService;
 
     @Mock
@@ -68,6 +88,15 @@ class DefendantAccountServiceTest {
 
     @Mock
     private DefendantAccountSearchRequestValidator defendantAccountSearchRequestValidator;
+
+    @Mock
+    private DefendantAccountHistoryPdplLoggingService defendantAccountHistoryPdplLoggingService;
+
+    @Mock
+    private DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
+
+    @Mock
+    private DefendantAccountSummaryPdplLoggingService defendantAccountSummaryPdplLoggingService;
 
     @InjectMocks
     private DefendantAccountService defendantAccountService;
@@ -86,7 +115,8 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        UserState user = UserStateUtil.allFinesPermissionUser();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(user);
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
@@ -94,6 +124,7 @@ class DefendantAccountServiceTest {
         assertNotNull(result);
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertFalse(result.getResponse().getHasConsolidatedAccounts());
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(headerSummary, user.getUserId());
     }
 
     @Test
@@ -151,6 +182,7 @@ class DefendantAccountServiceTest {
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertTrue(result.getResponse().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(expected, 789L);
     }
 
     @Test
@@ -204,6 +236,22 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userWithPerm, expected);
+    }
+
+    @Test
+    void getHistory_whenUserHasPermission_logsAndReturnsProxyResponse_happyPath() {
+        UserState permittedUser = allPermissionsUser();
+        DefendantAccountHistoryResponse expectedResponse = DefendantAccountHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permittedUser);
+        when(defendantAccountServiceProxy.getHistory(anyLong(), any())).thenReturn(expectedResponse);
+
+        DefendantAccountHistoryResponse result = defendantAccountService.getHistory(77L, null, null, List.of());
+
+        assertSame(expectedResponse, result);
+        verify(defendantAccountHistoryPdplLoggingService).logHistoryItems(permittedUser, expectedResponse);
     }
 
     @Test
@@ -237,6 +285,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
         verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userState, proxyResults);
         verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
     }
 
@@ -247,6 +296,7 @@ class DefendantAccountServiceTest {
         GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(userState.getUserId()).thenReturn(789L);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
@@ -260,7 +310,9 @@ class DefendantAccountServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getAtAGlance(defendantAccountId);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+        verify(defendantAccountSummaryPdplLoggingService).logAtAGlance(proxyResponse, 789L);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy,
+            defendantAccountSummaryPdplLoggingService);
     }
 
     @Test
@@ -371,5 +423,56 @@ class DefendantAccountServiceTest {
         // Assert
         assertTrue(ex.getMessage().contains("Exactly one update group must be provided"));
         verifyNoInteractions(opalDefendantAccountService);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenUserHasPermission_returnsMasterAccountId() {
+        Long defendantAccountId = 77L;
+        Long masterDefendantAccountId = 42L;
+
+        givenMasterAccountUserHasPermission(true);
+        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId))
+            .thenReturn(masterDefendantAccountId);
+        MasterAccountDefendantAccount result = defendantAccountService.getMasterDefendantAccount(defendantAccountId);
+
+        assertEquals(JsonNullable.of(masterDefendantAccountId), result.getDefendantAccountId());
+        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenUserLacksPermission_throwsPermissionNotAllowed() {
+        Long defendantAccountId = 77L;
+        givenMasterAccountUserHasPermission(false);
+
+        PermissionNotAllowedException exception = assertThrows(
+            PermissionNotAllowedException.class,
+            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
+        );
+
+        assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void getMasterDefendantAccount_whenFunctionReturnsNull_throwsEntityNotFound() {
+        Long defendantAccountId = 77L;
+        givenMasterAccountUserHasPermission(true);
+        when(defendantAccountRepository.findMasterDefendantAccountId(defendantAccountId)).thenReturn(null);
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> defendantAccountService.getMasterDefendantAccount(defendantAccountId)
+        );
+
+        assertThat(exception).hasMessage("Defendant Account not found for id: 77");
+        verify(defendantAccountRepository).findMasterDefendantAccountId(defendantAccountId);
+        verifyNoMoreInteractions(defendantAccountRepository);
+    }
+
+    private void givenMasterAccountUserHasPermission(boolean hasPermission) {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
+        when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
+        when(domainBusinessUnitUsers.anyBusinessUnitUserHasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(hasPermission);
     }
 }

@@ -6,12 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
-import uk.gov.hmcts.opal.dto.GetMinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
@@ -20,6 +18,8 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceReques
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
@@ -27,20 +27,23 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRespo
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
-import uk.gov.hmcts.opal.mapper.legacy.GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorHistoryMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
@@ -53,17 +56,20 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         "LIBRA.get_minor_creditors_account_at_a_glance";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
         "LIBRA.get_minor_creditors_account_header_summary";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_HISTORY = "LIBRA.get_minor_creditor_account_history";
     private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     private final GatewayService gatewayService;
     private final MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
     private final LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
     private final CreditorAccountRepository creditorAccountRepository;
-    private final GetMinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+    private final MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
     private final LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
     private final MinorCreditorMapper minorCreditorMapper;
+    private final LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest minorCreditorEntity) {
@@ -98,7 +104,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     @Override
-    public GetMinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
+    public MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
         Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
             gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
@@ -111,8 +117,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
 
         checkResponseForError(response, "getHeaderSummary");
 
-        GetMinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper
-            .toOpal(response.responseEntity);
+        MinorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper.toOpal(response.responseEntity);
 
         Optional<CreditorAccountEntity> creditorAccount = creditorAccountRepository
             .findById(minorCreditorAccountId);
@@ -127,7 +132,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     }
 
     private void applyResolvedBusinessUnitCode(
-        GetMinorCreditorAccountHeaderSummaryResponse mapped,
+        MinorCreditorAccountHeaderSummaryResponse mapped,
         uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary legacyBusinessUnit
     ) {
         if (mapped.getBusinessUnit() == null || legacyBusinessUnit == null) {
@@ -177,7 +182,22 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
         MinorCreditorHistoryFilters filters) {
-        throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Not yet implemented");
+        boolean release1b11Enabled = isItemTypeFilteringEnabled();
+
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters, release1b11Enabled);
+
+        Response<MinorCreditorHistoryLegacyResponse> response =
+            gatewayService.postToGateway(
+                GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
+                MinorCreditorHistoryLegacyResponse.class,
+                request,
+                null
+            );
+
+        checkResponseForError(response, "getMinorCreditorHistory");
+
+        return minorCreditorHistoryMapper.toOpal(response.responseEntity);
     }
 
     @Override
@@ -278,5 +298,15 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
+    }
+
+    private boolean isItemTypeFilteringEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isItemTypeFilteringEnabled: default item type filtering is being used because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_1);
+        }
+        return enabled;
     }
 }

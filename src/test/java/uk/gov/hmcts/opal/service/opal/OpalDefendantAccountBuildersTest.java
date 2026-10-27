@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.dto.common.PaymentStateSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsSummary;
 import uk.gov.hmcts.opal.dto.common.PaymentTermsType;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
+import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -51,6 +52,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEnti
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideResultDefendantAccount;
@@ -245,6 +247,11 @@ class OpalDefendantAccountBuildersTest {
     }
 
     @Test
+    void buildAccountStatusReferenceCommon_returnsNull() {
+        assertNull(OpalDefendantAccountBuilders.buildAccountStatusReferenceCommon(null));
+    }
+
+    @Test
     void testBuildBusinessUnitSummary() {
         DefendantAccountHeaderViewEntity e = DefendantAccountHeaderViewEntity.builder()
             .businessUnitId((short) 55)
@@ -298,6 +305,34 @@ class OpalDefendantAccountBuildersTest {
         }
     }
 
+    @Test
+    void testBuildPartyDetails_Organisation() {
+        PartyEntity party = PartyEntity.builder()
+            .partyId(42077L)
+            .organisation(true)
+            .organisationName("The Organisation")
+            .build();
+
+        List<AliasEntity> aliases = List.of(AliasEntity.builder()
+            .aliasId(10L)
+            .party(party)
+            .surname(null)
+            .forenames(null)
+            .sequenceNumber(1234).organisationName("The Organisation").build());
+
+        PartyDetails details = OpalDefendantAccountBuilders.buildPartyDetails(party, aliases);
+
+        assertEquals("42077", details.getPartyId());
+        assertTrue(details.getOrganisationFlag());
+        assertNull(details.getIndividualDetails());
+
+        OrganisationDetails organisation = details.getOrganisationDetails();
+        assertNotNull(organisation);
+        assertEquals("The Organisation", organisation.getOrganisationName());
+        assertEquals(List.of(new OrganisationAlias("10", 1234, "The Organisation")),
+            organisation.getOrganisationAliases());
+    }
+
 
     @Test
     void testBuildPartyDetails_OrganisationMatchesApiSpec() {
@@ -345,6 +380,8 @@ class OpalDefendantAccountBuildersTest {
             .accountNote1("Note1")
             .accountNote2("Note2")
             .accountNote3("Note3")
+            .accountStatus(DefendantAccountStatus.LIVE)
+            .accountBalance(new BigDecimal("100.00"))
             .build();
 
         GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
@@ -356,6 +393,8 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
         assertTrue(response.getPayload().getIsYouth());
         assertNotNull(response.getPayload().getPartyDetails());
+        assertEquals(AccountStatusCodeEnum.L, response.getPayload().getAccountStatusCode().get());
+        assertEquals(new BigDecimal("100.00"), response.getPayload().getAccountBalance().get());
     }
 
     @Test
@@ -381,6 +420,8 @@ class OpalDefendantAccountBuildersTest {
             .accountNote1("Note1")
             .accountNote2("Note2")
             .accountNote3("Note3")
+            .accountStatus(DefendantAccountStatus.TRANSFER_OUT_ACKNOWLEDGED)
+            .accountBalance(new BigDecimal("1500.00"))
             .build();
 
         GetDefendantAccountAtAGlanceResponse response = OpalDefendantAccountBuilders.buildAtAGlanceResponse(entity);
@@ -392,6 +433,24 @@ class OpalDefendantAccountBuildersTest {
         assertEquals("Defendant", response.getPayload().getDebtorType().getValue());
         assertTrue(response.getPayload().getIsYouth());
         assertNotNull(response.getPayload().getPartyDetails());
+        assertEquals(AccountStatusCodeEnum.TA, response.getPayload().getAccountStatusCode().get());
+        assertEquals(new BigDecimal("1500.00"), response.getPayload().getAccountBalance().get());
+    }
+
+    @Test
+    void buildAtAGlanceResponse_mapToNull() {
+        assertNull(OpalDefendantAccountBuilders.buildAtAGlancePayload(null));
+    }
+
+    @Test
+    void safeAccountStatusCode_mapNullToNull() {
+        assertNull(OpalDefendantAccountBuilders.safeAccountStatusCode(null));
+    }
+
+    @Test
+    void safeAccountStatusCode_mapValueToNull() {
+        assertEquals(AccountStatusCodeEnum.CS, OpalDefendantAccountBuilders
+            .safeAccountStatusCode(DefendantAccountStatus.ACCOUNT_CONSOLIDATED));
     }
 
     @Test

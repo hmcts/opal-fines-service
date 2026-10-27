@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -11,15 +12,18 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import jakarta.persistence.EntityNotFoundException;
+
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
@@ -35,17 +39,19 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverrideCommon;
 import uk.gov.hmcts.opal.generated.model.EnforcementOverviewDefendantAccount;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    void testGetEnforcementStatus_success() {
+    void testGetEnforcementStatus_success_withNextEnforcementActionData() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(true);
@@ -58,9 +64,15 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
             LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
 
+        when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultEntity.builder()
+            .enfNextPermittedActions("All").build()));
+
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService
@@ -71,7 +83,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertTrue(response.getEmployerFlag());
         assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
         assertFalse(response.getIsHmrcCheckEligible());
-        assertNull(response.getNextEnforcementActionData());
+        assertEquals("All", response.getNextEnforcementActionData());
         assertNotNull(response.getEnforcementOverride());
         assertNotNull(response.getLastEnforcementAction());
         assertNotNull(response.getEnforcementOverview());
@@ -112,6 +124,112 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertNotNull(overview.getEnforcementCourt());
         assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_success_withoutNextEnforcementActionData() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(true);
+        responseBody.setLastEnforcementAction(null);
+
+        when(restClient.responseSpec
+            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
+            .thenReturn(responseBody);
+
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
+            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+
+        ResponseEntity<String> serverSuccessResponse =
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService
+            .getEnforcementStatus(33L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNotNull(response.getEnforcementOverride());
+        assertNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverrideCommon override = response.getEnforcementOverride();
+        assertNotNull(override.getEnforcementOverrideResult());
+        assertEquals("AAB", override.getEnforcementOverrideResult().getEnforcementOverrideResultId());
+        assertEquals("AaAaBb", override.getEnforcementOverrideResult().getEnforcementOverrideResultName());
+        assertNotNull(override.getEnforcer());
+        assertEquals(2L, override.getEnforcer().getEnforcerId());
+        assertEquals("Arthur", override.getEnforcer().getEnforcerName());
+        assertNotNull(override.getLja());
+        assertEquals((short) 1, override.getLja().getLjaId());
+        assertEquals("6-7", override.getLja().getLjaCode());
+        assertEquals("England", override.getLja().getLjaName());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.of(2024, Month.MARCH, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
+        assertEquals((short) 123, overview.getEnforcementCourt().getCourtCode());
+        assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
+
+        AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
+        assertEquals(AccountStatusCodeEnum.L, statusRef.getAccountStatusCode());
+        assertEquals("Alive", statusRef.getAccountStatusDisplayName());
+    }
+
+    @Test
+    void testGetEnforcementStatus_successWithRelease1b11Disabled() {
+        // Arrange
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody = createLegacyEnforcementStatusResponse(false);
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any())).thenReturn(
+            responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
+
+        // Act
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
+
+        // Assert
+        assertNotNull(response);
+        assertTrue(response.getEmployerFlag());
+        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
+        assertFalse(response.getIsHmrcCheckEligible());
+        assertNull(response.getNextEnforcementActionData());
+        assertNull(response.getEnforcementOverride());
+        assertNull(response.getLastEnforcementAction());
+        assertNotNull(response.getEnforcementOverview());
+        assertNotNull(response.getAccountStatusReference());
+
+        EnforcementOverviewDefendantAccount overview = response.getEnforcementOverview();
+        assertEquals(6, overview.getDaysInDefault());
+        assertNotNull(overview.getCollectionOrder());
+        assertEquals(true, overview.getCollectionOrder().getCollectionOrderFlag());
+        assertEquals(LocalDate.of(2024, Month.MARCH, 4), overview.getCollectionOrder().getCollectionOrderDate());
+        assertNotNull(overview.getEnforcementCourt());
+        assertEquals(3, overview.getEnforcementCourt().getCourtId());
         assertEquals("Bath", overview.getEnforcementCourt().getCourtName());
 
         AccountStatusReferenceCommon statusRef = response.getAccountStatusReference();
@@ -163,6 +281,29 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void testGetEnforcementStatus_ignoresEmptyLastEnforcementAction() {
+        LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
+            createLegacyEnforcementStatusResponse(false);
+        responseBody.setLastEnforcementAction(EnforcementAction.builder()
+            .resultReference(ResultReference.builder().resultId(" ").build())
+            .build());
+
+        when(restClient.responseSpec.body(
+            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
+        )).thenReturn(responseBody);
+
+        ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
+        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+
+        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
+
+        assertNotNull(response);
+        assertNull(response.getLastEnforcementAction());
+    }
+
+    @Test
     void testGetEnforcementStatus_throwsRuntimeException() {
         // Arrange
         doThrow(new RuntimeException("boom"))
@@ -175,23 +316,21 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_returnsNull() {
+    void testGetEnforcementStatus_returns500UnexpectedElementException() {
         // Arrange
         when(restClient.responseSpec.body(
             Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any())).thenReturn(null);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
-        // Act
-        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(42L);
 
-        // Assert
-        assertNull(response);
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(42L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("500 unexpected element");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_returnsFailure() {
+    void testGetEnforcementStatus_returns503LegacyGatewayFailureException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -201,20 +340,14 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
 
-        EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(66L);
-
-        assertNotNull(response);
-        assertTrue(response.getEmployerFlag());
-        assertEquals(new BigInteger("1234567890123456789012345678901234567890"), response.getVersion());
-        assertFalse(response.getIsHmrcCheckEligible());
-        assertNull(response.getNextEnforcementActionData());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_courtNotFoundInOpalDB() {
+    void testGetEnforcementStatus_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -224,18 +357,14 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenThrow(new EntityNotFoundException("Court not found"));
 
-        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
-            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
-
-        assertNotNull(error);
-        assertEquals("Court not found", error.getMessage());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    void testGetEnforcementStatus_ljaNotFoundInOpalDB() {
+    void testGetEnforcementStatus_ljaNotFoundInOpalDB_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
@@ -245,14 +374,9 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
-        when(ljaService.getLocalJusticeAreaById(anyShort())).thenThrow(new EntityNotFoundException("Lja not found"));
 
-        EntityNotFoundException error = assertThrows(EntityNotFoundException.class,
-            () -> legacyDefendantAccountService.getEnforcementStatus(66L));
-
-        assertNotNull(error);
-        assertEquals("Lja not found", error.getMessage());
+        assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
+            .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     private LegacyGetDefendantAccountEnforcementStatusResponse createLegacyEnforcementStatusResponse(boolean full) {

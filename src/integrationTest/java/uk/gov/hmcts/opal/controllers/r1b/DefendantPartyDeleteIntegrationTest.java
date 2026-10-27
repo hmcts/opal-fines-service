@@ -2,6 +2,8 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -9,18 +11,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.DefendantPartyDeleteIntegrationTest")
 class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @MockitoBean
+    private LoggingService loggingService;
+
+    @BeforeEach
+    void setUpLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @DisplayName("OPAL: DELETE Remove DAP - account controls return 422 for blocked account status")
@@ -124,6 +137,95 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
     }
 
     @Test
+    @DisplayName("OPAL: DELETE Remove DAP - bad request when body has no party reference")
+    @JiraStory("PO-8982")
+    @JiraEpic("PO-2873")
+    void delete_badRequest_whenBodyHasNoPartyReference() throws Exception {
+        long defendantAccountId = 2006L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        ResultActions res = performDelete(defendantAccountId, 2006L, "\"" + currentVersion + "\"", """
+            {
+              "version": 1
+            }
+            """);
+
+        res.andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Bad Request"))
+            .andExpect(jsonPath("$.status").value(400));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP - bad request when defendant account party id is blank")
+    @JiraStory("PO-8982")
+    @JiraEpic("PO-2873")
+    void delete_badRequest_whenDefendantAccountPartyIdIsBlank() throws Exception {
+        long defendantAccountId = 2006L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        ResultActions res = performDelete(defendantAccountId, 2006L, "\"" + currentVersion + "\"", """
+            {
+              "defendant_account_party_id": ""
+            }
+            """);
+
+        res.andExpect(status().isBadRequest());
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP - bad request when party id is blank")
+    @JiraStory("PO-8982")
+    @JiraEpic("PO-2873")
+    void delete_badRequest_whenPartyIdIsBlank() throws Exception {
+        long defendantAccountId = 2006L;
+        Integer currentVersion = versionFor(defendantAccountId);
+
+        ResultActions res = performDelete(defendantAccountId, 2006L, "\"" + currentVersion + "\"", """
+            {
+              "party_details": {
+                "party_id": ""
+              }
+            }
+            """);
+
+        res.andExpect(status().isBadRequest());
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+    }
+
+    @Test
+    @DisplayName("OPAL: DELETE Remove DAP - stale If-Match returns 409 conflict")
+    @JiraStory("PO-8982")
+    @JiraEpic("PO-2873")
+    void delete_conflict_whenIfMatchIsStale() throws Exception {
+        long defendantAccountId = 2006L;
+        long dapId = 2006L;
+        Integer currentVersion = versionFor(defendantAccountId);
+        int associationCountBefore = partyAssociationCountFor(defendantAccountId, dapId);
+
+        ResultActions res = performDelete(defendantAccountId, dapId, "\"9999999\"", """
+            {
+              "party_details": {
+                "party_id": "206"
+              }
+            }
+            """);
+
+        res.andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Conflict"))
+            .andExpect(jsonPath("$.status").value(409));
+
+        assertEquals(currentVersion, versionFor(defendantAccountId));
+        assertEquals(associationCountBefore, partyAssociationCountFor(defendantAccountId, dapId));
+    }
+
+    @Test
     @DisplayName("OPAL: DELETE Remove DAP – Not Found (DAP not on account)")
     @JiraStory("PO-1897")
     @JiraEpic("PO-1970")
@@ -176,7 +278,9 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
 
         String body = """
             {
-              "defendant_account_party_id": "2006"
+              "party_details": {
+                "party_id": "206"
+              }
             }
             """;
 
@@ -193,6 +297,23 @@ class DefendantPartyDeleteIntegrationTest extends AbstractOpalDefendantsIntegrat
         res.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+    }
+
+    private ResultActions performDelete(long defendantAccountId, long defendantAccountPartyId, String ifMatch,
+                                        String body) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.add("Business-Unit-Id", "78");
+        headers.add(HttpHeaders.IF_MATCH, ifMatch);
+
+        return mockMvc.perform(
+            delete("/defendant-accounts/{defendantAccountId}/defendant-account-parties/{defendantAccountPartyId}",
+                   defendantAccountId, defendantAccountPartyId)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
+        );
     }
 
 }

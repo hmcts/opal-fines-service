@@ -24,6 +24,3 @@ WHERE till_id = 99000000343100;
 
 DELETE FROM business_units
 WHERE business_unit_id = 1777;
-
-DELETE FROM reports
-WHERE report_id = 'cash_list';

@@ -10,6 +10,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
+import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.AccountStatusReference;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
@@ -25,7 +27,10 @@ import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LegacyGetDefendantAccountEnforcementStatusResponse implements ToXmlString {
+public class LegacyGetDefendantAccountEnforcementStatusResponse implements ToXmlString, HasErrorResponse {
+
+    @XmlElement(name = "error_response")
+    private ErrorResponse errorResponse;
 
     @XmlElement(name = "version")
     private BigInteger version;

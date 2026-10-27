@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.advice;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
@@ -19,17 +20,21 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
@@ -43,6 +48,8 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValid
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
@@ -153,8 +160,9 @@ class GlobalExceptionHandlerTest {
         );
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertEquals("Defendant Account Not Found", response.getBody().getTitle());
-        assertEquals("Defendant account not found with id: 999999999", response.getBody().getDetail());
+        assertEquals("Entity Not Found", response.getBody().getTitle());
+        assertEquals("The requested entity could not be found", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/entity-not-found"), response.getBody().getType());
         assertEquals(false, response.getBody().getProperties().get("retriable"));
     }
 
@@ -173,14 +181,15 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleMissingStoredReportContent_returnsInternalServerErrorProblem() {
-        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, "blob/path");
+        UUID location = UUID.fromString("00000000-0000-0000-0000-000000000013");
+        MissingStoredReportContentException ex = new MissingStoredReportContentException(12L, location);
 
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleMissingStoredReportContentException(ex);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Missing Data In Storage Account", response.getBody().getTitle());
         assertEquals(
-            "Stored report content file 'blob/path' was not found for report instance id: 12",
+            "Stored report content file '" + location + "' was not found for report instance id: 12",
             response.getBody().getDetail()
         );
         assertEquals(false, response.getBody().getProperties().get("retriable"));
@@ -197,6 +206,49 @@ class GlobalExceptionHandlerTest {
         assertEquals(
             "No report service implementation found for reportId: REPORT_1",
             response.getBody().getDetail()
+        );
+    }
+
+    @Test
+    void handleReportGeneration_returnsRetriableInternalServerErrorProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleReportGenerationException(
+            new ReportGenerationException("Storage connection refused", new RuntimeException()));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Report Generation Failed", response.getBody().getTitle());
+        assertEquals("Unable to generate the requested report", response.getBody().getDetail());
+        assertEquals(true, response.getBody().getProperties().get("retriable"));
+    }
+
+    @Test
+    void handleQueryTimeout_returnsRetriableTimeoutProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleQueryTimeoutException(
+            new QueryTimeoutException("Database timeout"));
+
+        assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Request Timeout", response.getBody().getTitle());
+        assertEquals("The request did not receive a response from the database within the timeout period",
+            response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), response.getBody().getType());
+        assertEquals(true, response.getBody().getProperties().get("retriable"));
+    }
+  
+    @Test
+    void handlePdplLogging_returnsRetriableServiceUnavailableProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePdplLoggingException(
+            new PdplLoggingException("queue unavailable"));
+
+        assertAll(
+            () -> assertEquals(HttpStatus.SERVICE_UNAVAILABLE, response.getStatusCode()),
+            () -> assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType()),
+            () -> assertEquals("Service Unavailable", response.getBody().getTitle()),
+            () -> assertEquals("The personal data logging queue is currently unavailable",
+                response.getBody().getDetail()),
+            () -> assertEquals(URI.create("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"),
+                response.getBody().getType()),
+            () -> assertEquals(true, response.getBody().getProperties().get("retriable"))
         );
     }
 
@@ -244,6 +296,28 @@ class GlobalExceptionHandlerTest {
             "Request contains unexpected additional properties: submitted_by",
             response.getBody().getDetail()
         );
+    }
+
+    @Test
+    void handleMethodArgumentNotValid_returnsSchemaValidationProblem() throws NoSuchMethodException {
+        Method method = TestRequestValidationClass.class.getMethod("testMethod", String.class);
+        MethodArgumentNotValidException exception = new MethodArgumentNotValidException(
+            new MethodParameter(method, 0), new BeanPropertyBindingResult(new Object(), "request"));
+
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler
+            .handleMethodArgumentNotValidException(exception);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Bad Request", response.getBody().getTitle());
+        assertEquals("The request does not conform to the required JSON schema", response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/json-schema-validation"), response.getBody().getType());
+    }
+
+    static class TestRequestValidationClass {
+
+        public void testMethod(String request) {
+        }
     }
 
     @Test

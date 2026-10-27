@@ -1,24 +1,32 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 
 @ActiveProfiles({"integration", "legacy"})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
+
+    @MockitoBean
+    private LoggingService loggingService;
 
     @Test
     @JiraStory("PO-1566")
@@ -34,6 +42,30 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraTestKey("PO-5957")
     void testSearchDefendantAccount_NoAccountsFound() throws Exception {
         super.legacyTestAddNote500Error(log);
+    }
+
+    @Test
+    @JiraStory("PO-10341")
+    @JiraEpic("PO-812")
+    void testPostAddNoteForLegacyOnlyAccount() throws Exception {
+        super.legacyOnlyAccountAddNoteSuccess(log);
+    }
+
+    @Test
+    @JiraStory("PO-10341")
+    @JiraEpic("PO-812")
+    void testPostAddNoteThenFetchHeaderSummaryForLegacyOnlyAccount() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        super.legacyOnlyAccountAddNoteThenFetchHeaderSummary(log);
+    }
+
+    @Test
+    @JiraStory("PO-10341")
+    @JiraEpic("PO-812")
+    void testPostAddNoteThenFetchHistoryForLegacyOnlyAccount() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        super.legacyOnlyAccountAddNoteThenFetchHistory(log);
     }
 
     @ParameterizedTest(name = "{0}")
@@ -55,6 +87,7 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraTestKey(value = "PO-9429", name = "ADD_AND_REMOVE_PAYMENT_HOLD")
     @JiraTestKey(value = "PO-9430", name = "PROCESS_AND_ALLOCATE_PAYMENTS")
     @JiraTestKey(value = "PO-9431", name = "AUTO_ENFORCEMENT")
+    @Tag("ExtendedTest")
     void testLegacyNotes_Forbidden(FinesPermission permission) throws Exception {
         super.postNotes_UserWithoutPermission(permission);
     }

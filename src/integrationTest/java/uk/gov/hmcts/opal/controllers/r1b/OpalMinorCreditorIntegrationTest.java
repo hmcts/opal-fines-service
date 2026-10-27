@@ -1,26 +1,41 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
@@ -31,6 +46,10 @@ import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -41,8 +60,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
+@Tag("ExtendedTest")
 @Slf4j(topic = "opal.OpalMinorCreditorIntegrationTest")
 public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerIntegrationTest {
+
+    private static final long INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID = 607L;
+    private static final long COMPANY_MINOR_CREDITOR_ACCOUNT_ID = 608L;
+    private static final short MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
+
+    @MockitoBean
+    private LoggingService loggingService;
 
     @MockitoSpyBean
     private ImpositionRepository impositionRepository;
@@ -55,6 +82,11 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     @MockitoSpyBean
     private CreditorAccountRepository creditorAccountRepository;
+
+    @BeforeEach
+    void configurePdplQueue() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @JiraStory("PO-713")
@@ -281,6 +313,27 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     }
 
     @Test
+    @JiraEpic("PO-10729")
+    @JiraStory("PO-10763")
+    void getHeaderSummary_LogsViewMinorCreditorAccountForIndividual() throws Exception {
+        super.getHeaderSummaryImpl_logsViewMinorCreditorAccount(log);
+    }
+
+    @Test
+    @JiraEpic("PO-10729")
+    @JiraStory("PO-10763")
+    void getHeaderSummary_pdplQueueFailureReturns503WithoutPersonalData() throws Exception {
+        super.getHeaderSummaryImpl_pdplQueueFailureReturns503WithoutPersonalData(log);
+    }
+
+    @Test
+    @JiraEpic("PO-10729")
+    @JiraStory("PO-10763")
+    void getHeaderSummary_doesNotLogViewMinorCreditorAccountForOrganisations() throws Exception {
+        super.getHeaderSummaryImpl_DoesNotLogViewMinorCreditorAccountForOrganisation(log);
+    }
+
+    @Test
     @JiraStory("PO-1911")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6192")
@@ -315,16 +368,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6187")
-    void patchMinorCreditor_withoutHoldPermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutHoldPermission_returns403();
+    void patchMinorCreditor_withMinorCreditorMaintenancePermission_returns200() throws Exception {
+        super.patchMinorCreditor_withMinorCreditorMaintenancePermission_returns200();
     }
 
     @Test
     @JiraStory("PO-1915")
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6179")
-    void patchMinorCreditor_withoutAccountMaintenancePermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutAccountMaintenancePermission_returns403();
+    void patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403() throws Exception {
+        super.patchMinorCreditor_withoutMinorCreditorMaintenancePermission_returns403();
     }
 
     @Test
@@ -333,14 +386,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-6212")
     void patchMinorCreditor_missingAuthHeader_returns403() throws Exception {
         super.patchMinorCreditor_missingAuthHeader_returns403();
-    }
-
-    @Test
-    @JiraStory("PO-1915")
-    @JiraEpic("PO-812")
-    @JiraTestKey("PO-7659")
-    void patchMinorCreditor_withoutViewCreditorBacsPermission_returns403() throws Exception {
-        super.patchMinorCreditor_withoutViewCreditorBacsPermission_returns403();
     }
 
     @Test
@@ -413,6 +458,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-7658")
     void getMinorCreditorAccount_authenticatedWithoutPermission_returns403() throws Exception {
         super.getMinorCreditorAccount_authenticatedWithoutPermission_returns403();
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -421,6 +468,99 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraTestKey("PO-7652")
     void getMinorCreditorAccount_notFound_returns404() throws Exception {
         super.getMinorCreditorAccount_notFound_returns404(log);
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PDPO: individual minor creditor read queues a consultation log")
+    @JiraStory("PO-10761")
+    @JiraEpic("PO-10729")
+    void getMinorCreditorAccount_individual_queuesConsultationLog() throws Exception {
+        authoriseMinorCreditorRead();
+
+        mockMvc.perform(get(URL_BASE + "/{id}", INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(false));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        List<ParticipantIdentifier> individuals = details.getIndividuals();
+
+        assertAll(
+            () -> assertEquals("View Minor Creditor", details.getBusinessIdentifier()),
+            () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+            () -> assertEquals("500000000", details.getCreatedBy().getIdentifier()),
+            () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
+            () -> assertEquals(List.of(String.valueOf(INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID)),
+                individuals.stream().map(ParticipantIdentifier::getIdentifier).toList()),
+            () -> assertEquals(List.of(PdplIdentifierType.MINOR_CREDITOR),
+                individuals.stream().map(ParticipantIdentifier::getType).toList()),
+            () -> assertNull(details.getRecipient())
+        );
+    }
+
+    @Test
+    @DisplayName("PDPO: queue rejection prevents individual minor creditor data from being returned")
+    @JiraStory("PO-10761")
+    @JiraEpic("PO-10729")
+    void getMinorCreditorAccount_queueReturnsFalse_returnsServiceUnavailable() throws Exception {
+        authoriseMinorCreditorRead();
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        mockMvc.perform(get(URL_BASE + "/{id}", INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true))
+            .andExpect(jsonPath("$.party_details").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PDPO: queue error prevents individual minor creditor data from being returned")
+    @JiraStory("PO-10761")
+    @JiraEpic("PO-10729")
+    void getMinorCreditorAccount_queueRaisesError_returnsServiceUnavailable() throws Exception {
+        authoriseMinorCreditorRead();
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("logging unavailable"));
+
+        mockMvc.perform(get(URL_BASE + "/{id}", INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.party_details").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PDPO: company minor creditor read does not queue an individual log")
+    @JiraStory("PO-10761")
+    @JiraEpic("PO-10729")
+    void getMinorCreditorAccount_company_doesNotQueueLog() throws Exception {
+        authoriseMinorCreditorRead();
+
+        mockMvc.perform(get(URL_BASE + "/{id}", COMPANY_MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.party_details.organisation_flag").value(true));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
 
@@ -499,6 +639,13 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         assertFalse(partyRepository.findById(partyId).isPresent());
         assertFalse(creditorAccountRepository.findById(creditorAccountId).isPresent());
 
+    }
+
+    private void authoriseMinorCreditorRead() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(MINOR_CREDITOR_BUSINESS_UNIT_ID,
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
+            FinesPermission.VIEW_CREDITOR_BACS);
     }
 
 }
