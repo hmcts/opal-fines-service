@@ -23,18 +23,10 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withBean(ServiceBusConnectionStringParser.class,
                   () -> serviceBusConnectionStringParser)
-        .withBean(
-            ObjectMapper.class,
-            () -> mock(ObjectMapper.class)
+        .withBean(ObjectMapper.class,() -> mock(ObjectMapper.class)
         )
-        .withBean(
-            InterfaceFileProcessorService.class,
-            () -> mock(InterfaceFileProcessorService.class)
-        )
-        .withUserConfiguration(
-            QueueConsumerJmsConfig.class,
-            InterfaceFileQueueListener.class
-        );
+        .withBean(InterfaceFileProcessorService.class, () -> mock(InterfaceFileProcessorService.class))
+        .withUserConfiguration(QueueConsumerJmsConfig.class, InterfaceFileQueueListener.class);
 
     @Test
     void loadsJmsBeansWhenEnabled() {
@@ -57,21 +49,13 @@ class InterfaceFileQueueConsumerJmsConfigTest {
                 "opal.interface-file.service-bus.queue-name="
                     + "banking-interfaces-preprocess-interface-file-fines"
             )
-            .run(context -> {
-                assertThat(context)
+            .run(context -> {assertThat(context)
                     .hasSingleBean(QueueConsumerJmsConfig.class);
 
-                assertThat(context)
-                    .hasSingleBean(ConnectionFactory.class);
-
-                assertThat(context)
-                    .hasBean("reportListenerContainerFactory");
-
-                assertThat(context)
-                    .hasBean("interfaceFileListenerContainerFactory");
-
-                assertThat(context)
-                    .hasSingleBean(InterfaceFileQueueListener.class);
+                assertThat(context).hasSingleBean(ConnectionFactory.class);
+                assertThat(context).hasBean("reportListenerContainerFactory");
+                assertThat(context).hasBean("opalFinesConsumerConnectionFactory");
+                assertThat(context).hasSingleBean(InterfaceFileQueueListener.class);
             });
     }
 
@@ -79,19 +63,12 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     void skipsJmsBeansWhenDisabled() {
 
         contextRunner
-            .withPropertyValues(
-                "opal.interface-file.service-bus.consumer-enabled=false",
-                "opal.report.service-bus.consumer-enabled=false"
-            )
+            .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=false",
+                "opal.report.service-bus.consumer-enabled=false" )
             .run(context -> {
-                assertThat(context)
-                    .doesNotHaveBean(QueueConsumerJmsConfig.class);
-
-                assertThat(context)
-                    .doesNotHaveBean(ConnectionFactory.class);
-
-                assertThat(context)
-                    .doesNotHaveBean(InterfaceFileQueueListener.class);
+                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).doesNotHaveBean(InterfaceFileQueueListener.class);
             });
     }
 
@@ -99,20 +76,12 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     void skipsJmsBeansWhenConsumerIsEnabledAndAutomatedJob() {
 
         contextRunner
-            .withPropertyValues(
-                "opal.interface-file.service-bus.consumer-enabled=true",
-                "opal.report.service-bus.consumer-enabled=true",
-                "opal.automated-task=true"
-            )
+            .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=true",
+                "opal.report.service-bus.consumer-enabled=true", "opal.automated-task=true")
             .run(context -> {
-                assertThat(context)
-                    .doesNotHaveBean(QueueConsumerJmsConfig.class);
-
-                assertThat(context)
-                    .doesNotHaveBean(ConnectionFactory.class);
-
-                assertThat(context)
-                    .doesNotHaveBean(InterfaceFileQueueListener.class);
+                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).doesNotHaveBean(InterfaceFileQueueListener.class);
             });
     }
 }
