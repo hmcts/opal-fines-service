@@ -60,8 +60,7 @@ class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggle
         return Stream.of(
             endpoint("GET " + OUTSTANDING_AUTO_PAYMENT_PATH, get(OUTSTANDING_AUTO_PAYMENT_PATH)),
             endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
-            endpoint("GET " + COURT_FEES_PATH,
-                get(COURT_FEES_PATH).queryParam("business_unit_id", "953")));
+            endpoint("GET " + COURT_FEES_PATH, get(COURT_FEES_PATH).queryParam("business_unit_id", "953")),
             endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
             endpoint("GET " + DEFENDANT_ACCOUNTS_MASTER_PATH, get(DEFENDANT_ACCOUNTS_MASTER_PATH.formatted(1))),
             endpoint("DELETE " + INTERFACE_JOBS_PATH, delete(INTERFACE_JOBS_PATH).queryParam("ids", "1")),
