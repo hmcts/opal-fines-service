@@ -1254,7 +1254,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop:2.12'
   implementation 'org.apache.xmlgraphics:fop-core:2.12'
   implementation 'org.apache.xmlgraphics:fop-events:2.12'
-  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
+  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.12'
   implementation 'org.apache.pdfbox:pdfbox:3.0.8'
   implementation 'net.sf.saxon:Saxon-HE:13.1'
 
