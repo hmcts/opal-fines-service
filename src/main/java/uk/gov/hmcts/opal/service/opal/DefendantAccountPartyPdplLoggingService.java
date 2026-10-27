@@ -76,6 +76,8 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
         }
 
         return partyId;
+    }
+
     public void logRemovedParentGuardian(Long defendantAccountPartyId,
         RemoveDefendantAccountPartyRequestDefendantAccount request,
         RemoveDefendantAccountPartyResponseDefendantAccount response,
