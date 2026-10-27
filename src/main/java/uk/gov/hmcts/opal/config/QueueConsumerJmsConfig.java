@@ -54,7 +54,6 @@ public class QueueConsumerJmsConfig {
     public DefaultJmsListenerContainerFactory opalFinesConsumerConnectionFactory(
         @Qualifier("opalFinesConsumerConnection")
         ConnectionFactory reportConsumerConnectionFactory) {
-
         DefaultJmsListenerContainerFactory factory =
             new DefaultJmsListenerContainerFactory();
 
