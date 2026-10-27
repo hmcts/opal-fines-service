@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -36,17 +35,14 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
     @MockitoBean
     private LoggingService loggingService;
 
-    @BeforeEach
-    void setupLogging() {
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-    }
-
     @Test
     @JiraEpic("PO-2332")
     @JiraStory("PO-2336")
     @DisplayName("PO-2336 INT.01 - Get defendant account header summary maps has_consolidated_accounts to true")
     @JiraTestKey("PO-9417")
     void int01_getDefendantAccountHeaderSummary_mapsHasConsolidatedAccountsTrue() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
