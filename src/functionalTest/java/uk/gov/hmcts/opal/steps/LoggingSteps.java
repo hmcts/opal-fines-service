@@ -31,6 +31,8 @@ public class LoggingSteps extends BaseStepDef {
     private static final String PDPO_BUSINESS_IDENTIFIER = "Submit Draft Account - Parent or Guardian";
     private static final String MINOR_CREDITOR_HISTORY_BUSINESS_IDENTIFIER =
         "View Minor Creditor Account History Item";
+    private static final String MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER =
+        "View Minor Creditor Account - Individual";
     private static final String OPAL_USER_ID = "OPAL_USER_ID";
     private static final int DEFAULT_TIMEOUT_SECONDS =
         Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
@@ -99,6 +101,30 @@ public class LoggingSteps extends BaseStepDef {
 
         assertEquals(expectedUserIds, actualUserIds, "Unexpected minor creditor history participants");
         assertEquals(actualUserIds.size(), individuals.size(), "History participants must not contain duplicates");
+    }
+
+    /**
+     * Verifies that an individual minor-creditor summary read emitted the required consultation.
+     */
+    @Then("the logging service contains an individual minor creditor summary consultation")
+    public void loggingServiceContainsIndividualMinorCreditorSummaryConsultation() {
+        Long accountId = scenarioContext().getCreatedMinorCreditorAccountIdOrFail();
+        JsonNode response = waitForPdpoLogs(Map.of(
+            "business_identifier", MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER,
+            "category", "Consultation",
+            "individual_identifier", accountId.toString(),
+            "individual_type", "MINOR_CREDITOR"
+        ));
+        JsonNode logEntry = response.get(0);
+
+        assertEquals(MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER,
+            logEntry.path("business_identifier").asText());
+        assertEquals("Consultation", logEntry.path("category").asText());
+        assertTrue(logEntry.path("individuals").isArray(), "PDPO individuals should be an array");
+        assertTrue(logEntry.path("individuals").valueStream().anyMatch(individual ->
+                accountId.toString().equals(individual.path("id").asText())
+                    && "MINOR_CREDITOR".equals(individual.path("type").asText())),
+            "The created minor creditor was not present in the PDPO consultation");
     }
 
     /**
