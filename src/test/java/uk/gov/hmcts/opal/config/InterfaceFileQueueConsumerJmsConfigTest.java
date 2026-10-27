@@ -49,9 +49,9 @@ class InterfaceFileQueueConsumerJmsConfigTest {
                 "opal.interface-file.service-bus.queue-name="
                     + "banking-interfaces-preprocess-interface-file-fines"
             )
-            .run(context -> {assertThat(context)
+            .run(context -> {
+                assertThat(context)
                     .hasSingleBean(QueueConsumerJmsConfig.class);
-
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
                 assertThat(context).hasBean("reportListenerContainerFactory");
                 assertThat(context).hasBean("opalFinesConsumerConnectionFactory");
@@ -61,10 +61,9 @@ class InterfaceFileQueueConsumerJmsConfigTest {
 
     @Test
     void skipsJmsBeansWhenDisabled() {
-
         contextRunner
             .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=false",
-                "opal.report.service-bus.consumer-enabled=false" )
+                "opal.report.service-bus.consumer-enabled=false")
             .run(context -> {
                 assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ConnectionFactory.class);
