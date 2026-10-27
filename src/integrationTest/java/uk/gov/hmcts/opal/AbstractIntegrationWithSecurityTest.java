@@ -46,7 +46,7 @@ public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest
 
     @Override
     protected UserStateStub createUserStateStub() {
-        return new UserStateStub(validToken);
+        return new UserStateStub(validToken, userServiceWireMock);
     }
 
     //We must stub the WireMock endpoints only once so this code must be in a static block.
