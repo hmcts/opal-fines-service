@@ -35,13 +35,13 @@ plugins {
   id 'org.sonarqube' version '7.5.0.8588'
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '13.11.1'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.4.1'
   id "org.openapi.generator" version "7.26.0"
 }
 
 ext {
   log4JVersion = "2.26.1"
-  serenityVersion = "5.3.11"
+  serenityVersion = "5.4.1"
   cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
 }
 
