@@ -42,7 +42,7 @@ public class QueueConsumerJmsConfig {
 
     @Bean
     public DefaultJmsListenerContainerFactory reportListenerContainerFactory(
-        @Qualifier("reportPublisherConnectionFactory")
+        @Qualifier("opalFinesConsumerConnection")
         ConnectionFactory reportConsumerConnectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(reportConsumerConnectionFactory);
