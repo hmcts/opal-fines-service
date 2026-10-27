@@ -75,9 +75,8 @@ public class ReportInstanceEntity {
     @Column(name = "report_parameters", columnDefinition = "json", nullable = false)
     private String reportParameters;
 
-    @Column(name = "location")
-    @JdbcTypeCode(SqlTypes.UUID)
-    private UUID location;
+    @Column(name = "location", length = 50)
+    private String location;
 
     @Column(name = "requested_at", nullable = false)
     private LocalDateTime requestedAt;
@@ -111,5 +110,11 @@ public class ReportInstanceEntity {
         return report.getReportId();
     }
 
+    public void setLocation(UUID uuid) {
+        location = uuid == null ? null : uuid.toString();
+    }
 
+    public UUID getLocation() {
+        return location == null ? null : UUID.fromString(location);
+    }
 }

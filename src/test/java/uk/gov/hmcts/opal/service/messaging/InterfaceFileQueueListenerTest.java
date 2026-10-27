@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.junit.jupiter.api.BeforeEach;
 import tools.jackson.databind.ObjectMapper;
-
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import tools.jackson.core.JacksonException;
 import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -66,7 +64,6 @@ class InterfaceFileQueueListenerTest {
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Interface file message payload is blank");
     }
-
 
     @Test
     void shouldThrowExceptionWhenPayloadCannotBeParsed() throws Exception {
