@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.config;
 import jakarta.jms.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -41,6 +42,7 @@ public class QueueConsumerJmsConfig {
 
     @Bean
     public DefaultJmsListenerContainerFactory reportListenerContainerFactory(
+        @Qualifier("reportPublisherConnectionFactory")
         ConnectionFactory reportConsumerConnectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory(reportConsumerConnectionFactory);
@@ -50,6 +52,7 @@ public class QueueConsumerJmsConfig {
 
     @Bean
     public DefaultJmsListenerContainerFactory opalFinesConsumerConnectionFactory(
+        @Qualifier("opalFinesConsumerConnection")
         ConnectionFactory reportConsumerConnectionFactory) {
 
         DefaultJmsListenerContainerFactory factory =

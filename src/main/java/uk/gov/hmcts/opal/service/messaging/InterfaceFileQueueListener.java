@@ -27,7 +27,7 @@ public class InterfaceFileQueueListener {
 
     @JmsListener(
         destination = "${opal.interface-file.service-bus.queue-name}",
-        containerFactory = "interfaceFileListenerContainerFactory"
+        containerFactory = "opalFinesConsumerConnectionFactory"
     )
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
