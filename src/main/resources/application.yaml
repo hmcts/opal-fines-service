@@ -108,6 +108,7 @@ azure:
     instrumentation-key: ${opal.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 legacy-gateway:
+  feign-enabled: true
   url: ${OPAL_LEGACY_GATEWAY_URL:http://localhost:4553/opal}
   username: ${OPAL_LEGACY_GATEWAY_USERNAME:username}
   password: ${OPAL_LEGACY_GATEWAY_PASSWORD:password}
