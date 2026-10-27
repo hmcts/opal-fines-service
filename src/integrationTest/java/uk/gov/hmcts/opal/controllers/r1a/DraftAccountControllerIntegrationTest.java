@@ -87,6 +87,7 @@ class DraftAccountControllerIntegrationTest extends CommonDraftAccountController
     @JiraTestKey(value = "PO-8401", name = "Unauthorised request returns 403 [3]")
     void methodsShouldReturn403_whenUserLacksPermission(
         MockHttpServletRequestBuilder requestBuilder, String requestBody) throws Exception {
+        userStateStub.setupWithNoPermissions();
 
         ResultActions resultActions = mockMvc.perform(requestBuilder
             .header("authorization", userStateStub.getBearerToken())

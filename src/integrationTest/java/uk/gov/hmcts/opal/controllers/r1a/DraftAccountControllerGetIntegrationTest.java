@@ -677,6 +677,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @JiraTestKey("PO-5829")
     void testGetDraftAccountsSummaries_trap403Response_noPermission() throws Exception {
         final Short businessId = (short) 1;
+        userStateStub.setupWithNoPermissions();
 
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
             .header("authorization", userStateStub.getBearerToken())

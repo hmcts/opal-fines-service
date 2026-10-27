@@ -55,7 +55,7 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
 
     private HttpHeaders partyHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"1\"");
         return headers;

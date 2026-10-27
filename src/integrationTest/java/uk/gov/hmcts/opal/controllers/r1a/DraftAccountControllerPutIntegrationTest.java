@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -23,10 +27,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -42,6 +48,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("DraftAccountControllerPutIntegrationTest")
 class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
     @Test
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     @JiraStory("PO-973")
@@ -52,10 +61,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String requestBody = validReplaceRequestBody(0L);
         log.info(":testReplaceDraftAccount_success: Request Body:\n{}", ToJsonString.toPrettyJson(requestBody));
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "3");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", "3")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody));
 
@@ -106,10 +117,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\",", "");
 
-        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "0");
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -124,10 +137,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"\"");
 
-        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "0");
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -142,10 +157,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validCreateRequestBody()
             .replace("\"originator_type\": \"NEW\"", "\"originator_type\": \"ABC\"");
 
-        ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "0");
+
+        mockMvc.perform(put(URL_BASE + "/" + 5)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -160,14 +177,17 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validReplaceRequestBody(0L)
             .replace(
                 "\"version\": 0",
-                "\"version\": 0,\n              \"timeline_data\": " + validTimelineDataJson().trim()
+                "\"version\": 0,\n"
+                    + "\"timeline_data\": " + validTimelineDataJson().trim()
             );
+
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest());
@@ -179,16 +199,18 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5868")
     void testPutDraftAccount_success_and_pdplServiceCalled() throws Exception {
-        String validRequestBody = validReplaceRequestBodyForPdpl(0L);
+        final String validRequestBody = validReplaceRequestBodyForPdpl(0L);
 
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+        headers.add("X-User-IP", "192.168.1.100");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", ifMatch)
-            .header("X-User-IP", "192.168.1.100")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -203,7 +225,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertEquals(5, logs.size());
 
-        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        PersonalDataProcessingLogDetails l0 = logs.getFirst();
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
         assertEquals("500000000", l0.getCreatedBy().getIdentifier());
@@ -211,8 +233,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
         assertEquals(1, l0.getIndividuals().size());
-        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertEquals("5", l0.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().getFirst().getType());
         assertNotNull(l0.getCreatedAt());
 
         PersonalDataProcessingLogDetails l1 = logs.get(1);
@@ -223,8 +245,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("127.0.0.1", l1.getIpAddress());
         assertNull(l1.getRecipient());
         assertEquals(1, l1.getIndividuals().size());
-        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertEquals("5", l1.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().getFirst().getType());
         assertNotNull(l1.getCreatedAt());
 
         PersonalDataProcessingLogDetails l2 = logs.get(2);
@@ -235,8 +257,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
         assertEquals(1, l2.getIndividuals().size());
-        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertEquals("5", l2.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().getFirst().getType());
         assertNotNull(l2.getCreatedAt());
 
         PersonalDataProcessingLogDetails l3 = logs.get(3);
@@ -247,8 +269,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", l3.getIpAddress());
         assertNull(l3.getRecipient());
         assertEquals(1, l3.getIndividuals().size());
-        assertEquals("5", l3.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().get(0).getType());
+        assertEquals("5", l3.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l3.getIndividuals().getFirst().getType());
         assertNotNull(l3.getCreatedAt());
 
         PersonalDataProcessingLogDetails l4 = logs.get(4);
@@ -259,8 +281,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", l4.getIpAddress());
         assertNull(l4.getRecipient());
         assertEquals(1, l4.getIndividuals().size());
-        assertEquals("5", l4.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l4.getIndividuals().get(0).getType());
+        assertEquals("5", l4.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l4.getIndividuals().getFirst().getType());
         assertNotNull(l4.getCreatedAt());
     }
 
@@ -270,16 +292,18 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5866")
     void testPutDraftAccount_defendantOnly_pdplLogged() throws Exception {
-        String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
+        final String validRequestBody = validReplaceRequestBodyDefendantOnly(0L);
 
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+        headers.add("X-User-IP", "192.168.1.100");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", ifMatch)
-            .header("X-User-IP", "192.168.1.100")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -311,16 +335,18 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5871")
     void testPutDraftAccount_parentGuardianOnly_pdplLogged() throws Exception {
-        String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
+        final String validRequestBody = validReplaceRequestBodyParentGuardianOnly(0L);
 
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+        headers.add("X-User-IP", "192.168.1.100");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", ifMatch)
-            .header("X-User-IP", "192.168.1.100")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -335,7 +361,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertEquals(3, logs.size());
 
-        PersonalDataProcessingLogDetails l0 = logs.get(0);
+        PersonalDataProcessingLogDetails l0 = logs.getFirst();
         assertEquals("Get Draft Account - Defendant", l0.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, l0.getCategory());
         assertEquals("500000000", l0.getCreatedBy().getIdentifier());
@@ -343,8 +369,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("127.0.0.1", l0.getIpAddress());
         assertNull(l0.getRecipient());
         assertEquals(1, l0.getIndividuals().size());
-        assertEquals("5", l0.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().get(0).getType());
+        assertEquals("5", l0.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l0.getIndividuals().getFirst().getType());
         assertNotNull(l0.getCreatedAt());
 
         PersonalDataProcessingLogDetails l1 = logs.get(1);
@@ -355,8 +381,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", l1.getIpAddress());
         assertNull(l1.getRecipient());
         assertEquals(1, l1.getIndividuals().size());
-        assertEquals("5", l1.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().get(0).getType());
+        assertEquals("5", l1.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l1.getIndividuals().getFirst().getType());
         assertNotNull(l1.getCreatedAt());
 
         PersonalDataProcessingLogDetails l2 = logs.get(2);
@@ -367,8 +393,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", l2.getIpAddress());
         assertNull(l2.getRecipient());
         assertEquals(1, l2.getIndividuals().size());
-        assertEquals("5", l2.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().get(0).getType());
+        assertEquals("5", l2.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, l2.getIndividuals().getFirst().getType());
         assertNotNull(l2.getCreatedAt());
 
     }
@@ -379,16 +405,18 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2355")
     @JiraTestKey("PO-5867")
     void testPutDraftAccount_minorCreditorOnly_pdplLogged() throws Exception {
-        String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
+        final String validRequestBody = validReplaceRequestBodyMinorCreditorOnly(0L);
 
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+        headers.add("X-User-IP", "192.168.1.100");
+
         ResultActions resultActions = mockMvc.perform(put(URL_BASE + "/5")
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header("authorization", userStateStub.getBearerToken())
-            .header("If-Match", ifMatch)
-            .header("X-User-IP", "192.168.1.100")
+            .headers(headers)
             .contentType(MediaType.APPLICATION_JSON)
             .content(validRequestBody));
 
@@ -403,7 +431,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
 
         assertEquals(3, logs.size());
 
-        PersonalDataProcessingLogDetails first = logs.get(0);
+        PersonalDataProcessingLogDetails first = logs.getFirst();
         assertEquals("Get Draft Account - Defendant", first.getBusinessIdentifier());
         assertEquals(PersonalDataProcessingCategory.CONSULTATION, first.getCategory());
         assertEquals("500000000", first.getCreatedBy().getIdentifier());
@@ -411,8 +439,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("127.0.0.1", first.getIpAddress());
         assertNull(first.getRecipient());
         assertEquals(1, first.getIndividuals().size());
-        assertEquals("5", first.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().get(0).getType());
+        assertEquals("5", first.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, first.getIndividuals().getFirst().getType());
         assertNotNull(first.getCreatedAt());
 
         PersonalDataProcessingLogDetails second = logs.get(1);
@@ -423,8 +451,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", second.getIpAddress());
         assertNull(second.getRecipient());
         assertEquals(1, second.getIndividuals().size());
-        assertEquals("5", second.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().get(0).getType());
+        assertEquals("5", second.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, second.getIndividuals().getFirst().getType());
         assertNotNull(second.getCreatedAt());
 
         PersonalDataProcessingLogDetails third = logs.get(2);
@@ -435,8 +463,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         assertEquals("192.168.1.100", third.getIpAddress());
         assertNull(third.getRecipient());
         assertEquals(1, third.getIndividuals().size());
-        assertEquals("5", third.getIndividuals().get(0).getIdentifier());
-        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().get(0).getType());
+        assertEquals("5", third.getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DRAFT_ACCOUNT, third.getIndividuals().getFirst().getType());
         assertNotNull(third.getCreatedAt());
 
     }
@@ -450,8 +478,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String requestBody = validReplaceRequestBody(3L);
 
         String first = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                 .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
@@ -460,9 +487,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .getResponse().getContentAsString();
 
         String second = mockMvc.perform(put(URL_BASE + "/" + 5)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", getIfMatchForDraftAccount(5L))
+                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+                    .header("If-Match", getIfMatchForDraftAccount(5L))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestBody))
             .andExpect(status().isOk())
@@ -484,11 +510,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-5741")
     void shouldReturn400WhenImpositionResultIsNotAnImposition() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(nonImpositionResultReplaceRequestBody(0L)))
             .andExpect(status().isBadRequest())
@@ -505,9 +532,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2220")
     @JiraTestKey("PO-9389")
     void testReplaceDraftAccount_referenceValidationFailure_returns400AndLeavesDataUnchanged() throws Exception {
-        DraftAccountEntity before = getDraftAccount(5L);
-        long countBefore = draftAccountRepository.count();
+        final DraftAccountEntity before = getDraftAccount(5L);
+        final long countBefore = draftAccountRepository.count();
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -545,13 +575,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         String request = replaceRequestBody(0L, "Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -568,13 +600,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldRejectTfoConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         String request = replaceRequestBody(0L, "Confiscation", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -591,12 +625,14 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldRejectTfoConfiscationOriginatorWhenLjaNameDoesNotMatch() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         String request = replaceRequestBody(0L, "Confiscation", "TFO", 32002L, "Wrong LJA Name");
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -616,13 +652,15 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldRejectUnsupportedTfoConditionalCautionOriginatorCombination() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         String request = replaceRequestBody(0L, "Conditional Caution", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -644,10 +682,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         String request = validReplaceRequestBody(0L)
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", getIfMatchForDraftAccount(5L));
+
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(request))
             .andExpect(status().isBadRequest())
@@ -667,10 +707,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldReplaceDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(replaceRequestForResultAndMajor(0L, "FCOMP", 780000000041L)))
             .andExpect(status().isOk());
@@ -682,10 +724,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(replaceRequestForResultAndMajor(0L, "FCOMP", 770000000105L)))
             .andExpect(status().isBadRequest())
@@ -702,10 +746,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-8248")
     void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(replaceRequestForResult(0L, "FCOMP")))
             .andExpect(status().isBadRequest())
@@ -730,11 +776,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     )
     void shouldReturn400WhenCentralFundAccountIsMissingOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(replaceRequestForResult(0L, "FO")))
             .andExpect(status().isBadRequest())
@@ -756,11 +803,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsMissing() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
             .andExpect(status().isBadRequest())
@@ -776,14 +824,17 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraStory("PO-5745")
     @JiraEpic("PO-8248")
     void testReplaceDraftAccount_whenEnforcementCourtDoesNotExist_returns400AndLeavesDataUnchanged() throws Exception {
-        DraftAccountEntity before = getDraftAccount(5L);
-        long countBefore = draftAccountRepository.count();
+        final DraftAccountEntity before = getDraftAccount(5L);
+
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
+
+        long countBefore = draftAccountRepository.count();
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(invalidEnforcementCourtReplaceRequestBody(0L)))
             .andExpect(status().isBadRequest())
@@ -821,11 +872,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
             .andExpect(status().isBadRequest())
@@ -847,11 +899,12 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Transactional
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsInactive() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", ifMatch);
 
         mockMvc.perform(put(URL_BASE + "/5")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", ifMatch)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withPaymentTermsEnforcement(validReplaceRequestBody(0L), "COLLO")))
             .andExpect(status().isBadRequest())
@@ -869,12 +922,19 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @JiraEpic("PO-2220")
     @JiraTestKey("PO-5870")
     void testReplaceDraftAccount_trap403Response_noPermission() throws Exception {
-        Long draftAccountId = 241L;
-        userStateStub.setupWithNoPermissions();
-        mockMvc.perform(put(URL_BASE + "/" + draftAccountId)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
-                .header("If-Match", "0")
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(AUTH_HEADER);
+        headers.add("If-Match", "0");
+
+        mockMvc.perform(put(URL_BASE + "/" + 241L)
+                .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(validCreateRequestBody()))
             .andExpect(status().isForbidden());

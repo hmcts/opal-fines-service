@@ -17,6 +17,7 @@ import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -49,7 +50,8 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5891")
     void testGetEnforcerById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerById: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -78,7 +80,8 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5889")
     void testGetEnforcerById_WhenEnforcerDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/2"))
+        mockMvc.perform(get(URL_BASE + "/2")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound());
     }
 
@@ -89,8 +92,9 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5888")
     void testPostEnforcersSearch() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"name\":\"aa\"}"));
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"name\":\"aa\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostEnforcersSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -120,14 +124,15 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5890")
     void testPostEnforcersSearch_WhenEnforcerDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(EnforcerSearchDto.builder()
-                                .enforcerId("001")
-                                .enforcerCode("001")
-                                .warrantReferenceSequence("101/09/00000")
-                                .warrantRegisterSequence("666")
-                                .build().toJson()))
-                            .andExpect(status().isOk());
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(EnforcerSearchDto.builder()
+                    .enforcerId("001")
+                    .enforcerCode("001")
+                    .warrantReferenceSequence("101/09/00000")
+                    .warrantRegisterSequence("666")
+                    .build().toJson()))
+            .andExpect(status().isOk());
     }
 
     @Test
@@ -138,7 +143,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5887")
     void testGetEnforcerRefData() throws Exception {
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .header("authorization", userStateStub.getBearerToken()));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetEnforcerRefData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -170,7 +175,7 @@ class EnforcerControllerIntegrationTest extends AbstractIntegrationTest {
 
     private String performRequest() throws Exception {
         return mockMvc.perform(get(URL_BASE)
-                .header("authorization", userStateStub.getBearerToken()))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

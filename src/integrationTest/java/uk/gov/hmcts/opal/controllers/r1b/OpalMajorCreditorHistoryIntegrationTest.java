@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.aMapWithSize;
 import static org.hamcrest.Matchers.allOf;
@@ -20,6 +22,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -32,6 +36,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -59,9 +64,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final short BUSINESS_UNIT_ID = 32643;
-    private static final short OTHER_BUSINESS_UNIT_ID = 10;
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
+
     private static final String URL = "/major-creditor-accounts/{id}/history";
+
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private LoggingService loggingService;
@@ -70,6 +78,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     void setUpAuthorisedUser() {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.createAuthentication(userServiceWireMock);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
@@ -232,13 +241,23 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-9466")
     void getHistory_enforcesPermissionAcrossBusinessUnits() throws Exception {
-        userStateStub.setupWithNoPermissions();
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
 
         getHistory()
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
-        userStateStub.addPermissions(OTHER_BUSINESS_UNIT_ID, SEARCH_AND_VIEW_ACCOUNTS);
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-0-state.json")));
 
         getHistory()
             .andExpect(status().isOk())
@@ -304,8 +323,7 @@ class OpalMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     private ResultActions getHistory(String... queryParams) throws Exception {
         MockHttpServletRequestBuilder request = get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER);
 
         for (int index = 0; index < queryParams.length; index += 2) {
             request.queryParam(queryParams[index], queryParams[index + 1]);

@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
@@ -12,11 +11,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -29,7 +29,6 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -54,8 +53,10 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private InterfaceFileRepository interfaceFileRepository;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     @Test
     @JiraStory("PO-2577")
@@ -140,11 +141,11 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void stubPermission(Short... businessUnitIds) {
+        userStateStub.setupWithNoPermissions();
         for (Short businessUnitId : businessUnitIds) {
-            List<Short> businessUnitIdList = List.of(businessUnitId);
-            when(userStateService.getPermittedBusinessUnitIds(
-                businessUnitIdList, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(businessUnitIdList);
+            userStateStub.addPermissions(businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         }
+        SecurityContextHolder.getContext().setAuthentication(userStateStub.getOpalJwtAuthenticationToken());
     }
 
     private List<InterfaceJobEntity> jobsByInterfaceName(String interfaceName) {

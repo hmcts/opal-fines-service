@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.aMapWithSize;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
@@ -9,6 +9,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -20,7 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,19 +29,17 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -70,9 +69,6 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     private static final String REQUEST_IP_ADDRESS = "192.0.2.10";
 
     @MockitoBean
-    private UserStateService userStateService;
-
-    @MockitoBean
     private LoggingService loggingService;
 
     @MockitoBean
@@ -95,7 +91,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
         stubPermittedOpalUser();
 
         // Act & Assert
-        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(authorisedGet(URL))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", aMapWithSize(SUMMARY_RESPONSE_FIELD_COUNT)))
@@ -130,7 +126,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             logUtil.when(LogUtil::getIpAddress).thenReturn(REQUEST_IP_ADDRESS);
 
             // Act & Assert
-            mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+            mockMvc.perform(authorisedGet(URL))
                 .andExpect(status().isOk());
         }
 
@@ -156,10 +152,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-2468")
     void rejectsUserWithoutBusinessUnitPermission() throws Exception {
 
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        stubUserWithoutPermissions();
 
-        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(authorisedGet(URL))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
@@ -188,13 +183,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-2468")
     void rejectsCallerWithoutOpalUserIdentity() throws Exception {
 
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of(BUSINESS_UNIT_ID));
-        when(userStateService.getUserStateFromSecurityContext())
-            .thenThrow(new AccessDeniedException("Unexpected token type"));
-
-        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON).with(jwt()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
@@ -209,11 +198,11 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
         stubPermittedOpalUser();
 
-        MvcResult firstResult = mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        MvcResult firstResult = mockMvc.perform(authorisedGet(URL))
             .andExpect(status().isOk())
             .andReturn();
 
-        MvcResult secondResult = mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        MvcResult secondResult = mockMvc.perform(authorisedGet(URL))
             .andExpect(status().isOk())
             .andReturn();
 
@@ -230,7 +219,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
         stubPermittedOpalUser();
         when(loggingService.personalDataAccessLogAsync(any())).thenThrow(new RuntimeException("logging unavailable"));
 
-        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(authorisedGet(URL))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.file_name").value("processed-summary.dat"));
 
@@ -245,7 +234,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
         stubPermittedOpalUser();
 
-        mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(authorisedGet(IGNORED_URL))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.file_name").value("ignored-summary.dat"))
             .andExpect(jsonPath("$.business_unit_name").value("Processed Summary BU"))
@@ -263,10 +252,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-2468")
     void rejectsIgnoredFileWithoutInterfaceJobBusinessUnitPermission() throws Exception {
 
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        stubUserWithoutPermissions();
 
-        mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
+        mockMvc.perform(authorisedGet(IGNORED_URL))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
 
@@ -274,18 +262,29 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     }
 
     private void stubPermittedOpalUser() {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of(BUSINESS_UNIT_ID));
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateV2.builder()
+        userStateStub.setupWithNoPermissions(userStateStub.getDefaultUserStateBuilder()
             .userId(1L)
             .username("test-user")
-            .name("Test User")
-            .build());
+            .name("Test User"));
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        userStateStub.createAuthentication(userServiceWireMock);
+    }
+
+    private void stubUserWithoutPermissions() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
+    }
+
+    private MockHttpServletRequestBuilder authorisedGet(String url) {
+        return get(url)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(AUTHORIZATION, userStateStub.getBearerToken());
     }
 
     private void assertNotFound(String url) throws Exception {
-        mockMvc.perform(get(url).accept(MediaType.APPLICATION_JSON))
+        stubPermittedOpalUser();
+
+        mockMvc.perform(authorisedGet(url))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().exists("operation_id"))

@@ -30,6 +30,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
@@ -835,6 +836,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5857")
     void testPostDraftAccount_trap403Response_noPermission() throws Exception {
+        userStateStub.setupWithNoPermissions();
 
         String validRequestBody = validCreateRequestBody();
         ResultActions resultActions = mockMvc.perform(post(URL_BASE)
@@ -863,6 +865,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5854")
     void testPostDraftAccount_trap403Response_wrongPermission() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 78, FinesPermission.ACCOUNT_ENQUIRY);
 
         String validRequestBody = validCreateRequestBody();
 
@@ -892,6 +896,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @JiraEpic("PO-2219")
     @JiraTestKey("PO-5858")
     void testPostDraftAccount_trap403Response_wrongBusinessUnitPermission() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
 
         String validRequestBody = validCreateRequestBody();
 

@@ -1,7 +1,7 @@
 package uk.gov.hmcts.opal.controllers.till;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,16 +10,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 
-import java.util.List;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -33,8 +32,8 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     private static final String URL = "/tills/99000000836200";
     private static final Short BUSINESS_UNIT_ID = (short) 8362;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @Test
     @DisplayName("PO-8362 INT.01 - Returns till with fine and suspense payments")
@@ -42,10 +41,9 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-3629")
     @JiraEpic("PO-3635")
     void returnsTill() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of(BUSINESS_UNIT_ID));
+        permitBusinessUnit();
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.till_number").value(8362))
@@ -82,10 +80,10 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-3629")
     @JiraEpic("PO-3635")
     void rejectsUnpermittedBusinessUnit() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(BUSINESS_UNIT_ID), PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
-        mockMvc.perform(get(URL))
+        mockMvc.perform(get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"));
@@ -97,10 +95,19 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-3629")
     @JiraEpic("PO-3635")
     void returnsNotFound() throws Exception {
-        mockMvc.perform(get("/tills/99000000836999"))
+        permitBusinessUnit();
+
+        mockMvc.perform(get("/tills/99000000836999")
+                .header(AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Entity Not Found"));
+    }
+
+    private void permitBusinessUnit() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, PROCESS_AND_ALLOCATE_PAYMENTS);
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 
 }

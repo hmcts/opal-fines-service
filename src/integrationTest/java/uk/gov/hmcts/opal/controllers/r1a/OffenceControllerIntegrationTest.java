@@ -21,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -62,7 +63,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5985")
     void testGetOffenceById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/30000")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffenceById: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -84,7 +86,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5979")
     void testGetOffenceReferenceData() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE).param("cjs_code","CW96023"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param("cjs_code","CW96023"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffenceReferenceData: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -108,7 +112,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5987")
     void testGetOffenceById_WhenOffenceDoesNotExist() throws Exception {
-        mockMvc.perform(get(URL_BASE + "/999999"))
+        mockMvc.perform(get(URL_BASE + "/999999")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound());
     }
 
@@ -120,8 +125,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5983")
     void testPostOffencesSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                              .contentType(MediaType.APPLICATION_JSON)
-                                              .content("{\"cjs_code\":\"IC01001\"}"));
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"cjs_code\":\"IC01001\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -149,6 +155,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5989")
     void testPostOffencesSearch_WhenOffenceDoesNotExist() throws Exception {
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"cjs_code\":\"NOTREALCODE\"}"));
 
@@ -169,7 +176,8 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetOffencesWithCjsCode() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
-                                                    .param("cjs_code", "CW96023"));
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param("cjs_code", "CW96023"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetOffencesWithCjsCode: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -192,6 +200,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     void testGetOffencesWithMultipleCjsCodes() throws Exception {
 
         ResultActions actions = mockMvc.perform(get(URL_BASE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                 .param("cjs_code","WT67003","ZP97010"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
@@ -211,6 +220,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5986")
     void testPostOffencesSearchWithActiveDate() throws Exception {
         ResultActions actions = mockMvc.perform(post("/offences/search")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
             {
@@ -236,8 +246,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5991")
     void testPostOffencesPartialCodeSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"cjs_code\":\"FB\"}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"cjs_code\":\"FB\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesPartialCodeSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -259,8 +270,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5980")
     void testPostOffencesPartialTitleSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"title\":\"enoc\"}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"title\":\"enoc\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesPartialTitleSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -282,8 +294,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5982")
     void testPostOffencesPartialActSearch() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"act_and_section\":\"ootball Spectators Act 1989\"}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"act_and_section\":\"ootball Spectators Act 1989\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesPartialActSearch: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -305,8 +318,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5984")
     void testPostOffencesLargeCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"cjs_code\":\"A\"}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"cjs_code\":\"A\"}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesLargeCodeCount: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -328,8 +342,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5981")
     void testPostOffencesMaxLimitCodeCount() throws Exception {
         ResultActions actions =  mockMvc.perform(post(URL_BASE + "/search")
-                                                     .contentType(MediaType.APPLICATION_JSON)
-                                                     .content("{\"cjs_code\":\"A\",\"max_results\":100}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"cjs_code\":\"A\",\"max_results\":100}"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostOffencesMaxLimitCodeCount: Response body:\n" + ToJsonString.toPrettyJson(body));
@@ -376,7 +391,9 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     private String performOffenceRefDataRequest() throws Exception {
-        return mockMvc.perform(get(URL_BASE).param("cjs_code", "CW96023"))
+        return mockMvc.perform(get(URL_BASE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+                .param("cjs_code", "CW96023"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()
@@ -385,6 +402,7 @@ class OffenceControllerIntegrationTest extends AbstractIntegrationTest {
 
     private String performOffenceSearchRequest() throws Exception {
         return mockMvc.perform(post(URL_BASE + "/search")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"cjs_code\":\"IC01001\"}"))
             .andExpect(status().isOk())

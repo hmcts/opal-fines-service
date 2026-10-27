@@ -5,24 +5,22 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -35,19 +33,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.server.ResponseStatusException;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.databind.JsonNode;
-import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyConsolidatedAccount;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
 import uk.gov.hmcts.opal.repository.ConsolidatedAccountRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -62,27 +55,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
-    private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
 
-    @MockitoBean
-    private UserStateService userStateService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
 
     @MockitoBean
     private ConsolidatedAccountRepository consolidatedAccountRepository;
-
-    @BeforeEach
-    void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
-    }
 
     @Test
     @DisplayName("PO-2335 Legacy: INT.01 returns consolidated child accounts from legacy gateway")
@@ -129,8 +111,6 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9411")
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse();
 
         performGetConsolidatedAccounts(233300L)
@@ -144,8 +124,6 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9406")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse();
 
         performGetConsolidatedAccounts(233300L)
@@ -210,7 +188,8 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9412")
     void getConsolidatedAccounts_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         performGetConsolidatedAccounts(233300L)
             .andExpect(status().isForbidden())
@@ -229,14 +208,11 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9407")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
         mockMvc.perform(get(URL_BASE + "/233300/consolidated-accounts"))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.status").value(401))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
 
         verifyNoInteractions(gatewayService);
@@ -273,7 +249,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
 
     private ResultActions performGetConsolidatedAccounts(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/consolidated-accounts")
-                                   .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
+                .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE)
                                    .accept(MediaType.APPLICATION_JSON));
     }
 

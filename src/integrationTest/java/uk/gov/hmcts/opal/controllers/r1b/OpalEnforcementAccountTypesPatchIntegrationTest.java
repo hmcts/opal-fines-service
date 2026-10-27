@@ -89,7 +89,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -126,7 +126,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -171,7 +171,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -208,7 +208,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -243,7 +243,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -282,7 +282,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -291,6 +291,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     .minimumBalance(new BigDecimal("200"))
                     .build()
             );
+
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -316,9 +317,6 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
         void patch_invalidPermissionReturnsError() throws Exception {
             authoriseNoPermissions(); // Auto enforcement permission
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(expiredToken);
-
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
                     .id(1L)
@@ -326,10 +324,10 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     .minimumBalance(new BigDecimal("200"))
                     .build()
             );
+
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                    .headers(headers)
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(toJsonString(body))
             );
@@ -354,7 +352,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             EnforcementAccountTypeEntity orig = jdbcTemplate.queryForObject(
                 "SELECT * FROM enforcement_account_types WHERE enforcement_account_type_id = '1'",
@@ -405,7 +403,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -456,7 +454,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -503,7 +501,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authorizeWithPermission(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()
@@ -512,6 +510,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
                     .minimumBalance(new BigDecimal("200"))
                     .build()
             );
+
             ResultActions res = mockMvc.perform(
                 patch(URL_BASE)
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
