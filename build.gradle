@@ -1172,7 +1172,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.37'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.38'
 
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
@@ -1222,7 +1222,7 @@ dependencies {
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.12'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.13'
   implementation 'org.flywaydb:flyway-core:13.11.1'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.11.1', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
@@ -1254,7 +1254,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop:2.12'
   implementation 'org.apache.xmlgraphics:fop-core:2.12'
   implementation 'org.apache.xmlgraphics:fop-events:2.12'
-  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
+  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.12'
   implementation 'org.apache.pdfbox:pdfbox:3.0.8'
   implementation 'net.sf.saxon:Saxon-HE:13.1'
 
