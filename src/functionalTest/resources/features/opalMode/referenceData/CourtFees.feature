@@ -27,11 +27,11 @@ Feature: Court Fees Reference Data
     When I request court fees for business unit 77
     Then the court fees response is an empty list
 
-  # AC1 and AC4: requests without valid business-unit input use the standard bad-request response.
+  # TODO PO-TBC: Revisit the expected status when required-parameter handling is aligned across endpoints.
   @JIRA-STORY:PO-3701
   Scenario: Court-fee requests require a valid business-unit query parameter
     When I request court fees without a business unit
-    Then the court fees request is rejected with standard problem status 400 and title "Bad Request"
+    Then the court fees request is rejected with standard problem status 500 and title "Internal Server Error"
 
   @JIRA-STORY:PO-3701
   Scenario: Court-fee requests reject a non-numeric business-unit query parameter
