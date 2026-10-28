@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
 
@@ -25,14 +26,14 @@ public class ReportCSVService {
      *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
      */
-    public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(T reportDataInterface) {
+    public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(ReportInstanceEntity reportInstance, T reportDataInterface) {
         @SuppressWarnings("unchecked")
         ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportCSVMapperRegistry
             .get(reportDataInterface.getClass());
         if (reportCSVMapper == null) {
             throw new UnprocessableException("Report cannot be converted to CSV format.");
         }
-        String csv = reportCSVMapper.reportToCSVString(reportDataInterface);
+        String csv = reportCSVMapper.reportToCSVString(reportInstance, reportDataInterface);
         return csv.getBytes(StandardCharsets.UTF_8);
     }
 }

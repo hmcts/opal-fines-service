@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_L
 import java.math.BigDecimal;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.service.report.CashListReportData;
 import uk.gov.hmcts.opal.service.report.CashListReportData.CashListEntry;
 
@@ -21,7 +22,7 @@ public class CashListReportCSVMapper implements ReportCSVMapper<CashListReportDa
     }
 
     @Override
-    public String reportToCSVString(CashListReportData cashListReportData) {
+    public String reportToCSVString(ReportInstanceEntity instanceEntity, CashListReportData cashListReportData) {
         validateReportData(cashListReportData);
         StringBuilder sb = new StringBuilder();
         sb.append(dataListToFullCSVRow(headerRow()));

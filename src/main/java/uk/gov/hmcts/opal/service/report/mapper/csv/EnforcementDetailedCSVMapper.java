@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
 /**
@@ -134,7 +135,7 @@ public class EnforcementDetailedCSVMapper
 
 
     @Override
-    public String reportToCSVString(OperationDetailedReport operationDetailedReport) {
+    public String reportToCSVString(ReportInstanceEntity instanceEntity, OperationDetailedReport operationDetailedReport) {
         StringBuilder sb = new StringBuilder();
         sb.append(dataListToFullCSVRow(header1Row())).append(dataListToFullCSVRow(header2Row()));
         for (DetailedAccountReportDto dto :
