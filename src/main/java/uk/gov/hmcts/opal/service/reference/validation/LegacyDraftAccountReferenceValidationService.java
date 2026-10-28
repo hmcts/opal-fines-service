@@ -1,18 +1,11 @@
 package uk.gov.hmcts.opal.service.reference.validation;
 
-import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
-import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.util.JsonPathUtil;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 
 @Service
