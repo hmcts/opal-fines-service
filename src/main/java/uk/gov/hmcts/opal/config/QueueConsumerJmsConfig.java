@@ -41,25 +41,12 @@ public class QueueConsumerJmsConfig {
     }
 
     @Bean
-    public DefaultJmsListenerContainerFactory reportListenerContainerFactory(
-        @Qualifier("opalFinesConsumerConnection")
-        ConnectionFactory reportConsumerConnectionFactory) {
-        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(reportConsumerConnectionFactory);
-        factory.setSessionTransacted(true);
-        return factory;
-    }
-
-    @Bean
     public DefaultJmsListenerContainerFactory opalFinesConsumerConnectionFactory(
         @Qualifier("opalFinesConsumerConnection")
-        ConnectionFactory reportConsumerConnectionFactory) {
-        DefaultJmsListenerContainerFactory factory =
-            new DefaultJmsListenerContainerFactory();
-
-        factory.setConnectionFactory(reportConsumerConnectionFactory);
+        ConnectionFactory opalFinesConsumerConnectionFactory) {
+        DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
+        factory.setConnectionFactory(opalFinesConsumerConnectionFactory);
         factory.setSessionTransacted(true);
-
         return factory;
     }
 }

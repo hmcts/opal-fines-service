@@ -42,16 +42,10 @@ public class InterfaceFileQueueListener {
     protected void consume(String messagePayload) {
         InterfaceFileQueueMessage message = parse(messagePayload);
 
-
+        log.info("Interface file queue message received. interfaceFileId={}", message.interfaceFileId());
         interfaceFileProcessorService.process(message.interfaceFileId());
 
-        log.info(
-            "Interface file queue message received. interfaceFileId={}",
-            message.interfaceFileId()
-        );
-
     }
-
 
     private InterfaceFileQueueMessage parse(String messagePayload) {
         if (messagePayload == null || messagePayload.isBlank()) {

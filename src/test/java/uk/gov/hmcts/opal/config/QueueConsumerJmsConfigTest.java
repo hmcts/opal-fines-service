@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import jakarta.jms.ConnectionFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,8 +21,6 @@ class QueueConsumerJmsConfigTest {
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withBean(ServiceBusConnectionStringParser.class, () -> serviceBusConnectionStringParser)
         .withBean(ReportQueueConsumerService.class, () -> mock(ReportQueueConsumerService.class))
-        .withBean("reportPublisherConnectionFactory", ConnectionFactory.class,
-            () -> mock(ConnectionFactory.class))
         .withUserConfiguration(QueueConsumerJmsConfig.class, ReportQueueListener.class);
 
     @Test
@@ -47,7 +43,6 @@ class QueueConsumerJmsConfigTest {
                 assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
 
                 assertThat(context)
-                    .hasBean("reportPublisherConnectionFactory")
                     .hasBean("opalFinesConsumerConnection")
                     .hasBean("reportListenerContainerFactory")
                     .hasBean("opalFinesConsumerConnectionFactory");

@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.service.messaging;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import jakarta.jms.TextMessage;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +15,15 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import org.springframework.core.io.ByteArrayResource;
+import uk.gov.hmcts.opal.service.filehandler.FileHandlerAPIService;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
+import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
+import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -26,52 +34,38 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 })
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
+    public static final String INTERFACE_FILE_ID_1 = """
+        {
+          "interfaceFileId": 1
+        }
+        """;
     @Autowired
     private InterfaceFileQueueListener listener;
 
     @MockitoBean
-    private InterfaceFileProcessorService interfaceFileProcessorService;
-
-    @MockitoBean
-    private TextMessage textMessage;
+    private FileHandlerAPIService fileHandlerAPIService;
 
     @Test
-    @DisplayName("AC1 - Valid message invokes processor service")
+    @DisplayName("AC1 - Valid message is processed successfully")
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
-    void ac1ValidMessageInvokesProcessorService() throws Exception {
+    void ac1ValidMessageIsProcessedSuccessfully() throws Exception {
 
-        when(textMessage.getText()).thenReturn("""
-            {
-              "interfaceFileId": 1
-            }
-            """);
+        TextMessage textMessage = mock(TextMessage.class);
+        when(textMessage.getText()).thenReturn(INTERFACE_FILE_ID_1);
 
-        listener.onMessage(textMessage);
+        InterfaceFileObject interfaceFileObject = sourceJsonInterfaceFile();
 
-        verify(interfaceFileProcessorService)
-            .process(1L);
-    }
+        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,1L))
+            .thenReturn(interfaceFileObject);
+        ByteArrayResource sourceJson = sourceHson();
+        when(fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER,1L))
+            .thenReturn(sourceJson);
+        InterfaceFileObject transformedFile = transformedJsonInterfaceFile();
 
-    @Test
-    @DisplayName("AC2 - Processing failure is propagated")
-    @JiraStory("PO-6459")
-    @JiraEpic("PO-6390")
-    void ac2ProcessingFailureIsPropagated() throws Exception {
+        when(fileHandlerAPIService.addInterfaceFile(any(), any(), any())).thenReturn(transformedFile);
+        assertThatCode(() -> listener.onMessage(textMessage)).doesNotThrowAnyException();
 
-        when(textMessage.getText()).thenReturn("""
-            {
-              "interfaceFileId": 1
-            }
-            """);
-
-        doThrow(new RuntimeException("processing failure"))
-            .when(interfaceFileProcessorService)
-            .process(1L);
-
-        assertThatThrownBy(() -> listener.onMessage(textMessage))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("processing failure");
     }
 
     @Test
@@ -79,7 +73,7 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
     void invalidPayloadThrowsException() throws Exception {
-
+        TextMessage textMessage = mock(TextMessage.class);
         when(textMessage.getText()).thenReturn("{invalid");
 
         assertThatThrownBy(() -> listener.onMessage(textMessage))
@@ -92,11 +86,58 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-6459")
     @JiraEpic("PO-6390")
     void blankPayloadThrowsException() throws Exception {
-
+        TextMessage textMessage = mock(TextMessage.class);
         when(textMessage.getText()).thenReturn(" ");
 
         assertThatThrownBy(() -> listener.onMessage(textMessage))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("payload is blank");
+    }
+
+    private static @NonNull ByteArrayResource sourceHson() {
+        ByteArrayResource sourceJson = new ByteArrayResource("""
+{
+  "payment_type": "CASH",
+  "destination_details": {
+    "bank_details": {
+      "sort_code": "123456",
+      "account_number": "01234567"
+    }
+  },
+  "transactions": [
+    {
+      "transaction_code": "00",
+      "amount": 100,
+      "date_entry_applied": "2026-10-28",
+      "originator_details": {
+        "account_reference": "99000001A"
+      }
+    }
+  ]
+}
+""".getBytes());
+        return sourceJson;
+    }
+
+    private InterfaceFileObject sourceJsonInterfaceFile() {
+        return new InterfaceFileObject()
+            .interfaceFileId(1L)
+            .type(InterfaceFileTypeEnum.SOURCE_JSON)
+            .domain(InterfaceFileObject.DomainEnum.FINES)
+            .target(InterfaceFileEnum.OPAL)
+            .source(InterfaceFileEnum.NATWEST)
+            .status(StatusEnum.SUCCESS)
+            .fileName("test.json");
+    }
+
+    private InterfaceFileObject transformedJsonInterfaceFile() {
+        return new InterfaceFileObject()
+            .interfaceFileId(999L)
+            .type(InterfaceFileTypeEnum.TRANSFORMED_JSON)
+            .domain(InterfaceFileObject.DomainEnum.FINES)
+            .target(InterfaceFileEnum.OPAL)
+            .source(InterfaceFileEnum.NATWEST)
+            .status(StatusEnum.SUCCESS)
+            .fileName("transformed.json");
     }
 }

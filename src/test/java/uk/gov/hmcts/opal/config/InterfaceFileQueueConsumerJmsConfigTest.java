@@ -72,6 +72,56 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     }
 
     @Test
+    void loadsInterfaceFileListenerWhenInterfaceFileEnabledAndReportDisabled() {
+
+        when(serviceBusConnectionStringParser.parse(anyString()))
+            .thenReturn(new ServiceBusConnectionStringParser.ConnectionDetails(
+                "example.servicebus.windows.net",
+                "RootManageSharedAccessKey",
+                "key"
+            ));
+
+        contextRunner
+            .withPropertyValues(
+                "opal.interface-file.service-bus.consumer-enabled=true",
+                "opal.report.service-bus.consumer-enabled=false",
+                "opal.common.service-bus.connection-string="
+                    + "Endpoint=sb://example.servicebus.windows.net/;"
+                    + "SharedAccessKeyName=RootManageSharedAccessKey;"
+                    + "SharedAccessKey=key",
+                "opal.interface-file.service-bus.queue-name="
+                    + "banking-interfaces-preprocess-interface-file-fines"
+            )
+            .run(context -> {
+                assertThat(context).hasSingleBean(InterfaceFileQueueListener.class);
+            });
+    }
+
+    @Test
+    void doesNotLoadInterfaceFileListenerWhenInterfaceFileDisabledAndReportEnabled() {
+
+        when(serviceBusConnectionStringParser.parse(anyString()))
+            .thenReturn(new ServiceBusConnectionStringParser.ConnectionDetails(
+                "example.servicebus.windows.net",
+                "RootManageSharedAccessKey",
+                "key"
+            ));
+
+        contextRunner
+            .withPropertyValues(
+                "opal.interface-file.service-bus.consumer-enabled=false",
+                "opal.report.service-bus.consumer-enabled=true",
+                "opal.common.service-bus.connection-string="
+                    + "Endpoint=sb://example.servicebus.windows.net/;"
+                    + "SharedAccessKeyName=RootManageSharedAccessKey;"
+                    + "SharedAccessKey=key"
+            )
+            .run(context -> {
+                assertThat(context).doesNotHaveBean(InterfaceFileQueueListener.class);
+            });
+    }
+
+    @Test
     void skipsJmsBeansWhenConsumerIsEnabledAndAutomatedJob() {
 
         contextRunner
