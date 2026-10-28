@@ -27,7 +27,7 @@ Feature: Court Fees Reference Data
     When I request court fees for business unit 77
     Then the court fees response is an empty list
 
-  # TODO PO-TBC: Revisit the expected status when required-parameter handling is aligned across endpoints.
+  # TODO PO-11305: Revisit the expected status when required-parameter handling is aligned across endpoints.
   @JIRA-STORY:PO-3701
   Scenario: Court-fee requests require a valid business-unit query parameter
     When I request court fees without a business unit
