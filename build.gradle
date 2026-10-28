@@ -1180,8 +1180,8 @@ dependencies {
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.3'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.48"
-  openapiImplementation "io.swagger.core.v3:swagger-models:2.2.55"
-  openapiImplementation "io.swagger.core.v3:swagger-core:2.2.55"
+  openapiImplementation "io.swagger.core.v3:swagger-models:3.0.0"
+  openapiImplementation "io.swagger.core.v3:swagger-core:3.0.0"
   openapiImplementation "tools.jackson.dataformat:jackson-dataformat-yaml"
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.10'
