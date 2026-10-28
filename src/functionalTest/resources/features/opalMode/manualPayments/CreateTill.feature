@@ -2,7 +2,7 @@
 Feature: Create till
 
   # AC1 — Authentication is required before a create request is accepted.
-  @JIRA-STORY:PO-3630
+  @JIRA-STORY:PO-3630 @JIRA-TEST-KEY:PO-10967
   Scenario: Till creation rejects a missing access token
     When I call POST "/tills" without a token
     Then the request is rejected as unauthorized
