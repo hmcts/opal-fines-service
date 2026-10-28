@@ -30,7 +30,7 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_correctlyDelegatesToOpalService() {
-        try(MockedStatic<JsonPathUtil> jsonPathUtil = mockStatic(JsonPathUtil.class)) {
+        try (MockedStatic<JsonPathUtil> jsonPathUtil = mockStatic(JsonPathUtil.class)) {
             // Arrange
             String accountJson = "{}";
             DocContext docContext = mock(DocContext.class);
