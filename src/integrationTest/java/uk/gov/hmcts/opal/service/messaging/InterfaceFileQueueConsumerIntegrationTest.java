@@ -115,7 +115,7 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
     }
   ]
 }
-""".getBytes());
+            """.getBytes());
         return sourceJson;
     }
 
