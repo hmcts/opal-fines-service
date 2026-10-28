@@ -3,9 +3,12 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES;
+import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +35,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true",
     "launchdarkly.default-flag-values.release-1b-1-2=true"
 })
 @Slf4j(topic = "opal.OpalNotesR1B12IntegrationTest")
@@ -56,7 +60,7 @@ public class OpalNotesR1B12IntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setup() {
-        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES);
+        userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES, SEARCH_AND_VIEW_ACCOUNTS);
     }
 
     @Test
@@ -81,6 +85,17 @@ public class OpalNotesR1B12IntegrationTest extends AbstractIntegrationTest {
         assertThat(savedNote.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
         assertThat(savedNote.getAssociatedRecordId()).isEqualTo(Long.toString(77L));
         assertThat(savedNote.getBusinessUnitUserId()).isEqualTo("L078JG").isNotEqualTo("78");
+
+        mockMvc.perform(get("/defendant-accounts/77/history")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .header("Business-Unit-Id", "78"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[0].details.noteText")
+                .value("Business-unit user integration test"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by").value("L078JG"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_by_name").value("Pablo"));
     }
 
     @Test
