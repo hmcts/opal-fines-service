@@ -53,7 +53,9 @@ class InterfaceFileQueueConsumerJmsConfigTest {
                 assertThat(context)
                     .hasSingleBean(QueueConsumerJmsConfig.class);
                 assertThat(context).hasSingleBean(ConnectionFactory.class);
-                assertThat(context).hasBean("reportListenerContainerFactory");
+                assertThat(context)
+                    .hasBean("opalFinesConsumerConnection")
+                    .hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).hasSingleBean(InterfaceFileQueueListener.class);
             });

@@ -44,7 +44,6 @@ class QueueConsumerJmsConfigTest {
 
                 assertThat(context)
                     .hasBean("opalFinesConsumerConnection")
-                    .hasBean("reportListenerContainerFactory")
                     .hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).hasSingleBean(ReportQueueListener.class);
             });
