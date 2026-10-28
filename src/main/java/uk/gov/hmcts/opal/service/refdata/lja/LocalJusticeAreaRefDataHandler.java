@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
-import uk.gov.hmcts.opal.refdata.dto.PrisonRecord;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 @Component

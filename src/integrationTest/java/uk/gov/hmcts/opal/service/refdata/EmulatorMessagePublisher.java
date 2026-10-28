@@ -24,7 +24,7 @@ public final class EmulatorMessagePublisher {
         final Short localJusticeAreaId = (short)401;
         String payload = MessageBuilder.buildRefDataLjaMessage("LJA", 1, true, String.valueOf(localJusticeAreaId),
             "Updated LJA", "2027-03-04",
-            "New address Chewie 171",
+            "New address NovaChips 171",
             "New address line 2SR1910",
             "New address line 3",
             "New address line 4",

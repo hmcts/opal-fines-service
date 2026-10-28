@@ -17,18 +17,6 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class LjaRecord implements ToJsonString {
 
-    @JsonProperty("cja_code")
-    private String cjaCode;
-
-    @JsonProperty("common_platform_uuid")
-    private String commonPlatformUUID;
-
-    @JsonProperty("division_code")
-    private String divisionCode;
-
-    @JsonProperty("end_date")
-    private LocalDate endDate;
-
     @JsonProperty("lja_code")
     private String ljaCode;
 
@@ -38,29 +26,14 @@ public class LjaRecord implements ToJsonString {
     @JsonProperty("lja_type")
     private String ljaType;
 
-    @JsonProperty("lja_welsh_name")
-    private String ljaWelshName;
-
-    @JsonProperty("notes")
-    private String notes;
-
     @JsonProperty("start_date")
     private LocalDate startDate;
 
-    @JsonProperty("cluster_information_code")
-    private Integer clusterInformationCode;
-
-    @JsonProperty("enforcement_area_code")
-    private Integer enforcementAreaCode;
-
-    @JsonProperty("region_code")
-    private Integer regionCode;
+    @JsonProperty("end_date")
+    private LocalDate endDate;
 
     @JsonProperty("addresses")
     private List<Address> addresses;
-
-    @JsonProperty("contact_information")
-    private List<ContactInformation> contactInformation;
 
     @Data
     @Builder
@@ -89,22 +62,5 @@ public class LjaRecord implements ToJsonString {
 
         @JsonProperty("post_code")
         private String postCode;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public static class ContactInformation implements ToJsonString {
-
-        @JsonProperty("contact_sub_type")
-        private String contactSubType;
-
-        @JsonProperty("contact_type")
-        private String contactType;
-
-        @JsonProperty("contact_value")
-        private String contactValue;
     }
 }

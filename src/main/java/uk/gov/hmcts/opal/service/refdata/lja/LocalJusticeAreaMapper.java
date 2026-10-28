@@ -15,6 +15,7 @@ public interface LocalJusticeAreaMapper {
     @Mapping(target = "ljaCode", ignore = true)
     @Mapping(target = "ljaType", constant = "LJA")
     @Mapping(target = "name", source = "ljaName")
+    @Mapping(target = "endDate", expression = "java(toLocalDateTime(dto.getEndDate()))")
     @Mapping(target = "addressLine1", expression = "java(firstAddressLine1(dto))")
     @Mapping(target = "addressLine2", expression = "java(firstAddressLine2(dto))")
     @Mapping(target = "addressLine3", expression = "java(firstAddressLine3(dto))")
