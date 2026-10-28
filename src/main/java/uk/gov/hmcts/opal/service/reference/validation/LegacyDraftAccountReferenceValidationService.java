@@ -35,7 +35,7 @@ public class LegacyDraftAccountReferenceValidationService extends AbstractDraftA
     @Override
     void validatePaymentTermsEnforcements(DocContext docContext, List<String> failures,
         Map<String, Optional<ResultEntity>> resultCache) {
-        opalService.validatePaymentTermsEnforcements(docContext, failures, new HashMap<>());
+        opalService.validatePaymentTermsEnforcements(docContext, failures, resultCache);
     }
 
     @Override
