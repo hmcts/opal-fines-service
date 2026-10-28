@@ -21,6 +21,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -52,7 +54,7 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(userStateStub.getUserStateAsJson())));
+                .withBody(userStateStub.getUserStateDtoAsJson())));
 
         WireMock.verify(0, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 
@@ -68,6 +70,10 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
         UserStateV2 userStateFromUserServiceStub = userStateClientService.getUserStateByAuthenticationToken(jwt)
             .orElseThrow();
         assertThat(userStateFromUserServiceStub.getName()).isEqualTo("Pablo");
+        PermissionV2 permission = userStateFromUserServiceStub.getDomainBusinessUnitUsers(Domain.FINES)
+            .getBusinessUnitUsers().getFirst().getPermissions().iterator().next();
+        assertThat(permission.getPermissionCode()).isNotBlank();
+        assertThat(permission.getPermissionName()).isNotBlank();
         WireMock.verify(1, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 
         //we have only a stub user service so need to update cache ourselves

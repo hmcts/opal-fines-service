@@ -30,8 +30,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor.Specific
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData.ConfigItemRefData;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
@@ -238,28 +240,25 @@ class BusinessUnitServiceTest {
             .put("Key2", "Item Values Two");
     }
 
-    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+    private static DomainBusinessUnitUsers businessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
         return DomainBusinessUnitUsers.builder()
             .businessUnitUsers(List.of(businessUnitUsers))
             .build();
     }
 
-    private static BusinessUnitUser businessUnitUser(
+    private static BusinessUnitUserV2 businessUnitUser(
         short businessUnitId, String businessUnitUserId, FinesPermission... permissions) {
 
-        return BusinessUnitUser.builder()
+        return BusinessUnitUserV2.builder()
             .businessUnitId(businessUnitId)
             .businessUnitUserId(businessUnitUserId)
             .permissions(permissionsFor(permissions))
             .build();
     }
 
-    private static Set<Permission> permissionsFor(FinesPermission... permissions) {
+    private static Set<PermissionV2> permissionsFor(FinesPermission... permissions) {
         return Arrays.stream(permissions)
-            .map(permission -> Permission.builder()
-                .permissionId(permission.getId())
-                .permissionName(permission.getDescription())
-                .build())
+            .map(FinesPermission::toCommonPermission)
             .collect(Collectors.toSet());
     }
 }

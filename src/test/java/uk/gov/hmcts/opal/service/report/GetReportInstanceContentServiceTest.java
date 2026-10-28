@@ -391,13 +391,15 @@ class GetReportInstanceContentServiceTest {
         void whenBusinessUnitsMissing_throwsPermissionNotAllowedException_sadPath(List<Short> businessUnits) {
             reportInstance.setBusinessUnit(businessUnits);
             mock_reportInstanceAtLocation(LOCATION);
-            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission()))
+                .thenReturn(true);
 
             assertAll(
                 () -> assertThatThrownBy(() -> getReportInstanceContentService.getReportInstanceContent(1L, JSON))
                     .isInstanceOf(PermissionNotAllowedException.class),
                 () -> verify(authToken, never())
-                    .hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77)
+                    .hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission(),
+                        (short) 77)
             );
         }
 
@@ -453,9 +455,10 @@ class GetReportInstanceContentServiceTest {
         @Test
         void whenUserLacksBusinessUnitPermission_throwsPermissionNotAllowedException() {
             mock_reportInstanceAtLocation(LOCATION);
-            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-            when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77))
-                .thenReturn(false);
+            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission()))
+                .thenReturn(true);
+            when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission(),
+                (short) 77)).thenReturn(false);
 
             assertAll(
                 () -> assertThatThrownBy(() -> getReportInstanceContentService.getReportInstanceContent(1L, JSON))
@@ -487,8 +490,10 @@ class GetReportInstanceContentServiceTest {
     }
 
     private void mock_hasPermissionForReportAndBusinessUnit() {
-        when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77))
+        when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission()))
+            .thenReturn(true);
+        when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission(),
+            (short) 77))
             .thenReturn(true);
     }
 

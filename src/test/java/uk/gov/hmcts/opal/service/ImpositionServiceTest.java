@@ -23,7 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.dto.ImpositionTotalsDto;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
@@ -41,7 +41,7 @@ class ImpositionServiceTest {
     private UserStateService userStateService;
 
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
 
     @Mock
     private ImpositionServiceProxy impositionServiceProxy;
@@ -123,7 +123,7 @@ class ImpositionServiceTest {
                 GetDefendantAccountImpositionsResponse.builder()
                     .version(BigInteger.valueOf(9))
                     .build();
-            when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
             when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
                 .thenReturn(true);
             when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
@@ -132,7 +132,7 @@ class ImpositionServiceTest {
 
             assertAll(
                 () -> assertSame(impositionsResponse, result),
-                () -> verify(userStateService).getUserStateV1FromSecurityContext(),
+                () -> verify(userStateService).getUserStateFromSecurityContext(),
                 () -> verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
                 () -> verify(impositionServiceProxy).getImpositions(defendantAccountId),
                 () -> verify(pdplLoggingService).logIndividualMinorCreditors(userState, impositionsResponse),
@@ -144,14 +144,14 @@ class ImpositionServiceTest {
         @Test
         void whenUserLacksPermission_throwsPermissionNotAllowed_sadPath() {
             Long defendantAccountId = 77L;
-            when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
             when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
                 .thenReturn(false);
 
             assertAll(
                 () -> assertThrows(PermissionNotAllowedException.class,
                     () -> impositionService.getImpositions(defendantAccountId)),
-                () -> verify(userStateService).getUserStateV1FromSecurityContext(),
+                () -> verify(userStateService).getUserStateFromSecurityContext(),
                 () -> verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
                 () -> verifyNoInteractions(impositionServiceProxy, pdplLoggingService),
                 () -> verifyNoMoreInteractions(userStateService, userState)

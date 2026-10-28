@@ -33,7 +33,6 @@ import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +47,10 @@ import org.springframework.security.access.AccessDeniedException;
 import tools.jackson.core.exc.StreamConstraintsException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -105,15 +107,15 @@ class GenericReportServiceTest {
     @Mock
     private UserStateService userStateService;
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
     @Mock
     private ReportParameterValidator reportParameterValidator;
     @Mock
     private ReportQueuePublisher reportQueuePublisher;
     @Mock
-    private BusinessUnitUser businessUnitUser1;
+    private BusinessUnitUserV2 businessUnitUser1;
     @Mock
-    private BusinessUnitUser businessUnitUser2;
+    private BusinessUnitUserV2 businessUnitUser2;
 
     @Mock
     BusinessUnitRepository businessUnitRepository;
@@ -278,8 +280,9 @@ class GenericReportServiceTest {
     @Test
     void getReportInstance_whenUserHasAccessToOneOfMultipleBusinessUnits_returnsReportInstance() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser1)).build());
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 1);
         reportInstance.setBusinessUnit(List.of((short) 1, (short) 2));
         when(businessUnitRepository.findAllById(List.of((short) 1, (short) 2))).thenReturn(
@@ -298,8 +301,9 @@ class GenericReportServiceTest {
     @Test
     void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_throwsAccessDenied() {
         when(reportInstanceRepository.findById(1L)).thenReturn(Optional.of(reportInstance));
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser1));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser1)).build());
         when(businessUnitUser1.getBusinessUnitId()).thenReturn((short) 3);
         reportInstance.setBusinessUnit(List.of((short) 1, (short) 2));
 

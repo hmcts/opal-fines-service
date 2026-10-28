@@ -191,7 +191,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     void getConsolidatedAccounts_whenMissingPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
         doReturn(UserStateUtil.noPermissionsUser())
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -211,7 +211,7 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @JiraTestKey("PO-9377")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID)))
             .andExpect(status().isUnauthorized())
@@ -269,6 +269,6 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
 
     private void mockUserWithPermission(short businessUnitId) {
         doReturn(UserStateUtil.permissionUser(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
     }
 }

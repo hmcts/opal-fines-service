@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 
-import java.util.Set;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsNull;
@@ -22,12 +22,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
 import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
@@ -57,21 +60,21 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     UserStateService userStateService;
 
     @MockitoBean
-    UserState userState;
+    UserStateV2 userState;
 
     @MockitoBean
-    BusinessUnitUser buUser1;
+    BusinessUnitUserV2 buUser1;
 
     @MockitoBean
-    BusinessUnitUser buUser2;
+    BusinessUnitUserV2 buUser2;
 
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8275")
     void getReportInstance_success_singleBUInstance() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -111,8 +114,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8280")
     void getReportInstance_success_multiBUInstance() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1, buUser2);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
 
@@ -143,8 +146,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8279")
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1, buUser2);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
         Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
 
@@ -168,8 +171,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8272")
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -196,8 +199,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8273")
     void getReportInstance_success_allSupportedTypes() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -220,8 +223,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8276")
     void getReportInstance_success_reportParameters() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -243,8 +246,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8281")
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -270,8 +273,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8277")
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -297,7 +300,7 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8270")
     void getReportInstance_401_noToken() throws Exception {
         Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
@@ -310,8 +313,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -333,8 +336,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8274")
     void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_returnsForbidden() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn((short) 3);
 
         ResultActions result = mockMvc.perform(
@@ -353,8 +356,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8271")
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
+        Mockito.when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        mockFinesBusinessUnitUsers(buUser1);
         Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
 
         ResultActions result = mockMvc.perform(
@@ -379,6 +382,11 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
                 .header("authorization", "Bearer some_value"));
 
         result.andExpect(status().isNotAcceptable());
+    }
+
+    private void mockFinesBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
+        Mockito.when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(
+            DomainBusinessUnitUsers.builder().businessUnitUsers(List.of(businessUnitUsers)).build());
     }
 
 }

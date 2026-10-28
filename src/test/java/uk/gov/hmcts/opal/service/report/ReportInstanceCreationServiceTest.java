@@ -9,14 +9,16 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.USER_ID;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -29,9 +31,9 @@ class ReportInstanceCreationServiceTest {
     @Mock
     private GenericReportService genericReportService;
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
     @Mock
-    private BusinessUnitUser businessUnitUser;
+    private BusinessUnitUserV2 businessUnitUser;
 
     @Test
     void createReportInstance_whenUserHasBusinessUnit_accessesGrs() {
@@ -46,10 +48,11 @@ class ReportInstanceCreationServiceTest {
         CreateReportInstanceResponseReports response =
             CreateReportInstanceResponseReports.builder().reportInstanceId(123L).build();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.getUserId()).thenReturn(USER_ID);
-        when(userState.getUserName()).thenReturn("test-user");
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser));
+        when(userState.getUsername()).thenReturn("test-user");
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser)).build());
         when(businessUnitUser.getBusinessUnitId()).thenReturn((short) 1);
         when(genericReportService.addReportInstance(request, USER_ID, "test-user", true)).thenReturn(response);
 
@@ -72,8 +75,9 @@ class ReportInstanceCreationServiceTest {
             .reportParameters(Map.of())
             .build();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUser()).thenReturn(Set.of(businessUnitUser));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUser)).build());
         when(businessUnitUser.getBusinessUnitId()).thenReturn((short) 1);
 
         // Act / Assert

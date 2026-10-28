@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
 import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -19,15 +21,16 @@ public class ReportInstanceCreationService {
     private final GenericReportService genericReportService;
 
     public CreateReportInstanceResponseReports createReportInstance(CreateReportInstanceRequestReports request) {
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         validateCreateReportInstanceRequest(request, userState);
-        return genericReportService.addReportInstance(request, userState.getUserId(), userState.getUserName(), true);
+        return genericReportService.addReportInstance(request, userState.getUserId(), userState.getUsername(), true);
     }
 
     private void validateCreateReportInstanceRequest(CreateReportInstanceRequestReports request,
-        UserState userState) {
-        Set<Short> permittedBusinessUnits = userState.getBusinessUnitUser().stream()
-            .map(BusinessUnitUser::getBusinessUnitId)
+        UserStateV2 userState) {
+        Set<Short> permittedBusinessUnits = userState.getDomainBusinessUnitUsers(Domain.FINES)
+            .getBusinessUnitUsers().stream()
+            .map(BusinessUnitUserV2::getBusinessUnitId)
             .collect(Collectors.toSet());
         if (!permittedBusinessUnits.containsAll(request.getBusinessUnitIds())) {
             throw new AccessDeniedException("You cannot generate reports for other business units");

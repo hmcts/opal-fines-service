@@ -26,7 +26,9 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -110,10 +112,11 @@ public class GenericReportService implements GenericReportServiceInterface {
         ReportInstanceEntity reportInstanceEntity = reportInstanceRepository.findById(reportInstanceId)
             .orElseThrow(() -> new EntityNotFoundException("Report instance not found with id: " + reportInstanceId));
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         List<Short> businessUnitIdsForReportInstance = reportInstanceEntity.getBusinessUnit();
-        if (userState.getBusinessUnitUser().stream().map(BusinessUnitUser::getBusinessUnitId)
+        if (userState.getDomainBusinessUnitUsers(Domain.FINES).getBusinessUnitUsers().stream()
+            .map(BusinessUnitUserV2::getBusinessUnitId)
             .noneMatch(businessUnitIdsForReportInstance::contains)) {
             throw new AccessDeniedException("You cannot request report instances associated with other business units");
         }

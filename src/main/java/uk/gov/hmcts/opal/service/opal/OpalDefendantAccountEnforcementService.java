@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.entity.EnforcerEntity;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
@@ -196,7 +196,7 @@ public class OpalDefendantAccountEnforcementService
 
         String resultResponses = objectMapper.writeValueAsString(toResultResponsesMap(enforcementResultResponses));
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         DefendantAccountEntity defendant = defendantAccountRepositoryService.findById(defendantAccountId);
 
         Long enforcementId = enforcementRepositoryService.addDefendantAccountEnforcement(
@@ -207,7 +207,7 @@ public class OpalDefendantAccountEnforcementService
             "ACCOUNT_ENQUIRY",
             jailDays,
             businessUnitUserId,
-            userState.getUserName(),
+            userState.getUsername(),
             reason,
             enforcerId,
             resultResponses,
@@ -230,7 +230,7 @@ public class OpalDefendantAccountEnforcementService
                 defendantAccountId,
                 businessUnitId.toString(),
                 businessUnitUserId,
-                userState.getUserName(),
+                userState.getUsername(),
                 defendantEntity.getVersion().toString(),
                 AddPaymentTermsRequestDefendantAccount.builder()
                     .paymentTerms(enforcementPaymentTermsMapper.toPaymentTerms(enforcementPaymentTerms))
@@ -277,7 +277,7 @@ public class OpalDefendantAccountEnforcementService
         log.debug(":removeEnforcementHold: defendantAccountId={}, businessUnitId={}",
             defendantAccountId, businessUnitId);
 
-        final UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        final UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         DefendantAccountEntity defendantEntity = defendantAccountRepositoryService.findById(defendantAccountId);
 
         if (ifMatch == null || ifMatch.isBlank()) {
@@ -328,7 +328,7 @@ public class OpalDefendantAccountEnforcementService
             AssociatedRecordType.DEFENDANT_ACCOUNTS,
             businessUnitId,
             businessUnitUserId,
-            userState.getUserName(),
+            userState.getUsername(),
             null,
             "Remove Enforcement Hold"
         );

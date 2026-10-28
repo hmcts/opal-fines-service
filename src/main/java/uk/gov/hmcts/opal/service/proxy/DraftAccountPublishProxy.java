@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.service.iface.DraftAccountPublishInterface;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -24,7 +25,7 @@ public class DraftAccountPublishProxy implements DraftAccountPublishInterface, P
     }
 
     @Override
-    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity updatedEntity, BusinessUnitUser unitUser) {
+    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity updatedEntity, BusinessUnitUserV2 unitUser) {
         return getCurrentModeService().publishDefendantAccount(updatedEntity, unitUser);
     }
 }

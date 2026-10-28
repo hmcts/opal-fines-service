@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 @ExtendWith(MockitoExtension.class)
 class MinorCreditorHistoryPdplLoggingServiceTest {
 
-    private static final UserState USER_STATE = UserState.builder().userId(42L).build();
+    private static final UserStateV2 USER_STATE = UserStateV2.builder().userId(42L).username("username").build();
     private static final Clock CLOCK = Clock.fixed(Instant.parse("2026-01-01T12:00:00Z"), ZoneOffset.UTC);
 
     @Mock

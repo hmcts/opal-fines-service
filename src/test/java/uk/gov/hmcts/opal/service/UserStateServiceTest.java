@@ -28,13 +28,12 @@ import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 
 @ExtendWith(MockitoExtension.class)
-@SuppressWarnings("java:S1874")
 class UserStateServiceTest {
 
     @Mock
@@ -50,197 +49,89 @@ class UserStateServiceTest {
     private UserStateService userStateService;
 
     @Test
-    void testCheckForAuthorisedUser_usesCurrentAuthenticatedUserStateWhenAvailable() {
-        // Arrange
-        final UserState expectedUserState = mock(UserState.class);
-        UserStateV2 userStateV2 = mock(UserStateV2.class);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userStateV2));
-        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
+    void checkForAuthorisedUser_returnsFinesSpecificV2State() {
+        UserStateV2 userState = mock(UserStateV2.class);
+        UserStateV2 finesUserState = mock(UserStateV2.class);
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+        when(userStateMapper.toUserStateSpecific(userState, Domain.FINES)).thenReturn(finesUserState);
 
-        // Act
-        UserState userState = userStateService.checkForAuthorisedUser("");
-
-        // Assert
-        assertSame(expectedUserState, userState);
+        assertSame(finesUserState, userStateService.checkForAuthorisedUser());
     }
 
     @Test
-    void testGetUserStateFromSecurityContext_returnsTokenUserState() {
-        // Arrange
+    void getUserStateFromSecurityContext_returnsTokenUserState() {
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        UserStateV2 userStateV2 = mock(UserStateV2.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         setAuthentication(authToken);
-        when(authToken.getUserState()).thenReturn(userStateV2);
+        when(authToken.getUserState()).thenReturn(userState);
 
-        // Act
-        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
-
-        // Assert
-        assertSame(userStateV2, userState);
+        assertSame(userState, userStateService.getUserStateFromSecurityContext());
     }
 
     @Test
-    void testGetUserStateFromSecurityContext_unexpectedTokenType() {
-        // Arrange
-        Authentication authentication = mock(Authentication.class);
-        setAuthentication(authentication);
+    void getUserStateFromSecurityContext_rejectsUnexpectedTokenType() {
+        setAuthentication(mock(Authentication.class));
 
-        // Act
-        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.getUserStateFromSecurityContext());
+        AccessDeniedException exception = assertThrows(
+            AccessDeniedException.class, () -> userStateService.getUserStateFromSecurityContext());
 
-        // Assert
-        assertEquals("Unexpected token type", ade.getMessage());
+        assertEquals("Unexpected token type", exception.getMessage());
         verifyNoInteractions(tokenService);
     }
 
     @Test
-    void testGetUserStateFromSecurityContext_userStateMissingFromToken() {
-        // Arrange
+    void getUserStateFromSecurityContext_rejectsMissingUserState() {
         OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
         setAuthentication(authToken);
         when(authToken.getUserState()).thenReturn(null);
 
-        // Act
-        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.getUserStateFromSecurityContext());
+        AccessDeniedException exception = assertThrows(
+            AccessDeniedException.class, () -> userStateService.getUserStateFromSecurityContext());
 
-        // Assert
-        assertEquals("User state not found in token", ade.getMessage());
+        assertEquals("User state not found in token", exception.getMessage());
     }
 
     @Test
-    void testGetPermittedBusinessUnitIds_filtersUsingFinesDomainBusinessUnitUsers() {
-        // Arrange
-        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        setAuthentication(authToken);
-        when(authToken.getUserState()).thenReturn(UserStateV2.builder()
-            .userId(1L)
-            .username("opal-user")
-            .domains(Map.of(Domain.FINES, DomainBusinessUnitUsers.builder()
-                .businessUnitUsers(List.of(
-                    businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
-                    businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)))
-                .build()))
-            .build());
+    void getPermittedBusinessUnitIds_filtersUsingPermissionCode() {
+        setUserState(userState(
+            businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
+            businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)));
 
-        // Act
-        List<Short> permittedBusinessUnitIds = userStateService.getPermittedBusinessUnitIds(
+        List<Short> permittedIds = userStateService.getPermittedBusinessUnitIds(
             List.of((short) 10, (short) 20), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
 
-        // Assert
-        assertEquals(List.of((short) 20), permittedBusinessUnitIds);
-        verifyNoInteractions(userStateMapper);
+        assertEquals(List.of((short) 20), permittedIds);
     }
 
     @Test
-    void returnsBusinessUnitIdsForPermission() {
-        // Arrange
-        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        setAuthentication(authToken);
-        when(authToken.getUserState()).thenReturn(UserStateV2.builder()
-            .userId(1L)
-            .username("opal-user")
-            .domains(Map.of(Domain.FINES, DomainBusinessUnitUsers.builder()
-                .businessUnitUsers(List.of(
-                    businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
-                    businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS),
-                    businessUnitUser((short) 30, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)))
-                .build()))
-            .build());
+    void getBusinessUnitIdsFor_returnsDistinctPermittedUnits() {
+        setUserState(userState(
+            businessUnitUser((short) 10, FinesPermission.ACCOUNT_ENQUIRY),
+            businessUnitUser((short) 20, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS),
+            businessUnitUser((short) 30, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)));
 
-        // Act
         List<Short> businessUnitIds = userStateService.getBusinessUnitIdsFor(
             FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
 
-        // Assert
         assertEquals(List.of((short) 20, (short) 30), businessUnitIds);
-        verifyNoInteractions(userStateMapper);
     }
 
     @Test
-    void testCheckForAuthorisedUser_mapsV2StateToV1FinesDomain() {
-        // Arrange
-        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        UserStateV2 userStateV2 = mock(UserStateV2.class);
-        final UserState userState = mock(UserState.class);
-        setAuthentication(authToken);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.empty());
-        when(authToken.getUserState()).thenReturn(userStateV2);
-        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(userState);
-
-        // Act
-        UserState result = userStateService.checkForAuthorisedUser();
-
-        // Assert
-        assertSame(userState, result);
-    }
-
-    @Test
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    void testCheckForAuthorisedUser_fallsBackToSecurityContextWhenAuthenticatedUserStateHasUnexpectedType() {
-        // Arrange
-        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        UserStateV2 userStateV2 = mock(UserStateV2.class);
-        final UserState expectedUserState = mock(UserState.class);
-        setAuthentication(authToken);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn((Optional) Optional.of(Map.of()));
-        when(authToken.getUserState()).thenReturn(userStateV2);
-        when(userStateMapper.toUserState(userStateV2, Domain.FINES)).thenReturn(expectedUserState);
-
-        // Act
-        UserState userState = userStateService.checkForAuthorisedUser();
-
-        // Assert
-        assertSame(expectedUserState, userState);
-    }
-
-    @Test
-    void testGetUser_StateV1FromSecurityContext_unexpectedTokenType() {
-        // Arrange
-        Authentication authentication = mock(Authentication.class);
-        setAuthentication(authentication);
-
-        // Act
-        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.getUserStateV1FromSecurityContext());
-
-        // Assert
-        assertEquals("Unexpected token type", ade.getMessage());
-        verifyNoInteractions(userStateMapper);
-    }
-
-    @Test
-    void testGetUser_userStateV1FromSecurityContextStateMissingFromToken() {
-        // Arrange
-        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
-        setAuthentication(authToken);
-        when(authToken.getUserState()).thenReturn(null);
-
-        // Act
-        AccessDeniedException ade = assertThrows(AccessDeniedException.class,
-                                                 () -> userStateService.getUserStateV1FromSecurityContext());
-
-        // Assert
-        assertEquals("User state not found in token", ade.getMessage());
-        verifyNoInteractions(userStateMapper);
-    }
-
-    @Test
-    void testGetPreferredUsername() {
-        // Arrange
+    void getPreferredUsername_delegatesToTokenService() {
         when(tokenService.extractPreferredUsername(any())).thenReturn("HMCTS User");
 
-        // Act
-        String name = userStateService.getPreferredUsername("");
-
-        // Assert
-        assertEquals("HMCTS User", name);
+        assertEquals("HMCTS User", userStateService.getPreferredUsername(""));
     }
 
     @AfterEach
     void clearSecurityContext() {
         SecurityContextHolder.clearContext();
+    }
+
+    private void setUserState(UserStateV2 userState) {
+        OpalJwtAuthenticationToken authToken = mock(OpalJwtAuthenticationToken.class);
+        setAuthentication(authToken);
+        when(authToken.getUserState()).thenReturn(userState);
     }
 
     private void setAuthentication(Authentication authentication) {
@@ -249,8 +140,16 @@ class UserStateServiceTest {
         SecurityContextHolder.setContext(securityContext);
     }
 
-    private BusinessUnitUser businessUnitUser(Short businessUnitId, FinesPermission permission) {
-        return BusinessUnitUser.builder()
+    private UserStateV2 userState(BusinessUnitUserV2... businessUnitUsers) {
+        DomainBusinessUnitUsers finesUsers = DomainBusinessUnitUsers.builder()
+            .businessUnitUsers(List.of(businessUnitUsers))
+            .build();
+        return UserStateV2.builder().userId(506L).username("username")
+            .domains(Map.of(Domain.FINES, finesUsers)).build();
+    }
+
+    private BusinessUnitUserV2 businessUnitUser(Short businessUnitId, FinesPermission permission) {
+        return BusinessUnitUserV2.builder()
             .businessUnitId(businessUnitId)
             .permissions(Set.of(permission.toCommonPermission()))
             .build();
