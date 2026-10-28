@@ -135,7 +135,8 @@ public class EnforcementDetailedCSVMapper
 
 
     @Override
-    public String reportToCSVString(ReportInstanceEntity instanceEntity, OperationDetailedReport operationDetailedReport) {
+    public String reportToCSVString(ReportInstanceEntity instanceEntity,
+        OperationDetailedReport operationDetailedReport) {
         StringBuilder sb = new StringBuilder();
         sb.append(dataListToFullCSVRow(header1Row())).append(dataListToFullCSVRow(header2Row()));
         for (DetailedAccountReportDto dto :

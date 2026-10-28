@@ -132,6 +132,7 @@ class CashTillReportCSVMapperTest {
             missingFieldCase("transaction amount", row -> row.setAmount(null), "transaction_amount")
         );
     }
+
     private static Stream<Arguments> invalidMoneyCases() {
         return Stream.of(
             invalidMoneyCase("amount", row -> row.setAmount(money("1.234")), "transaction_amount"));

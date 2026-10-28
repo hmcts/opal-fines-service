@@ -26,7 +26,8 @@ public class ReportCSVService {
      *                            the (azure) report blob store, so will have been already generated
      * @return the CSV byte array
      */
-    public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(ReportInstanceEntity reportInstance, T reportDataInterface) {
+    public <T extends ReportDataInterface> byte[] convertReportDtoToCSV(ReportInstanceEntity reportInstance,
+        T reportDataInterface) {
         @SuppressWarnings("unchecked")
         ReportCSVMapper<T> reportCSVMapper = (ReportCSVMapper<T>) reportCSVMapperRegistry
             .get(reportDataInterface.getClass());
