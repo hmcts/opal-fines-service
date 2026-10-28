@@ -6,8 +6,8 @@ import java.util.concurrent.TimeUnit
 
 buildscript {
   ext {
-    cucumberQueryVersion = "14.7.0"
-    cucumberMessagesVersion = "30.1.0"
+    cucumberQueryVersion = "16.1.1"
+    cucumberMessagesVersion = "34.2.1"
   }
 
   configurations.classpath {
@@ -35,14 +35,14 @@ plugins {
   id 'org.sonarqube' version '7.5.0.8588'
   id 'uk.gov.hmcts.java' version '0.12.70'
   id 'org.flywaydb.flyway' version '13.11.1'
-  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.3.9'
+  id 'net.serenity-bdd.serenity-gradle-plugin' version '5.4.1'
   id "org.openapi.generator" version "7.26.0"
 }
 
 ext {
   log4JVersion = "2.26.1"
-  serenityVersion = "5.3.11"
-  cucumberVersion = "7.23.0" // Keep the forced Cucumber version stable while aligning Serenity with the Gradle plugin
+  serenityVersion = "5.4.1"
+  cucumberVersion = "8.0.4" // Keep Cucumber aligned with the Serenity BOM
 }
 
 def defaultLegacyStubImage = 'hmctsprod.azurecr.io/opal/legacy-db-stub:latest'
@@ -1175,8 +1175,8 @@ dependencies {
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.38'
 
 
-  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.1'
-  testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.1'
+  zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.2'
+  testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.2'
   testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.3'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.48"
@@ -1222,7 +1222,7 @@ dependencies {
   implementation 'com.networknt:json-schema-validator:1.5.9'
   implementation 'com.jayway.jsonpath:json-path:3.0.0'
 
-  implementation 'org.openapitools:jackson-databind-nullable:0.2.12'
+  implementation 'org.openapitools:jackson-databind-nullable:0.2.13'
   implementation 'org.flywaydb:flyway-core:13.11.1'
   runtimeOnly 'org.flywaydb:flyway-database-postgresql:13.11.1', {
     exclude group: 'org.flywaydb', module: 'flyway-core'
@@ -1232,7 +1232,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.48'
   annotationProcessor 'org.projectlombok:lombok:1.18.48'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.13.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.14.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.3') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
@@ -1254,7 +1254,7 @@ dependencies {
   implementation 'org.apache.xmlgraphics:fop:2.12'
   implementation 'org.apache.xmlgraphics:fop-core:2.12'
   implementation 'org.apache.xmlgraphics:fop-events:2.12'
-  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.11'
+  implementation 'org.apache.xmlgraphics:xmlgraphics-commons:2.12'
   implementation 'org.apache.pdfbox:pdfbox:3.0.8'
   implementation 'net.sf.saxon:Saxon-HE:13.1'
 
