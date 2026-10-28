@@ -73,8 +73,8 @@ public class MinorCreditorApiController implements MinorCreditorApi {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<MinorCreditorAccountResponseMinorCreditor> patchMinorCreditorAccount(
         Long id,
-        String businessUnitId,
         String ifMatch,
+        String businessUnitId,
         PatchMinorCreditorAccountRequest patchMinorCreditorAccountRequest) {
 
         log.debug(":PATCH:patchMinorCreditorAccount: id={}", id);
