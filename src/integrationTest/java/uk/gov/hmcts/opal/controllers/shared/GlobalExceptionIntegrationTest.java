@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -20,6 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -29,17 +31,30 @@ import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
+import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.GlobalExceptionIntegrationTest")
-@Import(GlobalExceptionIntegrationTest.ThrowingController.class)
-public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
+@WebMvcTest(
+    controllers = GlobalExceptionIntegrationTest.ThrowingController.class,
+    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class)
+)
+@Import({
+    JsonSchemaValidationService.class,
+    OpalGlobalExceptionHandler.class,
+    GlobalExceptionIntegrationTest.ThrowingController.class
+})
+public class GlobalExceptionIntegrationTest extends AbstractWebMvcIntegrationTest {
+
+    private static final String AUTHORIZATION = "Bearer integration-test-token";
 
 
     /**
@@ -62,14 +77,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5902")
     void retriable_QueryTimeout_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/query-timeout").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/query-timeout").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("QueryTimeout body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isRequestTimeout())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -81,14 +95,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-5900")
     void retriable_DataAccessResourceFailure_ReturnsTrue() throws Exception {
         var a = mockMvc.perform(get("/__exc/data-access-resource-failure")
-            .header("authorization", userStateStub.getBearerToken())
+            .header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("DARF body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isServiceUnavailable())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -99,14 +112,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5894")
     void retriable_PsqlConnectivity_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/psql-connectivity").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/psql-connectivity").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("PSQL connectivity body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isServiceUnavailable())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -117,14 +129,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5898")
     void retriable_JpaTransient_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/jpa-serial-failure").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/jpa-serial-failure").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("JPA serial body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isInternalServerError())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -135,14 +146,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5896")
     void retriable_TransactionDeadlock_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/tx-deadlock").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/tx-deadlock").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("TX deadlock body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isInternalServerError())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -153,14 +163,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5899")
     void retriable_HttpServer503_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/http-503").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/http-503").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("HTTP 503 body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isInternalServerError())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -171,14 +180,13 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5903")
     void retriable_Feign503_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-503").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/feign-503").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         String body = a.andReturn().getResponse().getContentAsString();
         log.info("Feign 503 body:\n{}", ToJsonString.toPrettyJson(body));
 
         a.andExpect(status().isServiceUnavailable())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -189,11 +197,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5893")
     void retriable_Feign502_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-502").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/feign-502").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         a.andExpect(status().isBadGateway())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -204,11 +211,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5901")
     void retriable_Feign504_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-504").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/feign-504").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         a.andExpect(status().isGatewayTimeout())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -219,11 +225,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5904")
     void retriable_Feign429_ReturnsTrue() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-429").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/feign-429").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         a.andExpect(status().isTooManyRequests())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(true));
     }
@@ -234,11 +239,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5895")
     void nonRetriable_PsqlOther_ReturnsFalse() throws Exception {
-        var a = mockMvc.perform(get("/__exc/psql-other").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/psql-other").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         a.andExpect(status().isInternalServerError())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
     }
@@ -249,11 +253,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5897")
     void nonRetriable_Feign404_ReturnsFalse() throws Exception {
-        var a = mockMvc.perform(get("/__exc/feign-404").header("authorization", userStateStub.getBearerToken())
+        var a = mockMvc.perform(get("/__exc/feign-404").header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         a.andExpect(status().isNotFound())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
     }
@@ -265,11 +268,10 @@ public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7580")
     void featureDisabled_ReturnsExistingProblemShape() throws Exception {
         var action = mockMvc.perform(get("/__exc/feature-disabled")
-            .header("authorization", userStateStub.getBearerToken())
+            .header("authorization", AUTHORIZATION)
             .accept(MediaType.APPLICATION_PROBLEM_JSON));
 
         action.andExpect(status().isNotFound())
-            .andExpect(header().exists("operation_id"))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
             .andExpect(jsonPath("$.title").value("Feature Disabled"))

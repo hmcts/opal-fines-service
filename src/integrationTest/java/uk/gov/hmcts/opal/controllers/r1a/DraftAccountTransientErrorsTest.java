@@ -9,15 +9,25 @@ import org.mockito.stubbing.OngoingStubbing;
 import org.postgresql.util.PSQLException;
 import org.postgresql.util.PSQLState;
 import org.springframework.http.MediaType;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggleAspect;
+import uk.gov.hmcts.opal.config.WebConfig;
+import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
+import uk.gov.hmcts.opal.controllers.DraftAccountController;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 import java.net.ConnectException;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -35,10 +45,18 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 
 @ActiveProfiles({"integration"})
+@WebMvcTest(
+    controllers = DraftAccountController.class,
+    excludeFilters = @Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = {CommonGlobalExceptionHandler.class, FeatureToggleAspect.class}
+    )
+)
+@Import({DraftAccountController.class, JsonSchemaValidationService.class, OpalGlobalExceptionHandler.class, WebConfig.class})
 @Slf4j(topic = "opal.DraftAccountTransientErrorsTest")
 @DisplayName("DraftAccountController Transient Errors Integration Tests")
 @Tag("ExtendedTest")
-class DraftAccountTransientErrorsTest extends AbstractIntegrationTest {
+class DraftAccountTransientErrorsTest extends AbstractWebMvcIntegrationTest {
 
     private static final String URL_BASE = "/draft-accounts";
 
