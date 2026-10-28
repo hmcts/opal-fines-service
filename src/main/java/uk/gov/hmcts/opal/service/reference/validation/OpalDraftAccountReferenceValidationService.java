@@ -1,11 +1,9 @@
 package uk.gov.hmcts.opal.service.reference.validation;
 
-import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadList;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadLong;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.safeReadString;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,7 +11,6 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.ProsecutorEntity;
@@ -22,10 +19,8 @@ import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
-import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
