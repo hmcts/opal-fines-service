@@ -10,7 +10,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -37,11 +41,11 @@ import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 })
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
-     public static final String INTERFACE_FILE_ID_1 = """
+    public static final String INTERFACE_FILE_ID_1 = """
         {
           "interfaceFileId": 1
         }
-        """;
+         """;
     @Autowired
     private InterfaceFileQueueListener listener;
 
@@ -67,7 +71,7 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
           "token_type":"Bearer",
           "access_token":"token-value"
         }
-        """)));
+            """)));
     }
 
 
