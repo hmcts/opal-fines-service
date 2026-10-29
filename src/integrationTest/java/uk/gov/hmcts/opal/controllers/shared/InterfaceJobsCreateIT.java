@@ -25,7 +25,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,9 +44,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @DisplayName("Interface Jobs Create Integration Tests")
 @Sql(scripts = "classpath:db/insertData/insert_into_interface_jobs_create.sql",
      executionPhase = BEFORE_TEST_METHOD)

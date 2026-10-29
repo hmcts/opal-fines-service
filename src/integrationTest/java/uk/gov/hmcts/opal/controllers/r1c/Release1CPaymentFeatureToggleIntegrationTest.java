@@ -29,7 +29,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Release 1C Payment - returns 404 when flag is disabled")
 @Tag("ExtendedTest")
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-payment=false"
 })
 class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {

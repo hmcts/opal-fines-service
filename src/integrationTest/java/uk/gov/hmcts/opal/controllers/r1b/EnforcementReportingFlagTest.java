@@ -28,7 +28,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("Release 1C Enforcement Operational Reporting - returns 404 when flag is disabled")
 @Tag("ExtendedTest")
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=false"
 })
 class EnforcementReportingFlagTest extends AbstractFeatureToggleIntegrationTest {

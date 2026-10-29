@@ -12,21 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1bDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false"
-})
 @Slf4j(topic = "opal.CentralFundFlagTest")
 @DisplayName("Central Fund Controller Feature Flag Integration Tests")
 @Tag("ExtendedTest")
-class CentralFundFlagTest extends AbstractIntegrationTest {
+class CentralFundFlagTest extends AbstractRelease1bDisabledIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";
 

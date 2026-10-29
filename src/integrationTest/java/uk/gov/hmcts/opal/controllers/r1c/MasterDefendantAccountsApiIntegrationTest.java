@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
@@ -19,10 +18,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(
     scripts = "classpath:db/insertData/insert_into_defendant_accounts_master.sql",

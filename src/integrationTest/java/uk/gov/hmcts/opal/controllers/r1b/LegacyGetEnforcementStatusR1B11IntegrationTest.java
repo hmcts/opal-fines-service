@@ -22,7 +22,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b-1-1=true"
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
