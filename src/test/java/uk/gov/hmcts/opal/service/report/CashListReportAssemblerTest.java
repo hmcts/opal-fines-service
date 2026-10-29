@@ -293,6 +293,7 @@ class CashListReportAssemblerTest {
             .createdDate(LocalDateTime.of(2026, 5, 26, 15, 0))
             .paymentMethod(PaymentMethod.CQ)
             .courtFeeId(99000000032000L)
+            .versionNumber(99000000032001L)
             .build();
     }
 }
