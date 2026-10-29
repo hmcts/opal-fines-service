@@ -26,7 +26,6 @@ import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
-import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
