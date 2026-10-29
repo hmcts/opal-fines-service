@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.MethodParameter;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -220,6 +221,20 @@ class GlobalExceptionHandlerTest {
         assertEquals(true, response.getBody().getProperties().get("retriable"));
     }
 
+    @Test
+    void handleQueryTimeout_returnsRetriableTimeoutProblem() {
+        ResponseEntity<ProblemDetail> response = globalExceptionHandler.handleQueryTimeoutException(
+            new QueryTimeoutException("Database timeout"));
+
+        assertEquals(HttpStatus.REQUEST_TIMEOUT, response.getStatusCode());
+        assertEquals(MediaType.APPLICATION_PROBLEM_JSON, response.getHeaders().getContentType());
+        assertEquals("Request Timeout", response.getBody().getTitle());
+        assertEquals("The request did not receive a response from the database within the timeout period",
+            response.getBody().getDetail());
+        assertEquals(URI.create("https://hmcts.gov.uk/problems/query-timeout"), response.getBody().getType());
+        assertEquals(true, response.getBody().getProperties().get("retriable"));
+    }
+  
     @Test
     void handlePdplLogging_returnsRetriableServiceUnavailableProblem() {
         ResponseEntity<ProblemDetail> response = globalExceptionHandler.handlePdplLoggingException(

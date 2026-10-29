@@ -1,0 +1,402 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Courts
+  version: 1.0.0
+  description: APIs for retrieving and searching court reference data.
+
+paths:
+  /courts:
+    get:
+      tags:
+        - Courts
+      summary: Get courts
+      description: Returns court reference data, optionally filtered by court name and business unit.
+      operationId: getCourtRefData
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive partial match against the English or Welsh court name. Blank is treated as absent.
+          schema:
+            type: string
+        - name: business_unit
+          in: query
+          required: false
+          description: The business unit identifier used to filter courts. DB Mapping - courts.business_unit_id
+          schema:
+            type: integer
+            format: int16
+      responses:
+        '200':
+          description: Courts retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtsReferenceDataResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /courts/{courtId}:
+    get:
+      tags:
+        - Courts
+      summary: Get court by ID
+      description: Returns the court for the supplied court identifier.
+      operationId: getCourtById
+      parameters:
+        - name: courtId
+          in: path
+          required: true
+          description: The unique court identifier. DB Mapping - courts.court_id
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Court found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtsCourt'
+        '400':
+          description: Invalid court identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Court not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /courts/search:
+    post:
+      tags:
+        - Courts
+      summary: Search courts
+      description: Searches courts using the criteria supplied in the request body.
+      operationId: postCourtsSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourtsSearchRequest'
+      responses:
+        '200':
+          description: Court search completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourtsSearchResponse'
+        '400':
+          description: Invalid search request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    CourtsReferenceDataResponse:
+      title: Get courts response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - refData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The number of courts returned in refData.
+        refData:
+          type: array
+          description: Courts sorted by court name in ascending order.
+          items:
+            $ref: '#/components/schemas/CourtsCourtSummary'
+
+    CourtsCourtSummary:
+      title: Court summary
+      type: object
+      additionalProperties: false
+      required:
+        - court_id
+        - business_unit_id
+        - court_code
+        - name
+      properties:
+        court_id:
+          type: integer
+          format: int64
+          description: DB Mapping - courts.court_id
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.business_unit_id
+        court_code:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.court_code
+        name:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.name
+        court_type:
+          type: string
+          maxLength: 2
+          description: DB Mapping - courts.court_type
+        lja:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.local_justice_area_id
+        division:
+          type: string
+          maxLength: 2
+          description: DB Mapping - courts.division
+
+    CourtsSearchRequest:
+      title: Search courts request
+      type: object
+      additionalProperties: false
+      properties:
+        courtId:
+          type: string
+          description: Exact match against courts.court_id.
+        businessUnitId:
+          type: string
+          description: Exact match against courts.business_unit_id.
+        courtCode:
+          type: string
+          description: Exact match against courts.court_code.
+        name:
+          type: string
+          description: Case-insensitive partial match against courts.name.
+        nameCy:
+          type: string
+          description: Case-insensitive partial match against courts.name_cy.
+        addressLine:
+          type: string
+          description: Case-insensitive partial match against the English court address lines.
+        addressLineCy:
+          type: string
+          description: Case-insensitive partial match against the Welsh court address lines.
+        postcode:
+          type: string
+          description: Case-insensitive partial match against courts.postcode.
+        localJusticeAreaId:
+          type: string
+          description: Exact match against courts.local_justice_area_id.
+        courtType:
+          type: string
+          description: Court type search criterion. Currently not searched on.
+        division:
+          type: string
+          description: Division search criterion. Currently not searched on.
+
+    CourtsSearchResponse:
+      title: Search courts response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - searchData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The number of courts returned in searchData.
+        searchData:
+          type: array
+          items:
+            $ref: '#/components/schemas/CourtsCourt'
+
+    CourtsCourt:
+      title: Court
+      type: object
+      additionalProperties: false
+      required:
+        - courtId
+        - businessUnitId
+        - courtCode
+        - name
+      properties:
+        courtId:
+          type: integer
+          format: int64
+          description: DB Mapping - courts.court_id
+        businessUnitId:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.business_unit_id
+        courtCode:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.court_code
+        name:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.name
+        nameCy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.name_cy
+        courtType:
+          type: string
+          maxLength: 2
+          description: DB Mapping - courts.court_type
+        lja:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.lja
+        division:
+          type: string
+          maxLength: 2
+          description: DB Mapping - courts.division
+        addressLine1:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_1
+        addressLine2:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_2
+        addressLine3:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_3
+        addressLine1Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_1_cy
+        addressLine2Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_2_cy
+        addressLine3Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - courts.address_line_3_cy
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - courts.postcode
+        localJusticeAreaId:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.local_justice_area_id
+        parentCourtId:
+          type: integer
+          format: int64
+          description: DB Mapping - courts.parent_court_id
+        nationalCourtCode:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.national_court_code
+        gobEnforcingCourtCode:
+          type: integer
+          format: int16
+          description: DB Mapping - courts.gob_enforcing_court_code
+        session:
+          type: string
+          maxLength: 2
+          description: DB Mapping - courts.session
+        startTime:
+          type: string
+          maxLength: 8
+          description: DB Mapping - courts.start_time
+        maxLoad:
+          type: integer
+          format: int32
+          description: DB Mapping - courts.max_load
+        recordSessionTimes:
+          type: string
+          maxLength: 1
+          description: DB Mapping - courts.record_session_times
+        maxCourtDuration:
+          type: integer
+          format: int32
+          description: DB Mapping - courts.max_court_duration
+        groupCode:
+          type: string
+          maxLength: 24
+          description: DB Mapping - courts.group_code
