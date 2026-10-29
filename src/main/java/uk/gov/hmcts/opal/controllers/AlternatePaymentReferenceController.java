@@ -56,13 +56,10 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
     public ResponseEntity<AlternatePaymentReferencesItem> updateAlternatePaymentReference(
         Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesUpdateRequest) {
-        AlternatePaymentReferencesItem apr =
-            alternatePaymentReferenceService.updateAlternatePaymentReferences(
+        return alternatePaymentReferenceService.updateAlternatePaymentReferences(
                 defendantAccountId, alternatePaymentReferenceId,
                 alternatePaymentReferencesUpdateRequest, expectedVersion
-            );
-        return ResponseEntity.ok()
-            .eTag(String.valueOf(apr.getVersion()))
-            .body(apr);
+            )
+            .toResponseEntity(HttpStatus.OK);
     }
 }

@@ -334,14 +334,14 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string(HttpHeaders.ETAG, "\"3\""))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"8\""))
                 .andExpect(jsonPath("$.alternate_payment_reference_id").value(REFERENCE_ID))
                 .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITH_REFERENCES))
                 .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
                 .andExpect(jsonPath("$.apr_text").value(UPDATED_TEXT))
                 .andExpect(jsonPath("$.relationship").value("APR"))
                 .andExpect(jsonPath("$.category").value("APR"))
-                .andExpect(jsonPath("$.version").value(3));
+                .andExpect(jsonPath("$.version").doesNotExist());
 
             LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
             AlternatePaymentReferenceEntity saved = alternatePaymentReferenceRepository.findById(REFERENCE_ID)
@@ -367,7 +367,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 assertThat(note.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
                 assertThat(note.getPostedDate()).isBetween(beforeRequest, afterRequest);
             });
-            assertThat(defendantAccountVersionFor(ACCOUNT_WITH_REFERENCES)).isEqualTo(1);
+            assertThat(defendantAccountVersionFor(ACCOUNT_WITH_REFERENCES)).isEqualTo(8);
         }
 
         @Test
@@ -478,7 +478,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         assertThat(findFixtureAccountNotes()).isEmpty();
         assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
             .extracting(DefendantAccountEntity::getVersionNumber)
-            .containsExactlyInAnyOrder(0L, 0L, 0L);
+            .containsExactlyInAnyOrder(7L, 9L, 0L);
     }
 
     private ResultActions updateReference(long accountId, long referenceId, String aprText, String ifMatch)

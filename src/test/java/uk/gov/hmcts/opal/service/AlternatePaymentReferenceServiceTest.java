@@ -298,13 +298,14 @@ class AlternatePaymentReferenceServiceTest {
                 .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).versionNumber(6L).build();
             when(repository.saveAndFlush(reference)).thenReturn(saved);
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
-                .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).version(6L);
+                .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(saved)).thenReturn(expected);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-                AlternatePaymentReferencesItem actual = updateReference();
+                VersionedResponse<AlternatePaymentReferencesItem> actual = updateReference();
 
-                assertSame(expected, actual);
+                assertSame(expected, actual.getData());
+                assertEquals(3L, actual.getVersion());
                 assertEquals(UPDATED_TEXT, reference.getAprText());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                     reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences"));
@@ -416,7 +417,7 @@ class AlternatePaymentReferenceServiceTest {
             return reference;
         }
 
-        private AlternatePaymentReferencesItem updateReference() {
+        private VersionedResponse<AlternatePaymentReferencesItem> updateReference() {
             return service.updateAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID, REFERENCE_ID,
                 new AlternatePaymentReferencesWriteRequest().aprText(UPDATED_TEXT), EXPECTED_VERSION);
         }

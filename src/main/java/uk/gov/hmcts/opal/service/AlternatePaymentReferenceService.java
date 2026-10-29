@@ -74,7 +74,7 @@ public class AlternatePaymentReferenceService {
     }
 
     @Transactional
-    public AlternatePaymentReferencesItem updateAlternatePaymentReferences(
+    public VersionedResponse<AlternatePaymentReferencesItem> updateAlternatePaymentReferences(
         Long defendantAccountId, Long alternatePaymentReferenceId,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesUpdateRequest, String expectedVersion) {
         final DefendantAccountEntity defendantAccountEntity =
@@ -107,7 +107,10 @@ public class AlternatePaymentReferenceService {
             "Alternate payment reference updated | " + alternatePaymentReferenceEntity.getAprText(),
             defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
         );
-        return alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity);
+        return new VersionedResponse<>(
+            alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity),
+            defendantAccountEntity.getVersionNumber()
+        );
     }
 
     void verifyUniqueApr(BusinessUnitEntity businessUnit, String aprText) {

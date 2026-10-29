@@ -159,7 +159,7 @@ class AlternatePaymentReferenceControllerTest {
 
         @ParameterizedTest
         @ValueSource(longs = {0L, 7L})
-        @DisplayName("Returns the updated reference with an OK status and its version as a quoted ETag")
+        @DisplayName("Returns the updated reference with an OK status and the account version as a quoted ETag")
         void returnsUpdatedReferenceWithOkStatusAndQuotedVersionEtag(long version) {
             Long defendantAccountId = 123L;
             Long alternatePaymentReferenceId = 456L;
@@ -169,10 +169,10 @@ class AlternatePaymentReferenceControllerTest {
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
                 .alternatePaymentReferenceId(alternatePaymentReferenceId)
                 .defendantAccountId(defendantAccountId)
-                .aprText("UPDATED-REFERENCE")
-                .version(version);
+                .aprText("UPDATED-REFERENCE");
             when(alternatePaymentReferenceService.updateAlternatePaymentReferences(
-                defendantAccountId, alternatePaymentReferenceId, request, expectedVersion)).thenReturn(expected);
+                defendantAccountId, alternatePaymentReferenceId, request, expectedVersion))
+                .thenReturn(new VersionedResponse<>(expected, version));
 
             ResponseEntity<AlternatePaymentReferencesItem> response = controller.updateAlternatePaymentReference(
                 defendantAccountId, alternatePaymentReferenceId, expectedVersion, request);
