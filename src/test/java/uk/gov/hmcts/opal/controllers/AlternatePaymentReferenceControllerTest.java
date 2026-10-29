@@ -107,7 +107,7 @@ class AlternatePaymentReferenceControllerTest {
 
         @ParameterizedTest
         @ValueSource(longs = {0L, 7L})
-        @DisplayName("Returns the deleted reference with an OK status and its version as a quoted ETag")
+        @DisplayName("Returns the deleted reference with an OK status and the account version as a quoted ETag")
         void returnsDeletedReferenceWithOkStatusAndQuotedVersionEtag(long version) {
             Long defendantAccountId = 123L;
             Long alternatePaymentReferenceId = 456L;
@@ -115,10 +115,10 @@ class AlternatePaymentReferenceControllerTest {
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
                 .alternatePaymentReferenceId(alternatePaymentReferenceId)
                 .defendantAccountId(defendantAccountId)
-                .aprText("REFERENCE-TO-DELETE")
-                .version(version);
+                .aprText("REFERENCE-TO-DELETE");
             when(alternatePaymentReferenceService.deleteAlternatePaymentReferences(
-                defendantAccountId, alternatePaymentReferenceId, expectedVersion)).thenReturn(expected);
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion))
+                .thenReturn(new VersionedResponse<>(expected, version));
 
             ResponseEntity<AlternatePaymentReferencesItem> response = controller.deleteAlternatePaymentReference(
                 defendantAccountId, alternatePaymentReferenceId, expectedVersion);

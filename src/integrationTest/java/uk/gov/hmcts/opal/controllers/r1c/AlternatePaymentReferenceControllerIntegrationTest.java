@@ -488,11 +488,17 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             AlternatePaymentReferenceEntity reference = alternatePaymentReferenceRepository.findById(referenceId)
                 .orElseThrow();
             List<AlternatePaymentReferenceEntity> existingReferences = findReferencesInBusinessUnit();
-            String expectedEtag = "\"" + reference.getVersionNumber() + "\"";
+            String expectedVersion = "\"" + reference.getVersionNumber() + "\"";
+            Map<Long, Long> accountVersions = defendantAccountRepository
+                .findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID).stream()
+                .collect(java.util.stream.Collectors.toMap(
+                    DefendantAccountEntity::getDefendantAccountId, DefendantAccountEntity::getVersionNumber));
+            long expectedAccountVersion = accountVersions.get(accountId) + 1;
+            String expectedEtag = "\"" + expectedAccountVersion + "\"";
             assertThat(reference.getRelationship()).isEqualTo(relationship);
             LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
 
-            deleteReference(accountId, referenceId, expectedEtag)
+            deleteReference(accountId, referenceId, expectedVersion)
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(header().string(HttpHeaders.ETAG, expectedEtag))
@@ -504,7 +510,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 .andExpect(jsonPath("$.category").value(reference.getCategory().name()))
                 .andExpect(jsonPath("$.created_at").value(reference.getCreatedDatetime().toString()))
                 .andExpect(jsonPath("$.updated_at").value(reference.getUpdatedDatetime().toString()))
-                .andExpect(jsonPath("$.version").value(reference.getVersionNumber().intValue()));
+                .andExpect(jsonPath("$.version").doesNotExist());
 
             LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
             assertThat(alternatePaymentReferenceRepository.existsById(referenceId)).isFalse();
@@ -527,10 +533,11 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 assertThat(note.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
                 assertThat(note.getPostedDate()).isBetween(beforeRequest, afterRequest);
             });
-            assertThat(defendantAccountVersionFor(accountId)).isEqualTo(1);
+            assertThat(defendantAccountVersionFor(accountId)).isEqualTo(expectedAccountVersion);
             assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
                 .filteredOn(account -> account.getDefendantAccountId() != accountId)
-                .allSatisfy(account -> assertThat(account.getVersionNumber()).isZero());
+                .allSatisfy(account -> assertThat(account.getVersionNumber())
+                    .isEqualTo(accountVersions.get(account.getDefendantAccountId())));
         }
 
         @Test

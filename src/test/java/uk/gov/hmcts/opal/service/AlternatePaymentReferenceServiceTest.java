@@ -295,13 +295,14 @@ class AlternatePaymentReferenceServiceTest {
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
-                .alternatePaymentReferenceId(REFERENCE_ID).aprText(APR_TEXT).version(5L);
+                .alternatePaymentReferenceId(REFERENCE_ID).aprText(APR_TEXT);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(reference)).thenReturn(expected);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-                AlternatePaymentReferencesItem actual = deleteReference();
+                VersionedResponse<AlternatePaymentReferencesItem> actual = deleteReference();
 
-                assertSame(expected, actual);
+                assertSame(expected, actual.getData());
+                assertEquals(3L, actual.getVersion());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                     reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences"));
                 verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
@@ -401,7 +402,7 @@ class AlternatePaymentReferenceServiceTest {
             return reference;
         }
 
-        private AlternatePaymentReferencesItem deleteReference() {
+        private VersionedResponse<AlternatePaymentReferencesItem> deleteReference() {
             return service.deleteAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID, REFERENCE_ID, EXPECTED_VERSION);
         }
     }

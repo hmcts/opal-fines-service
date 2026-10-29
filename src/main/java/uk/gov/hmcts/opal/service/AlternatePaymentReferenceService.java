@@ -75,7 +75,7 @@ public class AlternatePaymentReferenceService {
 
 
     @Transactional
-    public AlternatePaymentReferencesItem deleteAlternatePaymentReferences(
+    public VersionedResponse<AlternatePaymentReferencesItem> deleteAlternatePaymentReferences(
         Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion) {
         DefendantAccountEntity defendantAccountEntity =
             verifyDefendantAccountEntityExistAndUserHasCorrectPermission(defendantAccountId);
@@ -99,7 +99,7 @@ public class AlternatePaymentReferenceService {
             defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
         );
 
-        return returnItem;
+        return new VersionedResponse<>(returnItem, defendantAccountEntity.getVersionNumber());
     }
 
     @Transactional

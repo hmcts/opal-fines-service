@@ -43,11 +43,9 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
     public ResponseEntity<AlternatePaymentReferencesItem> deleteAlternatePaymentReference(
         Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion) {
 
-        AlternatePaymentReferencesItem apr = alternatePaymentReferenceService.deleteAlternatePaymentReferences(
-            defendantAccountId, alternatePaymentReferenceId, expectedVersion);
-        return ResponseEntity.ok()
-            .eTag(String.valueOf(apr.getVersion()))
-            .body(apr);
+        return alternatePaymentReferenceService.deleteAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion)
+            .toResponseEntity(HttpStatus.OK);
     }
 
     @Override
