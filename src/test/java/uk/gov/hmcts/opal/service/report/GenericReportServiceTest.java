@@ -45,8 +45,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.core.exc.StreamConstraintsException;
 import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.entity.ReportEntity;
@@ -76,6 +78,9 @@ class GenericReportServiceTest {
         CreateReportInstanceResponseReports.builder().reportInstanceId(123L).build();
     String reportId;
     Instant now;
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Mock
     ReportInstanceRepository reportInstanceRepository;

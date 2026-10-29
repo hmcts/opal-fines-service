@@ -27,6 +27,7 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -37,6 +38,7 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -58,6 +60,9 @@ class OpalDefendantAccountImpositionsIntegrationTest extends AbstractIntegration
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
     private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
+
+    @MockitoSpyBean
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @MockitoBean
     private LoggingService loggingService;

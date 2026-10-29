@@ -28,7 +28,7 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -157,7 +157,7 @@ class TillAllocationServiceTest {
         userState(permissions(BU, permissionsFor(PROCESS_AND_ALLOCATE_PAYMENTS)));
     }
 
-    private void userState(BusinessUnitUser... users) {
+    private void userState(BusinessUnitUserV2... users) {
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateV2.builder()
             .domains(Map.of(FINES, DomainBusinessUnitUsers.builder().businessUnitUsers(List.of(users)).build()))
             .build());

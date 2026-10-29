@@ -7,7 +7,7 @@ import java.time.Clock;
 import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountImpositionsResponse;
 import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountImpositionCommon;
@@ -24,7 +24,7 @@ public class DefendantAccountImpositionPdplLoggingService extends AbstractPdplLo
         super(loggingService, clock);
     }
 
-    public void logIndividualMinorCreditors(UserState userState, GetDefendantAccountImpositionsResponse response) {
+    public void logIndividualMinorCreditors(UserStateV2 userState, GetDefendantAccountImpositionsResponse response) {
         List<ParticipantIdentifier> individuals = getIndividualMinorCreditors(response);
         if (individuals.isEmpty()) {
             return;

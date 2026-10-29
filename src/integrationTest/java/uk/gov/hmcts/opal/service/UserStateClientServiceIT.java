@@ -19,7 +19,9 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -29,6 +31,9 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.UserStateClientServiceIT")
 class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
+
+    @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
 
     @Autowired
     StringRedisTemplate redisTemplate;
@@ -49,10 +54,11 @@ class UserStateClientServiceIT extends AbstractIntegrationWithSecurityTest {
     void getUserStateByAuthenticationTokenTwiceProvingCacheWorks() {
 
         WireMock.configureFor("localhost", 4553);
+
         stubFor(get("/opal/v2/users/0/state")
             .willReturn(aResponse()
                 .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
-                .withBody(userStateStub.getUserStateAsJson())));
+                .withBody(userStateStub.getUserStateDtoAsJson())));
 
         WireMock.verify(0, getRequestedFor(urlEqualTo("/opal/v2/users/0/state")));
 

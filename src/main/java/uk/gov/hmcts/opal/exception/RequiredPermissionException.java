@@ -9,7 +9,7 @@ public class RequiredPermissionException extends RuntimeException {
     private final FinesPermission permission;
 
     public RequiredPermissionException(FinesPermission permission) {
-        super("User requires permission: " + permission.getDescription());
+        super("User requires permission: " + permission.getPermissionName());
         this.permission = permission;
     }
 }

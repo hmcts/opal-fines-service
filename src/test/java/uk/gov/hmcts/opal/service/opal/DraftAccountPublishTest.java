@@ -28,7 +28,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.orm.jpa.JpaSystemException;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -41,7 +41,7 @@ class DraftAccountPublishTest {
     private DraftAccountTransactional draftAccountTransactional;
 
     @Mock
-    private BusinessUnitUser unitUser;
+    private BusinessUnitUserV2 unitUser;
 
     private Clock clock;
     private DraftAccountPublish draftAccountPublish;

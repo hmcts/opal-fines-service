@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +43,7 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     private final MajorCreditorMapper majorCreditorMapper;
 
     @Override
+    @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
     @FeatureToggle(
         feature = FeatureFlags.RELEASE_1A,
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY

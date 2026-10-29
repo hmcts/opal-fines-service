@@ -8,7 +8,7 @@ import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.orm.jpa.JpaSystemException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -24,7 +24,7 @@ public class DraftAccountPublish implements DraftAccountPublishInterface {
     private final Clock clock;
 
     @Override
-    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUser unitUser) {
+    public DraftAccountEntity publishDefendantAccount(DraftAccountEntity publishEntity, BusinessUnitUserV2 unitUser) {
         log.debug(":publishDefendantAccount: entity {}", publishEntity);
         log.debug(":publishDefendantAccount: About to call Out to Opal PostgreSQL Stored Procedure");
 

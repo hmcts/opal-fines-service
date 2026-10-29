@@ -21,8 +21,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -63,7 +63,7 @@ class DraftAccountPdplLoggingServiceTest {
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
         // Always return a non-null UserState so production code does not NPE.
-        UserState userState = Mockito.mock(UserState.class);
+        UserStateV2 userState = Mockito.mock(UserStateV2.class);
         when(userState.getUserId()).thenReturn(TEST_USER_ID);
 
         DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
@@ -90,7 +90,7 @@ class DraftAccountPdplLoggingServiceTest {
     ) {
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        UserState userState = Mockito.mock(UserState.class);
+        UserStateV2 userState = Mockito.mock(UserStateV2.class);
         when(userState.getUserId()).thenReturn(TEST_USER_ID);
 
         DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
@@ -636,7 +636,7 @@ class DraftAccountPdplLoggingServiceTest {
         OffsetDateTime expectedNow = OffsetDateTime.parse("2025-09-09T09:09:09Z");
 
         // Do NOT stub loggingService or userState here – the code path should not call the logger.
-        UserState userState = Mockito.mock(UserState.class);
+        UserStateV2 userState = Mockito.mock(UserStateV2.class);
 
         DraftAccountPdplLoggingService svc = serviceWithNow(expectedNow);
 

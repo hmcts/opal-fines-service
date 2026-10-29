@@ -44,6 +44,7 @@ public class OperationReportSpecsTest extends AbstractIntegrationTest {
 
     @Autowired
     private DefendantAccountRepository defendantAccountRepository;
+
     @Autowired
     private PaymentTermsRepository paymentTermsRepository;
 

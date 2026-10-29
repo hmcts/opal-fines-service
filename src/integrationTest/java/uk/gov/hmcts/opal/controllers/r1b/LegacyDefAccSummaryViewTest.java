@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -33,7 +36,15 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
     private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
 
     @MockitoBean
+    private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
+    @MockitoBean
     private LoggingService loggingService;
+
+    @BeforeEach
+    void setupLogging() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
 
     @Test
     @JiraEpic("PO-2332")

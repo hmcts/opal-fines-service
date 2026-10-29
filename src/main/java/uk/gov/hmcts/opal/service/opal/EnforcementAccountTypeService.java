@@ -78,7 +78,7 @@ public class EnforcementAccountTypeService {
 
     private void checkPermissions() {
         if (!SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser()
-            .hasPermission(FinesPermission.AUTO_ENFORCEMENT)) {
+            .hasPermission(FinesPermission.AUTO_ENFORCEMENT.toCommonPermission())) {
             throw new PermissionNotAllowedException(FinesPermission.AUTO_ENFORCEMENT);
         }
     }

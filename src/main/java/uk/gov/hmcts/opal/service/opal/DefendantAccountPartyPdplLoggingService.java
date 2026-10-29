@@ -5,7 +5,7 @@ import static uk.gov.hmcts.opal.dto.PdplIdentifierType.PARENT_GUARDIAN;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -24,7 +24,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
         super(loggingService, clock);
     }
 
-    public boolean logAddedParentGuardian(String partyId, UserState userState) {
+    public boolean logAddedParentGuardian(String partyId, UserStateV2 userState) {
         ParticipantIdentifier parentGuardian = participant(partyId, PARENT_GUARDIAN);
 
         return logPdpl(ADD_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.COLLECTION,
@@ -34,7 +34,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     public void logRemovedParentGuardian(Long defendantAccountPartyId,
         RemoveDefendantAccountPartyRequestDefendantAccount request,
         RemoveDefendantAccountPartyResponseDefendantAccount response,
-        UserState userState) {
+        UserStateV2 userState) {
         if (response.getDefendantAccountPartyId() == null || response.getDefendantAccountPartyId().isBlank()) {
             return;
         }

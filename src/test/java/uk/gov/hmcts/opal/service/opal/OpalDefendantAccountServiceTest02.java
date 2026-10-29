@@ -15,7 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.FixedPenaltyOffenceEntity;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountFixedPenaltyResponse;
@@ -72,10 +72,10 @@ class OpalDefendantAccountServiceTest02 {
         // Arrange
         var proxy = mock(DefendantAccountFixedPenaltyServiceProxy.class);
         var userStateService = mock(UserStateService.class);
-        var mockUserState = mock(UserState.class);
+        var mockUserState = mock(UserStateV2.class);
         var mockResponse = new GetDefendantAccountFixedPenaltyResponse();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(proxy.getDefendantAccountFixedPenalty(123L)).thenReturn(mockResponse);
 
@@ -97,9 +97,9 @@ class OpalDefendantAccountServiceTest02 {
         // Arrange
         var proxy = mock(DefendantAccountFixedPenaltyServiceProxy.class);
         var userStateService = mock(UserStateService.class);
-        var mockUserState = mock(UserState.class);
+        var mockUserState = mock(UserStateV2.class);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(mockUserState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(mockUserState);
         when(mockUserState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(false);
 

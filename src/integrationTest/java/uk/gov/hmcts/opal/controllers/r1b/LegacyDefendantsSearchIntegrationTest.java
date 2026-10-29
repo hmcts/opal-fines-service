@@ -36,7 +36,6 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
 
-
     @MockitoBean
     private AccessTokenService accessTokenService;
 
@@ -85,6 +84,9 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
+        //  Note:
+        //  The test was originally expecting a defendant_account_id of 1, but it would appear that
+        //  the legacy_DB now returns the defendant_account_id of 77.
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("77"))

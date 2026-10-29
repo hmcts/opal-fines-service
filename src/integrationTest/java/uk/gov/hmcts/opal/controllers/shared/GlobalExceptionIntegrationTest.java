@@ -41,7 +41,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Import(GlobalExceptionIntegrationTest.ThrowingController.class)
 public class GlobalExceptionIntegrationTest extends AbstractIntegrationTest {
 
-
     /**
      * Build a FeignException with typed headers (no unsafe casts).
      */

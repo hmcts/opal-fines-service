@@ -6,7 +6,7 @@ import static uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCa
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -22,7 +22,7 @@ public class DefendantAccountSearchPdplLoggingService extends AbstractPdplLoggin
         super(loggingService, clock);
     }
 
-    public void logSearchResults(UserState userState, DefendantAccountSearchResultsDto results) {
+    public void logSearchResults(UserStateV2 userState, DefendantAccountSearchResultsDto results) {
         List<ParticipantIdentifier> individuals = getIndividualDefendants(results);
 
         if (individuals.isEmpty()) {

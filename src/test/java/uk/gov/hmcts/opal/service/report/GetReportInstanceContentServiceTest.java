@@ -8,6 +8,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -49,6 +50,7 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceFileEntity;
 import uk.gov.hmcts.opal.entity.report.SupportedFileType;
@@ -391,13 +393,15 @@ class GetReportInstanceContentServiceTest {
         void whenBusinessUnitsMissing_throwsPermissionNotAllowedException_sadPath(List<Short> businessUnits) {
             reportInstance.setBusinessUnit(businessUnits);
             mock_reportInstanceAtLocation(LOCATION);
-            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission()))
+                .thenReturn(true);
 
             assertAll(
                 () -> assertThatThrownBy(() -> getReportInstanceContentService.getReportInstanceContent(1L, JSON))
                     .isInstanceOf(PermissionNotAllowedException.class),
                 () -> verify(authToken, never())
-                    .hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77)
+                    .hasPermissionInBusinessUnit(
+                        FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission(), (short) 77)
             );
         }
 
@@ -453,8 +457,10 @@ class GetReportInstanceContentServiceTest {
         @Test
         void whenUserLacksBusinessUnitPermission_throwsPermissionNotAllowedException() {
             mock_reportInstanceAtLocation(LOCATION);
-            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-            when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77))
+            when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
+                    .toCommonPermission())).thenReturn(true);
+            when(authToken.hasPermissionInBusinessUnit(
+                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission(), (short) 77))
                 .thenReturn(false);
 
             assertAll(
@@ -487,9 +493,10 @@ class GetReportInstanceContentServiceTest {
     }
 
     private void mock_hasPermissionForReportAndBusinessUnit() {
-        when(authToken.hasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
-        when(authToken.hasPermissionInBusinessUnit(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, (short) 77))
-            .thenReturn(true);
+        doReturn(true).when(authToken).hasPermission(
+            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS.toCommonPermission());
+        lenient().doReturn(true).when(authToken).hasPermissionInBusinessUnit(
+            any(PermissionV2.class), eq((short) 77));
     }
 
     private void mock_jsonStoredReport(Map<String, Object> expected) throws JacksonException {

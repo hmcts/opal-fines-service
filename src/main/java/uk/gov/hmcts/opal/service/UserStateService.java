@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -105,7 +105,7 @@ public class UserStateService {
             .stream()
             .flatMap(List::stream)
             .filter(businessUnitUser -> businessUnitUser.hasPermission(permission))
-            .map(BusinessUnitUser::getBusinessUnitId)
+            .map(BusinessUnitUserV2::getBusinessUnitId)
             .distinct()
             .toList();
     }

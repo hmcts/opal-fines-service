@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -38,9 +38,10 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.repository.ReportRepository;
@@ -82,18 +83,27 @@ class ReportInstanceSearchServiceTest {
     }
 
     private void setAuthenticatedUserWithPermissions(FinesPermission... permissions) {
-        Set<String> permittedPermissions = Arrays.stream(permissions)
-            .map(FinesPermission::name)
-            .collect(Collectors.toSet());
+        Set<PermissionV2> permittedPermissions = Arrays.stream(permissions)
+            .map(FinesPermission::toCommonPermission)
+            .collect(java.util.stream.Collectors.toSet());
 
         when(authToken.hasPermission(anyString())).thenAnswer(invocation -> {
             String permissionName = invocation.getArgument(0);
             return permittedPermissions.stream()
-                .anyMatch(permission -> permission.contains(permissionName));
+                .anyMatch(permission -> comparePermissionNames(permission.getPermissionName(), permissionName));
         });
     }
 
-    private void setBusinessUnitUsers(BusinessUnitUser... businessUnitUsers) {
+    private boolean comparePermissionNames(String permissionName, String permissionCandidate) {
+        boolean isContained = permissionName.contains(permissionCandidate);
+        if (!isContained) {
+            isContained = permissionName.toUpperCase().replace(' ', '_').contains(permissionCandidate);
+        }
+
+        return isContained;
+    }
+
+    private void setBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userStateV2);
         when(userStateV2.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);
         when(domainBusinessUnitUsers.getBusinessUnitUsers()).thenReturn(List.of(businessUnitUsers));
@@ -112,8 +122,7 @@ class ReportInstanceSearchServiceTest {
         void whenReportsHaveMixedPermissions_returnsOnlyPermittedReports_happyPath() {
             ReportEntity permittedReport = report(REPORT_ID, SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity unpermittedReport = report("R2", ACCOUNT_MAINTENANCE);
-            when(reportRepository.findAllByPermissionIsNotNull()).thenReturn(
-                List.of(permittedReport, unpermittedReport));
+            doReturn(List.of(permittedReport, unpermittedReport)).when(reportRepository).findAllByPermissionIsNotNull();
             setAuthenticatedUserWithPermissions(SEARCH_AND_VIEW_ACCOUNTS);
 
             List<ReportEntity> result = reportInstanceSearchService.findPermittedReports();
@@ -249,9 +258,9 @@ class ReportInstanceSearchServiceTest {
             ReportEntity searchReport = report("search", SEARCH_AND_VIEW_ACCOUNTS);
             ReportEntity maintenanceReport = report("maintain", ACCOUNT_MAINTENANCE);
 
-            BusinessUnitUser buUser1 =
+            BusinessUnitUserV2 buUser1 =
                 businessUnitUser("BU1", (short) 10, SEARCH_AND_VIEW_ACCOUNTS, ACCOUNT_MAINTENANCE);
-            BusinessUnitUser buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
+            BusinessUnitUserV2 buUser2 = businessUnitUser("BU2", (short) 20, SEARCH_AND_VIEW_ACCOUNTS);
 
             setBusinessUnitUsers(buUser1, buUser2);
 
