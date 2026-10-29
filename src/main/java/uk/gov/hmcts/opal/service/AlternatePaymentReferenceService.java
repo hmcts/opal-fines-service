@@ -101,9 +101,7 @@ public class AlternatePaymentReferenceService {
 
         notesService.addNote(
             NoteType.AA,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS,
-            defendantAccountId,
-            defendantAccountEntity.getVersion(),
+            defendantAccountEntity,
             "Alternate payment reference updated | " + alternatePaymentReferenceEntity.getAprText(),
             defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
         );
