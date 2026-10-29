@@ -26,6 +26,8 @@ import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
+import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
+import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -39,31 +41,18 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     private final CentralFundService centralFundService;
     private final MajorCreditorAccountService majorCreditorAccountService;
     private final MajorCreditorService majorCreditorService;
+    private final MajorCreditorMapper majorCreditorMapper;
 
     @Override
     @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
+    @FeatureToggle(
+        feature = FeatureFlags.RELEASE_1A,
+        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY
+    )
     public ResponseEntity<MajorCreditorObject> getMajorCreditorById(Long majorCreditorId) {
 
-        log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
-
-        MajorCreditorEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
-
-        MajorCreditorObject majorCreditorObject = MajorCreditorObject.builder()
-            .majorCreditorId(response.getMajorCreditorId())
-            .businessUnitId(response.getBusinessUnitId())
-            .majorCreditorCode(response.getMajorCreditorCode())
-            .name(response.getName())
-            .addressLine1(response.getAddressLine1())
-            .addressLine2(response.getAddressLine2())
-            .addressLine3(response.getAddressLine3())
-            .postcode(response.getPostcode())
-            .contactName(response.getContactName())
-            .contactTelephone(response.getContactTelephone())
-            .contactEmail(response.getContactEmail())
-            .build();
-
-        return buildResponse(majorCreditorObject);
+        MajorCreditorEntity entity = majorCreditorService.getMajorCreditorById(majorCreditorId);
+        return buildResponse(majorCreditorMapper.toObject(entity));
     }
 
     @Override

@@ -1,0 +1,56 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Testing Support Reference Data
+  version: 1.0.0
+  description: Test-only APIs for publishing and deleting reference data.
+
+paths:
+  /testing-support/ref-data/topic:
+    post:
+      tags:
+        - Testing Support Reference Data
+      summary: Publish reference data
+      description: Publishes a test reference data message to the reference data topic.
+      operationId: publishReferenceData
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TestingSupportReferenceDataMessage'
+      responses:
+        '202':
+          description: Reference data message accepted for publishing
+
+  /testing-support/ref-data/{refDataType}/{businessKey}:
+    delete:
+      tags:
+        - Testing Support Reference Data
+      summary: Delete reference data
+      description: Deletes test reference data identified by its reference data type and business key.
+      operationId: deleteReferenceData
+      parameters:
+        - name: refDataType
+          in: path
+          required: true
+          description: The reference data type handled by the reference data framework.
+          schema:
+            type: string
+        - name: businessKey
+          in: path
+          required: true
+          description: The business key, supplied as a string and parsed according to the reference data type.
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Reference data deleted
+
+components:
+  schemas:
+    TestingSupportReferenceDataMessage:
+      title: Testing support reference data message
+      description: A reference data message conforming to the applicable Valcon schema.
+      type: object
+      additionalProperties: true

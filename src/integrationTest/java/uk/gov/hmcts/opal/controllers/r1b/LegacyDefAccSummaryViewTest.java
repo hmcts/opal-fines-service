@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -36,6 +37,7 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
 
     @MockitoBean
     private OpalJwtAuthenticationProvider opalJwtAuthenticationProvider;
+
     @MockitoBean
     private LoggingService loggingService;
 
@@ -50,6 +52,8 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
     @DisplayName("PO-2336 INT.01 - Get defendant account header summary maps has_consolidated_accounts to true")
     @JiraTestKey("PO-9417")
     void int01_getDefendantAccountHeaderSummary_mapsHasConsolidatedAccountsTrue() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
