@@ -24,6 +24,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
@@ -153,10 +154,10 @@ public class DraftAccountService {
         Optional<LocalDate> accountStatusDateFrom,
         Optional<LocalDate> accountStatusDateTo) {
 
-        UserState userState = userStateService.getUserStateV1FromSecurityContext();
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
-        if (!userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
-            throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+        if (!userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.draftAccountPermissions())) {
+            throw new PermissionNotAllowedException(FinesPermission.draftAccountPermissions());
         }
 
         List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
@@ -170,14 +171,14 @@ public class DraftAccountService {
         List<DraftAccountStatus> statuses = optionalStatus.orElse(Collections.emptyList());
 
         List<Short> requestedBusinessUnitIds = optionalBusinessUnitIds.orElseGet(() ->
-            userState.getBusinessUnitUser().stream()
-                .map(BusinessUnitUser::getBusinessUnitId)
+            userState.getDomainBusinessUnitUsers(Domain.FINES).getBusinessUnitUsers().stream()
+                .map(BusinessUnitUserV2::getBusinessUnitId)
                 .toList()
         );
 
         List<Short> permittedBusinessUnitIds = requestedBusinessUnitIds.stream()
             .filter(businessUnitId -> userState.hasBusinessUnitUserWithAnyPermission(
-                businessUnitId, FinesPermission.DRAFT_ACCOUNT_PERMISSIONS))
+                businessUnitId, FinesPermission.draftAccountPermissions()))
             .distinct()
             .toList();
 

@@ -161,7 +161,7 @@ class DraftAccountServiceTest {
             FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS
         );
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(draftAccountTransactional.countDraftAccounts(
             eq(List.of(permittedBusinessUnitId)),
             eq(statuses),
@@ -204,7 +204,7 @@ class DraftAccountServiceTest {
             FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS
         );
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
 
         // Act
         DraftAccountsResponseDto result = draftAccountService.countDraftAccounts(

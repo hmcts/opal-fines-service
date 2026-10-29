@@ -36,6 +36,7 @@ import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import java.lang.reflect.Field;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -482,7 +483,7 @@ class LegacyDraftAccountPublishTest {
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account(originalAccount)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -513,7 +514,7 @@ class LegacyDraftAccountPublishTest {
             }
             """)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -544,7 +545,7 @@ class LegacyDraftAccountPublishTest {
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account(accountJson)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -573,7 +574,7 @@ class LegacyDraftAccountPublishTest {
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 6).build())
             .account(accountJson)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -606,7 +607,7 @@ class LegacyDraftAccountPublishTest {
             }
             """)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -637,7 +638,7 @@ class LegacyDraftAccountPublishTest {
             }
             """)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 
@@ -665,7 +666,7 @@ class LegacyDraftAccountPublishTest {
             }
             """)
             .build();
-        BusinessUnitUser user = BusinessUnitUser.builder()
+        BusinessUnitUserV2 user = BusinessUnitUserV2.builder()
             .businessUnitUserId("testUser")
             .build();
 

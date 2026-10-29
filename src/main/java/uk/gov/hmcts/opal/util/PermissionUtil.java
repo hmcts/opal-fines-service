@@ -1,11 +1,10 @@
 package uk.gov.hmcts.opal.util;
 
 import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -15,9 +14,16 @@ import java.util.Optional;
 
 public class PermissionUtil {
 
-    public static BusinessUnitUser getRequiredBusinessUnitUser(UserState userState, Short businessUnitId) {
+    public static BusinessUnitUserV2 getRequiredBusinessUnitUser(UserStateV2 userState, Short businessUnitId) {
         return userState.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() -> new
             AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
+    }
+
+    public static BusinessUnitUserV2 getRequiredBusinessUnitUser(DomainBusinessUnitUsers businessUnitUsers,
+        Short businessUnitId) {
+
+        return businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() ->
+            new AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
     public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUserV2 businessUnitUser,

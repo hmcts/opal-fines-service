@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -17,12 +18,14 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorRefData200Response;
+import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
 import uk.gov.hmcts.opal.service.CentralFundService;
 import uk.gov.hmcts.opal.service.MajorCreditorAccountService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -36,6 +39,32 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     private final CentralFundService centralFundService;
     private final MajorCreditorAccountService majorCreditorAccountService;
     private final MajorCreditorService majorCreditorService;
+
+    @Override
+    @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
+    @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
+    public ResponseEntity<MajorCreditorObject> getMajorCreditorById(Long majorCreditorId) {
+
+        log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
+
+        MajorCreditorEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
+
+        MajorCreditorObject majorCreditorObject = MajorCreditorObject.builder()
+            .majorCreditorId(response.getMajorCreditorId())
+            .businessUnitId(response.getBusinessUnitId())
+            .majorCreditorCode(response.getMajorCreditorCode())
+            .name(response.getName())
+            .addressLine1(response.getAddressLine1())
+            .addressLine2(response.getAddressLine2())
+            .addressLine3(response.getAddressLine3())
+            .postcode(response.getPostcode())
+            .contactName(response.getContactName())
+            .contactTelephone(response.getContactTelephone())
+            .contactEmail(response.getContactEmail())
+            .build();
+
+        return buildResponse(majorCreditorObject);
+    }
 
     @Override
     @FeatureToggle(

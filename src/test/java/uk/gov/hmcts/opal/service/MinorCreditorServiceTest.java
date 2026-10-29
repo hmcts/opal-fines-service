@@ -139,12 +139,12 @@ class MinorCreditorServiceTest {
             .build();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
 
         verify(minorCreditorSummaryPdplLoggingService, never()).logIndividualMinorCreditorSummary(123L,
-            UserState.builder().build(), response);
+            UserStateV2.builder().build(), response);
     }
 
     @Test
@@ -157,7 +157,7 @@ class MinorCreditorServiceTest {
             .build();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
 
         minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
 
@@ -176,7 +176,7 @@ class MinorCreditorServiceTest {
             .build();
 
         when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
         doThrow(new PdplLoggingException("BOOM")).when(minorCreditorSummaryPdplLoggingService)
             .logIndividualMinorCreditorSummary(123L, UserStateUtil.allFinesPermissionUser(), response);
 
@@ -238,7 +238,7 @@ class MinorCreditorServiceTest {
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
             .version(BigInteger.ONE)
             .build();
-        UserState userState = UserStateUtil.permissionUser(
+        final UserStateV2 userState = UserStateUtil.permissionUser(
             (short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
         when(userStateService.getUserStateFromSecurityContext())

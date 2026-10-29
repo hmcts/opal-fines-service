@@ -52,7 +52,7 @@ class FinesPermissionTest {
                     FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report by enforcement",
-                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_ENFORCEMENT.getPermissionName()
                 )
             ),
             () -> assertAll(
@@ -60,7 +60,7 @@ class FinesPermissionTest {
                     FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionCode()),
                 () -> assertEquals(
                     "Operational report by payments",
-                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getDescription()
+                    FinesPermission.OPERATIONAL_REPORT_BY_PAYMENTS.getPermissionName()
                 )
             )
         );

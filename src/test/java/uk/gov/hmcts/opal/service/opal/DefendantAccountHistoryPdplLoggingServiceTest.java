@@ -20,7 +20,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
@@ -33,7 +33,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 @ExtendWith(MockitoExtension.class)
 class DefendantAccountHistoryPdplLoggingServiceTest {
 
-    private static final UserState USER_STATE = UserState.builder().userId(42L).build();
+    private static final UserStateV2 USER_STATE = UserStateV2.builder().userId(42L).build();
 
     @Mock
     private LoggingService loggingService;

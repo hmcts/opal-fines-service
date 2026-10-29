@@ -123,7 +123,7 @@ class ImpositionServiceTest {
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
 
-            GetDefendantAccountImpositionsResponse result = impositionService.getImpositions(defendantAccountId);
+        GetDefendantAccountImpositionsResponse result = impositionService.getImpositions(defendantAccountId);
 
         assertSame(impositionsResponse, result);
         verify(userStateService).getUserStateFromSecurityContext();
@@ -148,6 +148,7 @@ class ImpositionServiceTest {
         verifyNoInteractions(impositionServiceProxy);
         verifyNoMoreInteractions(userStateService, userState);
     }
+
     @Nested
     class GetImpositions {
 
@@ -158,7 +159,7 @@ class ImpositionServiceTest {
                 GetDefendantAccountImpositionsResponse.builder()
                     .version(BigInteger.valueOf(9))
                     .build();
-            when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+            when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
             when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
                 .thenReturn(true);
             when(impositionServiceProxy.getImpositions(defendantAccountId)).thenReturn(impositionsResponse);
@@ -167,7 +168,7 @@ class ImpositionServiceTest {
 
             assertAll(
                 () -> assertSame(impositionsResponse, result),
-                () -> verify(userStateService).getUserStateV1FromSecurityContext(),
+                () -> verify(userStateService).getUserStateFromSecurityContext(),
                 () -> verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
                 () -> verify(impositionServiceProxy).getImpositions(defendantAccountId),
                 () -> verify(pdplLoggingService).logIndividualMinorCreditors(userState, impositionsResponse),

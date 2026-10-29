@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
@@ -155,19 +156,13 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenUserHasPermission_passesPostedByAndBusinessUnitUserIdToProxy() {
         // Arrange
-        Long defendantAccountId = 10L;
-        String ifMatch = "W/\"1\"";
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
-        when(userState.getBusinessUnitUserForBusinessUnit(buId)).thenReturn(Optional.of(buUser));
-        when(userState.getUsername()).thenReturn("theUserName");
-        when(userState.hasBusinessUnitUserWithPermission(eq(buId), eq(FinesPermission.ACCOUNT_MAINTENANCE)))
-            .thenReturn(true);
+        stubAccountMaintenanceUser(buId, "theUserName", Optional.of(buUser));
 
         when(defendantAccountPartyServiceProxy.addDefendantAccountParty(
             anyLong(), anyString(), anyString(), anyString(), anyString(), anyString(),
@@ -301,7 +296,7 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_nonPayingParentGuardianWithoutPermissionDoesNotCallPdpoLogger() {
         short businessUnitId = 3;
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -404,13 +399,13 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_whenBusinessUnitUserMissing_usesUserNameForPostedByAndEmptyBusinessUnitUserId() {
         // Arrange
-        Long defendantAccountId = 11L;
-        String ifMatch = "W/\"2\"";
+        final Long defendantAccountId = 11L;
+        final String ifMatch = "W/\"2\"";
         String businessUnitId = "7";
         short buId = Short.parseShort(businessUnitId);
 
-        AddPartyRequestDefendantAccount request = defendantRequest();
-        PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
+        final AddPartyRequestDefendantAccount request = defendantRequest();
+        final PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
 
         // No BusinessUnitUser present
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
@@ -691,10 +686,10 @@ class DefendantAccountPartyServiceTest {
     }
 
     private void stubAccountMaintenanceUser(short businessUnitId, String userName,
-        Optional<BusinessUnitUser> businessUnitUser) {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        Optional<BusinessUnitUserV2> businessUnitUser) {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(businessUnitUser);
-        when(userState.getUserName()).thenReturn(userName);
+        when(userState.getUsername()).thenReturn(userName);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
     }

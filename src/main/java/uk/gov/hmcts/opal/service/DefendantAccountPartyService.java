@@ -82,7 +82,7 @@ public class DefendantAccountPartyService {
     }
 
     private void queuePdpoIfNonPayingParentGuardian(AddPartyRequestDefendantAccount request,
-        PartyResponseDefendantAccount response, UserState userState) {
+        PartyResponseDefendantAccount response, UserStateV2 userState) {
 
         if (isNonPayingParentGuardian(request)) {
             String partyId = requireAddedPartyId(response);

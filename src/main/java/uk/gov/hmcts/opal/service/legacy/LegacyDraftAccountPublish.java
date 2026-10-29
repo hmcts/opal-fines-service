@@ -102,8 +102,8 @@ public class LegacyDraftAccountPublish implements DraftAccountPublishInterface {
         return publishEntity;
     }
 
-    public static LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
-                                                                                    BusinessUnitUserV2 unitUser) {
+    public LegacyCreateDefendantAccountRequest createDefendantAccountRequest(DraftAccountEntity entity,
+        BusinessUnitUserV2 unitUser) {
         String accountJson = entity.getAccount();
         Object account;
         try {

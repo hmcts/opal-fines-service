@@ -116,7 +116,8 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        UserStateV2 user = UserStateUtil.allFinesPermissionUser();
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(user);
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
@@ -258,11 +259,11 @@ class DefendantAccountServiceTest {
 
     @Test
     void getHistory_whenUserHasPermission_logsAndReturnsProxyResponse_happyPath() {
-        UserState permittedUser = allPermissionsUser();
+        UserStateV2 permittedUser = allPermissionsUser();
         DefendantAccountHistoryResponse expectedResponse = DefendantAccountHistoryResponse.builder()
             .historyItems(List.of())
             .build();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permittedUser);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(permittedUser);
         when(defendantAccountServiceProxy.getHistory(anyLong(), any())).thenReturn(expectedResponse);
 
         DefendantAccountHistoryResponse result = defendantAccountService.getHistory(77L, null, null, List.of());
