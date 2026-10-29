@@ -35,7 +35,6 @@ class AlternatePaymentReferenceMapperTest {
                 .aprText("APR-REFERENCE-1")
                 .createdDatetime(createdAt)
                 .updatedDatetime(updatedAt)
-                .versionNumber(2L)
                 .build();
 
             AlternatePaymentReferencesItem result = mapper.toAlternatePaymentReferencesItem(entity);
@@ -48,7 +47,6 @@ class AlternatePaymentReferenceMapperTest {
             assertThat(result.getAprText()).isEqualTo("APR-REFERENCE-1");
             assertThat(result.getCreatedAt()).isEqualTo(createdAt);
             assertThat(result.getUpdatedAt()).isEqualTo(updatedAt);
-            assertThat(result.getVersion()).isEqualTo(2L);
         }
 
         @Test

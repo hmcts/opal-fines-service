@@ -4,6 +4,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.MANAGE_ALTERNATE_PAYMENT_REFERENCES;
@@ -15,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
@@ -54,6 +56,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         void returnsMultipleReferencesForRequestedAccountOnly() throws Exception {
             ResultActions result = getReferences(ACCOUNT_WITH_REFERENCES)
                 .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(content().json("""
@@ -94,6 +97,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         void returnsEmptyArrayWhenNoReferencesExist() throws Exception {
             getReferences(ACCOUNT_WITHOUT_REFERENCES)
                 .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ETAG, "\"9\""))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty());
@@ -106,6 +110,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         void returnsNotFoundWhenDefendantAccountDoesNotExist() throws Exception {
             getReferences(1087799L)
                 .andExpect(status().isNotFound())
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG))
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(expectEntityNotFound());
         }
@@ -140,6 +145,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
     private void assertForbidden(ResultActions result) throws Exception {
         result.andExpect(status().isForbidden())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectError(HttpStatus.FORBIDDEN, "Forbidden",
                 "You do not have permission to access this resource", "https://hmcts.gov.uk/problems/forbidden"))

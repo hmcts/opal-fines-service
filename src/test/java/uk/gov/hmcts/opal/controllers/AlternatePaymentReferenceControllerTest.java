@@ -18,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesItem;
 import uk.gov.hmcts.opal.service.AlternatePaymentReferenceService;
 
@@ -50,7 +51,7 @@ class AlternatePaymentReferenceControllerTest {
                     .aprText("REFERENCE-2")
             );
             when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId))
-                .thenReturn(expected);
+                .thenReturn(new VersionedResponse<>(expected, 7L));
 
             ResponseEntity<List<AlternatePaymentReferencesItem>> response =
                 controller.getAlternatePaymentReferences(defendantAccountId);
@@ -58,6 +59,7 @@ class AlternatePaymentReferenceControllerTest {
             assertAll(
                 () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
                 () -> assertEquals(expected, response.getBody()),
+                () -> assertEquals("\"7\"", response.getHeaders().getETag()),
                 () -> verify(alternatePaymentReferenceService).getAlternatePaymentReferences(defendantAccountId)
             );
         }
@@ -67,7 +69,7 @@ class AlternatePaymentReferenceControllerTest {
         void returnsEmptyListWithOkStatusWhenNoReferencesExist() {
             Long defendantAccountId = 123L;
             when(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId))
-                .thenReturn(List.of());
+                .thenReturn(new VersionedResponse<>(List.of(), 8L));
 
             ResponseEntity<List<AlternatePaymentReferencesItem>> response =
                 controller.getAlternatePaymentReferences(defendantAccountId);

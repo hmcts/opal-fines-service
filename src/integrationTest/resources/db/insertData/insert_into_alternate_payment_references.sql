@@ -5,8 +5,8 @@ VALUES (10877, 'APR Integration Tests', 'APRT', 'Area', FALSE);
 INSERT INTO defendant_accounts (defendant_account_id, business_unit_id, account_number,
                                 amount_imposed, amount_paid,
                                 account_balance, account_status, account_type, version_number)
-VALUES (1087701, 10877, 'APR-MULTIPLE', 100.00, 0.00, 100.00, 'L', 'Fine', 0),
-       (1087702, 10877, 'APR-EMPTY', 100.00, 0.00, 100.00, 'L', 'Fine', 0),
+VALUES (1087701, 10877, 'APR-MULTIPLE', 100.00, 0.00, 100.00, 'L', 'Fine', 7),
+       (1087702, 10877, 'APR-EMPTY', 100.00, 0.00, 100.00, 'L', 'Fine', 9),
        (1087703, 10877, 'APR-OTHER', 100.00, 0.00, 100.00, 'L', 'Fine', 0);
 
 INSERT INTO alternate_payment_references (alternate_payment_reference_id, defendant_account_id,

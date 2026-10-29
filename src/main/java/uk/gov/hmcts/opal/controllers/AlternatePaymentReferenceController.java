@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
@@ -29,7 +30,7 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
         defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
     )
     public ResponseEntity<List<AlternatePaymentReferencesItem>> getAlternatePaymentReferences(Long defendantAccountId) {
-        return ResponseEntity.ok()
-            .body(alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId));
+        return alternatePaymentReferenceService.getAlternatePaymentReferences(defendantAccountId)
+            .toResponseEntity(HttpStatus.OK);
     }
 }

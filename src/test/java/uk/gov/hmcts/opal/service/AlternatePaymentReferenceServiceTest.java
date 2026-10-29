@@ -23,6 +23,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -158,9 +159,11 @@ class AlternatePaymentReferenceServiceTest {
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(firstEntity)).thenReturn(firstItem);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(secondEntity)).thenReturn(secondItem);
 
-            List<AlternatePaymentReferencesItem> actual = service.getAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID);
+            VersionedResponse<List<AlternatePaymentReferencesItem>> actual =
+                service.getAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID);
 
-            assertEquals(List.of(firstItem, secondItem), actual);
+            assertEquals(List.of(firstItem, secondItem), actual.getData());
+            assertEquals(7L, actual.getVersion());
             verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             verify(service).getAlternativePaymentReferenceEntities(DEFENDANT_ACCOUNT_ID);
             verify(alternatePaymentReferenceMapper).toAlternatePaymentReferencesItem(firstEntity);
@@ -174,9 +177,11 @@ class AlternatePaymentReferenceServiceTest {
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             doReturn(List.of()).when(service).getAlternativePaymentReferenceEntities(DEFENDANT_ACCOUNT_ID);
 
-            List<AlternatePaymentReferencesItem> actual = service.getAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID);
+            VersionedResponse<List<AlternatePaymentReferencesItem>> actual =
+                service.getAlternatePaymentReferences(DEFENDANT_ACCOUNT_ID);
 
-            assertEquals(List.of(), actual);
+            assertEquals(List.of(), actual.getData());
+            assertEquals(7L, actual.getVersion());
             verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             verify(service).getAlternativePaymentReferenceEntities(DEFENDANT_ACCOUNT_ID);
             verifyNoInteractions(alternatePaymentReferenceMapper);
@@ -202,6 +207,7 @@ class AlternatePaymentReferenceServiceTest {
     private static DefendantAccountEntity createDefendantAccount() {
         return DefendantAccountEntity.builder()
             .defendantAccountId(DEFENDANT_ACCOUNT_ID)
+            .versionNumber(7L)
             .businessUnit(BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build())
             .build();
     }

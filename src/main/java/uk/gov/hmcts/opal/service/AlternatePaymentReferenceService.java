@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AlternatePaymentReferencesItem;
@@ -35,14 +36,17 @@ public class AlternatePaymentReferenceService {
         return repository.findByDefendantAccount_defendantAccountId(defendantAccountId);
     }
 
-    public List<AlternatePaymentReferencesItem> getAlternatePaymentReferences(Long defendantAccountId) {
-        verifyDefendantAccountEntityExistAndUserHasCorrectPermission(defendantAccountId);
+    public VersionedResponse<List<AlternatePaymentReferencesItem>> getAlternatePaymentReferences(
+        Long defendantAccountId) {
+        DefendantAccountEntity defendantAccountEntity =
+            verifyDefendantAccountEntityExistAndUserHasCorrectPermission(defendantAccountId);
         List<AlternatePaymentReferenceEntity> alternatePaymentReferenceEntities =
             getAlternativePaymentReferenceEntities(defendantAccountId);
 
-        return alternatePaymentReferenceEntities
+        List<AlternatePaymentReferencesItem> data = alternatePaymentReferenceEntities
             .stream()
             .map(alternatePaymentReferenceMapper::toAlternatePaymentReferencesItem)
             .toList();
+        return new VersionedResponse<>(data, defendantAccountEntity.getVersionNumber());
     }
 }
