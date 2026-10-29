@@ -286,14 +286,15 @@ class AlternatePaymentReferenceServiceTest {
                 .alternatePaymentReferenceId(456L).aprText(APR_TEXT).versionNumber(0L).build();
             when(repository.save(any(AlternatePaymentReferenceEntity.class))).thenReturn(savedEntity);
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
-                .alternatePaymentReferenceId(456L).aprText(APR_TEXT).version(1L);
+                .alternatePaymentReferenceId(456L).aprText(APR_TEXT);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(savedEntity)).thenReturn(expected);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
-                AlternatePaymentReferencesItem actual = service.createAlternatePaymentReferences(
+                VersionedResponse<AlternatePaymentReferencesItem> actual = service.createAlternatePaymentReferences(
                     DEFENDANT_ACCOUNT_ID, createRequest(), EXPECTED_VERSION);
 
-                assertSame(expected, actual);
+                assertSame(expected, actual.getData());
+                assertEquals(3L, actual.getVersion());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
                     account, EXPECTED_VERSION, DEFENDANT_ACCOUNT_ID, "createAlternatePaymentReferences"));
                 verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);

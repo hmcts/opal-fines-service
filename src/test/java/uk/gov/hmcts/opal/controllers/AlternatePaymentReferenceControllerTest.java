@@ -107,7 +107,7 @@ class AlternatePaymentReferenceControllerTest {
 
         @ParameterizedTest
         @ValueSource(longs = {0L, 7L})
-        @DisplayName("Returns the created reference with a Created status and its version as a quoted ETag")
+        @DisplayName("Returns the created reference with a Created status and the account version as a quoted ETag")
         void returnsCreatedReferenceWithCreatedStatusAndQuotedVersionEtag(long version) {
             Long defendantAccountId = 123L;
             String expectedVersion = "\"" + version + "\"";
@@ -116,10 +116,9 @@ class AlternatePaymentReferenceControllerTest {
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
                 .alternatePaymentReferenceId(1L)
                 .defendantAccountId(defendantAccountId)
-                .aprText("REFERENCE-1")
-                .version(version);
+                .aprText("REFERENCE-1");
             when(alternatePaymentReferenceService.createAlternatePaymentReferences(
-                defendantAccountId, request, expectedVersion)).thenReturn(expected);
+                defendantAccountId, request, expectedVersion)).thenReturn(new VersionedResponse<>(expected, version));
 
             ResponseEntity<AlternatePaymentReferencesItem> response =
                 controller.createAlternatePaymentReference(defendantAccountId, expectedVersion, request);

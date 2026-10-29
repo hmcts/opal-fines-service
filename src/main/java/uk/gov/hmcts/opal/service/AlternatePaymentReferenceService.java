@@ -77,7 +77,7 @@ public class AlternatePaymentReferenceService {
     }
 
     @Transactional
-    public AlternatePaymentReferencesItem createAlternatePaymentReferences(Long defendantAccountId,
+    public VersionedResponse<AlternatePaymentReferencesItem> createAlternatePaymentReferences(Long defendantAccountId,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesWriteRequest, String expectedVersion) {
 
         DefendantAccountEntity defendantAccountEntity =
@@ -118,6 +118,9 @@ public class AlternatePaymentReferenceService {
             "Alternate payment reference added | " + alternatePaymentReferenceEntity.getAprText(),
             defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
         );
-        return alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity);
+        return new VersionedResponse<>(
+            alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity),
+            defendantAccountEntity.getVersionNumber()
+        );
     }
 }

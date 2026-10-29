@@ -169,7 +169,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             assertThat(findFixtureAccountNotes()).isEmpty();
             assertThat(defendantAccountRepository.findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID))
                 .extracting(DefendantAccountEntity::getVersionNumber)
-                .containsExactlyInAnyOrder(0L, 0L, 0L);
+                .containsExactlyInAnyOrder(7L, 9L, 0L);
         }
 
         @Test
@@ -180,10 +180,10 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             String aprText = "NEW-APR-REFERENCE";
             LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
 
-            ResultActions result = createReference(ACCOUNT_WITHOUT_REFERENCES, aprText, "\"0\"")
+            ResultActions result = createReference(ACCOUNT_WITHOUT_REFERENCES, aprText, "\"9\"")
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(header().string(HttpHeaders.ETAG, "\"0\""))
+                .andExpect(header().string(HttpHeaders.ETAG, "\"10\""))
                 .andExpect(jsonPath("$.alternate_payment_reference_id").isNumber())
                 .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITHOUT_REFERENCES))
                 .andExpect(jsonPath("$.relationship").value("APR"))
@@ -191,7 +191,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 //Cast to int because jsonPath returns a number as int, but the business unit id is a short
                 .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
                 .andExpect(jsonPath("$.apr_text").value(aprText))
-                .andExpect(jsonPath("$.version").value(0));
+                .andExpect(jsonPath("$.version").doesNotExist());
 
             LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
             JsonNode response = objectMapper.readTree(result.andReturn().getResponse().getContentAsString());
@@ -228,7 +228,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 assertThat(savedNote.getPostedByUsername()).isEqualTo(userStateStub.getUserState().getUsername());
                 assertThat(savedNote.getPostedDate()).isBetween(beforeRequest, afterRequest);
             });
-            assertThat(defendantAccountVersionFor(ACCOUNT_WITHOUT_REFERENCES)).isEqualTo(1);
+            assertThat(defendantAccountVersionFor(ACCOUNT_WITHOUT_REFERENCES)).isEqualTo(10);
         }
 
         @Test
@@ -259,7 +259,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Rejects reference text already used by another defendant account in the same business unit")
         void returnsUnprocessableContentWhenReferenceTextAlreadyExistsInBusinessUnit() throws Exception {
-            createReference(ACCOUNT_WITHOUT_REFERENCES, "APR-REFERENCE-1", "\"0\"")
+            createReference(ACCOUNT_WITHOUT_REFERENCES, "APR-REFERENCE-1", "\"9\"")
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(422))
@@ -275,7 +275,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Rejects a second APR relationship for the same defendant account even when the text is unique")
         void returnsUnprocessableContentWhenDefendantAccountAlreadyHasAprRelationship() throws Exception {
-            createReference(ACCOUNT_WITH_REFERENCES, "NEW-APR-REFERENCE", "\"0\"")
+            createReference(ACCOUNT_WITH_REFERENCES, "NEW-APR-REFERENCE", "\"7\"")
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.status").value(422))

@@ -43,12 +43,8 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
     public ResponseEntity<AlternatePaymentReferencesItem> createAlternatePaymentReference(
         Long defendantAccountId, String expectedVersion,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesWriteRequest) {
-        AlternatePaymentReferencesItem apr =
-            alternatePaymentReferenceService.createAlternatePaymentReferences(
-                defendantAccountId, alternatePaymentReferencesWriteRequest, expectedVersion
-            );
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .eTag(String.valueOf(apr.getVersion()))
-            .body(apr);
+        return alternatePaymentReferenceService.createAlternatePaymentReferences(
+            defendantAccountId, alternatePaymentReferencesWriteRequest, expectedVersion
+        ).toResponseEntity(HttpStatus.CREATED);
     }
 }
