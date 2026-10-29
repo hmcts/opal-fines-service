@@ -144,6 +144,9 @@ opal:
     email: ${OPAL_TEST_USER_EMAIL:opal-test@HMCTS.NET}
     password: ${OPAL_TEST_USER_PASSWORD}
   common:
+    docmosis:
+      url: ${DOCMOSIS_ENDPOINT:http://localhost:4553}
+      api-key: ${DOCMOSIS_API_KEY:}
     domain: fines
     service-bus:
       connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
@@ -175,6 +178,10 @@ opal:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
       consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+
+  tills:
+    service-bus:
+      queue-name: ${SERVICEBUS_ALLOCATE_TILLS_QUEUE_NAME:allocate-tills}
 
   interface-jobs:
     service-bus:

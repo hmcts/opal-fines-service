@@ -21,6 +21,7 @@ import uk.gov.hmcts.opal.repository.AliasRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.DebtorDetailRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration", "opal"})
@@ -40,6 +41,9 @@ public abstract class AbstractOpalDefendantsIntegrationTest extends AbstractInte
 
     @MockitoSpyBean
     protected JsonSchemaValidationService jsonSchemaValidationService;
+
+    @MockitoSpyBean
+    protected DefendantAccountSummaryPdplLoggingService loggingService;
 
     @Autowired
     protected DebtorDetailRepository debtorDetailRepository;

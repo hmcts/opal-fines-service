@@ -10,10 +10,13 @@ import net.serenitybdd.rest.SerenityRest;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -26,6 +29,11 @@ public class LoggingSteps extends BaseStepDef {
     private static final String PDPO_CREATED_BY_ID = "500000000";
     private static final String PDPO_CREATED_BY_TYPE = "OPAL_USER_ID";
     private static final String PDPO_BUSINESS_IDENTIFIER = "Submit Draft Account - Parent or Guardian";
+    private static final String MINOR_CREDITOR_HISTORY_BUSINESS_IDENTIFIER =
+        "View Minor Creditor Account History Item";
+    private static final String MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER =
+        "View Minor Creditor Account - Individual";
+    private static final String OPAL_USER_ID = "OPAL_USER_ID";
     private static final int DEFAULT_TIMEOUT_SECONDS =
         Optional.ofNullable(System.getenv("LOG_SEARCH_TIMEOUT_SECONDS"))
             .map(Integer::parseInt)
@@ -58,6 +66,65 @@ public class LoggingSteps extends BaseStepDef {
             "business_identifier", PDPO_BUSINESS_IDENTIFIER,
             "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
         ));
+    }
+
+    /**
+     * Verifies the logging service persisted a consultation containing each represented history
+     * user exactly once.
+     *
+     * @param expectedUsers OPAL user identifiers expected in the PDPO participant list.
+     */
+    @Then("the logging service contains a minor creditor history consultation for these users")
+    public void loggingServiceContainsMinorCreditorHistoryConsultationForUsers(DataTable expectedUsers) {
+        Set<String> expectedUserIds = Set.copyOf(expectedUsers.asList(String.class));
+        assertFalse(expectedUserIds.isEmpty(), "At least one expected history user is required");
+
+        JsonNode response = waitForPdpoLogs(Map.of(
+            "business_identifier", MINOR_CREDITOR_HISTORY_BUSINESS_IDENTIFIER,
+            "category", "Consultation",
+            "individual_identifier", expectedUserIds.iterator().next(),
+            "individual_type", OPAL_USER_ID
+        ));
+        JsonNode logEntry = response.get(0);
+        JsonNode individuals = logEntry.path("individuals");
+
+        assertEquals(MINOR_CREDITOR_HISTORY_BUSINESS_IDENTIFIER,
+            logEntry.path("business_identifier").asText());
+        assertEquals("Consultation", logEntry.path("category").asText());
+        assertTrue(individuals.isArray(), "PDPO individuals should be an array");
+
+        Set<String> actualUserIds = new java.util.LinkedHashSet<>();
+        for (JsonNode individual : individuals) {
+            assertEquals(OPAL_USER_ID, individual.path("type").asText());
+            actualUserIds.add(individual.path("id").asText());
+        }
+
+        assertEquals(expectedUserIds, actualUserIds, "Unexpected minor creditor history participants");
+        assertEquals(actualUserIds.size(), individuals.size(), "History participants must not contain duplicates");
+    }
+
+    /**
+     * Verifies that an individual minor-creditor summary read emitted the required consultation.
+     */
+    @Then("the logging service contains an individual minor creditor summary consultation")
+    public void loggingServiceContainsIndividualMinorCreditorSummaryConsultation() {
+        Long accountId = scenarioContext().getCreatedMinorCreditorAccountIdOrFail();
+        JsonNode response = waitForPdpoLogs(Map.of(
+            "business_identifier", MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER,
+            "category", "Consultation",
+            "individual_identifier", accountId.toString(),
+            "individual_type", "MINOR_CREDITOR"
+        ));
+        JsonNode logEntry = response.get(0);
+
+        assertEquals(MINOR_CREDITOR_SUMMARY_BUSINESS_IDENTIFIER,
+            logEntry.path("business_identifier").asText());
+        assertEquals("Consultation", logEntry.path("category").asText());
+        assertTrue(logEntry.path("individuals").isArray(), "PDPO individuals should be an array");
+        assertTrue(logEntry.path("individuals").valueStream().anyMatch(individual ->
+                accountId.toString().equals(individual.path("id").asText())
+                    && "MINOR_CREDITOR".equals(individual.path("type").asText())),
+            "The created minor creditor was not present in the PDPO consultation");
     }
 
     /**
