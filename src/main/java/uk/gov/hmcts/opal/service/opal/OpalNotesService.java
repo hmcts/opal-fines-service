@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.VersionUtils.verifyIfMatch;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import java.math.BigInteger;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +16,7 @@ import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -25,6 +25,7 @@ import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.util.HasAssociatedRecordType;
 import uk.gov.hmcts.opal.util.PermissionUtil;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -47,11 +48,9 @@ public class OpalNotesService implements NotesServiceInterface {
     }
 
     @Transactional
-    public void addNote(
+    public <T extends Versioned & HasAssociatedRecordType> void addNote(
         NoteType noteType,
-        AssociatedRecordType associatedRecordType,
-        long associatedRecordId,
-        BigInteger associatedRecordVersion,
+        T associatedRecord,
         String noteText,
         Short businessUnitId
     ) {
@@ -61,18 +60,16 @@ public class OpalNotesService implements NotesServiceInterface {
             businessUnitId
         );
 
-        NoteEntity note = new NoteEntity(noteType, noteText, associatedRecordType, String.valueOf(associatedRecordId));
+        NoteEntity note = new NoteEntity(noteType, noteText, associatedRecord.getAssociatedRecordType(),
+            String.valueOf(associatedRecord.getId()));
         note.setPostedDate(LocalDateTime.now(clock));
         note.setPostedByUsername(token.getUsername());
         note.setBusinessUnitUserId(businessUnitUser.getBusinessUnitUserId());
 
         repository.save(note);
-        if (AssociatedRecordType.DEFENDANT_ACCOUNTS.equals(associatedRecordType)) {
-            defendantAccountRepositoryService.incrementVersionNumber(
-                associatedRecordId,
-                associatedRecordVersion);
+        if (associatedRecord instanceof DefendantAccountEntity defendantAccountEntity) {
+            defendantAccountRepositoryService.incrementVersionNumber(defendantAccountEntity);
         }
-
     }
 
     @Transactional

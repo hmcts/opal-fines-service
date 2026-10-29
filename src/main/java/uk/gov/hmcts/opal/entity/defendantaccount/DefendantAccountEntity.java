@@ -33,12 +33,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.OptimisticLock;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.OriginatorTypeConverter;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.util.HasAssociatedRecordType;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
 
@@ -52,7 +54,7 @@ import uk.gov.hmcts.opal.util.Versioned;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "defendantAccountId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class DefendantAccountEntity implements Versioned {
+public class DefendantAccountEntity implements Versioned, HasAssociatedRecordType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "defendant_account_id_seq")
@@ -262,5 +264,15 @@ public class DefendantAccountEntity implements Versioned {
         return businessUnit != null
             && businessUnit.getBusinessUnitId() != null
             && String.valueOf(businessUnit.getBusinessUnitId()).equals(businessUnitId);
+    }
+
+    @Override
+    public AssociatedRecordType getAssociatedRecordType() {
+        return AssociatedRecordType.DEFENDANT_ACCOUNTS;
+    }
+
+    @Override
+    public long getId() {
+        return defendantAccountId;
     }
 }

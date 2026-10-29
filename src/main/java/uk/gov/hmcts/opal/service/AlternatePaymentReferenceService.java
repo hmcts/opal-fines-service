@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.common.exceptions.bespoke.BusinessRuleViolationException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.VersionedResponse;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Category;
@@ -112,9 +111,7 @@ public class AlternatePaymentReferenceService {
 
         notesService.addNote(
             NoteType.AA,
-            AssociatedRecordType.DEFENDANT_ACCOUNTS,
-            defendantAccountId,
-            defendantAccountEntity.getVersion(),
+            defendantAccountEntity,
             "Alternate payment reference added | " + alternatePaymentReferenceEntity.getAprText(),
             defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
         );

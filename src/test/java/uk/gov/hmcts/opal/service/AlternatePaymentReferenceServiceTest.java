@@ -36,7 +36,6 @@ import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.common.exceptions.bespoke.BusinessRuleViolationException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.VersionedResponse;
-import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteType;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.entity.alternatepaymentreference.Category;
@@ -304,8 +303,7 @@ class AlternatePaymentReferenceServiceTest {
                 InOrder order = inOrder(repository, notesService, alternatePaymentReferenceMapper);
                 order.verify(repository).save(entityCaptor.capture());
                 order.verify(notesService).addNote(
-                    NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS, DEFENDANT_ACCOUNT_ID,
-                    account.getVersion(), "Alternate payment reference added | " + APR_TEXT, BUSINESS_UNIT_ID);
+                    NoteType.AA, account, "Alternate payment reference added | " + APR_TEXT, BUSINESS_UNIT_ID);
                 order.verify(alternatePaymentReferenceMapper).toAlternatePaymentReferencesItem(savedEntity);
 
                 AlternatePaymentReferenceEntity createdEntity = entityCaptor.getValue();

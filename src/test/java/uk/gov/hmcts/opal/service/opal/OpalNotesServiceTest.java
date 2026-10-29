@@ -49,6 +49,7 @@ import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
+import uk.gov.hmcts.opal.util.HasAssociatedRecordType;
 import uk.gov.hmcts.opal.util.PermissionUtil;
 
 @ExtendWith(MockitoExtension.class)
@@ -191,15 +192,14 @@ class OpalNotesServiceTest {
         @DisplayName("Saves a defendant account note with user details and timestamps before incrementing its version")
         void savesDefendantAccountNoteBeforeIncrementingSuppliedAccountVersion() {
             stubPostingDetails();
-            BigInteger version = BigInteger.valueOf(12L);
+            DefendantAccountEntity account = defendantAccount();
 
-            service.addNote(NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS,
-                77L, version, NOTE_TEXT, BUSINESS_UNIT_ID);
+            service.addNote(NoteType.AA, account, NOTE_TEXT, BUSINESS_UNIT_ID);
 
             NoteEntity note = assertSavedNote(AssociatedRecordType.DEFENDANT_ACCOUNTS, "77");
             InOrder order = inOrder(repository, defendantAccountRepositoryService);
             order.verify(repository).save(note);
-            order.verify(defendantAccountRepositoryService).incrementVersionNumber(77L, version);
+            order.verify(defendantAccountRepositoryService).incrementVersionNumber(account);
             verifyNoInteractions(creditorAccountRepository, accountNoteContextFactory);
         }
 
@@ -208,8 +208,10 @@ class OpalNotesServiceTest {
         void savesCreditorAccountNoteWithoutIncrementingDefendantAccountVersion() {
             stubPostingDetails();
 
-            service.addNote(NoteType.AA, AssociatedRecordType.CREDITOR_ACCOUNTS,
-                104L, BigInteger.valueOf(3L), NOTE_TEXT, BUSINESS_UNIT_ID);
+            HasAssociatedRecordType account = new TestAssociatedRecord(
+                104L, BigInteger.valueOf(3L), AssociatedRecordType.CREDITOR_ACCOUNTS);
+
+            service.addNote(NoteType.AA, account, NOTE_TEXT, BUSINESS_UNIT_ID);
 
             assertSavedNote(AssociatedRecordType.CREDITOR_ACCOUNTS, "104");
             verifyNoInteractions(defendantAccountRepositoryService, creditorAccountRepository,
@@ -224,8 +226,7 @@ class OpalNotesServiceTest {
                 .thenThrow(expected);
 
             AccessDeniedException actual = assertThrows(AccessDeniedException.class,
-                () -> service.addNote(NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS,
-                    77L, BigInteger.valueOf(12L), NOTE_TEXT, BUSINESS_UNIT_ID));
+                () -> service.addNote(NoteType.AA, defendantAccount(), NOTE_TEXT, BUSINESS_UNIT_ID));
 
             assertSame(expected, actual);
             verifyNoInteractions(repository, defendantAccountRepositoryService);
@@ -239,12 +240,15 @@ class OpalNotesServiceTest {
             when(repository.save(any(NoteEntity.class))).thenThrow(expected);
 
             DataIntegrityViolationException actual = assertThrows(DataIntegrityViolationException.class,
-                () -> service.addNote(NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS,
-                    77L, BigInteger.valueOf(12L), NOTE_TEXT, BUSINESS_UNIT_ID));
+                () -> service.addNote(NoteType.AA, defendantAccount(), NOTE_TEXT, BUSINESS_UNIT_ID));
 
             assertSame(expected, actual);
             verify(repository).save(any(NoteEntity.class));
             verifyNoInteractions(defendantAccountRepositoryService);
+        }
+
+        private DefendantAccountEntity defendantAccount() {
+            return DefendantAccountEntity.builder().defendantAccountId(77L).versionNumber(12L).build();
         }
 
         private void stubPostingDetails() {
@@ -267,6 +271,25 @@ class OpalNotesServiceTest {
             securityUtil.verify(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser);
             permissionUtil.verify(() -> PermissionUtil.getRequiredBusinessUnitUser(userState, BUSINESS_UNIT_ID));
             return note;
+        }
+    }
+
+    private record TestAssociatedRecord(long id, BigInteger version, AssociatedRecordType recordType)
+        implements HasAssociatedRecordType {
+
+        @Override
+        public long getId() {
+            return id;
+        }
+
+        @Override
+        public BigInteger getVersion() {
+            return version;
+        }
+
+        @Override
+        public AssociatedRecordType getAssociatedRecordType() {
+            return recordType;
         }
     }
 
