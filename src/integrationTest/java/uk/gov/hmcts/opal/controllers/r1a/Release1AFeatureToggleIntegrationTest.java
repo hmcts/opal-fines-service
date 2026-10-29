@@ -13,11 +13,35 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
 import uk.gov.hmcts.opal.controllers.shared.util.DraftAccountTestData;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.controllers.BusinessUnitController;
+import uk.gov.hmcts.opal.controllers.CourtController;
+import uk.gov.hmcts.opal.controllers.DraftAccountController;
+import uk.gov.hmcts.opal.controllers.FeatureToggleWebMvcTestConfiguration;
+import uk.gov.hmcts.opal.controllers.LocalJusticeAreaController;
+import uk.gov.hmcts.opal.controllers.MajorCreditorController;
+import uk.gov.hmcts.opal.controllers.OffenceController;
+import uk.gov.hmcts.opal.controllers.ProscutorController;
+import uk.gov.hmcts.opal.controllers.ResultsApiController;
+import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.CourtService;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
+import uk.gov.hmcts.opal.service.opal.OffenceService;
+import uk.gov.hmcts.opal.service.opal.ProsecutorService;
+import uk.gov.hmcts.opal.service.opal.ResultService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -34,7 +58,26 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1a=false"
 })
+@WebMvcTest(
+    controllers = {BusinessUnitController.class, CourtController.class, DraftAccountController.class,
+        LocalJusticeAreaController.class, MajorCreditorController.class, OffenceController.class,
+        ProscutorController.class, ResultsApiController.class},
+    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class)
+)
+@Import({FeatureToggleWebMvcTestConfiguration.class, BusinessUnitController.class, CourtController.class,
+    DraftAccountController.class, LocalJusticeAreaController.class, MajorCreditorController.class,
+    OffenceController.class, ProscutorController.class, ResultsApiController.class})
 class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
+
+    @MockitoBean private BusinessUnitService businessUnitService;
+    @MockitoBean private UserStateService userStateService;
+    @MockitoBean private CourtService courtService;
+    @MockitoBean private DraftAccountService draftAccountService;
+    @MockitoBean private LocalJusticeAreaService localJusticeAreaService;
+    @MockitoBean private MajorCreditorService majorCreditorService;
+    @MockitoBean private OffenceService offenceService;
+    @MockitoBean private ProsecutorService prosecutorService;
+    @MockitoBean private ResultService resultService;
 
     private static final String DRAFT_ACCOUNT_ID = "/draft-accounts/100000";
 

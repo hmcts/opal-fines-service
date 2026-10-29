@@ -11,10 +11,22 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.controllers.FeatureToggleWebMvcTestConfiguration;
+import uk.gov.hmcts.opal.controllers.ReportInstancesApiController;
+import uk.gov.hmcts.opal.controllers.ReportsApiController;
+import uk.gov.hmcts.opal.service.ReportService;
+import uk.gov.hmcts.opal.service.report.GenericReportService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceCreationService;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -31,7 +43,14 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-enforcement-operational-reporting=false"
 })
+@WebMvcTest(controllers = {ReportsApiController.class, ReportInstancesApiController.class},
+    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class))
+@Import({FeatureToggleWebMvcTestConfiguration.class, ReportsApiController.class, ReportInstancesApiController.class})
 class EnforcementReportingFlagTest extends AbstractFeatureToggleIntegrationTest {
+
+    @MockitoBean private ReportService reportService;
+    @MockitoBean private GenericReportService genericReportService;
+    @MockitoBean private ReportInstanceCreationService reportInstanceCreationService;
 
     static Stream<Arguments> release1cEnforcementOperationalReportingEndpoints() {
         return Stream.of(

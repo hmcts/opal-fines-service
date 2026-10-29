@@ -12,11 +12,48 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.controllers.DefendantAccountApiController;
+import uk.gov.hmcts.opal.controllers.FeatureToggleWebMvcTestConfiguration;
+import uk.gov.hmcts.opal.controllers.OutstandingAutoPaymentController;
+import uk.gov.hmcts.opal.controllers.TestingSupportController;
+import uk.gov.hmcts.opal.controllers.till.TillsApiController;
+import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
+import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
+import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
+import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
+import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
+import uk.gov.hmcts.opal.service.DefendantAccountService;
+import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.ImpositionService;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
+import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
+import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.service.opal.OutstandingAutoPaymentService;
+import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
+import uk.gov.hmcts.opal.service.opal.till.TillAllocationService;
+import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
+import uk.gov.hmcts.opal.service.opal.till.TillsService;
+import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
+import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -32,7 +69,39 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1c-payment=false"
 })
+@WebMvcTest(controllers = {OutstandingAutoPaymentController.class, TestingSupportController.class,
+    DefendantAccountApiController.class, TillsApiController.class},
+    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class))
+@Import({FeatureToggleWebMvcTestConfiguration.class, OutstandingAutoPaymentController.class,
+    TestingSupportController.class, DefendantAccountApiController.class, TillsApiController.class})
 class Release1CPaymentFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
+
+    @MockitoBean private OutstandingAutoPaymentService outstandingAutoPaymentService;
+    @MockitoBean private DynamicConfigService dynamicConfigService;
+    @MockitoBean private AccessTokenService accessTokenService;
+    @MockitoBean private DefendantAccountDeletionService defendantAccountDeletionService;
+    @MockitoBean private InterfaceJobService interfaceJobService;
+    @MockitoBean private UserStateClientService userStateClientService;
+    @MockitoBean private UserStateMapper userStateMapper;
+    @MockitoBean private MajorCreditorService majorCreditorService;
+    @MockitoBean private BusinessUnitService businessUnitService;
+    @MockitoBean private OpalCreditorAccountService opalCreditorAccountService;
+    @MockitoBean private DraftAccountService draftAccountService;
+    @MockitoBean private LocalJusticeAreaService localJusticeAreaService;
+    @MockitoBean private ReportInstanceDeletionService reportInstanceDeletionService;
+    @MockitoBean private TestingSupportTillService testingSupportTillService;
+    @MockitoBean private DefendantAccountService defendantAccountService;
+    @MockitoBean private DefendantAccountEnforcementService defendantAccountEnforcementService;
+    @MockitoBean private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
+    @MockitoBean private ImpositionService impositionService;
+    @MockitoBean private DefendantAccountPartyService defendantAccountPartyService;
+    @MockitoBean private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
+    @MockitoBean private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
+    @MockitoBean private ReplacePartyRequestMapper replacePartyRequestMapper;
+    @MockitoBean private TillSearchService tillSearchService;
+    @MockitoBean private TillsService tillsService;
+    @MockitoBean private CreateTillService createTillService;
+    @MockitoBean private TillAllocationService tillAllocationService;
 
     private static final String OUTSTANDING_AUTO_PAYMENT_PATH = "/business-units/outstanding-auto-payment-count";
     private static final String INTERFACE_JOBS_PATH = "/testing-support/interface-jobs";
