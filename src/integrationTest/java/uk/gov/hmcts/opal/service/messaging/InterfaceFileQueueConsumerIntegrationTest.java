@@ -62,7 +62,6 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
         when(fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER,1L))
             .thenReturn(sourceJson);
         InterfaceFileObject transformedFile = transformedJsonInterfaceFile();
-
         when(fileHandlerAPIService.addInterfaceFile(any(), any(), any())).thenReturn(transformedFile);
         assertThatCode(() -> listener.onMessage(textMessage)).doesNotThrowAnyException();
 
