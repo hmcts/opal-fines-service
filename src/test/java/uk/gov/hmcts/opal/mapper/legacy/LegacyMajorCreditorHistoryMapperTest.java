@@ -2,18 +2,22 @@ package uk.gov.hmcts.opal.mapper.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
@@ -23,35 +27,35 @@ import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
 
-class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMapperTest {
+class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
 
     @Autowired
-    private GetMajorCreditorAccountHistoryResponseLegacyMapper mapper;
+    private LegacyMajorCreditorHistoryMapper mapper;
 
     @Test
     void toOpal_mapsLegacyHistoryResponse() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
-                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
-                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30),
                         "MJUSR3",
                         "Major User Three"
                     ))
                     .type("Financial")
                     .amount(new BigDecimal("-31.00"))
-                    .details(LegacyMajorCreditorHistoryDetails.builder()
-                        .transactionType(LegacyCreditorTransactionTypeReference.builder()
+                    .details(HistoryDetails.builder()
+                        .transactionType(TransactionTypeReference.builder()
                             .transactionType("MADJ")
                             .transactionTypeDisplayName("Manual Adjustment")
                             .build())
                         .paymentReference("MJF003")
-                        .status(LegacyCreditorTransactionStatusReference.builder()
+                        .status(TransactionStatusReference.builder()
                             .creditorTransactionStatus("R")
                             .creditorTransactionStatusDisplayName("Reversed")
                             .build())
-                        .statusDate(LocalDateTime.of(2026, 1, 31, 10, 30))
+                        .statusDate(LocalDate.of(2026, Month.JANUARY, 31))
                         .associatedRecordType("creditor_accounts")
                         .associatedRecordId("99264300000001")
                         .accountNumber("87654321")
@@ -86,7 +90,7 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
             details.getStatus().getCreditorTransactionStatus()
         );
         assertEquals("Reversed", details.getStatus().getCreditorTransactionStatusDisplayName());
-        assertEquals(LocalDateTime.of(2026, 1, 31, 10, 30), details.getStatusDate());
+        assertEquals(LocalDateTime.of(2026, Month.JANUARY, 31, 0, 0), details.getStatusDate());
         assertEquals("creditor_accounts", details.getAssociatedRecordType());
         assertEquals("99264300000001", details.getAssociatedRecordId());
         assertEquals("87654321", details.getAccountNumber());
@@ -95,18 +99,26 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
     }
 
     @Test
+    void toDetails_preservesMissingStatusDate() {
+        CreditorTransactionDetailsHistory details = mapper.toDetails(
+            HistoryDetails.builder().build());
+
+        assertNull(details.getStatusDate());
+    }
+
+    @Test
     void toOpal_mapsLegacyNoteHistoryResponse() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
-                .historyItems(List.of(LegacyMajorCreditorHistoryItem.builder()
+                .historyItems(List.of(HistoryItem.builder()
                     .postedDetails(new LegacyPostedDetails(
-                        LocalDateTime.of(2026, 1, 31, 10, 30),
+                        LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30),
                         "MJUSR3",
                         "Major User Three"
                     ))
                     .type("Note")
-                    .details(LegacyMajorCreditorHistoryDetails.builder()
+                    .details(HistoryDetails.builder()
                         .noteText("History note")
                         .build())
                     .build()))
@@ -131,13 +143,13 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
 
     @Test
     void toOpal_ordersHistoryItemsNewestFirstWithDeterministicTieHandling() {
-        GetMajorCreditorAccountHistoryLegacyResponse legacy =
-            GetMajorCreditorAccountHistoryLegacyResponse.builder()
+        LegacyMajorCreditorHistoryResponse legacy =
+            LegacyMajorCreditorHistoryResponse.builder()
                 .version(BigInteger.valueOf(7L))
                 .historyItems(List.of(
-                    historyItem("MJF002", LocalDateTime.of(2026, 1, 25, 9, 15)),
-                    historyItem("MJF004", LocalDateTime.of(2026, 1, 31, 10, 30)),
-                    historyItem("MJF003", LocalDateTime.of(2026, 1, 31, 10, 30))
+                    historyItem("MJF002", LocalDateTime.of(2026, Month.JANUARY, 25, 9, 15)),
+                    historyItem("MJF004", LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30)),
+                    historyItem("MJF003", LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30))
                 ))
                 .build();
 
@@ -153,12 +165,24 @@ class GetMajorCreditorAccountHistoryResponseLegacyMapperTest extends AbstractMap
         );
     }
 
-    private LegacyMajorCreditorHistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
-        return LegacyMajorCreditorHistoryItem.builder()
+    @Test
+    void mapper_handlesNullAndUnsupportedHistoryDetails() {
+        assertNull(mapper.mapDetails(null, HistoryDetails.builder().build()));
+        assertNull(mapper.mapDetails("Financial", null));
+        assertNull(mapper.toHistoryItemType(null));
+        assertNull(mapper.toTransactionTypeEnum(null));
+        assertNull(mapper.toTransactionStatusEnum(null));
+
+        assertThrows(IllegalArgumentException.class,
+            () -> mapper.mapDetails("Amendment", HistoryDetails.builder().build()));
+    }
+
+    private HistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
+        return HistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, "MJUSR", "Major User"))
             .type("Financial")
-            .details(LegacyMajorCreditorHistoryDetails.builder()
-                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+            .details(HistoryDetails.builder()
+                .transactionType(TransactionTypeReference.builder()
                     .transactionType("MADJ")
                     .transactionTypeDisplayName("Manual Adjustment")
                     .build())

@@ -51,6 +51,8 @@ import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -90,6 +92,12 @@ class DefendantAccountServiceTest {
     @Mock
     private DefendantAccountHistoryPdplLoggingService defendantAccountHistoryPdplLoggingService;
 
+    @Mock
+    private DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
+
+    @Mock
+    private DefendantAccountSummaryPdplLoggingService defendantAccountSummaryPdplLoggingService;
+
     @InjectMocks
     private DefendantAccountService defendantAccountService;
 
@@ -107,7 +115,8 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        UserState user = UserStateUtil.allFinesPermissionUser();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(user);
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
@@ -115,6 +124,7 @@ class DefendantAccountServiceTest {
         assertNotNull(result);
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertFalse(result.getResponse().getHasConsolidatedAccounts());
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(headerSummary, user.getUserId());
     }
 
     @Test
@@ -172,6 +182,7 @@ class DefendantAccountServiceTest {
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertTrue(result.getResponse().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(expected, 789L);
     }
 
     @Test
@@ -225,6 +236,7 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userWithPerm, expected);
     }
 
     @Test
@@ -273,6 +285,7 @@ class DefendantAccountServiceTest {
         verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
         verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userState, proxyResults);
         verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
     }
 
@@ -283,6 +296,7 @@ class DefendantAccountServiceTest {
         GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(userState.getUserId()).thenReturn(789L);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
@@ -296,7 +310,9 @@ class DefendantAccountServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getAtAGlance(defendantAccountId);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+        verify(defendantAccountSummaryPdplLoggingService).logAtAGlance(proxyResponse, 789L);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy,
+            defendantAccountSummaryPdplLoggingService);
     }
 
     @Test

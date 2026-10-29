@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.service.opal.MajorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
 @Service
@@ -24,6 +25,7 @@ public class MajorCreditorAccountService {
 
     private final UserStateService userStateService;
     private final MajorCreditorAccountProxy majorCreditorAccountProxy;
+    private final MajorCreditorHistoryPdplLoggingService pdplLoggingService;
 
     public GetMajorCreditorAccountAtAGlanceResponse getAtAGlance(Long majorCreditorAccountId) {
         log.debug(":getAtAGlance: id={}", majorCreditorAccountId);
@@ -72,7 +74,10 @@ public class MajorCreditorAccountService {
 
         validateHistoryFilters(dateFrom, dateTo, itemTypes);
 
-        return majorCreditorAccountProxy.getHistory(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+        GetMajorCreditorHistoryResponse response =
+            majorCreditorAccountProxy.getHistory(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
+        pdplLoggingService.logHistoryItems(userState, response);
+        return response;
     }
 
     private static void validateHistoryFilters(LocalDate dateFrom, LocalDate dateTo, List<String> itemTypes) {

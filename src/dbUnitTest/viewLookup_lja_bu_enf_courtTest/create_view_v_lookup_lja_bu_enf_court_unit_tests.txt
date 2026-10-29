@@ -1,0 +1,5 @@
+Timing is on.
+psql:create_view_v_lookup_lja_bu_enf_court_unit_tests.sql:35: NOTICE:  === TEST 1: Retrieve Business Unit and Enforcing Court for a LJA (1910) ===
+psql:create_view_v_lookup_lja_bu_enf_court_unit_tests.sql:35: NOTICE:  TEST 1 PASSED
+DO
+Time: 23.529 ms

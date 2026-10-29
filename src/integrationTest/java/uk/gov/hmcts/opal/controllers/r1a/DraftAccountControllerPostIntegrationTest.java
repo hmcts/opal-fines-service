@@ -387,6 +387,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft account - Should reject TFO fine originator from prosecutors")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11254")
     void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String request = createRequestBody("Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
@@ -408,6 +409,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft account - Should reject NEW confiscation originator from prosecutors")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11251")
     void shouldRejectNewConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String request = createRequestBody("Confiscation", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
@@ -429,6 +431,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft account - Should reject NEW conditional caution originator from LJA data")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11266")
     void shouldRejectNewConditionalCautionOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
         String request = createRequestBody("Conditional Caution", "NEW", VALID_FINE_ORIGINATOR_ID,
             VALID_FINE_ORIGINATOR_NAME);
@@ -450,6 +453,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft account - Should reject conditional caution prosecutor name mismatch")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11264")
     void shouldRejectConditionalCautionOriginatorWhenProsecutorNameDoesNotMatch() throws Exception {
         String request = createRequestBody("Conditional Caution", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
             "Wrong Prosecutor Name");
@@ -474,6 +478,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft fixed penalty account - Should reject TFO originator from LJA data")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11269")
     void shouldRejectTfoFixedPenaltyOriginatorWhenItUsesLocalJusticeAreaReferenceData() throws Exception {
         String request = fixedPenaltyCreateRequestBody("TFO", VALID_FINE_ORIGINATOR_ID, VALID_FINE_ORIGINATOR_NAME);
 
@@ -494,6 +499,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5742: Create draft account - Should reject unsupported NEW fixed penalty combination")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11257")
     void shouldRejectUnsupportedNewFixedPenaltyOriginatorCombination() throws Exception {
         String request = createRequestBody("Fixed Penalty", "NEW", VALID_PROSECUTOR_ORIGINATOR_ID,
             VALID_PROSECUTOR_ORIGINATOR_NAME);
@@ -536,6 +542,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should accept a valid major creditor id for an Any result rule")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11260")
     void shouldCreateDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -549,6 +556,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when major creditor id is for another business unit")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11250")
     void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPost() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -567,6 +575,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when an Any result has neither major nor minor creditor")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11263")
     void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPost() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -593,6 +602,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         scripts = "classpath:db/insertData/insert_into_central_fund_creditor_account.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
+    @JiraTestKey("PO-11258")
     void shouldReturn400WhenCentralFundAccountIsMissingOnPost() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -616,6 +626,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11252")
     void shouldReturn400WhenPaymentTermEnforcementResultIsMissing() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -634,6 +645,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should return 400 when enforcement court does not exist")
     @JiraStory("PO-5745")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11253")
     void shouldReturn400WhenEnforcementCourtDoesNotExist() throws Exception {
         long countBefore = draftAccountRepository.count();
 
@@ -661,6 +673,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11265")
     void shouldReturn400WhenPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -684,6 +697,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11259")
     void shouldReturn400WhenPaymentTermEnforcementResultIsInactive() throws Exception {
         mockMvc.perform(post(URL_BASE)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -702,6 +716,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("PO-5746: Create draft account - Should return 400 for an invalid offence ID")
     @JiraStory("PO-5746")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-11255")
     void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
@@ -726,6 +741,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Post draft account - Should Return 201 For Offences Belonging To The Same Business Unit")
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11261")
     void testPostDraftAccount_accepted_offence_for_business_unit() throws Exception {
         long countBefore = draftAccountRepository.count();
         String request = validCreateRequestBody();
@@ -755,6 +771,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Post draft account - Should Return 400 For Offences Belonging To Another Business Unit")
     @JiraStory("PO-5746")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11256")
     void testPostDraftAccount_reject_offence_for_another_business_unit() throws Exception {
         String request = validCreateRequestBody()
             .replace("\"business_unit_id\": 78", "\"business_unit_id\": 65")
@@ -801,6 +818,8 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should allow token-derived fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
+    @JiraTestKey(value = "PO-11267", name = "[1] propertyName = \"submitted_by\"")
+    @JiraTestKey(value = "PO-11268", name = "[2] propertyName = \"submitted_by_name\"")
     void testPostDraftAccount_tokenDerivedFieldIsSupplied(String propertyName) {
         String request = validCreateRequestBody().replace(
             "\"business_unit_id\": 78,",
@@ -816,6 +835,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     @DisplayName("Create draft account - Should allow top-level field during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2219")
+    @JiraTestKey("PO-11262")
     void testPostDraftAccount_undocumentedTopLevelFieldIsSupplied() {
         String propertyName = "undocumented_client_field";
         String request = validCreateRequestBody().replace(

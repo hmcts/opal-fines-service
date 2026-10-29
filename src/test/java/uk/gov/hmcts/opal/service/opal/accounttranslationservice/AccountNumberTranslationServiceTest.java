@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal.accounttranslationservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
@@ -41,6 +42,8 @@ public class AccountNumberTranslationServiceTest {
     private static final String VALID_ACCOUNT_REFERENCE_2 = "09876543B";
     private static final String INVALID_ACCOUNT_REFERENCE = "A!G$HJ@£B&";
 
+    private static final short BUSINESS_UNIT_ID = 1005;
+
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
     @Mock
@@ -68,7 +71,7 @@ public class AccountNumberTranslationServiceTest {
 
     private BusinessUnitEntity withBusinessUnit() {
         return BusinessUnitEntity.builder()
-            .businessUnitId((short)1005)
+            .businessUnitId(BUSINESS_UNIT_ID)
             .businessUnitName("Greater Manchester")
             .businessUnitCode("06")
             .businessUnitType(BusinessUnitType.AREA)
@@ -119,7 +122,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
-        verify(aprRepository, never()).findByAprTextAndBusinessUnitCode(any(), any());
+        verify(aprRepository, never()).findByAprTextAndBusinessUnit_businessUnitId(any(), anyShort());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
@@ -144,7 +147,7 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, never()).findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
-        verify(aprRepository, never()).findByAprTextAndBusinessUnitCode(any(), any());
+        verify(aprRepository, never()).findByAprTextAndBusinessUnit_businessUnitId(any(), anyShort());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
@@ -164,7 +167,7 @@ public class AccountNumberTranslationServiceTest {
         ));
 
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
-            eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID))
         ).thenReturn(Optional.of(defendantAccount));
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
@@ -173,8 +176,8 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(5))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
-        verify(aprRepository, never()).findByAprTextAndBusinessUnitCode(any(), any());
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
+        verify(aprRepository, never()).findByAprTextAndBusinessUnit_businessUnitId(any(), anyShort());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(5);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(2500L);
@@ -201,7 +204,7 @@ public class AccountNumberTranslationServiceTest {
         ));
 
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
-            eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID))
         ).thenReturn(Optional.of(defendantAccount));
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
@@ -210,8 +213,8 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(3))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
-        verify(aprRepository, never()).findByAprTextAndBusinessUnitCode(any(), any());
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
+        verify(aprRepository, never()).findByAprTextAndBusinessUnit_businessUnitId(any(), anyShort());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(3);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1500L);
@@ -241,7 +244,7 @@ public class AccountNumberTranslationServiceTest {
         ));
 
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
-            eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID))
         ).thenReturn(Optional.of(defendantAccount));
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
@@ -250,8 +253,8 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(8))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
-        verify(aprRepository, never()).findByAprTextAndBusinessUnitCode(any(), any());
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
+        verify(aprRepository, never()).findByAprTextAndBusinessUnit_businessUnitId(any(), anyShort());
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(8);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(4000L);
@@ -277,11 +280,12 @@ public class AccountNumberTranslationServiceTest {
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
             eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
         ).thenReturn(Optional.empty());
-        when(aprRepository.findByAprTextAndBusinessUnitCode(eq(VALID_ACCOUNT_REFERENCE), eq("06")))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID)))
             .thenReturn(Optional.of(alternatePaymentReference));
         when(alternatePaymentReference.getDefendantAccount()).thenReturn(defendantAccount);
         when(defendantAccount.getBusinessUnit()).thenReturn(mockBusinessUnit);
-        when(mockBusinessUnit.getBusinessUnitId()).thenReturn((short)1005);
+        when(mockBusinessUnit.getBusinessUnitId()).thenReturn(BUSINESS_UNIT_ID);
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
             interfaceFileEntity,
@@ -289,9 +293,9 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(4))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
         verify(aprRepository, times(2))
-            .findByAprTextAndBusinessUnitCode(VALID_ACCOUNT_REFERENCE, "06");
+            .findByAprTextAndBusinessUnit_businessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);
@@ -316,17 +320,20 @@ public class AccountNumberTranslationServiceTest {
         ));
 
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
-            eq(VALID_ACCOUNT_REFERENCE_2), eq((short)1005))
+            eq(VALID_ACCOUNT_REFERENCE_2), eq(BUSINESS_UNIT_ID))
         ).thenReturn(Optional.empty());
-        when(aprRepository.findByAprTextAndBusinessUnitCode(eq(INVALID_ACCOUNT_REFERENCE), eq("06")))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(
+            eq(INVALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID)))
             .thenReturn(Optional.empty());
-        when(aprRepository.findByAprTextAndBusinessUnitCode(eq(VALID_ACCOUNT_REFERENCE), eq("06")))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID)))
             .thenReturn(Optional.of(alternatePaymentReference));
-        when(aprRepository.findByAprTextAndBusinessUnitCode(eq(VALID_ACCOUNT_REFERENCE_2), eq("06")))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(
+            eq(VALID_ACCOUNT_REFERENCE_2), eq(BUSINESS_UNIT_ID)))
             .thenReturn(Optional.empty());
         when(alternatePaymentReference.getDefendantAccount()).thenReturn(defendantAccount);
         when(defendantAccount.getBusinessUnit()).thenReturn(mockBusinessUnit);
-        when(mockBusinessUnit.getBusinessUnitId()).thenReturn((short)1005);
+        when(mockBusinessUnit.getBusinessUnitId()).thenReturn(BUSINESS_UNIT_ID);
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
             interfaceFileEntity,
@@ -334,9 +341,9 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(2))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE_2, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE_2, BUSINESS_UNIT_ID);
         verify(aprRepository, times(3))
-            .findByAprTextAndBusinessUnitCode(VALID_ACCOUNT_REFERENCE, "06");
+            .findByAprTextAndBusinessUnit_businessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(3);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1500L);
@@ -362,7 +369,7 @@ public class AccountNumberTranslationServiceTest {
             withTransaction("99", "", INVALID_ACCOUNT_REFERENCE + "sfx", 500L)
         ));
 
-        when(aprRepository.findByAprTextAndBusinessUnitCode(anyString(), anyString()))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(anyString(), anyShort()))
             .thenReturn(Optional.empty());
 
         TransformedInterfaceFileData transformedInterfaceFileData = service.process(
@@ -373,7 +380,7 @@ public class AccountNumberTranslationServiceTest {
         verify(defendantAccountRepository, never())
             .findByAccountNumberAndBusinessUnit_BusinessUnitId(any(), any());
         verify(aprRepository, times(5))
-            .findByAprTextAndBusinessUnitCode(contains(INVALID_ACCOUNT_REFERENCE), eq("06"));
+            .findByAprTextAndBusinessUnit_businessUnitId(contains(INVALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID));
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(5);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(2500L);
@@ -399,9 +406,10 @@ public class AccountNumberTranslationServiceTest {
         ));
 
         when(defendantAccountRepository.findByAccountNumberAndBusinessUnit_BusinessUnitId(
-            eq(VALID_ACCOUNT_REFERENCE), eq((short)1005))
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID))
         ).thenReturn(Optional.empty());
-        when(aprRepository.findByAprTextAndBusinessUnitCode(eq(VALID_ACCOUNT_REFERENCE), eq("06")))
+        when(aprRepository.findByAprTextAndBusinessUnit_businessUnitId(
+            eq(VALID_ACCOUNT_REFERENCE), eq(BUSINESS_UNIT_ID)))
             .thenReturn(Optional.of(alternatePaymentReference));
         when(alternatePaymentReference.getDefendantAccount()).thenReturn(defendantAccount);
         when(defendantAccount.getBusinessUnit()).thenReturn(mockBusinessUnit);
@@ -413,9 +421,9 @@ public class AccountNumberTranslationServiceTest {
             businessUnit);
 
         verify(defendantAccountRepository, times(4))
-            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, (short)1005);
+            .findByAccountNumberAndBusinessUnit_BusinessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
         verify(aprRepository, times(2))
-            .findByAprTextAndBusinessUnitCode(VALID_ACCOUNT_REFERENCE, "06");
+            .findByAprTextAndBusinessUnit_businessUnitId(VALID_ACCOUNT_REFERENCE, BUSINESS_UNIT_ID);
 
         assertThat(transformedInterfaceFileData.getTransactions()).hasSize(2);
         assertThat(transformedInterfaceFileData.getTotalAmount()).isEqualTo(1000L);

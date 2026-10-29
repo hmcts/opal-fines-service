@@ -4,6 +4,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -233,6 +237,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6076")
     void opalGetAtAGlance_Individual() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
                     .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -270,6 +275,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.comments_and_notes.free_text_note_1").exists())
             .andExpect(jsonPath("$.comments_and_notes.free_text_note_2").exists())
             .andExpect(jsonPath("$.comments_and_notes.free_text_note_3").exists());
+        verify(loggingService).logAtAGlance(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -278,6 +284,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6073")
     void opalGetAtAGlance_Individual_ParentGuardian() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(
                 get(URL_BASE + "/10004/at-a-glance")
@@ -306,6 +313,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.enforcement_status").exists())
             .andExpect(jsonPath("$.enforcement_status.last_enforcement_action").exists())
             .andExpect(jsonPath("$.comments_and_notes").doesNotExist());
+        verify(loggingService).logAtAGlance(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -511,6 +519,7 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6074")
     void testGetAtAGlance_VerifyAliasesArray_Individual() throws Exception {
+        doNothing().when(loggingService).logAtAGlance(any(), any());
         ResultActions resultActions =
             mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -544,5 +553,6 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
             .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].forenames").value("Ana"))
             .andExpect(jsonPath("$.party_details.individual_details.individual_aliases[2].surname").value("Williams"))
             .andExpect(jsonPath("$.party_details.organisation_details").doesNotExist());
+        verify(loggingService).logAtAGlance(any(), eq(userStateStub.getUserState().getUserId()));
     }
 }

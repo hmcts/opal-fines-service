@@ -23,6 +23,7 @@ import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,12 +43,13 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionStatusReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyCreditorTransactionTypeReference;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryDetails;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse.LegacyMajorCreditorHistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryItem;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionStatusReference;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -59,7 +61,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1b=true"
 })
 @DisplayName("Major Creditor History Legacy Integration Tests")
-class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
+class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/major-creditor-accounts/{id}/history";
@@ -71,10 +73,14 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     @MockitoBean
     private GatewayService gatewayService;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setUp() {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     @Test
@@ -103,7 +109,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[0].details.status.creditorTransactionStatus").value("R"))
             .andExpect(jsonPath("$.historyItems[0].details.status.creditorTransactionStatusDisplayName")
                 .value("Reversed"))
-            .andExpect(jsonPath("$.historyItems[0].details.statusDate").value("2026-01-31T10:30:00"))
+            .andExpect(jsonPath("$.historyItems[0].details.statusDate").value("2026-01-31T00:00:00"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordType").value("creditor_accounts"))
             .andExpect(jsonPath("$.historyItems[0].details.associatedRecordId").value("99264300000001"))
             .andExpect(jsonPath("$.historyItems[0].details.accountNumber").value("87654321"))
@@ -273,7 +279,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubLegacyResponse() {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(LegacyMajorCreditorHistoryResponse.class),
             any(),
             isNull()
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
@@ -282,7 +288,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private void stubGatewayException(RuntimeException exception) {
         when(gatewayService.postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(LegacyMajorCreditorHistoryResponse.class),
             any(),
             isNull()
         )).thenThrow(exception);
@@ -293,7 +299,7 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             ArgumentCaptor.forClass(GetMajorCreditorAccountHistoryLegacyRequest.class);
         verify(gatewayService).postToGateway(
             eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
-            eq(GetMajorCreditorAccountHistoryLegacyResponse.class),
+            eq(LegacyMajorCreditorHistoryResponse.class),
             requestCaptor.capture(),
             isNull()
         );
@@ -312,21 +318,21 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         return mockMvc.perform(request);
     }
 
-    private GetMajorCreditorAccountHistoryLegacyResponse legacyResponse() {
-        return GetMajorCreditorAccountHistoryLegacyResponse.builder()
+    private LegacyMajorCreditorHistoryResponse legacyResponse() {
+        return LegacyMajorCreditorHistoryResponse.builder()
             .version(BigInteger.valueOf(7L))
             .historyItems(List.of(
                 historyItem("MJUSR3", "Major User Three", "MJF003", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("-31.00")),
+                            LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30), new BigDecimal("-31.00")),
                 historyItem("MJUSR4", "Major User Four", "MJF004", "MADJ", "Manual Adjustment",
-                            LocalDateTime.of(2026, 1, 31, 10, 30), new BigDecimal("31.00")),
+                            LocalDateTime.of(2026, Month.JANUARY, 31, 10, 30), new BigDecimal("31.00")),
                 historyItem("MJUSR2", "Major User Two", "MJF002", "PAYMNT", "Payment",
-                            LocalDateTime.of(2026, 1, 25, 9, 15), new BigDecimal("-25.50"))
+                            LocalDateTime.of(2026, Month.JANUARY, 25, 9, 15), new BigDecimal("-25.50"))
             ))
             .build();
     }
 
-    private LegacyMajorCreditorHistoryItem historyItem(
+    private HistoryItem historyItem(
         String postedBy,
         String postedByName,
         String paymentReference,
@@ -335,21 +341,21 @@ class LegacyMajorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         LocalDateTime postedDate,
         BigDecimal amount
     ) {
-        return LegacyMajorCreditorHistoryItem.builder()
+        return HistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, postedBy, postedByName))
             .type("Financial")
             .amount(amount)
-            .details(LegacyMajorCreditorHistoryDetails.builder()
-                .transactionType(LegacyCreditorTransactionTypeReference.builder()
+            .details(HistoryDetails.builder()
+                .transactionType(TransactionTypeReference.builder()
                     .transactionType(transactionType)
                     .transactionTypeDisplayName(transactionTypeDisplayName)
                     .build())
                 .paymentReference(paymentReference)
-                .status(LegacyCreditorTransactionStatusReference.builder()
+                .status(TransactionStatusReference.builder()
                     .creditorTransactionStatus("R")
                     .creditorTransactionStatusDisplayName("Reversed")
                     .build())
-                .statusDate(postedDate)
+                .statusDate(postedDate.toLocalDate())
                 .associatedRecordType("creditor_accounts")
                 .associatedRecordId(String.valueOf(MAJOR_CREDITOR_ACCOUNT_ID))
                 .accountNumber("87654321")

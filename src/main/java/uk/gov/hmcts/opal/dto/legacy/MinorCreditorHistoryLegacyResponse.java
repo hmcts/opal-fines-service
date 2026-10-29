@@ -8,7 +8,7 @@ import jakarta.xml.bind.annotation.XmlElementWrapper;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,7 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
+import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Data
@@ -26,29 +27,26 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @AllArgsConstructor
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
-public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
+public class MinorCreditorHistoryLegacyResponse implements ToXmlString, HasErrorResponse {
 
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
 
-    @XmlElement(name = "version")
-    private BigInteger version;
-
     @JsonProperty("history_items")
     @XmlElementWrapper(name = "history_items")
     @XmlElement(name = "history_items_element")
-    private List<LegacyMajorCreditorHistoryItem> historyItems;
+    private List<LegacyMinorCreditorAccountHistoryItem> historyItems;
 
     @Data
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryItem {
+    public static class LegacyMinorCreditorAccountHistoryItem {
 
         @JsonProperty("posted_details")
         @XmlElement(name = "posted_details")
-        private LegacyPostedDetails postedDetails;
+        private LegacyMinorCreditorHistoryPostedDetails postedDetails;
 
         @JsonProperty("type")
         @XmlElement(name = "type")
@@ -56,7 +54,7 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("details")
         @XmlElement(name = "details")
-        private LegacyMajorCreditorHistoryDetails details;
+        private LegacyMinorCreditorHistoryDetails details;
 
         @JsonProperty("amount")
         @XmlElement(name = "amount")
@@ -68,7 +66,44 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
     @NoArgsConstructor
     @AllArgsConstructor
     @XmlAccessorType(XmlAccessType.FIELD)
-    public static class LegacyMajorCreditorHistoryDetails {
+    public static class LegacyMinorCreditorHistoryPostedDetails {
+
+        @JsonProperty("posted_date")
+        @XmlElement(name = "posted_date")
+        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
+        private LocalDateTime postedDate;
+
+        @JsonProperty("posted_by")
+        @XmlElement(name = "posted_by")
+        private String postedBy;
+
+        @JsonProperty("posted_by_name")
+        @XmlElement(name = "posted_by_name")
+        private String postedByName;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @XmlAccessorType(XmlAccessType.FIELD)
+    public static class LegacyMinorCreditorHistoryDetails {
+
+        @JsonProperty("attribute_name")
+        @XmlElement(name = "attribute_name")
+        private String attributeName;
+
+        @JsonProperty("old_value")
+        @XmlElement(name = "old_value")
+        private String oldValue;
+
+        @JsonProperty("new_value")
+        @XmlElement(name = "new_value")
+        private String newValue;
+
+        @JsonProperty("note_text")
+        @XmlElement(name = "note_text")
+        private String noteText;
 
         @JsonProperty("transaction_type")
         @XmlElement(name = "transaction_type")
@@ -84,8 +119,8 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
 
         @JsonProperty("status_date")
         @XmlElement(name = "status_date")
-        @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
-        private LocalDateTime statusDate;
+        @XmlJavaTypeAdapter(LocalDateAdapter.class)
+        private LocalDate statusDate;
 
         @JsonProperty("associated_record_type")
         @XmlElement(name = "associated_record_type")
@@ -106,10 +141,6 @@ public class GetMajorCreditorAccountHistoryLegacyResponse implements ToXmlString
         @JsonProperty("defendant_account_id")
         @XmlElement(name = "defendant_account_id")
         private Long defendantAccountId;
-
-        @JsonProperty("note_text")
-        @XmlElement(name = "note_text")
-        private String noteText;
     }
 
     @Data

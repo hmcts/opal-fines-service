@@ -10,7 +10,8 @@ import static io.cucumber.junit.platform.engine.Constants.FILTER_TAGS_PROPERTY_N
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource("features/legacyMode")
-@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME, value = "@Legacy and not @Smoke and not @Ignore")
+@ConfigurationParameter(key = FILTER_TAGS_PROPERTY_NAME,
+    value = "@Legacy and not @Smoke and not @Ignore and not @DemoOnly")
 public class LegacyTestRunner {
 
 }

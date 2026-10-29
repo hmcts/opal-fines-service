@@ -1,0 +1,247 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Local Justice Areas
+  version: 1.0.0
+  description: APIs for retrieving Local Justice Area reference data.
+
+paths:
+  /local-justice-areas:
+    get:
+      tags:
+        - Local Justice Areas
+      summary: Get Local Justice Areas
+      description: Returns Local Justice Areas as reference data, optionally filtered by search text and LJA type.
+      operationId: getLocalJusticeAreaRefData
+      security:
+        - LocalJusticeAreaPermissions: []
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive partial match against the Local Justice Area ID, name, or postcode.
+          schema:
+            type: string
+        - name: lja_type
+          in: query
+          required: false
+          description: Local Justice Area types to include.
+          style: form
+          explode: false
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/LocalJusticeAreaType'
+      responses:
+        '200':
+          description: Local Justice Areas retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalJusticeAreasResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /local-justice-areas/{localJusticeAreaId}:
+    get:
+      tags:
+        - Local Justice Areas
+      summary: Get a Local Justice Area
+      description: Returns the Local Justice Area for the supplied identifier.
+      operationId: getLocalJusticeAreaById
+      security:
+        - LocalJusticeAreaPermissions: []
+      parameters:
+        - name: localJusticeAreaId
+          in: path
+          required: true
+          description: Unique Local Justice Area identifier.
+          schema:
+            type: integer
+            format: int16
+      responses:
+        '200':
+          description: Local Justice Area retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LocalJusticeArea'
+        '400':
+          description: Invalid Local Justice Area identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Local Justice Area not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  securitySchemes:
+    LocalJusticeAreaPermissions:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LocalJusticeAreaType:
+      type: string
+      enum:
+        - LJA
+        - CRWCRT
+        - SJCRT
+        - NICRT
+        - SCSCRT
+        - YCT
+        - SCDCRT
+
+    LocalJusticeArea:
+      title: Local Justice Area
+      type: object
+      additionalProperties: false
+      required:
+        - localJusticeAreaId
+        - name
+        - ljaType
+        - addressLine1
+      properties:
+        localJusticeAreaId:
+          type: integer
+          format: int16
+          description: DB Mapping - local_justice_areas.local_justice_area_id
+        name:
+          type: string
+          maxLength: 100
+          description: DB Mapping - local_justice_areas.name
+        ljaType:
+          $ref: '#/components/schemas/LocalJusticeAreaType'
+        addressLine1:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_1
+        addressLine2:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_2
+        addressLine3:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_3
+        addressLine4:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_4
+        addressLine5:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_5
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - local_justice_areas.postcode
+        endDate:
+          type: string
+          format: date-time
+          description: DB Mapping - local_justice_areas.end_date
+
+    LocalJusticeAreasResponse:
+      title: Get Local Justice Areas response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - refData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: Number of Local Justice Areas returned.
+        refData:
+          type: array
+          items:
+            $ref: '#/components/schemas/LocalJusticeAreaSummary'
+
+    LocalJusticeAreaSummary:
+      title: Local Justice Area Summary
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - local_justice_area_id
+        - name
+        - lja_type
+        - address_line_1
+      properties:
+        local_justice_area_id:
+          type: integer
+          format: int16
+          description: DB Mapping - local_justice_areas.local_justice_area_id
+        name:
+          type: string
+          maxLength: 100
+          description: DB Mapping - local_justice_areas.name
+        lja_type:
+          $ref: '#/components/schemas/LocalJusticeAreaType'
+        address_line_1:
+          type: string
+          maxLength: 35
+          description: DB Mapping - local_justice_areas.address_line_1
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - local_justice_areas.postcode

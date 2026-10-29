@@ -56,7 +56,7 @@ class MajorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5975")
     void testGetMajorCreditorById() throws Exception {
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1").accept(MediaType.APPLICATION_JSON));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testGetMajorCreditorById: Response body:\n{}", ToJsonString.toPrettyJson(body));

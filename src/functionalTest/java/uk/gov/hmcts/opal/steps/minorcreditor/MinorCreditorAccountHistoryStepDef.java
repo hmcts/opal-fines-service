@@ -38,6 +38,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
+    private static final String HEADER_SUMMARY_PATH = "/minor-creditor-accounts/%d/header-summary";
     private static final long LEGACY_HISTORY_ACCOUNT_ID = 99264500000001L;
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
@@ -90,6 +91,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
 
         JsonNode body = readJson(response);
         createdMinorCreditorAccountId = assertLong(body.path("creditor_account_id"));
+        scenarioContext().setCreatedMinorCreditorAccountId(createdMinorCreditorAccountId);
         rememberedDateFrom = LocalDate.parse(assertText(body.path("date_from"), "date_from"));
         rememberedDateTo = LocalDate.parse(assertText(body.path("date_to"), "date_to"));
         excludedDate = LocalDate.parse(assertText(body.path("excluded_date"), "excluded_date"));
@@ -101,6 +103,25 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     @When("I request minor creditor account history for the created minor creditor account")
     public void requestMinorCreditorHistoryForCreatedMinorCreditorAccount() {
         getHistory(BearerTokenStepDef.getToken(), createdMinorCreditorAccountIdOrFail(), null);
+    }
+
+    /**
+     * Requests the header summary twice and verifies that logging does not alter its body or ETag.
+     */
+    @When("I request the header summary twice for the created minor creditor account")
+    public void requestHeaderSummaryTwiceForCreatedMinorCreditorAccount() {
+        long accountId = createdMinorCreditorAccountIdOrFail();
+        Response first = getHeaderSummary(accountId);
+        Response second = getHeaderSummary(accountId);
+
+        assertEquals(200, first.statusCode(), "Unexpected first header-summary status");
+        assertEquals(200, second.statusCode(), "Unexpected second header-summary status");
+        assertNotNull(first.header(HttpHeaders.ETAG), "The first response should contain an ETag");
+        assertEquals(first.header(HttpHeaders.ETAG), second.header(HttpHeaders.ETAG),
+            "ETag changed between identical reads");
+        assertEquals(first.asString(), second.asString(), "Response body changed between identical reads");
+        assertFalse(second.jsonPath().getBoolean("party.organisation_flag"),
+            "The fixture should represent an individual minor creditor");
     }
 
     /**
@@ -462,6 +483,14 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
         request
             .when()
             .get(getTestUrl() + HISTORY_PATH.formatted(accountId) + querySuffix(query));
+    }
+
+    private Response getHeaderSummary(long accountId) {
+        return net.serenitybdd.rest.SerenityRest.given()
+            .accept("*/*")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + BearerTokenStepDef.getToken())
+            .when()
+            .get(getTestUrl() + HEADER_SUMMARY_PATH.formatted(accountId));
     }
 
     private String querySuffix(String query) {

@@ -1,0 +1,26 @@
+meta {
+  name: Get-Major-Creditor-History
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseURL}}/major-creditor-accounts/99000000000850/history
+  body: none
+  auth: bearer
+}
+
+params:query {
+  dateFrom: 2026-06-01
+  dateTo: 2026-06-30
+  itemTypes: financial
+}
+
+auth:bearer {
+  token: {{BEARER_TOKEN}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

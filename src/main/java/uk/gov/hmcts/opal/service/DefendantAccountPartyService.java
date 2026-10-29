@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -134,6 +135,7 @@ public class DefendantAccountPartyService {
         }
     }
 
+    @Transactional
     public RemoveDefendantAccountPartyResponseDefendantAccount removeDefendantAccountParty(Long defendantAccountId,
         Long defendantAccountPartyId, Short businessUnitId, String ifMatch,
         RemoveDefendantAccountPartyRequestDefendantAccount request) {
@@ -149,10 +151,13 @@ public class DefendantAccountPartyService {
 
         if (userState.hasBusinessUnitUserWithPermission(businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE)) {
-            return defendantAccountPartyServiceProxy.removeDefendantAccountParty(defendantAccountId,
+            RemoveDefendantAccountPartyResponseDefendantAccount response = defendantAccountPartyServiceProxy
+                .removeDefendantAccountParty(defendantAccountId,
                 defendantAccountPartyId, businessUnitId,
                 getBusinessUnitUserIdForBusinessUnit(userState, businessUnitId), postedBy, userState.getUserName(),
                 ifMatch, request);
+            pdplLoggingService.logRemovedParentGuardian(defendantAccountPartyId, request, response, userState);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.ACCOUNT_MAINTENANCE);
         }

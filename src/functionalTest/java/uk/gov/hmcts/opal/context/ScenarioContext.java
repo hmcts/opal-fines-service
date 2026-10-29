@@ -28,6 +28,7 @@ public class ScenarioContext {
     private TestHttpResponse latestHttpResponse;
     private String createdDefendantAccountId;
     private String defendantAccountEtag;
+    private Long createdMinorCreditorAccountId;
 
     /**
      * Resets the scenario context to a clean state.
@@ -44,6 +45,26 @@ public class ScenarioContext {
         latestHttpResponse = null;
         createdDefendantAccountId = null;
         defendantAccountEtag = null;
+        createdMinorCreditorAccountId = null;
+    }
+
+    /**
+     * Records the minor-creditor account created for the current scenario.
+     *
+     * @param id created minor-creditor account identifier.
+     */
+    public void setCreatedMinorCreditorAccountId(Long id) {
+        this.createdMinorCreditorAccountId = id;
+    }
+
+    /**
+     * Returns the minor-creditor account created for the current scenario.
+     *
+     * @return created minor-creditor account identifier.
+     */
+    public Long getCreatedMinorCreditorAccountIdOrFail() {
+        assertNotNull(createdMinorCreditorAccountId, "No created minor-creditor account ID found");
+        return createdMinorCreditorAccountId;
     }
 
     /**

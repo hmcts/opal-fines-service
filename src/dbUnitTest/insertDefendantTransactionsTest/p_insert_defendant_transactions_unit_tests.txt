@@ -1,0 +1,61 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: all supplied fields ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: NULL optional fields ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: null account ID ===
+NOTICE:  Error in p_insert_defendant_transactions: P3401 - Defendant account ID cannot be null
+NOTICE:  Expected error caught: P3401 - Defendant account ID cannot be null
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: null transaction type ===
+NOTICE:  Error in p_insert_defendant_transactions: P3402 - Transaction type cannot be null
+NOTICE:  Expected error caught: P3402 - Transaction type cannot be null
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: null payment ===
+NOTICE:  Error in p_insert_defendant_transactions: P3403 - Payment amount cannot be null
+NOTICE:  Expected error caught: P3403 - Payment amount cannot be null
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: zero payment ===
+NOTICE:  Error in p_insert_defendant_transactions: P3404 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3404 - Payment amount must be greater than zero
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: negative payment ===
+NOTICE:  Error in p_insert_defendant_transactions: P3404 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3404 - Payment amount must be greater than zero
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: null payment method ===
+NOTICE:  Error in p_insert_defendant_transactions: P3405 - Payment method cannot be null
+NOTICE:  Expected error caught: P3405 - Payment method cannot be null
+NOTICE:  TEST 8 PASSED
+NOTICE:  === TEST 9: null associated record ID ===
+NOTICE:  Error in p_insert_defendant_transactions: P3406 - Associated record ID cannot be null or blank
+NOTICE:  Expected error caught: P3406 - Associated record ID cannot be null or blank
+NOTICE:  TEST 9 PASSED
+NOTICE:  === TEST 10: empty associated record ID ===
+NOTICE:  Error in p_insert_defendant_transactions: P3406 - Associated record ID cannot be null or blank
+NOTICE:  Expected error caught: P3406 - Associated record ID cannot be null or blank
+NOTICE:  TEST 10 PASSED
+NOTICE:  === TEST 11: blank associated record ID ===
+NOTICE:  Error in p_insert_defendant_transactions: P3406 - Associated record ID cannot be null or blank
+NOTICE:  Expected error caught: P3406 - Associated record ID cannot be null or blank
+NOTICE:  TEST 11 PASSED
+NOTICE:  === TEST 12: null source ===
+NOTICE:  Error in p_insert_defendant_transactions: P3407 - Source cannot be null or blank
+NOTICE:  Expected error caught: P3407 - Source cannot be null or blank
+NOTICE:  TEST 12 PASSED
+NOTICE:  === TEST 13: empty source ===
+NOTICE:  Error in p_insert_defendant_transactions: P3407 - Source cannot be null or blank
+NOTICE:  Expected error caught: P3407 - Source cannot be null or blank
+NOTICE:  TEST 13 PASSED
+NOTICE:  === TEST 14: blank source ===
+NOTICE:  Error in p_insert_defendant_transactions: P3407 - Source cannot be null or blank
+NOTICE:  Expected error caught: P3407 - Source cannot be null or blank
+NOTICE:  TEST 14 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 112 msec.

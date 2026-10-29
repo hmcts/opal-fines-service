@@ -70,6 +70,6 @@ public class InterfaceJobEntity {
     private List<InterfaceMessageEntity> interfaceMessages = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "interfaceJob", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interfaceJob", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY)
     private List<InterfaceFileEntity> interfaceFiles = new ArrayList<>();
 }
