@@ -10,21 +10,15 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1aDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1a=false",
-    "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.enabled=false"
-})
 @DisplayName("ResultController release-1a disabled Integration Test")
 @Tag("ExtendedTest")
-class ResultR1aDisabledTest extends AbstractIntegrationTest {
+class ResultR1aDisabledTest extends AbstractRelease1aDisabledIntegrationTest {
 
     @Test
     @DisplayName("GET /results is unavailable when release-1a is disabled")

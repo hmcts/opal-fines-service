@@ -27,7 +27,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Tag("ExtendedTest")
 @ActiveProfiles({"integration", "legacy"})
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b-1-1=true"
 })
 @DisplayName("Legacy Minor Creditor History R1B11 Integration Test")

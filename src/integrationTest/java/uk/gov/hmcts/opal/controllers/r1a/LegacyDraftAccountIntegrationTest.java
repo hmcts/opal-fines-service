@@ -22,9 +22,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.LegacyDraftAccountIntegrationTest")
 @DisplayName("DraftAccountController Integration Tests (LEGACY)")
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1a=true",
-    "launchdarkly.default-flag-values.is-legacy-mode=true"
+    "launchdarkly.default-flag-values.release-1a=true"
 })
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
