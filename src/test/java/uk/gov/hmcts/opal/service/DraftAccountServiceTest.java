@@ -434,12 +434,12 @@ class DraftAccountServiceTest {
     @Test
     void testReplaceDraftAccount_businessUnitMismatch() {
         // Arrange
-        Long draftAccountId = 1L;
-        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+        final Long draftAccountId = 1L;
+        final DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
-        ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
+        final ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
