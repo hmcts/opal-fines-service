@@ -74,7 +74,7 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             + "DETAIL,26/05/2026,Fines Account,ACC456,Notes and coins,125.50\n"
             + "\n"
             + "HEADER3,no_of_records,total_amount\n"
-            + "SUMMARY,1,125.0";
+            + "SUMMARY,1,125.00";
 
     @Autowired
     private BlobServiceClient blobServiceClient;
