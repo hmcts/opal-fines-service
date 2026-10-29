@@ -29,7 +29,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
@@ -128,7 +127,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
         assertEquals(USER_NAME, reportInstanceEntity.getRequestedByName());
         assertEquals(REQUESTED, reportInstanceEntity.getGenerationStatus());
 
-        Map dtoParameters = objectMapper.readValue(reportInstanceEntity.getReportParameters(), Map.class);
+        var dtoParameters = objectMapper.readValue(reportInstanceEntity.getReportParameters(), Map.class);
         assertEquals(parameterMap.get("date-param"), dtoParameters.get("date-param"));
         assertEquals(parameterMap.get("decimal-param"), dtoParameters.get("decimal-param"));
         assertEquals(parameterMap.get("integer-param"), dtoParameters.get("integer-param"));
@@ -572,6 +571,7 @@ public class ReportInstancesControllerIntegrationTest extends AbstractIntegratio
             .readValue(body2, CreateReportInstanceResponseReports.class);
         assertNotEquals(dto1.getReportInstanceId(), dto2.getReportInstanceId());
     }
+
     private void mockFinesBusinessUnitUsers(BusinessUnitUserV2... businessUnitUsers) {
         when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(
             DomainBusinessUnitUsers.builder().businessUnitUsers(List.of(businessUnitUsers)).build());

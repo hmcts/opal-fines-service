@@ -2,15 +2,13 @@ package uk.gov.hmcts.opal.authorisation.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 
 /**
  * Fines-service specific permission catalogue. Each entry mirrors the codes maintained by the user service so that
  * {@link uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2} can be queried using the shared
- * {@link PermissionDescriptor} contract.
+ * {@link PermissionDescriptorV2} contract.
  */
 @Getter
 @RequiredArgsConstructor

@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
@@ -41,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -181,7 +181,7 @@ class LegacyDraftAccountPublishTest {
             String expectedMessage = String.format(ERROR_MESSAGE_TEMPLATE, opId);
             assertEquals(published.getStatusMessage(), expectedMessage);
             JsonNode root = mapper.readTree(published.getTimelineData());
-            String reasonText = root.get(0).path("reason_text").asText();
+            String reasonText = root.get(0).path("reason_text").asString();
             assertEquals(reasonText, expectedMessage);
         }
     }
@@ -407,7 +407,7 @@ class LegacyDraftAccountPublishTest {
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
-        assertEquals(null, lcdar.getDefendantAccount());
+        assertNull(lcdar.getDefendantAccount());
     }
 
     @Test
@@ -425,7 +425,7 @@ class LegacyDraftAccountPublishTest {
         );
 
         assertEquals("testUser", lcdar.getBusinessUnitUserId());
-        assertEquals(null, lcdar.getDefendantAccount());
+        assertNull(lcdar.getDefendantAccount());
     }
 
     @Test
