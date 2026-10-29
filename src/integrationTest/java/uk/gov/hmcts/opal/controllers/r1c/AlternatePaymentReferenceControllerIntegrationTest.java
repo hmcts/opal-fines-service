@@ -69,8 +69,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                         "business_unit_id": 10877,
                         "apr_text": "APR-REFERENCE-1",
                         "created_at": "2026-10-20T09:15:30",
-                        "updated_at": "2026-10-21T10:20:40",
-                        "version": 2
+                        "updated_at": "2026-10-21T10:20:40"
                       },
                       {
                         "alternate_payment_reference_id": 10877002,
@@ -80,8 +79,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                         "business_unit_id": 10877,
                         "apr_text": "APR-REFERENCE-2",
                         "created_at": "2026-10-18T11:25:35",
-                        "updated_at": "2026-10-19T12:30:45",
-                        "version": 4
+                        "updated_at": "2026-10-19T12:30:45"
                       }
                     ]
                     """));
