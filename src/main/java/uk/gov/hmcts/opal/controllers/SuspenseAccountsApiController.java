@@ -9,8 +9,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.SuspenseAccountsApi;
+import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
+import uk.gov.hmcts.opal.service.SuspenseAccountsHistoryService;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
+
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 @RestController
@@ -19,6 +22,7 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 public class SuspenseAccountsApiController implements SuspenseAccountsApi {
 
     private final SuspenseAccountsSummaryService suspenseAccountsSummaryService;
+    private final SuspenseAccountsHistoryService suspenseAccountsHistoryService;
 
     @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
     @Override
@@ -30,6 +34,18 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
 
         return buildResponse(suspenseAccountsSummaryService
             .getSuspenseAccountsSummary(businessUnitId, suspenseItemNumber));
+    }
+
+    @Override
+    @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
+    public ResponseEntity<SuspenseItemHistoryCommonStrict> getSuspenseItemHistory(Long businessUnitId,
+        Long suspenseItemNumber) {
+
+        log.debug("GET: getSuspenseItemHistory: businessUnitId: {}, suspenseItemNumber: {}",
+            businessUnitId, suspenseItemNumber);
+
+        return buildResponse(suspenseAccountsHistoryService
+            .getSuspenseItemHistory(businessUnitId, suspenseItemNumber));
     }
 
 }

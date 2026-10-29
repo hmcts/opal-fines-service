@@ -19,7 +19,7 @@ paths:
       security:
         - permissions: [
           'View Suspense Items',
-          'Manage Suspense Items']
+          'Manage Suspense Items' ]
       parameters:
         - name: business_unit_id
           in: path
@@ -80,3 +80,73 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
+  /suspense-items/{suspenseItemId}/history:
+    get:
+      tags:
+        - Suspense Accounts
+      summary: Get suspense item history
+      description: Get suspense item history
+      operationId: getSuspenseItemHistory
+      security:
+        - permissions: [
+          'View Suspense Items',
+          'Manage Suspense Items' ]
+      parameters:
+        - in: header
+          name: BusinessUnitId
+          schema:
+            type: integer
+            format: int64
+          required: true
+        - in: path
+          name: suspenseItemId
+          schema:
+            type: integer
+            format: int64
+          required: true
+      responses:
+        '200':
+          description: OK
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
+          content:
+            application/json:
+              schema:
+                $ref: './CommonStrict.yaml#/components/schemas/suspenseItemHistory'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
