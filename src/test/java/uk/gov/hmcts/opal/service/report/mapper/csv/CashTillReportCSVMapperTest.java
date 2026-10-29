@@ -113,12 +113,12 @@ class CashTillReportCSVMapperTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("invalidMoneyCases")
-    void reportToCSVString_moneyScaleTooHigh_throwsException(String description, Consumer<CashTillReportRow> change,
+    void reportToCSVString_moneyScaleTooHigh_throwsException(String description, Consumer<CashTillReportData> change,
         String expectedMessage) {
-        CashTillReportRow row = validRow();
-        change.accept(row);
+        CashTillReportData data = reportData(newerRow());
+        change.accept(data);
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(typicalReportInstance(), reportData(row)))
+        assertThatThrownBy(() -> mapper.reportToCSVString(typicalReportInstance(), data))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage(expectedMessage);
     }
@@ -135,7 +135,14 @@ class CashTillReportCSVMapperTest {
 
     private static Stream<Arguments> invalidMoneyCases() {
         return Stream.of(
-            invalidMoneyCase("amount", row -> row.setAmount(money("1.234")), "transaction_amount"));
+            invalidMoneyCase(
+                "row amount",
+                data -> data.getRows().getFirst().setAmount(money("1.234")),
+                "transaction_amount must not have more than two decimal places at Cash Till report row 1"),
+            invalidMoneyCase(
+                "total_amount",
+                data -> data.setTotalAmount(money("1.234")),
+                "total_amount must not have more than two decimal places"));
     }
 
     private static Arguments missingFieldCase(String description, Consumer<CashTillReportRow> change,
@@ -143,9 +150,8 @@ class CashTillReportCSVMapperTest {
         return Arguments.of(description, change, fieldName + " is required at Cash Till report row 1");
     }
 
-    private static Arguments invalidMoneyCase(String description, Consumer<CashTillReportRow> change,
-        String fieldName) {
-        String message = fieldName + " must not have more than two decimal places at Cash Till report row 1";
+    private static Arguments invalidMoneyCase(String description, Consumer<CashTillReportData> change,
+        String message) {
         return Arguments.of(description, change, message);
     }
 
@@ -226,7 +232,7 @@ class CashTillReportCSVMapperTest {
     }
 
     private static String typicalCsvWithNoRows() {
-        return typicalCsvWithRows(List.of(), "0.00", "SUMMARY,0,0");
+        return typicalCsvWithRows(List.of(), "0.00", "SUMMARY,0,0.00");
     }
 
     private static String typicalCsvWithRows(List<String> expectedRows, String totalAmount, String summary) {

@@ -105,7 +105,7 @@ public class CashTillReportCSVMapper implements ReportCSVMapper<CashTillReportDa
         return String.join(COMMA, List.of(
             "SUMMARY",
             escapeCsv(String.valueOf(reportData.getRows().size())),
-            escapeCsv(reportData.getTotalAmount().toString())
+            escapeCsv(formatMoney(reportData.getTotalAmount()))
         ));
     }
 
@@ -124,6 +124,8 @@ public class CashTillReportCSVMapper implements ReportCSVMapper<CashTillReportDa
         if (reportData == null) {
             throw new IllegalArgumentException("Cash Till report data is required");
         }
+        validateMoney(reportData.getTotalAmount(), "total_amount", REPORT_NAME, null);
+
         if (reportData.getRows() == null) {
             throw new IllegalArgumentException("Cash Till report rows are required");
         }
