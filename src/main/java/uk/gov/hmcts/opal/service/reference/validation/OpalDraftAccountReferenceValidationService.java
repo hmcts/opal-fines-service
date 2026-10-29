@@ -390,16 +390,6 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
         return value.shortValue();
     }
 
-    private String buildFailureMessage(List<String> failures) {
-        StringBuilder message = new StringBuilder("Draft account reference validation failed with ")
-            .append(failures.size())
-            .append(" error(s):");
-        for (String failure : failures) {
-            message.append("\n - ").append(failure);
-        }
-        return message.toString();
-    }
-
     private enum OriginatorReferenceSource {
         LOCAL_JUSTICE_AREA,
         PROSECUTOR
