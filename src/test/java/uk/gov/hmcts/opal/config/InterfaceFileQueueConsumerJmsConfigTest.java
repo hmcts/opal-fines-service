@@ -104,7 +104,7 @@ class InterfaceFileQueueConsumerJmsConfigTest {
             )
             .run(context -> {
                 assertThat(context).hasSingleBean(InterfaceFileQueueListener.class);
-                assertThat(context).doesNotHaveBean("reportListener");
+                assertThat(context).doesNotHaveBean(ReportQueueListener.class);
             });
     }
 

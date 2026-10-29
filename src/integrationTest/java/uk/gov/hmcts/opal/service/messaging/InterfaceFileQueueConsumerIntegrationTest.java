@@ -1,10 +1,10 @@
 package uk.gov.hmcts.opal.service.messaging;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import jakarta.jms.TextMessage;
 import org.jspecify.annotations.NonNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +15,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
-import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import com.github.tomakehurst.wiremock.client.WireMock;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import org.springframework.core.io.ByteArrayResource;
@@ -37,43 +32,20 @@ import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
     "opal.interface-file.service-bus.consumer-enabled=true",
     "opal.report.service-bus.consumer-enabled=true",
     "opal.automated-task=",
-    "opal.interface-file.service-bus.queue-name=test-queue"
+    "opal.interface-file.service-bus.queue-name=test-queue",
+    "opal.common.system-users.token-url=http://localhost:4553",
+    "file-handler.service.url=http://localhost:4553"
 })
-class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
+class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
-    public static final String INTERFACE_FILE_ID_1 = """
+    private static final String INTERFACE_FILE_ID_1 = """
         {
           "interfaceFileId": 1
         }
          """;
+
     @Autowired
     private InterfaceFileQueueListener listener;
-
-    @RegisterExtension
-    static WireMockExtension wireMockServer = WireMockExtension.newInstance()
-        .options(wireMockConfig().dynamicPort()).build();
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("opal.common.system-users.token-url",
-            wireMockServer::baseUrl);
-
-        registry.add("file-handler.service.url",
-            wireMockServer::baseUrl);
-    }
-
-
-    @BeforeEach
-    void setUp() throws Exception {
-        wireMockServer.stubFor(post(urlEqualTo("/"))
-            .willReturn(okJson("""
-        {
-          "token_type":"Bearer",
-          "access_token":"token-value"
-        }
-            """)));
-    }
-
 
     @Test
     @DisplayName("AC1 - Valid message is processed successfully")
@@ -81,13 +53,27 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-6390")
     void ac1ValidMessageIsProcessedSuccessfully() throws Exception {
 
+        WireMock.configureFor("localhost", 4553);
+
+        stubFor(
+            post(urlEqualTo("/"))
+                .willReturn(
+                    okJson("""
+                    {
+                      "token_type":"Bearer",
+                      "access_token":"token-value"
+                    }
+                    """)
+                )
+        );
+
         TextMessage textMessage = mock(TextMessage.class);
         when(textMessage.getText()).thenReturn(INTERFACE_FILE_ID_1);
 
         InterfaceFileObject interfaceFileObject = sourceJsonInterfaceFile();
         InterfaceFileObject transformedFile = transformedJsonInterfaceFile();
 
-        wireMockServer.stubFor(
+        stubFor(
             get(urlEqualTo("/interface-files/1"))
                 .willReturn(
                     okJson(
@@ -96,16 +82,16 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
                 )
         );
 
-        wireMockServer.stubFor(
+        stubFor(
             get(urlEqualTo("/interface-files/1/content"))
                 .willReturn(
                     aResponse()
                         .withStatus(200)
-                        .withBody(sourceHson().getByteArray())
+                        .withBody(sourceJson().getByteArray())
                 )
         );
 
-        wireMockServer.stubFor(
+        stubFor(
             post(urlEqualTo("/interface-files"))
                 .willReturn(
                     okJson(
@@ -144,7 +130,7 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
             .hasMessageContaining("payload is blank");
     }
 
-    private static @NonNull ByteArrayResource sourceHson() {
+    private static @NonNull ByteArrayResource sourceJson() {
         ByteArrayResource sourceJson = new ByteArrayResource("""
 {
   "payment_type": "CASH",
