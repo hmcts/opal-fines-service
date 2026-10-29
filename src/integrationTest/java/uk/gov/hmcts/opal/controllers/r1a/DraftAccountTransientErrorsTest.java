@@ -52,7 +52,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
         classes = {CommonGlobalExceptionHandler.class, FeatureToggleAspect.class}
     )
 )
-@Import({DraftAccountController.class, JsonSchemaValidationService.class, OpalGlobalExceptionHandler.class, WebConfig.class})
+@Import({DraftAccountController.class, JsonSchemaValidationService.class, OpalGlobalExceptionHandler.class,
+    WebConfig.class})
 @Slf4j(topic = "opal.DraftAccountTransientErrorsTest")
 @DisplayName("DraftAccountController Transient Errors Integration Tests")
 @Tag("ExtendedTest")
