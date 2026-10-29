@@ -196,6 +196,10 @@ opal:
       scope: ${OPAL_HMRC_AUTH_SCOPE:}
       grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
 
+  publish-draft-accounts:
+    service-bus:
+      queue-name: ${SERVICEBUS_PUBLISH_DRAFT_ACCOUNT_QUEUE_NAME:draft-account-publish}
+
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
 
