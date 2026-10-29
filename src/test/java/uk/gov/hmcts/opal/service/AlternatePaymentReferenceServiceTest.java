@@ -311,8 +311,7 @@ class AlternatePaymentReferenceServiceTest {
                 order.verify(alternatePaymentReferenceMapper).toAlternatePaymentReferencesItem(reference);
                 order.verify(repository).delete(reference);
                 order.verify(notesService).addNote(
-                    NoteType.AA, AssociatedRecordType.DEFENDANT_ACCOUNTS, DEFENDANT_ACCOUNT_ID,
-                    account.getVersion(), "Alternate payment reference deleted | " + APR_TEXT, BUSINESS_UNIT_ID);
+                    NoteType.AA, account, "Alternate payment reference deleted | " + APR_TEXT, BUSINESS_UNIT_ID);
             }
         }
 
