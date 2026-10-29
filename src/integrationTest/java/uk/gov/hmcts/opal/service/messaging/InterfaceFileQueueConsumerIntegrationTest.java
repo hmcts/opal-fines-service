@@ -2,28 +2,31 @@ package uk.gov.hmcts.opal.service.messaging;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import jakarta.jms.TextMessage;
 import org.jspecify.annotations.NonNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import org.springframework.core.io.ByteArrayResource;
-import uk.gov.hmcts.opal.service.filehandler.FileHandlerAPIService;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileObject;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.InterfaceFileTypeEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
-import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
@@ -34,7 +37,7 @@ import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 })
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest {
 
-    public static final String INTERFACE_FILE_ID_1 = """
+     public static final String INTERFACE_FILE_ID_1 = """
         {
           "interfaceFileId": 1
         }
@@ -42,8 +45,31 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
     @Autowired
     private InterfaceFileQueueListener listener;
 
-    @MockitoBean
-    private FileHandlerAPIService fileHandlerAPIService;
+    @RegisterExtension
+    static WireMockExtension wireMockServer = WireMockExtension.newInstance()
+        .options(wireMockConfig().dynamicPort()).build();
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("opal.common.system-users.token-url",
+            wireMockServer::baseUrl);
+
+        registry.add("file-handler.service.url",
+            wireMockServer::baseUrl);
+    }
+
+
+    @BeforeEach
+    void setUp() throws Exception {
+        wireMockServer.stubFor(post(urlEqualTo("/"))
+            .willReturn(okJson("""
+        {
+          "token_type":"Bearer",
+          "access_token":"token-value"
+        }
+        """)));
+    }
+
 
     @Test
     @DisplayName("AC1 - Valid message is processed successfully")
@@ -55,16 +81,37 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationTest 
         when(textMessage.getText()).thenReturn(INTERFACE_FILE_ID_1);
 
         InterfaceFileObject interfaceFileObject = sourceJsonInterfaceFile();
-
-        when(fileHandlerAPIService.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER,1L))
-            .thenReturn(interfaceFileObject);
-        ByteArrayResource sourceJson = sourceHson();
-        when(fileHandlerAPIService.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER,1L))
-            .thenReturn(sourceJson);
         InterfaceFileObject transformedFile = transformedJsonInterfaceFile();
-        when(fileHandlerAPIService.addInterfaceFile(any(), any(), any())).thenReturn(transformedFile);
-        assertThatCode(() -> listener.onMessage(textMessage)).doesNotThrowAnyException();
 
+        wireMockServer.stubFor(
+            get(urlEqualTo("/interface-files/1"))
+                .willReturn(
+                    okJson(
+                        objectMapper.writeValueAsString(interfaceFileObject)
+                    )
+                )
+        );
+
+        wireMockServer.stubFor(
+            get(urlEqualTo("/interface-files/1/content"))
+                .willReturn(
+                    aResponse()
+                        .withStatus(200)
+                        .withBody(sourceHson().getByteArray())
+                )
+        );
+
+        wireMockServer.stubFor(
+            post(urlEqualTo("/interface-files"))
+                .willReturn(
+                    okJson(
+                        objectMapper.writeValueAsString(transformedFile)
+                    )
+                )
+        );
+
+        assertThatCode(() -> listener.onMessage(textMessage))
+            .doesNotThrowAnyException();
     }
 
     @Test

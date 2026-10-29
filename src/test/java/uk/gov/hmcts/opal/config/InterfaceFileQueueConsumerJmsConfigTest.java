@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import uk.gov.hmcts.opal.service.messaging.InterfaceFileQueueListener;
+import uk.gov.hmcts.opal.service.messaging.ReportQueueListener;
+import uk.gov.hmcts.opal.service.messaging.ReportQueueConsumerService;
 
 @ExtendWith(MockitoExtension.class)
 class InterfaceFileQueueConsumerJmsConfigTest {
@@ -22,11 +24,17 @@ class InterfaceFileQueueConsumerJmsConfigTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
         .withBean(ServiceBusConnectionStringParser.class,
-                  () -> serviceBusConnectionStringParser)
-        .withBean(ObjectMapper.class,() -> mock(ObjectMapper.class)
-        )
-        .withBean(InterfaceFileProcessorService.class, () -> mock(InterfaceFileProcessorService.class))
-        .withUserConfiguration(QueueConsumerJmsConfig.class, InterfaceFileQueueListener.class);
+            () -> serviceBusConnectionStringParser)
+        .withBean(ObjectMapper.class, () -> mock(ObjectMapper.class))
+        .withBean(InterfaceFileProcessorService.class,
+            () -> mock(InterfaceFileProcessorService.class))
+        .withBean(ReportQueueConsumerService.class,
+            () -> mock(ReportQueueConsumerService.class))
+        .withUserConfiguration(
+            QueueConsumerJmsConfig.class,
+            InterfaceFileQueueListener.class,
+            ReportQueueListener.class
+        );
 
     @Test
     void loadsJmsBeansWhenEnabled() {
@@ -96,6 +104,7 @@ class InterfaceFileQueueConsumerJmsConfigTest {
             )
             .run(context -> {
                 assertThat(context).hasSingleBean(InterfaceFileQueueListener.class);
+                assertThat(context).doesNotHaveBean("reportListener");
             });
     }
 
@@ -120,6 +129,7 @@ class InterfaceFileQueueConsumerJmsConfigTest {
             )
             .run(context -> {
                 assertThat(context).doesNotHaveBean(InterfaceFileQueueListener.class);
+                assertThat(context).hasSingleBean(ReportQueueListener.class);
             });
     }
 
