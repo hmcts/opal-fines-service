@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
@@ -63,7 +64,13 @@ public class UserStateStub {
     private boolean isStubbed;
 
     private static final String TEST_JWT_SECRET = "SomeVeryGoodAndVeryLongSecretThatNoOneWillEverGuess";
-    public static final ObjectMapper USER_STATE_MAPPER = new ObjectMapper().findAndRegisterModules();
+    public static final ObjectMapper USER_STATE_MAPPER = new ObjectMapper()
+        .findAndRegisterModules()
+        .addMixIn(PermissionV2.class, PermissionJsonMixin.class);
+
+    @JsonIgnoreProperties({"id", "description"})
+    private abstract static class PermissionJsonMixin {
+    }
 
     public UserStateStub() {
         this(generateJwt());
