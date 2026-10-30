@@ -134,7 +134,7 @@ INSERT INTO payments_in (
     'defendant_accounts',
     '99000000343200',
     'A Payer',
-    'Account payment',
+    '{"payment_received_from":"T"}'::json,
     true,
     true,
     false
@@ -166,7 +166,7 @@ INSERT INTO payments_in (
     'suspense_items',
     '99000000343600',
     NULL,
-    'Suspense payment',
+    '{"interface_name":"PAYMENTS_IN","additional_information":{"originator_reference":"99000001A"}}'::json,
     true,
     true,
     true
@@ -270,7 +270,7 @@ INSERT INTO payments_in (
     'defendant_accounts',
     '99000000353200',
     'A Payer',
-    'Account payment',
+    '{"payment_received_from":"T"}'::json,
     true,
     false,
     false
