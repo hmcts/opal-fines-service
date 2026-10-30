@@ -1,0 +1,176 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Prisons
+  version: 1.0.0
+  description: APIs for retrieving prison reference data.
+
+paths:
+  /prisons:
+    get:
+      tags:
+        - Prisons
+      summary: Get prisons
+      description: Returns prison reference data.
+      operationId: getPrisonsRefData
+      responses:
+        '200':
+          description: Prisons retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrisonsReferenceDataResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /prisons/{id}:
+    get:
+      tags:
+        - Prisons
+      summary: Get prison by ID
+      description: Returns the prison for the supplied prison identifier.
+      operationId: getPrisonById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique prison identifier. DB Mapping - prisons.prison_id
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Prison found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrisonsPrison'
+        '400':
+          description: Invalid prison identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Prison not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    PrisonsReferenceDataResponse:
+      title: Get prisons response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - prisons
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The number of prisons returned.
+        prisons:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrisonsPrisonSummary'
+
+    PrisonsPrisonSummary:
+      title: Prison summary
+      type: object
+      additionalProperties: false
+      required:
+        - prison_id
+        - name
+      properties:
+        prison_id:
+          type: integer
+          format: int64
+          description: DB Mapping - prisons.prison_id
+        name:
+          type: string
+          description: DB Mapping - prisons.name
+
+    PrisonsPrison:
+      title: Prison
+      type: object
+      additionalProperties: false
+      required:
+        - prison_id
+        - name
+        - address_line_1
+        - postcode
+      properties:
+        prison_id:
+          type: integer
+          format: int64
+          description: DB Mapping - prisons.prison_id
+        name:
+          type: string
+          description: DB Mapping - prisons.name
+        address_line_1:
+          type: string
+          description: DB Mapping - prisons.address_line_1
+        address_line_2:
+          type: string
+          description: DB Mapping - prisons.address_line_2
+        address_line_3:
+          type: string
+          description: DB Mapping - prisons.address_line_3
+        address_line_4:
+          type: string
+          description: DB Mapping - prisons.address_line_4
+        address_line_5:
+          type: string
+          description: DB Mapping - prisons.address_line_5
+        postcode:
+          type: string
+          description: DB Mapping - prisons.postcode
