@@ -113,9 +113,16 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(reportData.getAllocatedReport()).isTrue();
         assertThat(reportData.getRows()).hasSize(2);
+        assertThat(reportData).extracting(
+            CashTillReportData::getBusinessUnit,
+            CashTillReportData::getCashTillNumber,
+            CashTillReportData::getCashier,
+            CashTillReportData::getSource,
+            CashTillReportData::getTotalAmount
+        ).containsExactly(
+            "Dyfed Powys", "17", "Jamie", InterfaceFileSourceEnum.NATWEST, new BigDecimal("20.70")
+        );
         assertThat(reportData.getRows()).extracting(
-            CashTillReportRow::getCashTillNumber,
-            CashTillReportRow::getCashier,
             CashTillReportRow::getDestinationType,
             CashTillReportRow::getDetails,
             CashTillReportRow::getPaymentMethod,
@@ -123,9 +130,9 @@ class CashTillReportGenerationIntegrationTest extends AbstractIntegrationTest {
             CashTillReportRow::getReceipt,
             CashTillReportRow::getAllocated
         ).containsExactly(
-            Tuple.tuple("17", "Jamie", CashTillDestinationType.FA, defendantAccount.getAccountNumber(),
+            Tuple.tuple(CashTillDestinationType.FA, defendantAccount.getAccountNumber(),
                 CashTillPaymentMethod.NC, new BigDecimal("12.30"), true, true),
-            Tuple.tuple("17", "Jamie", CashTillDestinationType.SA, "MISC-7001",
+            Tuple.tuple(CashTillDestinationType.SA, "MISC-7001",
                 CashTillPaymentMethod.CQ, new BigDecimal("8.40"), false, false));
         assertThat(reportData.getRows()).extracting(CashTillReportRow::getPaymentDateTime).containsExactly(
             LocalDateTime.of(2026, 5, 3, 10, 15),
