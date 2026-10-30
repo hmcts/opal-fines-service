@@ -2,12 +2,14 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.matchingJsonPath;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -15,10 +17,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.web.client.RestClient;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -34,6 +39,9 @@ class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationT
 
     private static final String URL_BASE = "/defendant-accounts";
     private static final long DEFENDANT_ACCOUNT_ID = 1060000002355L;
+
+    @MockitoSpyBean
+    private RestClient restClient;
 
     @Test
     @JiraEpic("PO-812")
@@ -53,6 +61,13 @@ class LegacyDefendantAccountLanguageIntegrationTest extends AbstractIntegrationT
             .andExpect(jsonPath("$.business_unit_summary.business_unit_id").value(106))
             .andExpect(jsonPath("$.business_unit_summary.business_unit_name").value("North Wales"))
             .andExpect(jsonPath("$.business_unit_summary.welsh_speaking").value("Y"));
+
+        verify(1, postRequestedFor(urlPathEqualTo("/opal"))
+            .withQueryParam("actionType", equalTo(LegacyDefendantAccountService.GET_HEADER_SUMMARY))
+            .withHeader(HttpHeaders.AUTHORIZATION, matching("Basic .+"))
+            .withHeader(HttpHeaders.CONTENT_TYPE, matching("application/json.*"))
+            .withHeader(HttpHeaders.ACCEPT, matching("application/xml.*")));
+        verifyNoInteractions(restClient);
     }
 
     @Test
