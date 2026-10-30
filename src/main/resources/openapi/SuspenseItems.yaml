@@ -1,0 +1,146 @@
+openapi: 3.1.1
+
+info:
+  description: Opal Fines Service - Suspense Items
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /suspense-items/{id}/transaction:
+    post:
+      tags:
+        - Suspense Items
+      summary: Add a suspense item transaction
+      description: Adds a transaction to a suspense item.
+      operationId: createSuspenseItemTransaction
+      security:
+        - permissions:
+            - Manage Suspense Items
+      parameters:
+        - in: path
+          name: id
+          description: Suspense item identifier.
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: Business-Unit-Id
+          description: Business unit identifier.
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          description: Version of the suspense item.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuspenseItemTransactionRequest'
+      responses:
+        '201':
+          description: Suspense item transaction created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuspenseItemTransactionResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Suspense item not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '412':
+          description: Suspense item version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  securitySchemes:
+    permissions:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    SuspenseItemTransactionRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - transactionType
+        - noteText
+      properties:
+        transactionType:
+          type: string
+          description: Type of transaction to add.
+          enum:
+            - CC
+            - CF
+            - DQ
+            - FA
+            - FB
+            - IN
+            - LA
+            - MA
+            - MB
+            - MC
+            - MS
+            - OM
+            - OC
+            - OF
+            - RP
+            - RV
+            - UN
+            - XF
+            - XP
+        noteText:
+          type: string
+          description: Note associated with the transaction.
+    SuspenseItemTransactionResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - suspenseItemVersion
+        - suspenseTransactionId
+      properties:
+        suspenseItemVersion:
+          description: Current version of the suspense item.
+          $ref: './types.yaml#/components/schemas/BigInt'
+        suspenseTransactionId:
+          description: Identifier of the created transaction.
+          $ref: './types.yaml#/components/schemas/BigInt'
