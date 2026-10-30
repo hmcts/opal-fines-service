@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MvcResult;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -28,6 +31,7 @@ import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -35,7 +39,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true",
     "launchdarkly.default-flag-values.release-1b-1-2=true"
 })
 @Slf4j(topic = "opal.OpalNotesR1B12IntegrationTest")
@@ -58,6 +61,9 @@ public class OpalNotesR1B12IntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private NoteRepository noteRepository;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setup() {
         userStateStub.addPermissions((short) 78, ADD_ACCOUNT_ACTIVITY_NOTES, SEARCH_AND_VIEW_ACCOUNTS);
@@ -68,6 +74,8 @@ public class OpalNotesR1B12IntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-11203")
     @DisplayName("Add Note Stores BusinessUnitUserId In PostedBy For Defendant Accounts")
     void addNote_storesBusinessUnitUserIdInPostedByForDefendantAccounts() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
         AddNoteRequestNotes requestNotes = createAddNoteRequestNotes(77L, RecordTypeEnum.DEFENDANT_ACCOUNTS);
 
         MvcResult result = mockMvc.perform(post("/notes")
