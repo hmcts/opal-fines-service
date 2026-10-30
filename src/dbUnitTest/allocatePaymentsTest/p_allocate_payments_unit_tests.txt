@@ -1,0 +1,80 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: Allocate proportionally using outstanding balances and verify fields ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: Distribute a rounding penny by imposition ID for equal shares ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Give a single penny to the largest remainder and skip zero shares ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: Allocate by priority then posted date then imposition ID ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: Settle priorities 1 to 9 and leave the excess unallocated ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: Skip settled impositions and priorities outside 1 to 9 ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: Leave a payment unallocated when the account has no impositions ===
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: Roll back allocations and balances when a dependency fails ===
+NOTICE:  Error in p_insert_creditor_transactions: P3809 - Posted by cannot be null or blank
+NOTICE:  Error in p_allocate_payments: P3809 - Posted by cannot be null or blank
+NOTICE:  Error details: p_insert_creditor_transactions: pi_posted_by is required
+NOTICE:  TEST 8 PASSED
+NOTICE:  === TEST 9: Reject a NULL defendant account ID ===
+NOTICE:  Error in p_allocate_payments: P3901 - Defendant account ID cannot be null
+NOTICE:  Expected error caught: P3901 - Defendant account ID cannot be null
+NOTICE:  TEST 9 PASSED
+NOTICE:  === TEST 10: Reject a NULL payment amount ===
+NOTICE:  Error in p_allocate_payments: P3902 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3902 - Payment amount must be greater than zero
+NOTICE:  TEST 10 PASSED
+NOTICE:  === TEST 11: Reject a zero payment amount ===
+NOTICE:  Error in p_allocate_payments: P3902 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3902 - Payment amount must be greater than zero
+NOTICE:  TEST 11 PASSED
+NOTICE:  === TEST 12: Reject a negative payment amount ===
+NOTICE:  Error in p_allocate_payments: P3902 - Payment amount must be greater than zero
+NOTICE:  Expected error caught: P3902 - Payment amount must be greater than zero
+NOTICE:  TEST 12 PASSED
+NOTICE:  === TEST 13: Reject a NULL transaction type ===
+NOTICE:  Error in p_allocate_payments: P3903 - Transaction type must be PAYMNT
+NOTICE:  Expected error caught: P3903 - Transaction type must be PAYMNT
+NOTICE:  TEST 13 PASSED
+NOTICE:  === TEST 14: Reject a transaction type other than PAYMNT ===
+NOTICE:  Error in p_allocate_payments: P3903 - Transaction type must be PAYMNT
+NOTICE:  Expected error caught: P3903 - Transaction type must be PAYMNT
+NOTICE:  TEST 14 PASSED
+NOTICE:  === TEST 15: Reject a NULL allocation function ===
+NOTICE:  Error in p_allocate_payments: P3904 - Allocation function cannot be null or blank
+NOTICE:  Expected error caught: P3904 - Allocation function cannot be null or blank
+NOTICE:  TEST 15 PASSED
+NOTICE:  === TEST 16: Reject an empty allocation function ===
+NOTICE:  Error in p_allocate_payments: P3904 - Allocation function cannot be null or blank
+NOTICE:  Expected error caught: P3904 - Allocation function cannot be null or blank
+NOTICE:  TEST 16 PASSED
+NOTICE:  === TEST 17: Reject a blank allocation function ===
+NOTICE:  Error in p_allocate_payments: P3904 - Allocation function cannot be null or blank
+NOTICE:  Expected error caught: P3904 - Allocation function cannot be null or blank
+NOTICE:  TEST 17 PASSED
+NOTICE:  === TEST 18: Reject a NULL defendant transaction ID ===
+NOTICE:  Error in p_allocate_payments: P3905 - Defendant transaction ID cannot be null
+NOTICE:  Expected error caught: P3905 - Defendant transaction ID cannot be null
+NOTICE:  TEST 18 PASSED
+NOTICE:  === TEST 19: Reject an unknown defendant account ===
+NOTICE:  Error in p_allocate_payments: P3906 - Defendant account -3452 was not found
+NOTICE:  Expected error caught: P3906 - Defendant account -3452 was not found
+NOTICE:  TEST 19 PASSED
+NOTICE:  === TEST 20: Reject an unknown defendant transaction ===
+NOTICE:  Error in p_allocate_payments: P3907 - Defendant transaction -3452 was not found for defendant account 999900083452
+NOTICE:  Expected error caught: P3907 - Defendant transaction -3452 was not found for defendant account 999900083452
+NOTICE:  TEST 20 PASSED
+NOTICE:  === TEST 21: Reject a defendant transaction belonging to another account ===
+NOTICE:  Error in p_allocate_payments: P3907 - Defendant transaction 999900093452 was not found for defendant account 999900083452
+NOTICE:  Expected error caught: P3907 - Defendant transaction 999900093452 was not found for defendant account 999900083452
+NOTICE:  TEST 21 PASSED
+NOTICE:  === Cleanup test data ===
+NOTICE:  Test data cleanup completed
+DO
+
+Query returned successfully in 98 msec.
