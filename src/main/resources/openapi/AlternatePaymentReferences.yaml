@@ -29,6 +29,9 @@ paths:
       responses:
         '200':
           description: Alternate payment references returned; the collection is empty when none exist.
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -285,6 +288,9 @@ paths:
       responses:
         '200':
           description: Alternate payment reference deleted
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
           content:
             application/json:
               schema:
@@ -363,7 +369,6 @@ components:
         - apr_text
         - created_at
         - updated_at
-        - version_number
       properties:
         alternate_payment_reference_id:
           description: DB Mapping - alternate_payment_references.alternate_payment_reference_id
@@ -399,6 +404,3 @@ components:
           type: string
           format: date-time
           description: DB Mapping - alternate_payment_references.updated_datetime
-        version:
-          $ref: "./types.yaml#/components/schemas/BigInt"
-          description: DB Mapping - alternate_payment_references.version_number

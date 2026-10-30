@@ -1,16 +1,17 @@
 package uk.gov.hmcts.opal.util;
 
+import java.util.List;
+import java.util.Optional;
 import org.springframework.security.access.AccessDeniedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.dto.reference.BusinessUnitReferenceData;
 import uk.gov.hmcts.opal.service.UserStateService;
-
-import java.util.List;
-import java.util.Optional;
 
 public class PermissionUtil {
 
@@ -20,14 +21,22 @@ public class PermissionUtil {
     }
 
     public static BusinessUnitUser getRequiredBusinessUnitUser(DomainBusinessUnitUsers businessUnitUsers,
-                                                              Short businessUnitId) {
+        Short businessUnitId) {
 
         return businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() ->
             new AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
+    public static void checkPermissionInBusinessUnit(FinesPermission finesPermission, Short businessUnitId) {
+        OpalJwtAuthenticationToken token = SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser();
+        if (!token.hasPermissionInBusinessUnit(finesPermission, businessUnitId)) {
+            throw new AccessDeniedException("User does not have the required permission: "
+                + finesPermission.getDescription() + " in business unit: " + businessUnitId);
+        }
+    }
+
     public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUser businessUnitUser,
-                                                             FinesPermission permission) {
+        FinesPermission permission) {
         if (businessUnitUser.doesNotHavePermission(permission)) {
             throw new AccessDeniedException(
                 "User does not have the required permission: "
@@ -45,7 +54,7 @@ public class PermissionUtil {
         return true;
     }
 
-    public static  List<BusinessUnitReferenceData> filterBusinessUnitsByPermission(
+    public static List<BusinessUnitReferenceData> filterBusinessUnitsByPermission(
         UserStateService userStateService,
         List<BusinessUnitReferenceData> refData,
         Optional<FinesPermission> optPermission) {
