@@ -68,6 +68,7 @@ class DefendantSearchPdplTest extends AbstractIntegrationTest {
     @MockitoSpyBean
     private DefendantAccountServiceProxy defendantAccountServiceProxy;
 
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
 
