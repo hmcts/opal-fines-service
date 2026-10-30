@@ -3,14 +3,12 @@ package uk.gov.hmcts.opal.controllers.shared;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -60,8 +58,7 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
     @JiraEpic("PO-3685")
     @JiraTestKey("PO-7581")
     void testFeatureDisabledUserStateLookupGivesServiceUnavailableProblemJson() throws Exception {
-        WireMock.configureFor("localhost", 4553);
-        StubMapping disabledUserStateStub = stubFor(get("/opal/v2/users/0/state")
+        StubMapping disabledUserStateStub = userServiceWireMock.stubFor(get("/v2/users/0/state")
             .withHeader("Authorization", equalTo("Bearer " + validToken))
             .atPriority(1)
             .willReturn(aResponse()
@@ -94,7 +91,7 @@ class JwtControllerIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 .andExpect(jsonPath("$.operation_id").exists())
                 .andExpect(jsonPath("$.retriable").value(false));
         } finally {
-            WireMock.removeStub(disabledUserStateStub);
+            userServiceWireMock.removeStub(disabledUserStateStub);
         }
     }
 

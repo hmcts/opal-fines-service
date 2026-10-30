@@ -1,0 +1,13 @@
+{
+  "user_id": 999,
+  "username": "no-permissions@users.com",
+  "name": "No Permissions User",
+  "status": "ACTIVE",
+  "version": 0,
+  "cache_name": null,
+  "domains": {
+    "fines": {
+      "business_unit_users": []
+    }
+  }
+}
