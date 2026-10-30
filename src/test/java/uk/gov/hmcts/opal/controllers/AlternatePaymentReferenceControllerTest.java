@@ -102,6 +102,57 @@ class AlternatePaymentReferenceControllerTest {
     }
 
     @Nested
+    @DisplayName("Delete an alternate payment reference for a defendant account")
+    class DeleteAlternatePaymentReference {
+
+        @ParameterizedTest
+        @ValueSource(longs = {0L, 7L})
+        @DisplayName("Returns the deleted reference with an OK status and the account version as a quoted ETag")
+        void returnsDeletedReferenceWithOkStatusAndQuotedVersionEtag(long version) {
+            Long defendantAccountId = 123L;
+            Long alternatePaymentReferenceId = 456L;
+            String expectedVersion = "\"" + version + "\"";
+            AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
+                .alternatePaymentReferenceId(alternatePaymentReferenceId)
+                .defendantAccountId(defendantAccountId)
+                .aprText("REFERENCE-TO-DELETE");
+            when(alternatePaymentReferenceService.deleteAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion))
+                .thenReturn(new VersionedResponse<>(expected, version));
+
+            ResponseEntity<AlternatePaymentReferencesItem> response = controller.deleteAlternatePaymentReference(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion);
+
+            assertAll(
+                () -> assertEquals(HttpStatus.OK, response.getStatusCode()),
+                () -> assertSame(expected, response.getBody()),
+                () -> assertEquals("\"" + version + "\"", response.getHeaders().getETag()),
+                () -> verify(alternatePaymentReferenceService).deleteAlternatePaymentReferences(
+                    defendantAccountId, alternatePaymentReferenceId, expectedVersion)
+            );
+        }
+
+        @Test
+        @DisplayName("Propagates access denied when the service rejects the user's permissions")
+        void propagatesAccessDeniedExceptionWhenServiceRejectsUserPermissions() {
+            Long defendantAccountId = 123L;
+            Long alternatePaymentReferenceId = 456L;
+            String expectedVersion = "\"3\"";
+            AccessDeniedException expected = new AccessDeniedException("User does not have the required permission");
+            when(alternatePaymentReferenceService.deleteAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion)).thenThrow(expected);
+
+            AccessDeniedException actual = assertThrows(AccessDeniedException.class,
+                () -> controller.deleteAlternatePaymentReference(
+                    defendantAccountId, alternatePaymentReferenceId, expectedVersion));
+
+            assertSame(expected, actual);
+            verify(alternatePaymentReferenceService).deleteAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion);
+        }
+    }
+
+    @Nested
     @DisplayName("Create an alternate payment reference for a defendant account")
     class CreateAlternatePaymentReference {
 

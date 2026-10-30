@@ -73,6 +73,33 @@ public class AlternatePaymentReferenceService {
         return new VersionedResponse<>(data, defendantAccountEntity.getVersionNumber());
     }
 
+
+    @Transactional
+    public VersionedResponse<AlternatePaymentReferencesItem> deleteAlternatePaymentReferences(
+        Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion) {
+        DefendantAccountEntity defendantAccountEntity =
+            verifyDefendantAccountEntityExistAndUserHasCorrectPermission(defendantAccountId);
+
+        AlternatePaymentReferenceEntity alternatePaymentReferenceEntity =
+            getAlternativePaymentReferenceEntity(defendantAccountId, alternatePaymentReferenceId);
+
+        VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountEntity.getId(),
+            "deleteAlternatePaymentReferences");
+
+        AlternatePaymentReferencesItem returnItem =
+            alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity);
+        repository.delete(alternatePaymentReferenceEntity);
+
+        notesService.addNote(
+            NoteType.AA,
+            defendantAccountEntity,
+            "Alternate payment reference deleted | " + alternatePaymentReferenceEntity.getAprText(),
+            defendantAccountEntity.getBusinessUnit().getBusinessUnitId()
+        );
+
+        return new VersionedResponse<>(returnItem, defendantAccountEntity.getVersionNumber());
+    }
+
     @Transactional
     public VersionedResponse<AlternatePaymentReferencesItem> updateAlternatePaymentReferences(
         Long defendantAccountId, Long alternatePaymentReferenceId,

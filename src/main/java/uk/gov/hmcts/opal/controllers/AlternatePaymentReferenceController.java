@@ -40,6 +40,19 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
         feature = RELEASE_1C_BANKING_INTERFACES,
         defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
     )
+    public ResponseEntity<AlternatePaymentReferencesItem> deleteAlternatePaymentReference(
+        Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion) {
+
+        return alternatePaymentReferenceService.deleteAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId, expectedVersion)
+            .toResponseEntity(HttpStatus.OK);
+    }
+
+    @Override
+    @FeatureToggle(
+        feature = RELEASE_1C_BANKING_INTERFACES,
+        defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
+    )
     public ResponseEntity<AlternatePaymentReferencesItem> createAlternatePaymentReference(
         Long defendantAccountId, String expectedVersion,
         AlternatePaymentReferencesWriteRequest alternatePaymentReferencesWriteRequest) {
