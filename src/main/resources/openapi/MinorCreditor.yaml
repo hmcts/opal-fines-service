@@ -58,6 +58,12 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Minor creditor account or associated party not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         500:
           description: Internal server error
           content:
@@ -90,6 +96,7 @@ paths:
         - in: header
           name: If-Match
           description: Version of the minor creditor account. DB Mapping - creditor_accounts.version
+          required: true
           schema:
             type: string
         - in: header
@@ -143,6 +150,18 @@ paths:
           description: Forbidden
           content:
             application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Minor creditor account not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        409:
+          description: Version conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         500:
