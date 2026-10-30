@@ -83,7 +83,7 @@ public class AlternatePaymentReferenceService {
         AlternatePaymentReferenceEntity alternatePaymentReferenceEntity =
             getAlternativePaymentReferenceEntity(defendantAccountId, alternatePaymentReferenceId);
 
-        VersionUtils.verifyIfMatch(alternatePaymentReferenceEntity, expectedVersion, alternatePaymentReferenceId,
+        VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountEntity.getId(),
             "deleteAlternatePaymentReferences");
 
         AlternatePaymentReferencesItem returnItem =

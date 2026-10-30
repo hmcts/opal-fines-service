@@ -488,11 +488,11 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             AlternatePaymentReferenceEntity reference = alternatePaymentReferenceRepository.findById(referenceId)
                 .orElseThrow();
             List<AlternatePaymentReferenceEntity> existingReferences = findReferencesInBusinessUnit();
-            String expectedVersion = "\"" + reference.getVersionNumber() + "\"";
             Map<Long, Long> accountVersions = defendantAccountRepository
                 .findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID).stream()
                 .collect(java.util.stream.Collectors.toMap(
                     DefendantAccountEntity::getDefendantAccountId, DefendantAccountEntity::getVersionNumber));
+            String expectedVersion = "\"" + accountVersions.get(accountId) + "\"";
             long expectedAccountVersion = accountVersions.get(accountId) + 1;
             String expectedEtag = "\"" + expectedAccountVersion + "\"";
             assertThat(reference.getRelationship()).isEqualTo(relationship);
@@ -593,9 +593,9 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @Test
         @JiraStory("PO-10880")
         @JiraEpic("PO-7465")
-        @DisplayName("Rejects an APR version mismatch even when If-Match matches the defendant account version")
-        void rejectsAprVersionMismatch() throws Exception {
-            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"0\"")
+        @DisplayName("Rejects an account version mismatch even when If-Match matches the APR version")
+        void rejectsAccountVersionMismatch() throws Exception {
+            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\"")
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));

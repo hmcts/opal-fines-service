@@ -283,7 +283,7 @@ class AlternatePaymentReferenceServiceTest {
     class DeleteAlternatePaymentReferences {
 
         private static final Long REFERENCE_ID = 456L;
-        private static final String EXPECTED_VERSION = "\"5\"";
+        private static final String EXPECTED_VERSION = "\"3\"";
         private static final String APR_TEXT = "REFERENCE-TO-DELETE";
 
         @Test
@@ -304,7 +304,7 @@ class AlternatePaymentReferenceServiceTest {
                 assertSame(expected, actual.getData());
                 assertEquals(3L, actual.getVersion());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences"));
+                    account, EXPECTED_VERSION, account.getId(), "deleteAlternatePaymentReferences"));
                 verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
                 verify(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
                 InOrder order = inOrder(alternatePaymentReferenceMapper, repository, notesService);
@@ -335,7 +335,8 @@ class AlternatePaymentReferenceServiceTest {
         @Test
         @DisplayName("Propagates a missing reference without deleting a reference or adding a note")
         void stopsWithoutDeletingOrAddingNoteWhenReferenceDoesNotExist() {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             NotFoundException expected = new NotFoundException("Reference not found", "No reference for this account");
             doThrow(expected).when(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
@@ -350,17 +351,19 @@ class AlternatePaymentReferenceServiceTest {
         }
 
         @Test
-        @DisplayName("Rejects an APR version mismatch without mapping, deleting, or adding a note")
+        @DisplayName("Rejects an account version mismatch without mapping, deleting, or adding a note")
         void stopsBeforeDeletingReferenceWhenVersionDoesNotMatch() {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
-            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            stubExistingReference();
             ObjectOptimisticLockingFailureException expected = new ObjectOptimisticLockingFailureException(
-                AlternatePaymentReferenceEntity.class, REFERENCE_ID);
+                DefendantAccountEntity.class, DEFENDANT_ACCOUNT_ID);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
                 versionUtils.when(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences")).thenThrow(expected);
+                        account, EXPECTED_VERSION, account.getId(), "deleteAlternatePaymentReferences"))
+                    .thenThrow(expected);
 
                 ObjectOptimisticLockingFailureException actual = assertThrows(
                     ObjectOptimisticLockingFailureException.class, this::deleteReference);
@@ -373,7 +376,8 @@ class AlternatePaymentReferenceServiceTest {
         @Test
         @DisplayName("Propagates a repository deletion failure without adding an activity note")
         void propagatesDeletionFailureWithoutAddingActivityNote() {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             DataIntegrityViolationException expected = new DataIntegrityViolationException("Reference deletion failed");
@@ -385,7 +389,7 @@ class AlternatePaymentReferenceServiceTest {
 
                 assertSame(expected, actual);
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "deleteAlternatePaymentReferences"));
+                    account, EXPECTED_VERSION, account.getId(), "deleteAlternatePaymentReferences"));
                 verify(repository).delete(reference);
                 verifyNoInteractions(notesService);
             }
