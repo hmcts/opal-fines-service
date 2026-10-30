@@ -3,11 +3,16 @@ package uk.gov.hmcts.opal.entity.alternatepaymentreference;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.time.LocalDateTime;
 import lombok.AccessLevel;
@@ -15,21 +20,27 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
+import uk.gov.hmcts.opal.util.VersionedLong;
 
 @Entity
 @Table(name = "alternate_payment_references")
 @Getter
+@Setter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-public class AlternatePaymentReferenceEntity {
+public class AlternatePaymentReferenceEntity implements VersionedLong {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "alternate_payment_reference_id_generator")
+    @SequenceGenerator(name = "alternate_payment_reference_id_generator",
+        sequenceName = "alternate_payment_reference_id_seq", allocationSize = 1)
     @Column
     @NotNull
     private long alternatePaymentReferenceId;
@@ -54,6 +65,7 @@ public class AlternatePaymentReferenceEntity {
 
     @Column
     @NotNull
+    @Size(max = 18)
     private String aprText;
 
     @Column
@@ -63,4 +75,8 @@ public class AlternatePaymentReferenceEntity {
     @Column
     @XmlJavaTypeAdapter(LocalDateTimeAdapter.class)
     private LocalDateTime updatedDatetime;
+
+    @Column(name = "version_number")
+    @Version
+    private Long versionNumber;
 }
