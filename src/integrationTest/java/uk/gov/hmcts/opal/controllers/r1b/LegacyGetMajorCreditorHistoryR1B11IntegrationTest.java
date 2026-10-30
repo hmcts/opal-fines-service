@@ -23,7 +23,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
-@TestPropertySource(properties = {"launchdarkly.enabled=false", "launchdarkly.default-flag-values.release-1b-1-1=true"})
+@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1b-1-1=true")
 @DisplayName("Legacy Get Major Creditor History Release-1B-1-1 Integration Test")
 public class LegacyGetMajorCreditorHistoryR1B11IntegrationTest extends AbstractIntegrationTest {
 

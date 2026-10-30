@@ -19,8 +19,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true",
     "launchdarkly.default-flag-values.release-1c-payment=false"
 })
 @DisplayName("Mappings with Release 1C payment disabled")

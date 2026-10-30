@@ -8,21 +8,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.RequestBuilder;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1bDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false"
-})
 @Tag("ExtendedTest")
-class R1bFlagDisabledTest extends AbstractIntegrationTest {
+class R1bFlagDisabledTest extends AbstractRelease1bDisabledIntegrationTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("uk.gov.hmcts.opal.controllers.shared.util.Release1bFeatureToggleRequestUtil#gatedRequests")
