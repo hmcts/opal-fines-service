@@ -257,6 +257,7 @@ sourceSets {
       runtimeClasspath += main.output
       srcDir file('src/integrationTest/java')
     }
+    compileClasspath += integrationTestSupport.output
     resources.srcDir file('src/integrationTest/resources')
     runtimeClasspath += integrationTestSupport.output
   }
