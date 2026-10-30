@@ -16,20 +16,25 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 public class DefendantAccountSearchPdplLoggingService extends AbstractPdplLoggingService {
 
     private static final String BUSINESS_IDENTIFIER = "Search Account Results - Individual Defendants";
+    private static final String CONSOLIDATION_BUSINESS_IDENTIFIER =
+        "Search Account Results - Consolidation - Individual Defendants";
     private static final String QUEUE_FAILURE_MESSAGE = "Unable to queue PDPO log for defendant account search";
 
     public DefendantAccountSearchPdplLoggingService(LoggingService loggingService, Clock clock) {
         super(loggingService, clock);
     }
 
-    public void logSearchResults(UserState userState, DefendantAccountSearchResultsDto results) {
+    public void logSearchResults(UserState userState, DefendantAccountSearchResultsDto results,
+        boolean consolidationSearch) {
+
         List<ParticipantIdentifier> individuals = getIndividualDefendants(results);
 
         if (individuals.isEmpty()) {
             return;
         }
 
-        logPdplOrThrow(BUSINESS_IDENTIFIER, CONSULTATION, individuals, null, userState.getUserId(),
+        String businessIdentifier = consolidationSearch ? CONSOLIDATION_BUSINESS_IDENTIFIER : BUSINESS_IDENTIFIER;
+        logPdplOrThrow(businessIdentifier, CONSULTATION, individuals, null, userState.getUserId(),
             QUEUE_FAILURE_MESSAGE);
     }
 

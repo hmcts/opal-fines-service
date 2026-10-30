@@ -3,6 +3,8 @@ package uk.gov.hmcts.opal.service.opal;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -16,11 +18,11 @@ import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -28,6 +30,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
@@ -52,8 +55,9 @@ class DefendantAccountSearchPdplLoggingServiceTest {
     @Nested
     class LogSearchResults {
 
-        @Test
-        void whenIndividualResultsReturned_queuesConsultationWithUniqueDefendants_happyPath() {
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void whenIndividualResultsReturned_queuesConsultationWithUniqueDefendants(boolean consolidationSearch) {
             DefendantAccountSearchResultsDto results = results(
                 individual("1001"),
                 organisation("2001"),
@@ -63,16 +67,20 @@ class DefendantAccountSearchPdplLoggingServiceTest {
                 ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
             when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-            service.logSearchResults(USER_STATE, results);
+            service.logSearchResults(USER_STATE, results, consolidationSearch);
 
             verify(loggingService).personalDataAccessLogAsync(captor.capture());
             PersonalDataProcessingLogDetails details = captor.getValue();
             List<ParticipantIdentifier> individuals = details.getIndividuals();
 
             assertAll(
-                () -> assertEquals("Search Account Results - Individual Defendants",
+                () -> assertEquals(consolidationSearch
+                    ? "Search Account Results - Consolidation - Individual Defendants"
+                    : "Search Account Results - Individual Defendants",
                     details.getBusinessIdentifier()),
                 () -> assertEquals(PersonalDataProcessingCategory.CONSULTATION, details.getCategory()),
+                () -> assertEquals("42", details.getCreatedBy().getIdentifier()),
+                () -> assertEquals(PdplIdentifierType.OPAL_USER_ID, details.getCreatedBy().getType()),
                 () -> assertEquals(List.of("1001", "1002"), individuals.stream()
                     .map(ParticipantIdentifier::getIdentifier).toList()),
                 () -> assertEquals(List.of(PdplIdentifierType.DEFENDANT, PdplIdentifierType.DEFENDANT),
@@ -85,9 +93,34 @@ class DefendantAccountSearchPdplLoggingServiceTest {
         @NullSource
         @MethodSource("noLoggingResults")
         void whenNoIndividualResultsReturned_doesNotQueueLog_happyPath(DefendantAccountSearchResultsDto results) {
-            service.logSearchResults(USER_STATE, results);
+            service.logSearchResults(USER_STATE, results, true);
+            service.logSearchResults(USER_STATE, results, false);
 
             verify(loggingService, never()).personalDataAccessLogAsync(any());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void whenQueueRejects_throws(boolean consolidationSearch) {
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+            assertThrows(PdplLoggingException.class,
+                () -> service.logSearchResults(USER_STATE, results(individual("1001")), consolidationSearch));
+
+            verify(loggingService).personalDataAccessLogAsync(any());
+        }
+
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void whenQueueThrows_preservesCause(boolean consolidationSearch) {
+            RuntimeException failure = new RuntimeException("logging unavailable");
+            when(loggingService.personalDataAccessLogAsync(any())).thenThrow(failure);
+
+            PdplLoggingException exception = assertThrows(PdplLoggingException.class,
+                () -> service.logSearchResults(USER_STATE, results(individual("1001")), consolidationSearch));
+
+            assertSame(failure, exception.getCause());
+            verify(loggingService).personalDataAccessLogAsync(any());
         }
 
         private static Stream<DefendantAccountSearchResultsDto> noLoggingResults() {
