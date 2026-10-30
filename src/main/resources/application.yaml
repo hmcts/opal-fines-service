@@ -170,6 +170,9 @@ opal:
           client-secret: ${OPAL_SYSTEM_USER_CLIENT_SECRET:}
           scope: api://${opal.common.system-users.users.opal-system-user.client-id}/.default
           grant-type: client_credentials
+    docmosis:
+      url: ${DOCMOSIS_ENDPOINT:}
+      api-key: ${DOCMOSIS_API_KEY:}
   report:
     storage:
       connection-string: ${AZURE_STORAGE_CONNECTION_STRING:UseDevelopmentStorage=true}
