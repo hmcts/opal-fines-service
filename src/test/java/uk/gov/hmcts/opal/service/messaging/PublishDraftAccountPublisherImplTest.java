@@ -107,11 +107,13 @@ public class PublishDraftAccountPublisherImplTest {
 
         publisher.publish(draftAccounts);
 
-        assertThat(List.of(firstAccount, secondAccount)).allSatisfy(account -> {
-            assertThat(account.getAccountStatus()).isEqualTo(DraftAccountStatus.PUBLISHING_PENDING);
-            assertThat(account.getAccountStatusDate())
-                .isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
-        });
+        assertThat(List.of(firstAccount, secondAccount))
+            .isNotEmpty()
+            .allSatisfy(account -> {
+                assertThat(account.getAccountStatus()).isEqualTo(DraftAccountStatus.PUBLISHING_PENDING);
+                assertThat(account.getAccountStatusDate())
+                    .isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
+            });
 
         verify(jmsSession).createQueue(QUEUE_NAME);
         verify(jmsSession).createProducer(jmsQueue);
