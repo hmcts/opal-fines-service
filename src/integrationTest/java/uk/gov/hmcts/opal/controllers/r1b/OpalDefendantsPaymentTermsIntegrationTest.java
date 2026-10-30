@@ -337,7 +337,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
         userStateStub.setupWithNoPermissions();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth("token_without_permission");
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
@@ -390,7 +390,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
         authorise((short) 99, FinesPermission.AMEND_PAYMENT_TERMS);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 
@@ -443,7 +443,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     void test_Opal_AddPaymentTerms_IfMatchConflict() throws Exception {
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"9999\"");
 
@@ -495,7 +495,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     @JiraTestKey("PO-6053")
     void test_Opal_AddPaymentTerms_IfMatchMissing() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
 
         String requestJson = """
@@ -552,7 +552,7 @@ class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIn
     @JiraTestKey("PO-6046")
     void test_Opal_AddPaymentTerms_SchemaValidation() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"0\"");
 

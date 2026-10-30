@@ -18,6 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -30,13 +31,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.exception.InterfaceJobQueueException;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.messaging.InterfaceJobQueuePublisher;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -59,15 +60,15 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
 
     private static final String URL = "/interface-jobs/process";
-    private static final String AUTH_HEADER = "Bearer integration-test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final Short BUSINESS_UNIT_77 = 77;
     private static final Short BUSINESS_UNIT_78 = 78;
 
     @Autowired
     private InterfaceJobRepository interfaceJobRepository;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private InterfaceJobQueuePublisher interfaceJobQueuePublisher;
@@ -84,7 +85,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
         allowBusinessUnits(BUSINESS_UNIT_77, BUSINESS_UNIT_78);
 
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content(request(990001L, BUSINESS_UNIT_77, true, 990002L, BUSINESS_UNIT_78, false)))
             .andExpect(status().isOk())
@@ -112,7 +113,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
         allowBusinessUnits(BUSINESS_UNIT_77);
 
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content(request(990001L, BUSINESS_UNIT_77, true,
                     990002L, BUSINESS_UNIT_78, true)))
@@ -133,7 +134,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
         allowBusinessUnits(BUSINESS_UNIT_77);
 
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content(request(990001L, BUSINESS_UNIT_77, true,
                     990003L, BUSINESS_UNIT_77, true)))
@@ -156,7 +157,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
         allowBusinessUnits(BUSINESS_UNIT_77);
 
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content(request(999999L, BUSINESS_UNIT_77, true)))
             .andExpect(status().isNotFound())
@@ -172,7 +173,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2468")
     void processJobs_rejectsEmptyJobList() throws Exception {
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content("{\"interface_jobs\":[]}"))
             .andExpect(status().isBadRequest());
@@ -186,7 +187,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2468")
     void processJobs_rejectsMissingRequiredItemProperty() throws Exception {
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content("{\"interface_jobs\":[{"
                     + "\"interface_job_id\":990001,\"business_unit_id\":77,"
@@ -207,7 +208,7 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
             .when(interfaceJobQueuePublisher).publish(List.of(990001L));
 
         mockMvc.perform(post(URL)
-                .header(AUTHORIZATION, AUTH_HEADER)
+                .header(AUTHORIZATION, AUTH_HEADER_VALUE)
                 .contentType(APPLICATION_JSON)
                 .content(request(990001L, BUSINESS_UNIT_77, true)))
             .andExpect(status().isServiceUnavailable())
@@ -219,9 +220,11 @@ class ProcessInterfaceJobsTest extends AbstractIntegrationTest {
     }
 
     private void allowBusinessUnits(Short... businessUnitIds) {
-        when(userStateService.getPermittedBusinessUnitIds(
-            List.of(businessUnitIds), PROCESS_AND_ALLOCATE_PAYMENTS))
-            .thenReturn(List.of(businessUnitIds));
+        userStateStub.setupWithNoPermissions();
+        for (Short businessUnitId : businessUnitIds) {
+            userStateStub.addPermissions(businessUnitId, PROCESS_AND_ALLOCATE_PAYMENTS);
+        }
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 
     private Map<Long, InterfaceJobEntity> findJobs(Long... jobIds) {

@@ -166,7 +166,6 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/77/header-summary")
                 .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
         );
 
         resultActions.andExpect(status().isForbidden())

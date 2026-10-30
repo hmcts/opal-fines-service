@@ -1,12 +1,14 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,9 +16,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFound;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import jakarta.persistence.QueryTimeoutException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -37,21 +40,19 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpServerErrorException;
-import org.springframework.web.server.ResponseStatusException;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import org.yaml.snakeyaml.Yaml;
@@ -82,19 +83,21 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.MajorCreditorAtGlanceIntegrationTest")
 class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer some_value";
     private static final String URL = "/major-creditor-accounts/{id}/at-a-glance";
     private static final long MJ_ACCOUNT_ID = 10770000000041L;
     private static final long CF_ACCOUNT_ID = 78L;
-
-    @MockitoBean
-    private UserStateService userStateService;
 
     @MockitoSpyBean
     private MajorCreditorAccountAtAGlanceRepository majorCreditorAccountAtAGlanceRepository;
 
     @Autowired
     private CreditorAccountRepository creditorAccountRepository;
+
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
+    @MockitoSpyBean
+    MajorCreditorAccountProxy proxy;
 
     @AfterEach
     void resetSpies() {
@@ -107,14 +110,11 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7647")
     void getAtAGlance_majorCreditorSuccessReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
-
         AtAGlanceExpected account = getAtAGlance(MJ_ACCOUNT_ID);
 
         ResultActions actions = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse response = actions.andReturn().getResponse();
         String body = response.getContentAsString();
@@ -145,6 +145,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
         );
 
         assertMatchesOpenApiSchema(json);
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -153,14 +154,11 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7643")
     void getAtAGlance_centralFundSuccessReturnsMappedResponseAndEtag() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
-
         AtAGlanceExpected account = getAtAGlance(CF_ACCOUNT_ID);
 
         ResultActions actions = mockMvc.perform(get(URL, CF_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse response = actions.andReturn().getResponse();
         String body = response.getContentAsString();
@@ -184,6 +182,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(Set.of("creditor_account_id", "name", "address"), fieldNames(json.get("major_creditor")));
 
         assertMatchesOpenApiSchema(json);
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -192,11 +191,10 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7649")
     void getAtAGlance_repeatedGetReturnsSamePayloadAndHeaders() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
-
-        ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
-        ResultActions second = mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+        ResultActions first = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
+        ResultActions second = mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         MockHttpServletResponse firstResponse = first.andReturn().getResponse();
         MockHttpServletResponse secondResponse = second.andReturn().getResponse();
@@ -204,6 +202,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
         assertEquals(firstResponse.getContentAsString(), secondResponse.getContentAsString());
         assertEquals(firstResponse.getHeader(HttpHeaders.ETAG), secondResponse.getHeader(HttpHeaders.ETAG));
         assertEquals(firstResponse.getContentType(), secondResponse.getContentType());
+        userServiceWireMock.verify(2, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -212,11 +211,10 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7641")
     void getAtAGlance_sameBusinessUnitPermissionReturns200() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
-
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk());
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -225,11 +223,10 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7644")
     void getAtAGlance_differentBusinessUnitPermissionReturns200() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 73, SEARCH_AND_VIEW_ACCOUNTS));
-
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isOk());
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -238,12 +235,9 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7646")
     void getAtAGlance_notFoundReturns404() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
-
         ResultActions actions = mockMvc.perform(get(URL, 999999L)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         actions.andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
@@ -258,6 +252,7 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
             "The requested entity could not be found",
             "https://hmcts.gov.uk/problems/entity-not-found",
             false);
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -266,14 +261,16 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7639")
     void getAtAGlance_missingAuthReturns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
         mockMvc.perform(get(URL, MJ_ACCOUNT_ID))
-            .andExpect(status().isUnauthorized())
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"))
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
+        userServiceWireMock.verify(exactly(0), getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -282,13 +279,24 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7640")
     void getAtAGlance_missingPermissionReturns403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userServiceWireMock.stubFor(WireMock.get(urlPathEqualTo("/v2/users/0/state"))
+            .atPriority(1).willReturn(
+                aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBodyFile("UserService/user-state-no-permissions.json")));
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
             .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
             .andExpect(jsonPath("$.retriable").value(false));
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -297,15 +305,22 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7648")
     void getAtAGlance_queryTimeoutReturns408() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new QueryTimeoutException("timeout", null, null))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(proxy)
+            .getAtAGlance(MJ_ACCOUNT_ID);
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/query-timeout"))
+            .andExpect(jsonPath("$.title").value("Request Timeout"))
+            .andExpect(jsonPath("$.status").value(408))
+            .andExpect(jsonPath("$.detail")
+                .value("The request did not receive a response from the database within the timeout period"))
             .andExpect(jsonPath("$.retriable").value(true));
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -314,15 +329,20 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7645")
     void getAtAGlance_dataAccessFailureReturns503() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(new DataAccessResourceFailureException("db unavailable"))
             .when(majorCreditorAccountAtAGlanceRepository).findById(MJ_ACCOUNT_ID);
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/database-unavailable"))
+            .andExpect(jsonPath("$.title").value("Service Unavailable"))
+            .andExpect(jsonPath("$.status").value(503))
+            .andExpect(jsonPath("$.detail").value("Opal database is currently unavailable"))
             .andExpect(jsonPath("$.retriable").value(true));
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     @Test
@@ -331,8 +351,6 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-7642")
     void getAtAGlance_internalServerErrorReturns500() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 78, SEARCH_AND_VIEW_ACCOUNTS));
         doThrow(HttpServerErrorException.create(
             org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR,
             "Internal Server Error",
@@ -341,10 +359,16 @@ class MajorCreditorAtGlanceIntegrationTest extends AbstractIntegrationTest {
             null
         )).when(majorCreditorAccountAtAGlanceRepository).findById(anyLong());
 
-        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL, MJ_ACCOUNT_ID).header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/http-server-error"))
+            .andExpect(jsonPath("$.title").value("Downstream Server Error"))
+            .andExpect(jsonPath("$.status").value(500))
+            .andExpect(jsonPath("$.detail").value("500 Internal Server Error"))
             .andExpect(jsonPath("$.retriable").value(false));
+        userServiceWireMock.verify(1, getRequestedFor(urlPathEqualTo("/v2/users/0/state")));
     }
 
     private AtAGlanceExpected getAtAGlance(long creditorAccountId) {

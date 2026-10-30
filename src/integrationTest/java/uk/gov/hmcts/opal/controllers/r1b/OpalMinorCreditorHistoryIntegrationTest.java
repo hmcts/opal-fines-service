@@ -5,12 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,9 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
-import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import jakarta.persistence.QueryTimeoutException;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +32,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.web.server.ResponseStatusException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -44,7 +45,7 @@ import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.MinorCreditorService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -66,25 +67,28 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final String HISTORY_URL = "/minor-creditor-accounts/{accountId}/history";
-    private static final String AUTH_HEADER = "Bearer some_value";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99264200000001L;
     private static final long NON_MINOR_CREDITOR_ACCOUNT_ID = 99264200000002L;
     private static final long MISSING_CREDITOR_ACCOUNT_ID = 99264299999999L;
     private static final long DEFENDANT_ACCOUNT_ID = 99264200001001L;
     private static final short BUSINESS_UNIT_ID = 32642;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
+
+    @MockitoSpyBean
+    private MinorCreditorService minorCreditorService;
 
     @MockitoBean
     private LoggingService loggingService;
 
     @BeforeEach
     void setUpAuthorisedUser() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permissionUser(
-            BUSINESS_UNIT_ID,
-            FinesPermission.SEARCH_AND_VIEW_ACCOUNTS
-        ));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.getUserState().setUserId(1L);
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        userStateStub.createAuthentication(userServiceWireMock);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
@@ -347,13 +351,11 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 401 when the user is unauthorised")
     @JiraTestKey("PO-8629")
     void getMinorCreditorHistory_whenUnauthorised_returns401() throws Exception {
-        doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
-        getHistory()
-            .andExpect(status().isUnauthorized())
+        mockMvc.perform(get(HISTORY_URL, MINOR_CREDITOR_ACCOUNT_ID)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Unauthorized"));
+            .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"));
     }
 
     @Test
@@ -362,7 +364,8 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("PO-2642 common response returns 403 when the user lacks permission")
     @JiraTestKey("PO-8628")
     void getMinorCreditorHistory_whenUserLacksPermission_returns403() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         getHistory()
             .andExpect(status().isForbidden())
@@ -398,7 +401,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8631")
     void getMinorCreditorHistory_whenTimeoutOccurs_returns408() throws Exception {
         doThrow(new QueryTimeoutException("timeout"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(minorCreditorService).getMinorCreditorHistory(anyLong(), any(), any(), any());
 
         getHistory()
             .andExpect(status().isRequestTimeout())
@@ -413,7 +416,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8623")
     void getMinorCreditorHistory_whenDatabaseUnavailable_returns503() throws Exception {
         doThrow(new DataAccessResourceFailureException("db unavailable"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(minorCreditorService).getMinorCreditorHistory(anyLong(), any(), any(), any());
 
         getHistory()
             .andExpect(status().isServiceUnavailable())
@@ -428,7 +431,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-8633")
     void getMinorCreditorHistory_whenUnexpectedFailureOccurs_returns500() throws Exception {
         doThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "Boom"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(minorCreditorService).getMinorCreditorHistory(anyLong(), any(), any(), any());
 
         getHistory()
             .andExpect(status().isInternalServerError())
@@ -441,7 +444,7 @@ class OpalMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     private ResultActions getHistory(long accountId, String... queryParams) throws Exception {
         MockHttpServletRequestBuilder request = get(HISTORY_URL, accountId)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER)
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE)
             .accept(MediaType.APPLICATION_JSON);
 
         for (int index = 0; index < queryParams.length; index += 2) {

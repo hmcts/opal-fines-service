@@ -51,7 +51,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         Integer currentVersion = versionFor(defendantAccountId);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -73,7 +73,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions res = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/920011")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body))
@@ -81,7 +80,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         log.info("PUT DAP account controls resp:\n{}", res.andReturn().getResponse().getContentAsString());
 
-        res.andExpect(status().isUnprocessableEntity())
+        res.andExpect(status().isUnprocessableContent())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Unprocessable Content"))
             .andExpect(jsonPath("$.status").value(422))
@@ -102,7 +101,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.add(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "99");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -120,7 +119,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions res = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body))
@@ -144,7 +142,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -185,7 +183,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body))
@@ -211,7 +208,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         Integer currentVersion = versionFor(20010L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "\"" + currentVersion + "\"");
 
@@ -228,7 +225,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions res = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/99999")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body))
@@ -251,7 +247,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -277,7 +273,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/22004/defendant-account-parties/22004")
                 .headers(headers)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -292,9 +287,9 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         List<AliasEntity> aliases = aliasesForParty(22004L);
 
         assertEquals(2, aliases.size());
-        assertEquals(1, aliases.get(0).getSequenceNumber());
-        assertEquals(2200401L, aliases.get(0).getAliasId());
-        assertEquals("Jane", aliases.get(0).getForenames());
+        assertEquals(1, aliases.getFirst().getSequenceNumber());
+        assertEquals(2200401L, aliases.getFirst().getAliasId());
+        assertEquals("Jane", aliases.getFirst().getForenames());
         assertEquals("Doe", aliases.get(0).getSurname());
         assertNull(aliases.get(0).getOrganisationName());
 
@@ -321,7 +316,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -358,7 +353,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
                 .headers(headers)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -407,7 +401,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -436,7 +430,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body)));
@@ -473,7 +466,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -510,7 +503,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
                 .headers(headers)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
         String resp = call.andReturn().getResponse().getContentAsString();
@@ -548,7 +540,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
         String etag = "\"" + currentVersion + "\"";
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.setBearerAuth(AUTH_HEADER);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -568,7 +560,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
         ResultActions call = mockMvc.perform(
             put("/defendant-accounts/20010/defendant-account-parties/20010")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .headers(headers)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(withRequiredPartyFields(body)));
@@ -604,7 +595,7 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
             String etag = "\"" + currentVersion + "\"";
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(userStateStub.getBearerToken());
+            headers.setBearerAuth(AUTH_HEADER);
             headers.add("Business-Unit-Id", "78");
             headers.add(HttpHeaders.IF_MATCH, etag);
 
@@ -636,7 +627,6 @@ class DefendantPartyPutIntegrationTest extends AbstractOpalDefendantsIntegration
 
             ResultActions call = mockMvc.perform(
                 put("/defendant-accounts/22005/defendant-account-parties/22005").headers(headers)
-                    .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                     .contentType(MediaType.APPLICATION_JSON).content(withRequiredPartyFields(body)));
 
             String expectedNextEtag = "\"" + (currentVersion + 1) + "\"";

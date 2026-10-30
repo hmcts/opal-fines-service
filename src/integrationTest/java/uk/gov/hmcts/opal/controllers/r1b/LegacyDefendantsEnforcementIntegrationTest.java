@@ -95,7 +95,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     private HttpHeaders enforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(bearerToken);
+        headers.set(HttpHeaders.AUTHORIZATION, bearerToken);
         headers.add("Business-Unit-Id", "78");
         headers.add(HttpHeaders.IF_MATCH, "1");
         return headers;
@@ -189,7 +189,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
 
     private HttpHeaders removeEnforcementHeaders(String bearerToken) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(bearerToken);
+        headers.set(HttpHeaders.AUTHORIZATION, bearerToken);
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
         headers.add(HttpHeaders.IF_MATCH, IF_MATCH_VERSION);
         return headers;
@@ -302,7 +302,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraTestKey("PO-5927")
     void testPatchRemoveEnforcementHold_missingIfMatch() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
 
         mockMvc.perform(
@@ -324,7 +324,7 @@ class LegacyDefendantsEnforcementIntegrationTest extends AbstractLegacyDefendant
     @JiraTestKey("PO-5931")
     void testPatchRemoveEnforcementHold_invalidIfMatch() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", BUSINESS_UNIT_ID);
         headers.add(HttpHeaders.IF_MATCH, "not-a-version");
 

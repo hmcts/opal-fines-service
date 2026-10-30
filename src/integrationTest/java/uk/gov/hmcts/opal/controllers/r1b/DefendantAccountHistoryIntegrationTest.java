@@ -476,7 +476,6 @@ class DefendantAccountHistoryIntegrationTest extends AbstractOpalDefendantsInteg
         // Act
         ResultActions result = mockMvc.perform(
             get(URL_BASE + "/" + DEFENDANT_ACCOUNT_ID + "/history")
-                .header("Authorization", "Bearer ")
         );
 
         // Assert

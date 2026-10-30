@@ -113,7 +113,6 @@ public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurity
         ResultActions resultActions = mockMvc.perform(
             get(DEFENDANT_ACCOUNTS_SUMMARY_URL, 77L)
                 .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
-                .header("authorization", userStateStub.getBearerToken())
                 .accept(MediaType.APPLICATION_JSON)
         );
 

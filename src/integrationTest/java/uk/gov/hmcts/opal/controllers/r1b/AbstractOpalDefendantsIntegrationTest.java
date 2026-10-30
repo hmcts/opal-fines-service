@@ -59,7 +59,7 @@ public abstract class AbstractOpalDefendantsIntegrationTest extends AbstractInte
 
     protected @NonNull HttpHeaders buildHttpHeaders(String number, String currentVersion) {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", number);
         headers.add(HttpHeaders.IF_MATCH, currentVersion);
         return headers;

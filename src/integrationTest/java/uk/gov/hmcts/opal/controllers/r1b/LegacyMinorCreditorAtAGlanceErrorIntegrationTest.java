@@ -28,9 +28,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -42,22 +40,18 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Minor Creditor Account At A Glance Legacy Error Integration Tests")
 class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/minor-creditor-accounts/{id}/at-a-glance";
     private static final String LEGACY_OPERATION = "LIBRA.get_minor_creditors_account_at_a_glance";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99_000_000_000_802L;
-
-    @MockitoBean
-    private UserStateService userStateService;
 
     @MockitoBean
     private GatewayService gatewayService;
 
     @BeforeEach
     void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77,
-                SEARCH_AND_VIEW_ACCOUNTS, VIEW_CREDITOR_BACS));
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, SEARCH_AND_VIEW_ACCOUNTS, VIEW_CREDITOR_BACS);
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 
     @Test
@@ -128,6 +122,6 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
     private ResultActions getAtAGlance() throws Exception {
         return mockMvc.perform(get(URL, MINOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
+            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
     }
 }

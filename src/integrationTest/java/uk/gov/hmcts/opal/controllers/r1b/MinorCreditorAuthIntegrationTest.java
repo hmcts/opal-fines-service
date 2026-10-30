@@ -23,7 +23,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/minor-creditor-accounts";
-    private static final String AUTH_HEADER = "Bearer some_value";
     private static final long ACCOUNT_ID = 99000000000801L;
     private static final short BUSINESS_UNIT_ID = 77;
 
@@ -34,7 +33,6 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     void getMinorCreditorAccount_withBacsPermissionInSecurityContext_returnsBacsFields() throws Exception {
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER)
                 .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
                     FinesPermission.SEARCH_AND_VIEW_ACCOUNTS,
                     FinesPermission.VIEW_CREDITOR_BACS))))
@@ -58,7 +56,6 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER)
                 .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
                     FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))))
             .andExpect(status().isOk())
@@ -80,7 +77,6 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
     void getMinorCreditorAccount_withBacsPermissionInAuthenticatedUserState_returnsBacsFields() throws Exception {
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER)
                 .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
                     FinesPermission.SEARCH_AND_VIEW_ACCOUNTS, FinesPermission.VIEW_CREDITOR_BACS))))
             .andExpect(status().isOk())
@@ -103,7 +99,6 @@ class MinorCreditorAuthIntegrationTest extends AbstractIntegrationTest {
         userStateStub.setupWithNoPermissions();
         mockMvc.perform(get(URL_BASE + "/{id}", ACCOUNT_ID)
                 .accept(MediaType.APPLICATION_JSON)
-                .header("authorization", AUTH_HEADER)
                 .with(authentication(permissionsToken(BUSINESS_UNIT_ID,
                     FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))))
             .andExpect(status().isOk())

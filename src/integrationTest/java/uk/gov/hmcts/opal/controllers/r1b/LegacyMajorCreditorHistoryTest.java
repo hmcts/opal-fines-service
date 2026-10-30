@@ -17,9 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
 import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -39,9 +39,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
+import org.wiremock.spring.InjectWireMock;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
@@ -50,7 +50,6 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.Transacti
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -63,12 +62,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("Major Creditor History Legacy Integration Tests")
 class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
 
-    private static final String AUTH_HEADER = "Bearer test-token";
+    private static final String AUTH_HEADER_VALUE = "Bearer " + AUTH_HEADER;
     private static final String URL = "/major-creditor-accounts/{id}/history";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @MockitoBean
     private GatewayService gatewayService;
@@ -78,8 +77,6 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 77, SEARCH_AND_VIEW_ACCOUNTS));
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
@@ -161,7 +158,8 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2655")
     @JiraTestKey("PO-10089")
     void getHistory_enforcesPermission() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
+        userStateStub.createAuthentication(userServiceWireMock);
 
         getHistory()
             .andExpect(status().isForbidden())
@@ -309,7 +307,7 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
     private ResultActions getHistory(String... queryParams) throws Exception {
         var request = get(URL, MAJOR_CREDITOR_ACCOUNT_ID)
             .accept(MediaType.APPLICATION_JSON)
-            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER);
+            .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER_VALUE);
 
         for (int index = 0; index < queryParams.length; index += 2) {
             request.queryParam(queryParams[index], queryParams[index + 1]);

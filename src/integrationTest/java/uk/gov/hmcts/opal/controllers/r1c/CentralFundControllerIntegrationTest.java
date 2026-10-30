@@ -134,8 +134,7 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-7568")
     void getCentralFund_whenTokenInvalid_returnsUnauthorized() throws Exception {
         mockMvc.perform(get(URL_BASE + "/73")
-                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer invalid_token"))
+                .with(userStateStub.getInvalidAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.detail").value("You do not have permission to access this resource"))
@@ -150,7 +149,8 @@ class CentralFundControllerIntegrationTest extends AbstractIntegrationTest {
     void getCentralFund_whenUserLacksPermission_returnsForbidden() throws Exception {
         userStateStub.setupWithNoPermissions();
 
-        mockMvc.perform(get(URL_BASE + "/73").header(HttpHeaders.AUTHORIZATION, AUTH_HEADER))
+        mockMvc.perform(get(URL_BASE + "/73")
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isForbidden())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Forbidden"));

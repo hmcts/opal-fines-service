@@ -25,6 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.cache.CacheManager;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -78,8 +79,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5963")
     void testGetLocalJusticeAreaById() throws Exception {
-
-        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1"));
+        ResultActions actions = mockMvc.perform(get(URL_BASE + "/1")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         getResponseBody(actions, ":testGetLocalJusticeAreaById:");
 
@@ -101,8 +102,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5966")
     void testGetLocalJusticeAreaById_WhenLocalJusticeAreaDoesNotExist() throws Exception {
-
-        mockMvc.perform(get(URL_BASE + "/2"))
+        mockMvc.perform(get(URL_BASE + "/2")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER))
             .andExpect(status().isNotFound());
     }
 
@@ -113,10 +114,10 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5964")
     void testPostLocalJusticeAreasSearch() throws Exception {
-
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"ljaCode\":\"00\"}"));
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"ljaCode\":\"00\"}"));
 
         getResponseBody(actions, ":testPostLocalJusticeAreasSearch:");
 
@@ -138,6 +139,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5962")
     void testPostLocalJusticeAreasSearch_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
@@ -149,7 +151,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5960")
     public void testGetLocalJusticeAreasRefData_returnAllData() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE));
+        var actions = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:returnAllData:");
 
@@ -179,7 +182,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5965")
     public void testGetLocalJusticeAreasRefData_filterBySingleLjaType() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA"));
+        var actions = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param(LJA_TYPE_PARAM, "LJA"));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterBySingleLjaType");
 
@@ -197,7 +202,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5970")
     public void testGetLocalJusticeAreasRefData_filterByUnknownLjaType() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN"));
+        var actions = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param(LJA_TYPE_PARAM, "UNKNOWN"));
 
         String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByUnknownLjaType:");
 
@@ -213,9 +220,11 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5961")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
-        var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "LJA"));
-        String body =
-            getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
+        var actions = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param(LJA_TYPE_PARAM, "UNKNOWN", "LJA"));
+
+        String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(greaterThan(0)))
@@ -235,7 +244,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey(value = "PO-8409", name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [3]")
     public void testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
-        ResultActions actions = mockMvc.perform(requestBuilder);
+        ResultActions actions = mockMvc.perform(requestBuilder
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER));
         String body =
             getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByMultipleLjaTypes:");
 
@@ -257,11 +267,16 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5971")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
         String cacheName = "ljaReferenceDataCache";
-        var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
+
+        var actions1 = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
         var cache1 = cacheManager.getCache(cacheName);
 
-        var actions2 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "SJCRT", "CRWCRT"));
+        var actions2 = mockMvc.perform(get(URL_BASE)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+            .param(LJA_TYPE_PARAM, "SJCRT", "CRWCRT"));
         String body2 = actions2.andReturn().getResponse().getContentAsString();
         var cache2 = cacheManager.getCache(cacheName);
 
@@ -277,6 +292,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5959")
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
             .param("q", "0007")
             .param(LJA_TYPE_PARAM, "LJA", "NOT_VALID"));
         getResponseBody(actions, ":testGetLocalJusticeAreasRefData:whenAllQueryParamsPresent");
@@ -307,7 +323,9 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     }
 
     private String performRequest() throws Exception {
-        return mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
+        return mockMvc.perform(get(URL_BASE)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + AUTH_HEADER)
+                .param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
             .andExpect(status().isOk())
             .andReturn()
             .getResponse()

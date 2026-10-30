@@ -3,8 +3,7 @@ package uk.gov.hmcts.opal.controllers.shared;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,13 +21,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.MvcResult;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -48,8 +48,8 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     private static final List<Short> LUTON_ONLY = List.of((short) 2574);
     private static final List<Short> CARDIFF_ONLY = List.of((short) 2575);
 
-    @MockitoBean
-    private UserStateService userStateService;
+    @InjectWireMock("user-service")
+    private WireMockServer userServiceWireMock;
 
     @Test
     @DisplayName("PO-2574 INT.01 - Returns permitted summary")
@@ -57,10 +57,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9404")
     void returnsSummary() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
+        permitBusinessUnits(LUTON_AND_CARDIFF);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574", "2575")
                 .queryParam("statuses", "COMPLETED")
                 .queryParam("completed_date_from", "2026-07-01T10:00:00")
@@ -82,10 +81,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9398")
     void filtersByPermission() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574", "2575")
                 .queryParam("statuses", "COMPLETED")
                 .queryParam("interface_name", "Auto Payments In"))
@@ -103,10 +101,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9401")
     void filtersByStatus() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
+        permitBusinessUnits(LUTON_AND_CARDIFF);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574", "2575")
                 .queryParam("statuses", "FAILED")
                 .queryParam("interface_name", "Auto Payments In"))
@@ -123,10 +120,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9397")
     void filtersByCompletedDate() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_AND_CARDIFF);
+        permitBusinessUnits(LUTON_AND_CARDIFF);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574", "2575")
                 .queryParam("completed_date_from", "2026-07-01T11:30:00")
                 .queryParam("completed_date_to", "2026-07-01T11:30:00"))
@@ -143,10 +139,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9400")
     void filtersByInterfaceAndBu() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            CARDIFF_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(CARDIFF_ONLY);
+        permitBusinessUnits(CARDIFF_ONLY);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2575")
                 .queryParam("interface_name", "Manual Payments In"))
             .andExpect(status().isOk())
@@ -163,10 +158,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9402")
     void returnsJoinedData() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574")
                 .queryParam("statuses", "FAILED"))
             .andExpect(status().isOk())
@@ -186,10 +180,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9396")
     void returnsDocumentedFields() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        MvcResult result = mockMvc.perform(get(URL)
+        MvcResult result = mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574")
                 .queryParam("statuses", "FAILED")
                 .queryParam("interface_name", "Auto Payments In"))
@@ -217,10 +210,9 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9399")
     void rejectsInvalidStatus() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574")
                 .queryParam("statuses", "NOT_A_STATUS")
                 .queryParam("interface_name", "Auto Payments In"))
@@ -234,19 +226,15 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9405")
     void usesRowLevelPermissions() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+        permitBusinessUnits(List.of());
 
-        mockMvc.perform(get(URL)
+        mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574", "2575")
                 .queryParam("statuses", "COMPLETED")
                 .queryParam("interface_name", "Auto Payments In"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.interface_jobs", hasSize(0)));
-
-        verify(userStateService).getPermittedBusinessUnitIds(
-            LUTON_AND_CARDIFF, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
     }
 
     @Test
@@ -255,17 +243,16 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-9403")
     void returnsDeterministicResponse() throws Exception {
-        when(userStateService.getPermittedBusinessUnitIds(
-            LUTON_ONLY, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(LUTON_ONLY);
+        permitBusinessUnits(LUTON_ONLY);
 
-        MvcResult firstResult = mockMvc.perform(get(URL)
+        MvcResult firstResult = mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574")
                 .queryParam("statuses", "FAILED")
                 .queryParam("interface_name", "Auto Payments In"))
             .andExpect(status().isOk())
             .andReturn();
 
-        MvcResult secondResult = mockMvc.perform(get(URL)
+        MvcResult secondResult = mockMvc.perform(authorisedGet()
                 .queryParam("business_unit_ids", "2574")
                 .queryParam("statuses", "FAILED")
                 .queryParam("interface_name", "Auto Payments In"))
@@ -273,5 +260,16 @@ class InterfaceJobsSummaryIT extends AbstractIntegrationTest {
             .andReturn();
 
         assertEquals(firstResult.getResponse().getContentAsString(), secondResult.getResponse().getContentAsString());
+    }
+
+    private MockHttpServletRequestBuilder authorisedGet() {
+        return get(URL).header(AUTHORIZATION, "Bearer " + AUTH_HEADER);
+    }
+
+    private void permitBusinessUnits(List<Short> businessUnitIds) {
+        userStateStub.setupWithNoPermissions();
+        businessUnitIds.forEach(businessUnitId -> userStateStub.addPermissions(
+            businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS));
+        userStateStub.createAuthentication(userServiceWireMock);
     }
 }

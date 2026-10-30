@@ -150,7 +150,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         userStateStub.setupWithNoPermissions();
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"" + versionFor(88L) + "\"");
 
@@ -208,7 +208,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         Integer currentVersion = versionFor(88L);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "99");
         headers.add("If-Match", "\"" + currentVersion + "\"");
 
@@ -239,7 +239,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
         userStateStub.addPermissions((short) 78);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"0\"");
 
@@ -282,7 +282,7 @@ class OpalDefendantsPaymentCardIntegrationTest extends AbstractOpalDefendantsInt
     @JiraTestKey("PO-6042")
     void opalAddPaymentCardRequest_IfMatchConflict() throws Exception {
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(userStateStub.getBearerToken());
+        headers.set(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken());
         headers.add("Business-Unit-Id", "78");
         headers.add("If-Match", "\"9999\"");
 
