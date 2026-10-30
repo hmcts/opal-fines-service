@@ -511,6 +511,28 @@ Or you can use the PeekSbEmulator class that is setup in test/java/uk/gov/hmcts/
 This is already bundled with the docker-compose setup.
 To view blobs stored in Azurite use 'Azure Service Bus Explorer'
 
+## Suspense item transactions (PO-10406)
+
+`POST /suspense-items/{id}/transaction` uses the contract in
+`src/main/resources/openapi/SuspenseItems.yaml`. The controller is guarded by
+`release-1c-suspense`, with local fallback `RELEASE_1C_SUSPENSE_ENABLED=false`.
+The caller must have `Manage Suspense Items` in the `Business-Unit-Id` business unit.
+
+This endpoint is preparatory work pending database tickets PO-10349 and PO-10350.
+With the flag disabled it returns 404. With the flag enabled, valid authorised
+requests currently return 503 and do not write data.
+
+After both database changes are merged:
+
+1. Confirm the procedure signatures, output types, SQL error codes, and suspense item version column.
+2. Replace the availability guard in `SuspenseItemTransactionService` with the database operation.
+   Check the item's business unit against the authorised header and verify `If-Match` atomically
+   with the write. Populate posting details from the authenticated user.
+3. Return the persisted transaction ID and updated item version. Verify the specified 404 and
+   412 responses, rollback behaviour, and concurrent updates against PostgreSQL.
+4. Replace the temporary availability tests with persistence tests, retaining request validation,
+   permission and feature-toggle coverage. Run the relevant integration tests before enabling the flag.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
