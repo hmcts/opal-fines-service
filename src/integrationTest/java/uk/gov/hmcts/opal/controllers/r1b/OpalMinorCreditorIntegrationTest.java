@@ -29,27 +29,25 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.CreditorTransactionEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.imposition.ImpositionEntity;
+import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.CreditorTransactionSpecs;
 import uk.gov.hmcts.opal.repository.jpa.ImpositionSpecs;
-import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
-import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -67,9 +65,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     private static final long INDIVIDUAL_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final long COMPANY_MINOR_CREDITOR_ACCOUNT_ID = 608L;
     private static final short MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
-
-    @MockitoBean
-    private LoggingService loggingService;
 
     @MockitoSpyBean
     private ImpositionRepository impositionRepository;
