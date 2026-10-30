@@ -90,7 +90,7 @@ public class AlternatePaymentReferenceService {
                     + " cannot be updated for defendant account: " + defendantAccountId);
         }
 
-        VersionUtils.verifyIfMatch(alternatePaymentReferenceEntity, expectedVersion, alternatePaymentReferenceId,
+        VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountEntity.getId(),
             "updateAlternatePaymentReferences");
 
         String aprText = alternatePaymentReferencesUpdateRequest.getAprText();

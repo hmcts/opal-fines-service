@@ -282,7 +282,7 @@ class AlternatePaymentReferenceServiceTest {
     class UpdateAlternatePaymentReferences {
 
         private static final Long REFERENCE_ID = 456L;
-        private static final String EXPECTED_VERSION = "\"5\"";
+        private static final String EXPECTED_VERSION = "\"3\"";
         private static final String UPDATED_TEXT = "UPDATED-REFERENCE";
 
         @Test
@@ -308,7 +308,7 @@ class AlternatePaymentReferenceServiceTest {
                 assertEquals(3L, actual.getVersion());
                 assertEquals(UPDATED_TEXT, reference.getAprText());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences"));
+                    account, EXPECTED_VERSION, account.getId(), "updateAlternatePaymentReferences"));
                 verify(service).verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
                 verify(service).getAlternativePaymentReferenceEntity(DEFENDANT_ACCOUNT_ID, REFERENCE_ID);
                 verify(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
@@ -335,17 +335,19 @@ class AlternatePaymentReferenceServiceTest {
         }
 
         @Test
-        @DisplayName("Rejects a reference version mismatch before checking uniqueness or changing the text")
+        @DisplayName("Rejects an account version mismatch before checking uniqueness or changing the text")
         void stopsBeforeChangingReferenceWhenVersionDoesNotMatch() {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             ObjectOptimisticLockingFailureException expected = new ObjectOptimisticLockingFailureException(
-                AlternatePaymentReferenceEntity.class, REFERENCE_ID);
+                DefendantAccountEntity.class, DEFENDANT_ACCOUNT_ID);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
                 versionUtils.when(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences")).thenThrow(expected);
+                        account, EXPECTED_VERSION, account.getId(), "updateAlternatePaymentReferences"))
+                    .thenThrow(expected);
 
                 ObjectOptimisticLockingFailureException actual = assertThrows(
                     ObjectOptimisticLockingFailureException.class, this::updateReference);
@@ -360,7 +362,8 @@ class AlternatePaymentReferenceServiceTest {
         @Test
         @DisplayName("Rejects duplicate text without changing the reference, saving, or adding a note")
         void stopsWithoutChangingReferenceWhenUpdatedTextIsNotUnique() {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             BusinessRuleViolationException expected = new BusinessRuleViolationException(
@@ -374,7 +377,7 @@ class AlternatePaymentReferenceServiceTest {
                 assertSame(expected, actual);
                 assertEquals("ORIGINAL-REFERENCE", reference.getAprText());
                 versionUtils.verify(() -> VersionUtils.verifyIfMatch(
-                    reference, EXPECTED_VERSION, REFERENCE_ID, "updateAlternatePaymentReferences"));
+                    account, EXPECTED_VERSION, account.getId(), "updateAlternatePaymentReferences"));
                 verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
             }
         }
@@ -383,7 +386,8 @@ class AlternatePaymentReferenceServiceTest {
         @EnumSource(value = Relationship.class, names = {"CONSOLIDATED", "AMALGAMATED"})
         @DisplayName("Rejects non-APR relationships before version checks, text changes, saving, or adding a note")
         void rejectsNonAprRelationshipsWithoutChangingReference(Relationship relationship) {
-            doReturn(createDefendantAccount()).when(service)
+            DefendantAccountEntity account = createDefendantAccount();
+            doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             reference.setRelationship(relationship);

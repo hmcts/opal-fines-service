@@ -331,7 +331,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         void updatesReferenceVersionAndAddsActivityNote() throws Exception {
             LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
 
-            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"7\"")
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(header().string(HttpHeaders.ETAG, "\"8\""))
@@ -375,7 +375,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Returns not found when the defendant account does not exist")
         void returnsNotFoundWhenDefendantAccountDoesNotExist() throws Exception {
-            updateReference(1087799L, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
+            updateReference(1087799L, REFERENCE_ID, UPDATED_TEXT, "\"7\"")
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(expectEntityNotFound());
@@ -389,7 +389,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         void returnsForbiddenWhenUserHasNoPermissions() throws Exception {
             userStateStub.setupWithNoPermissions();
 
-            assertForbidden(updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\""));
+            assertForbidden(updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"7\""));
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
 
@@ -398,7 +398,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Rejects text already used by another APR in the same business unit")
         void rejectsReferenceTextAlreadyUsedInBusinessUnit() throws Exception {
-            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "APR-OTHER-ACCOUNT", "\"2\"")
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "APR-OTHER-ACCOUNT", "\"7\"")
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.title")
@@ -411,9 +411,9 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @Test
         @JiraStory("PO-10879")
         @JiraEpic("PO-7465")
-        @DisplayName("Rejects an APR version mismatch even when If-Match matches the defendant account version")
-        void rejectsAprVersionMismatch() throws Exception {
-            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"0\"")
+        @DisplayName("Rejects an account version mismatch even when If-Match matches the APR version")
+        void rejectsAccountVersionMismatch() throws Exception {
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"2\"")
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));
@@ -425,7 +425,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Returns bad request when updated APR text exceeds eighteen characters")
         void rejectsReferenceTextLongerThanEighteenCharacters() throws Exception {
-            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "1234567890123456789", "\"2\"")
+            updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "1234567890123456789", "\"7\"")
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(expectError(HttpStatus.BAD_REQUEST, "Bad Request",
@@ -457,7 +457,7 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         @JiraEpic("PO-7465")
         @DisplayName("Returns not found when the APR is missing or belongs to another defendant account")
         void rejectsMissingOrUnrelatedReference(long accountId, long referenceId) throws Exception {
-            updateReference(accountId, referenceId, UPDATED_TEXT, "\"2\"")
+            updateReference(accountId, referenceId, UPDATED_TEXT, "\"7\"")
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.title").value("Alternate Payment Reference not found"))
