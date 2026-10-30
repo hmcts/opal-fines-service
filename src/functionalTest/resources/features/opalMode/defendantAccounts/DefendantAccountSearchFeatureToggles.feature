@@ -28,3 +28,10 @@ Feature: Defendant Account Search Feature Toggles
     Given a searchable defendant account exists for feature-toggle search
     When I search the created defendant account with consolidation
     Then the consolidated defendant account search returns the created account
+
+  @R1CWriteOff @JIRA-STORY:PO-10775 @JIRA-EPIC:PO-10729
+  Scenario: Consolidated individual search records a PDPO consultation
+    Given a searchable defendant account exists for feature-toggle search
+    When I search the created defendant account with consolidation
+    Then the consolidated defendant account search returns the created account
+    And the logging service contains a consultation for the consolidated search result
