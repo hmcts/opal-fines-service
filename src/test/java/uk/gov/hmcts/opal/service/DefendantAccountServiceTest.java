@@ -9,6 +9,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -20,11 +22,16 @@ import java.math.BigInteger;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
@@ -34,13 +41,16 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
+import uk.gov.hmcts.opal.dto.DefendantAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
@@ -205,6 +215,7 @@ class DefendantAccountServiceTest {
         );
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(defendantAccountServiceProxy, defendantAccountSearchPdplLoggingService);
     }
 
     @Test
@@ -236,7 +247,7 @@ class DefendantAccountServiceTest {
 
         assertNotNull(result);
         verify(defendantAccountServiceProxy).searchDefendantAccounts(dto);
-        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userWithPerm, expected);
+        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userWithPerm, expected, false);
     }
 
     @Test
@@ -254,17 +265,20 @@ class DefendantAccountServiceTest {
         verify(defendantAccountHistoryPdplLoggingService).logHistoryItems(permittedUser, expectedResponse);
     }
 
-    @Test
-    void searchDefendantAccounts_generatedRequest_happyPath_mapsAndReturnsGeneratedResponse() {
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(booleans = {false, true})
+    void searchDefendantAccounts_validatesThenLogsBeforeMapping(Boolean consolidationSearch) {
         PostDefendantAccountSearchRequestDefendantAccount request =
             PostDefendantAccountSearchRequestDefendantAccount.builder()
                 .activeAccountsOnly(true)
+                .consolidationSearch(consolidationSearch)
                 .businessUnitIds(List.of((short) 77))
                 .referenceNumber(new DefendantAccountSearchReferenceNumberDefendantAccount()
                     .organisation(false)
                     .accountNumber("A123"))
                 .build();
-        AccountSearchDto mappedRequest = AccountSearchDto.builder().build();
+        AccountSearchDto mappedRequest = AccountSearchDto.builder().consolidationSearch(consolidationSearch).build();
         DefendantAccountSearchResultsDto proxyResults = DefendantAccountSearchResultsDto.builder().build();
         PostDefendantAccountSearchResponseDefendantAccount expectedResponse =
             PostDefendantAccountSearchResponseDefendantAccount.builder()
@@ -282,11 +296,67 @@ class DefendantAccountServiceTest {
             defendantAccountService.searchDefendantAccounts(request);
 
         assertSame(expectedResponse, result);
-        verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
-        verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
-        verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
-        verify(defendantAccountSearchPdplLoggingService).logSearchResults(userState, proxyResults);
-        verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
+        InOrder order = inOrder(defendantAccountSearchRequestValidator, defendantAccountSearchRequestMapper,
+            defendantAccountServiceProxy, defendantAccountSearchPdplLoggingService,
+            defendantAccountSearchResponseMapper);
+        order.verify(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
+        order.verify(defendantAccountSearchRequestMapper).toAccountSearchDto(request);
+        order.verify(defendantAccountServiceProxy).searchDefendantAccounts(mappedRequest);
+        order.verify(defendantAccountSearchPdplLoggingService)
+            .logSearchResults(userState, proxyResults, Boolean.TRUE.equals(consolidationSearch));
+        order.verify(defendantAccountSearchResponseMapper).toResponse(proxyResults);
+    }
+
+    @Test
+    void searchDefendantAccounts_disabledFeaturePreventsSearchAndLogging() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder().consolidationSearch(true).build();
+        FeatureDisabledException failure = new FeatureDisabledException("Consolidation disabled");
+        doThrow(failure).when(defendantAccountSearchRequestValidator).validateAndCheckFeature(request);
+
+        assertSame(failure, assertThrows(FeatureDisabledException.class,
+            () -> defendantAccountService.searchDefendantAccounts(request)));
+
+        verifyNoInteractions(defendantAccountSearchRequestMapper, defendantAccountServiceProxy,
+            defendantAccountSearchPdplLoggingService, defendantAccountSearchResponseMapper);
+    }
+
+    @Test
+    void searchDefendantAccounts_loggingFailurePreventsResponseMapping() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder().consolidationSearch(true).build();
+        AccountSearchDto mappedRequest = AccountSearchDto.builder().consolidationSearch(true).build();
+        DefendantAccountSearchResultsDto results = DefendantAccountSearchResultsDto.builder()
+            .defendantAccounts(List.of(DefendantAccountSummaryDto.builder()
+                .defendantAccountId("77").organisation(false).build())).build();
+        UserState permittedUser = allPermissionsUser();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(permittedUser);
+        when(defendantAccountSearchRequestMapper.toAccountSearchDto(request)).thenReturn(mappedRequest);
+        when(defendantAccountServiceProxy.searchDefendantAccounts(mappedRequest)).thenReturn(results);
+        PdplLoggingException failure = new PdplLoggingException("Queue unavailable");
+        doThrow(failure).when(defendantAccountSearchPdplLoggingService)
+            .logSearchResults(permittedUser, results, true);
+
+        assertSame(failure, assertThrows(PdplLoggingException.class,
+            () -> defendantAccountService.searchDefendantAccounts(request)));
+
+        verifyNoInteractions(defendantAccountSearchResponseMapper);
+    }
+
+    @Test
+    void searchDefendantAccounts_failedSearchDoesNotLogOrMapResults() {
+        PostDefendantAccountSearchRequestDefendantAccount request =
+            PostDefendantAccountSearchRequestDefendantAccount.builder().consolidationSearch(true).build();
+        AccountSearchDto mappedRequest = AccountSearchDto.builder().consolidationSearch(true).build();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(allPermissionsUser());
+        when(defendantAccountSearchRequestMapper.toAccountSearchDto(request)).thenReturn(mappedRequest);
+        UnprocessableException failure = new UnprocessableException("Too many results");
+        when(defendantAccountServiceProxy.searchDefendantAccounts(mappedRequest)).thenThrow(failure);
+
+        assertSame(failure, assertThrows(UnprocessableException.class,
+            () -> defendantAccountService.searchDefendantAccounts(request)));
+
+        verifyNoInteractions(defendantAccountSearchPdplLoggingService, defendantAccountSearchResponseMapper);
     }
 
     @Test

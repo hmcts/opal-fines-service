@@ -49,6 +49,18 @@
       },
       "offVariation": 1
     },
+    "release-1c-write-off": {
+      "key": "release-1c-write-off",
+      "on": true,
+      "variations": [
+        true,
+        false
+      ],
+      "fallthrough": {
+        "variation": 1
+      },
+      "offVariation": 1
+    },
     "release-1c-enforcement-operational-reporting": {
       "key": "release-1c-enforcement-operational-reporting",
       "on": true,

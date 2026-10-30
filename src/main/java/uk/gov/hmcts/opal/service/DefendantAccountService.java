@@ -34,8 +34,8 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
-import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -130,7 +130,8 @@ public class DefendantAccountService {
         if (userState.anyBusinessUnitUserHasPermission(SEARCH_AND_VIEW_ACCOUNTS)) {
             DefendantAccountSearchResultsDto results =
                 defendantAccountServiceProxy.searchDefendantAccounts(accountSearchDto);
-            defendantAccountSearchPdplLoggingService.logSearchResults(userState, results);
+            defendantAccountSearchPdplLoggingService.logSearchResults(userState, results,
+                accountSearchDto.isConsolidationSearch());
             return results;
         } else {
             throw new PermissionNotAllowedException(SEARCH_AND_VIEW_ACCOUNTS);

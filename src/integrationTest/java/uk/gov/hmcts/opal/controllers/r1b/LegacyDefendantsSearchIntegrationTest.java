@@ -1,6 +1,8 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -13,6 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -22,13 +27,17 @@ import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
-@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1b=true")
+@TestPropertySource(properties = {
+    "launchdarkly.default-flag-values.release-1b=true",
+    "launchdarkly.default-flag-values.release-1c-write-off=true"
+})
 @Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
@@ -49,13 +58,14 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
     }
 
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
     @DisplayName("Search defendant accounts - POST with valid criteria [@PO-33, @PO-119]")
     @JiraStory("PO-33")
     @JiraStory("PO-119")
     @JiraEpic("PO-704")
     @JiraTestKey("PO-5943")
-    void testPostDefendantAccountsSearch() throws Exception {
+    void testPostDefendantAccountsSearch(boolean consolidationSearch) throws Exception {
         ResultActions actions = mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header("authorization", userStateStub.getBearerToken())
@@ -79,8 +89,8 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                        "birth_date": "1985-06-15",
                        "national_insurance_number": null
                        },
-                   "consolidation_search": false
-                }"""));
+                   "consolidation_search": %s
+                }""".formatted(consolidationSearch)));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":testPostDefendantAccountsSearch: Response body:\n{}", ToJsonString.toPrettyJson(body));
@@ -90,6 +100,13 @@ class LegacyDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("defendant_accounts[0].account_number").value("100A"))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertThat(captor.getValue().getBusinessIdentifier()).isEqualTo(consolidationSearch
+            ? "Search Account Results - Consolidation - Individual Defendants"
+            : "Search Account Results - Individual Defendants");
     }
 
     @Test

@@ -1,23 +1,23 @@
 package uk.gov.hmcts.opal.steps;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import io.cucumber.datatable.DataTable;
-import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
-import io.restassured.response.Response;
-import net.serenitybdd.rest.SerenityRest;
-
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+
+import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
+import io.restassured.response.Response;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import net.serenitybdd.rest.SerenityRest;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
 /**
  * Defines Cucumber steps and helper logic for PDPO logging assertions.
@@ -66,6 +66,33 @@ public class LoggingSteps extends BaseStepDef {
             "business_identifier", PDPO_BUSINESS_IDENTIFIER,
             "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
         ));
+    }
+
+    /**
+     * Verifies the consultation for the scenario's unique consolidation search result.
+     */
+    @Then("the logging service contains a consultation for the consolidated search result")
+    public void loggingServiceContainsConsolidationSearchConsultation() {
+        String accountId = scenarioContext().getCreatedDefendantAccountIdOrFail();
+        String businessIdentifier = "Search Account Results - Consolidation - Individual Defendants";
+        latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
+            "created_by", Map.of("id", PDPO_CREATED_BY_ID, "type", PDPO_CREATED_BY_TYPE),
+            "business_identifier", businessIdentifier,
+            "category", "Consultation",
+            "individual_identifier", accountId,
+            "individual_type", PdplIdentifierType.DEFENDANT.name()
+        ));
+
+        for (JsonNode log : requireLatestPdpoSearchResponse()) {
+            assertEquals(businessIdentifier, log.path("business_identifier").asString());
+            assertEquals("Consultation", log.path("category").asString());
+            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asString());
+            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asString());
+            assertEquals(1, log.path("individuals").size(), "Expected only the returned defendant participant");
+            JsonNode individual = log.path("individuals").get(0);
+            assertEquals(accountId, individual.path("id").asString());
+            assertEquals(PdplIdentifierType.DEFENDANT.name(), individual.path("type").asString());
+        }
     }
 
     /**
