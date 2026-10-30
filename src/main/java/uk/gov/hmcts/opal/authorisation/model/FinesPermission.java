@@ -52,6 +52,11 @@ public enum FinesPermission implements PermissionDescriptor {
         try {
             return FinesPermission.valueOf(value);
         } catch (IllegalArgumentException e) {
+            for (FinesPermission permission : values()) {
+                if (permission.description.equals(value)) {
+                    return permission;
+                }
+            }
             throw new IllegalArgumentException("Unknown FinesPermission: " + value, e);
         }
     }
