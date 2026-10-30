@@ -134,7 +134,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:
@@ -231,7 +231,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:
@@ -319,7 +319,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:

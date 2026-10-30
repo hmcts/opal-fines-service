@@ -47,4 +47,19 @@ public class AlternatePaymentReferenceController implements AlternatePaymentRefe
             defendantAccountId, alternatePaymentReferencesWriteRequest, expectedVersion
         ).toResponseEntity(HttpStatus.CREATED);
     }
+
+    @Override
+    @FeatureToggle(
+        feature = RELEASE_1C_BANKING_INTERFACES,
+        defaultValueProperty = RELEASE_1C_BANKING_INTERFACES_ENABLED_PROPERTY
+    )
+    public ResponseEntity<AlternatePaymentReferencesItem> updateAlternatePaymentReference(
+        Long defendantAccountId, Long alternatePaymentReferenceId, String expectedVersion,
+        AlternatePaymentReferencesWriteRequest alternatePaymentReferencesUpdateRequest) {
+        return alternatePaymentReferenceService.updateAlternatePaymentReferences(
+                defendantAccountId, alternatePaymentReferenceId,
+                alternatePaymentReferencesUpdateRequest, expectedVersion
+            )
+            .toResponseEntity(HttpStatus.OK);
+    }
 }
