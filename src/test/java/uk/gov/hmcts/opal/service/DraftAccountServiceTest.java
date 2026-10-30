@@ -60,6 +60,8 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationService;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationServiceLocator;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountServiceTest {
@@ -78,6 +80,9 @@ class DraftAccountServiceTest {
 
     @Mock
     private DraftAccountTransactional draftAccountTransactional;
+
+    @Mock
+    private DraftAccountReferenceValidationServiceLocator referenceValidationServiceLocator;
 
     @Mock
     private DraftAccountReferenceValidationService referenceValidationService;
@@ -252,6 +257,7 @@ class DraftAccountServiceTest {
         when(draftAccountTransactional.submitDraftAccount(any(), any(), any())).thenReturn(draftAccountEntity);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
         AddDraftAccountRequestDto addDraftAccountDto = AddDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
@@ -368,6 +374,7 @@ class DraftAccountServiceTest {
             .thenReturn(updatedAccount);
         var userState = UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
         ReplaceDraftAccountRequestDto replaceDto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .account(createAccountString())
@@ -415,6 +422,7 @@ class DraftAccountServiceTest {
             new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 1, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class, () -> draftAccountService
@@ -426,12 +434,12 @@ class DraftAccountServiceTest {
     @Test
     void testReplaceDraftAccount_businessUnitMismatch() {
         // Arrange
-        Long draftAccountId = 1L;
-        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+        final Long draftAccountId = 1L;
+        final DraftAccountEntity existingAccount = DraftAccountEntity.builder()
             .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 3).build())
             .versionNumber(0L)
             .build();
-        ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
+        final ReplaceDraftAccountRequestDto dto = ReplaceDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
             .accountType(DraftAccountType.FINE)
             .account(createAccountString())
@@ -441,6 +449,7 @@ class DraftAccountServiceTest {
             .thenReturn(existingAccount);
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 2, FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS));
+        when(referenceValidationServiceLocator.getService()).thenReturn(referenceValidationService);
 
         // Act & Assert
         assertThrows(ResourceConflictException.class, () -> draftAccountService

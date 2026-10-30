@@ -40,6 +40,7 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationServiceLocator;
 import uk.gov.hmcts.opal.util.MapUtils;
 
 
@@ -63,7 +64,7 @@ public class DraftAccountService {
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
-    private final DraftAccountReferenceValidationService referenceValidationService;
+    private final DraftAccountReferenceValidationServiceLocator refValidationServiceLocator;
 
     private final DraftAccountMapper draftAccountMapper;
 
@@ -229,7 +230,7 @@ public class DraftAccountService {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            refValidationServiceLocator.getService().validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
                 dto, unitUser.getBusinessUnitUserId(), userState.getDisplayName());
             log.debug(":submitDraftAccount: created in DB: {}", entity);
@@ -256,7 +257,7 @@ public class DraftAccountService {
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             BusinessUnitUser unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            refValidationServiceLocator.getService().validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch,
                                      unitUser.getBusinessUnitUserId(), userState.getDisplayName());
