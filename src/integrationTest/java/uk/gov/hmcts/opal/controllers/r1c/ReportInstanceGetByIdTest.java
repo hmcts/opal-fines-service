@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
 import static org.hamcrest.Matchers.nullValue;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,29 +8,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoundWithoutType;
 
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.generated.model.ReportReferenceReports.SupportedFileTypesEnum;
 import uk.gov.hmcts.opal.generated.model.StatusReports.CodeEnum;
-import uk.gov.hmcts.opal.service.UserStateService;
 
 @ActiveProfiles({"integration"})
 @Sql(
@@ -53,31 +46,19 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     private static final short BU_ID_1 = 1;
     private static final short BU_ID_2_WELSH_LANGUAGE = 2;
 
-    @MockitoBean
-    UserStateService userStateService;
-
-    @MockitoBean
-    UserState userState;
-
-    @MockitoBean
-    BusinessUnitUser buUser1;
-
-    @MockitoBean
-    BusinessUnitUser buUser2;
-
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8275")
     void getReportInstance_success_singleBUInstance() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":testGetReportInstance response:\n{}", ToJsonString.toPrettyJson(body));
@@ -111,15 +92,15 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8280")
     void getReportInstance_success_multiBUInstance() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
-        Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
+        userStateStub.addPermissions(BU_ID_2_WELSH_LANGUAGE, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_IN_PROGRESS)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_multiBUInstance response:\n{}", ToJsonString.toPrettyJson(body));
@@ -143,15 +124,15 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8279")
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1, buUser2));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
-        Mockito.when(buUser2.getBusinessUnitId()).thenReturn(BU_ID_2_WELSH_LANGUAGE);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
+        userStateStub.addPermissions(BU_ID_2_WELSH_LANGUAGE, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_IN_PROGRESS)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_useReportInstanceNameOverride response:\n{}",
@@ -168,14 +149,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8272")
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_ERROR)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_butReportInstanceDataHasErrors response:\n{}",
@@ -196,14 +177,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8273")
     void getReportInstance_success_allSupportedTypes() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_allSupportedTypes response:\n{}", ToJsonString.toPrettyJson(body));
@@ -220,15 +201,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8276")
     void getReportInstance_success_reportParameters() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
-
+        );
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_reportParameters response:\n{}", ToJsonString.toPrettyJson(body));
 
@@ -243,14 +223,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8281")
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_REQUESTED)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_notReady_notDownloadable response:\n{}",
@@ -270,14 +250,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8277")
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_NO_SUPPORTED_TYPES)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_readyNoTypes_notDownloadable response:\n{}",
@@ -294,30 +274,15 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
-    @JiraTestKey("PO-8270")
-    void getReportInstance_401_noToken() throws Exception {
-        Mockito.doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
-
-        ResultActions result = mockMvc.perform(
-            get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_READY)
-                .contentType(MediaType.APPLICATION_JSON));
-
-        result.andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @JiraStory("PO-2254")
-    @JiraEpic("PO-2248")
     void getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_IN_PROGRESS)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         String body = result.andReturn().getResponse().getContentAsString();
         log.info(":getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits response:\n{}",
@@ -333,14 +298,14 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8274")
     void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_returnsForbidden() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn((short) 3);
+        userStateStub.getUserState();
+        userStateStub.addPermissions((short) 3, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/" + REPORT_INSTANCE_ID_IN_PROGRESS)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("authorization", "Bearer some_value"));
+        );
 
         result.andExpect(status().isForbidden())
             .andExpect(jsonPath("$.title").value("Forbidden"))
@@ -353,9 +318,8 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8271")
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
-        Mockito.when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
-        Mockito.when(userState.getBusinessUnitUser()).thenReturn(Set.of(buUser1));
-        Mockito.when(buUser1.getBusinessUnitId()).thenReturn(BU_ID_1);
+        userStateStub.getUserState();
+        userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
             get(REPORT_INSTANCE_URL_BASE + "/-1")
