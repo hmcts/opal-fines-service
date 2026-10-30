@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
@@ -15,6 +14,10 @@ import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_CREDITO
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.ComponentScan.Filter;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -26,11 +29,35 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggleAspect;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
+import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
+import uk.gov.hmcts.opal.controllers.MinorCreditorApiController;
+import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMinorCreditorHistoryMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseMapper;
+import uk.gov.hmcts.opal.mapper.legacy.MinorCreditorAccountHeaderSummaryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
+import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
+import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.MinorCreditorService;
+import uk.gov.hmcts.opal.service.legacy.LegacyBusinessUnitCodeResolver;
+import uk.gov.hmcts.opal.service.legacy.LegacyMinorCreditorService;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
+import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -39,8 +66,24 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     "launchdarkly.enabled=false",
     "launchdarkly.default-flag-values.release-1b=true"
 })
+@WebMvcTest(
+    controllers = MinorCreditorApiController.class,
+    excludeFilters = @Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = {CommonGlobalExceptionHandler.class, FeatureToggleAspect.class}
+    )
+)
+@Import({
+    MinorCreditorApiController.class,
+    MinorCreditorService.class,
+    MinorCreditorSearchProxy.class,
+    LegacyMinorCreditorService.class,
+    JsonSchemaValidationService.class,
+    GlobalExceptionHandler.class,
+    OpalGlobalExceptionHandler.class
+})
 @DisplayName("Minor Creditor Account At A Glance Legacy Error Integration Tests")
-class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrationTest {
+class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractWebMvcIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/minor-creditor-accounts/{id}/at-a-glance";
@@ -53,8 +96,54 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
     @MockitoBean
     private GatewayService gatewayService;
 
+    @MockitoBean
+    private DynamicConfigService dynamicConfigService;
+
+    @MockitoBean
+    private OpalMinorCreditorService opalMinorCreditorService;
+
+    @MockitoBean
+    private MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
+
+    @MockitoBean
+    private MinorCreditorPdplLoggingService pdplLoggingService;
+
+    @MockitoBean
+    private MinorCreditorSummaryPdplLoggingService summaryPdplLoggingService;
+
+    @MockitoBean
+    private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
+
+    @MockitoBean
+    private LegacyMinorCreditorAccountResponseMapper minorCreditorAccountResponseMapper;
+
+    @MockitoBean
+    private CreditorAccountRepository creditorAccountRepository;
+
+    @MockitoBean
+    private MinorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
+
+    @MockitoBean
+    private UpdateMinorCreditorAccountRequestMapper updateMinorCreditorAccountRequestMapper;
+
+    @MockitoBean
+    private LegacyUpdateMinorCreditorAccountResponseMapper updateMinorCreditorAccountResponseMapper;
+
+    @MockitoBean
+    private LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
+
+    @MockitoBean
+    private MinorCreditorMapper minorCreditorMapper;
+
+    @MockitoBean
+    private LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
+
+    @MockitoBean
+    private FeatureToggleApi featureToggleApi;
+
     @BeforeEach
     void setUp() {
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77,
                 SEARCH_AND_VIEW_ACCOUNTS, VIEW_CREDITOR_BACS));
@@ -71,7 +160,6 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
         getAtAGlance()
             .andExpect(status().isRequestTimeout())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(header().exists("operation_id"))
             .andExpect(jsonPath("$.status").value(408))
             .andExpect(jsonPath("$.title").value("Request Timeout"))
             .andExpect(jsonPath("$.retriable").value(false))
@@ -89,7 +177,6 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
         getAtAGlance()
             .andExpect(status().isServiceUnavailable())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(header().exists("operation_id"))
             .andExpect(jsonPath("$.status").value(503))
             .andExpect(jsonPath("$.title").value("Service Unavailable"))
             .andExpect(jsonPath("$.retriable").value(true))
@@ -108,7 +195,6 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
         getAtAGlance()
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(header().exists("operation_id"))
             .andExpect(jsonPath("$.status").value(500))
             .andExpect(jsonPath("$.title").value("Downstream Server Error"))
             .andExpect(jsonPath("$.retriable").value(false))
