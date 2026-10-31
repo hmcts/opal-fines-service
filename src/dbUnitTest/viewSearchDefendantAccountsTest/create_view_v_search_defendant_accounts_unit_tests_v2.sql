@@ -48,7 +48,6 @@ DECLARE
     v_business_unit_type      t_business_unit_type_enum := 'Accounting Division';
     v_local_justice_area_id   smallint := 999;
     v_lja_name                varchar(100) := 'Test Local Justice Area';
-    v_lja_code                varchar(3) := 'TLA';
     v_defendant_account_id    bigint := 999901;
     v_party_id_defendant      bigint := 999901;
     v_court_id                bigint := 999901;

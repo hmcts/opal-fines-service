@@ -32,7 +32,6 @@ DECLARE
     v_business_unit_type      t_business_unit_type_enum := 'Accounting Division';
     v_local_justice_area_id   smallint := 998;
     v_lja_name                varchar(100) := 'Test Enforcement LJA';
-    v_lja_code                varchar(3) := 'ELA';
     v_defendant_account_id    bigint := 999801;
     v_party_id_defendant      bigint := 999801;
     v_court_id                bigint := 999801;
@@ -68,14 +67,12 @@ BEGIN
         local_justice_area_id,
         name,
         address_line_1,
-        lja_code,
         lja_type
     ) VALUES
     (
         v_local_justice_area_id,
         v_lja_name,
         'Enforcement LJA Address',
-        v_lja_code,
         'LJA'
     )
     ON CONFLICT (local_justice_area_id) DO UPDATE

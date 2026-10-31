@@ -46,8 +46,15 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
     }
 
     public static Specification<LocalJusticeAreaEntity> likeLjaCode(String ljaCode) {
-        return (root, query, builder) ->
-            likeWildcardPredicate(root.get(LocalJusticeAreaEntity_.ljaCode), builder, ljaCode);
+        return (root, query, builder) -> {
+            var ljaCodeExpression = builder.function(
+                "to_char",
+                String.class,
+                root.get(LocalJusticeAreaEntity_.localJusticeAreaId),
+                builder.literal("FM9999999999")
+            );
+            return likeWildcardPredicate(ljaCodeExpression, builder, ljaCode);
+        };
     }
 
     public Specification<LocalJusticeAreaEntity> likeAnyLocalJusticeArea(String filter) {

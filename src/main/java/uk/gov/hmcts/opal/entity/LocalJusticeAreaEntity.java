@@ -49,8 +49,9 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     @Column(name = "local_justice_area_id", nullable = false)
     private Short localJusticeAreaId;
 
-    @Column(name = "lja_code", length = 4)
-    private String ljaCode;
+    public String getLjaCode() {
+        return String.valueOf(localJusticeAreaId);
+    }
 
     @Column(name = "lja_type", length = 50)
     @Enumerated(EnumType.STRING)

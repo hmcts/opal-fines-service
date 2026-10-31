@@ -49,16 +49,15 @@ ON CONFLICT (enforcer_id) DO UPDATE
 
 INSERT INTO local_justice_areas (
     local_justice_area_id,
-    lja_code,
     name,
-    address_line_1
+    address_line_1,
+    lja_type
 )
 VALUES (
-           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1'
+    230, 'Tyne & Wear LJA', 'Test LJA Address Line 1', 'LJA'
        )
 ON CONFLICT (local_justice_area_id) DO UPDATE
-    SET lja_code = EXCLUDED.lja_code,
-        name = EXCLUDED.name,
+    SET name = EXCLUDED.name,
         address_line_1 = EXCLUDED.address_line_1;
 
 INSERT INTO courts (

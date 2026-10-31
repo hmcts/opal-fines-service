@@ -29,11 +29,13 @@ INSERT INTO business_units (
 INSERT INTO local_justice_areas (
     local_justice_area_id,
     name,
-    address_line_1
+    address_line_1,
+    lja_type
 ) VALUES (
     910,
     'Entity Graph LJA',
-    '1 Graph Street'
+    '1 Graph Street',
+    'LJA'
 );
 
 INSERT INTO courts (

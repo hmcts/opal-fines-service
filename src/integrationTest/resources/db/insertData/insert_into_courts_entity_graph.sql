@@ -24,10 +24,10 @@ VALUES (
 
 INSERT INTO local_justice_areas (
     local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
-    postcode, lja_code, lja_type, address_line_4, address_line_5, end_date
+    postcode, lja_type, address_line_4, address_line_5, end_date
 )
 VALUES (951, 'Court Graph LJA', 'Court Graph Address 1', 'Court Graph Address 2', NULL,
- 'CG1 1CG', '0951', 'LJA', NULL, NULL, NULL
+ 'CG1 1CG', 'LJA', NULL, NULL, NULL
        );
 
 INSERT INTO courts (

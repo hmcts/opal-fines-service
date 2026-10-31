@@ -22,11 +22,11 @@ VALUES
     );
 
 INSERT INTO local_justice_areas (
-    local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date
+    local_justice_area_id, name, address_line_1, lja_type, address_line_4, address_line_5, end_date
     )
 VALUES
     (
-    5501, 'IGL1', 'Graph Test LJA', '3 LJA Street', NULL, NULL, NULL
+    5501, 'Graph Test LJA', '3 LJA Street', 'LJA', NULL, NULL, NULL
     );
 
 INSERT INTO courts (

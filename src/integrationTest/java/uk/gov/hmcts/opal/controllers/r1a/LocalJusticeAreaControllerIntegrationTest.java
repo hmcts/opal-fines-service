@@ -116,7 +116,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"ljaCode\":\"00\"}"));
+                            .content("{\"localJusticeAreaId\":1}"));
 
         getResponseBody(actions, ":testPostLocalJusticeAreasSearch:");
 
@@ -164,7 +164,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].address_line_1",
                 hasItem("Alpha Trial Courts")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                hasItem("0007")))
+                hasItem("1")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
                 hasItem("LJA")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
@@ -277,7 +277,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5959")
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
-            .param("q", "0007")
+            .param("q", "1")
             .param(LJA_TYPE_PARAM, "LJA", "NOT_VALID"));
         getResponseBody(actions, ":testGetLocalJusticeAreasRefData:whenAllQueryParamsPresent");
 
@@ -286,7 +286,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
             // at least one item present
             .andExpect(jsonPath("$.count").isNumber())
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                hasItem("0007")))
+                hasItem("1")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
                 hasItem("LJA")));
     }

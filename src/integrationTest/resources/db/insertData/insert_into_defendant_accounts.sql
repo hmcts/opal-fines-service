@@ -58,12 +58,11 @@ ON CONFLICT (enforcer_id) DO NOTHING;
 
 -- Local Justice Area referenced by enf_override_tfo_lja_id = 240
 INSERT INTO local_justice_areas
-  (local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date)
+  (local_justice_area_id, name, address_line_1, lja_type, address_line_4, address_line_5, end_date)
 VALUES
-  (240, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL)
+  (240, 'Tyne & Wear LJA', 'Test LJA Address Line 1', 'LJA', NULL, NULL, NULL)
 ON CONFLICT (local_justice_area_id) DO UPDATE
-  SET lja_code = EXCLUDED.lja_code,
-      name     = EXCLUDED.name,
+  SET name     = EXCLUDED.name,
       address_line_1 = EXCLUDED.address_line_1;
 
 --  Enforcing court used by enforcing_court_id = 780000000185
