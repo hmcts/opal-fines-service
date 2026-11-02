@@ -58,9 +58,9 @@ public class AcknowledgementsQueuePublisherImplTest {
 
         when(jmsTemplate.<Void>execute(
             ArgumentMatchers.any(), eq(true))).thenAnswer(invocation -> {
-            SessionCallback<Void> callback = invocation.getArgument(0);
-            return callback.doInJms(session);
-        });
+                SessionCallback<Void> callback = invocation.getArgument(0);
+                return callback.doInJms(session);
+            });
         when(session.createQueue(QUEUE_NAME)).thenReturn(destination);
 
         publisher = new AcknowledgementsQueuePublisherImpl(jmsTemplate, new ObjectMapper(), properties);

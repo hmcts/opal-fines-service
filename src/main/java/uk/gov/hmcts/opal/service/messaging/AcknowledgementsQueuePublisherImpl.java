@@ -15,7 +15,8 @@ import uk.gov.hmcts.opal.service.messaging.AcknowledgementsQueueMessage.Status;
 
 @Component
 @Slf4j(topic = "opal.AcknowledgementsQueuePublisher")
-public class AcknowledgementsQueuePublisherImpl implements AcknowledgementsQueuePublisher{
+public class AcknowledgementsQueuePublisherImpl implements AcknowledgementsQueuePublisher {
+
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
     private final AcknowledgementsServiceBusProperties properties;
@@ -58,8 +59,7 @@ public class AcknowledgementsQueuePublisherImpl implements AcknowledgementsQueue
             producer.send(session.createTextMessage(payload));
             session.commit();
             return null;
-        }
-        catch (JMSException e) {
+        } catch (JMSException e) {
             rollback(session, e);
             throw e;
         }
