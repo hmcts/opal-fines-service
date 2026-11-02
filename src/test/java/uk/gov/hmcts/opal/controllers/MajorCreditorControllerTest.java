@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,12 +33,12 @@ class MajorCreditorControllerTest {
     @Test
     void testGetMajorCreditor_Success() {
         // Arrange
-        MajorCreditorEntity entity = MajorCreditorEntity.builder().build();
+        MajorCreditorLegacyEntity entity = MajorCreditorLegacyEntity.builder().build();
 
         when(majorCreditorService.getMajorCreditorById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<MajorCreditorEntity> response = majorCreditorController.getMajorCreditorById(1L);
+        ResponseEntity<MajorCreditorLegacyEntity> response = majorCreditorController.getMajorCreditorById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

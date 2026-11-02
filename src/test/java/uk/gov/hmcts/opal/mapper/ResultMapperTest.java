@@ -5,7 +5,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
@@ -22,7 +22,7 @@ class ResultMapperTest {
     @Test
     void toRefData_shouldMapLiteEntityToDto() {
         // Arrange
-        ResultEntity entity = ResultEntity.builder()
+        ResultLegacyEntity entity = ResultLegacyEntity.builder()
             .resultId("R123")
             .resultTitle("Test Result")
             .resultTitleCy("Test Result Welsh")
@@ -53,7 +53,7 @@ class ResultMapperTest {
             .impositionCategory("Fines")
             .build();
 
-        ResultEntity entity = ResultEntity.builder()
+        ResultLegacyEntity entity = ResultLegacyEntity.builder()
             .resultId("R456")
             .resultTitle("Full Result")
             .resultTitleCy("Full Result Welsh")
@@ -84,7 +84,7 @@ class ResultMapperTest {
     @Test
     void toReferenceDataResponse_shouldConvertListToResponse() {
         // Arrange
-        ResultEntity entity1 = ResultEntity.builder()
+        ResultLegacyEntity entity1 = ResultLegacyEntity.builder()
             .resultId("R1")
             .resultTitle("Result 1")
             .resultTitleCy("Result 1 Welsh")
@@ -92,7 +92,7 @@ class ResultMapperTest {
             .active(true)
             .build();
 
-        ResultEntity entity2 = ResultEntity.builder()
+        ResultLegacyEntity entity2 = ResultLegacyEntity.builder()
             .resultId("R2")
             .resultTitle("Result 2")
             .resultTitleCy("Result 2 Welsh")
@@ -100,7 +100,7 @@ class ResultMapperTest {
             .active(false)
             .build();
 
-        List<ResultEntity> entities = List.of(entity1, entity2);
+        List<ResultLegacyEntity> entities = List.of(entity1, entity2);
 
         // Act
         ResultsRefDataResponse response = resultMapper.toReferenceDataResponse(entities);
@@ -122,7 +122,7 @@ class ResultMapperTest {
             .impositionCategory("Compensation")
             .build();
 
-        ResultEntity entity = ResultEntity.builder()
+        ResultLegacyEntity entity = ResultLegacyEntity.builder()
             .resultId("R999")
             .resultTitle("Full Title")
             .resultTitleCy("Teitl Llawn")

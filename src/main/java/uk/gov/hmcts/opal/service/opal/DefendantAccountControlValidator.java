@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -71,7 +71,7 @@ public class DefendantAccountControlValidator {
             return false;
         }
         Long currentCourtId = Optional.ofNullable(account.getEnforcingCourt())
-            .map(CourtEntity::getCourtId)
+            .map(CourtLegacyEntity::getCourtId)
             .orElse(null);
         return !Objects.equals(enforcementCourt.getCourtId(), currentCourtId);
     }

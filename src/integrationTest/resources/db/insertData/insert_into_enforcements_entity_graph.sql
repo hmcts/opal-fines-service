@@ -26,7 +26,7 @@ INSERT INTO business_units (
     'Accounting Division'
 );
 
-INSERT INTO local_justice_areas (
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id,
     name,
     address_line_1
@@ -36,7 +36,11 @@ INSERT INTO local_justice_areas (
     '1 Graph Street'
 );
 
-INSERT INTO courts (
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 910
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO courts_legacy (
     court_id,
     business_unit_id,
     court_code,
@@ -50,7 +54,11 @@ INSERT INTO courts (
     910
 );
 
-INSERT INTO enforcers (
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 910004
+ON CONFLICT (court_id) DO NOTHING;
+
+INSERT INTO enforcers_legacy (
     enforcer_id,
     business_unit_id,
     enforcer_code,
@@ -62,7 +70,11 @@ INSERT INTO enforcers (
     'Entity Graph Enforcer'
 );
 
-INSERT INTO results (
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 910003
+ON CONFLICT (enforcer_id) DO NOTHING;
+
+INSERT INTO results_legacy (
     result_id,
     result_title,
     result_title_cy,
@@ -125,6 +137,10 @@ INSERT INTO results (
     NULL,
     NULL
 );
+
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'ER9100'
+ON CONFLICT (result_id) DO NOTHING;
 
 INSERT INTO defendant_accounts (
     defendant_account_id,

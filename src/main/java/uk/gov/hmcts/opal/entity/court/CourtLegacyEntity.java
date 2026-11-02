@@ -25,7 +25,7 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import uk.gov.hmcts.opal.entity.AddressCyEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 @Getter
@@ -36,24 +36,24 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true, exclude = {"businessUnit", "localJusticeArea", "parentCourt"})
 @ToString(callSuper = true, exclude = {"businessUnit", "localJusticeArea", "parentCourt"})
-@Table(name = "courts")
+@Table(name = "courts_legacy")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "courtId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@NamedEntityGraph(name = CourtEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(name = CourtLegacyEntity.ENTITY_GRAPH_LITE)
 @NamedEntityGraph(
-    name = CourtEntity.ENTITY_GRAPH_FULL,
+    name = CourtLegacyEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
         @NamedAttributeNode("businessUnit"),
         @NamedAttributeNode("localJusticeArea"),
         @NamedAttributeNode("parentCourt")
     }
 )
-public class CourtEntity extends AddressCyEntity {
+public class CourtLegacyEntity extends AddressCyEntity {
 
-    public static final String ENTITY_GRAPH_LITE = "CourtEntity.lite";
-    public static final String ENTITY_GRAPH_FULL = "CourtEntity.full";
+    public static final String ENTITY_GRAPH_LITE = "CourtLegacyEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "CourtLegacyEntity.full";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -114,9 +114,9 @@ public class CourtEntity extends AddressCyEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "local_justice_area_id", insertable = false, updatable = false)
-    private LocalJusticeAreaEntity localJusticeArea;
+    private LocalJusticeAreaLegacyEntity localJusticeArea;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_court_id", insertable = false, updatable = false)
-    private CourtEntity parentCourt;
+    private CourtLegacyEntity parentCourt;
 }

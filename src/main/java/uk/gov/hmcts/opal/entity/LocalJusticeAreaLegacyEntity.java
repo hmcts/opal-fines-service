@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "local_justice_areas")
+@Table(name = "local_justice_areas_legacy")
 @SuperBuilder
 @ToString(callSuper = true)
 @NoArgsConstructor
@@ -40,7 +40,7 @@ import java.time.LocalDateTime;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "localJusticeAreaId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LocalJusticeAreaEntity extends AddressEntity {
+public class LocalJusticeAreaLegacyEntity extends AddressEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "local_justice_area_id_seq_generator")

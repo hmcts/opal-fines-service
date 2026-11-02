@@ -13,5 +13,6 @@
 *
 **/
 
+DELETE FROM offences_legacy WHERE offence_id = 990001;
 DELETE FROM offences WHERE offence_id = 990001;
 DELETE FROM business_units WHERE business_unit_id = 951;
