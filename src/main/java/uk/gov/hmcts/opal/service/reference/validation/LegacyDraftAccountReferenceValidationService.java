@@ -5,13 +5,17 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaTypeLegacy;
 import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 
 @Service
 @RequiredArgsConstructor
 public class LegacyDraftAccountReferenceValidationService extends AbstractDraftAccountReferenceValidationService {
     private final OpalDraftAccountReferenceValidationService opalService;
+    private final LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
 
     // Created in PO-10909 - Subsequent tickets will move each method over to use legacy repositories incrementally
 
@@ -33,6 +37,13 @@ public class LegacyDraftAccountReferenceValidationService extends AbstractDraftA
 
     @Override
     void validateOriginator(DocContext docContext, List<String> failures) {
-        opalService.validateOriginator(docContext, failures);
+        opalService.validateOriginator(docContext, failures, this::findLocalJusticeAreaName);
+    }
+
+    private Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
+        return localJusticeAreaLegacyRepository.findById(localJusticeAreaId)
+            .filter(entity -> entity.getLjaType() == LocalJusticeAreaTypeLegacy.LJA
+                || entity.getLjaType() == LocalJusticeAreaTypeLegacy.CRWCRT)
+            .map(LocalJusticeAreaLegacyEntity::getName);
     }
 }

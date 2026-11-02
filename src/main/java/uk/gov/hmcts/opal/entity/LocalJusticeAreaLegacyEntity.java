@@ -55,7 +55,7 @@ public class LocalJusticeAreaLegacyEntity extends AddressEntity {
     @Column(name = "lja_type", length = 50)
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private LocalJusticeAreaType ljaType;
+    private LocalJusticeAreaTypeLegacy ljaType;
 
     @Column(name = "address_line_4", length = 35)
     private String addressLine4;

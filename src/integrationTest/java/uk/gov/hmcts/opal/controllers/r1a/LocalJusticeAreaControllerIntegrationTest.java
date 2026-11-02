@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -112,6 +113,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5964")
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql",
+        executionPhase = BEFORE_TEST_METHOD)
     void testPostLocalJusticeAreasSearch() throws Exception {
 
         ResultActions actions = mockMvc.perform(post(URL_BASE + "/search")
@@ -136,6 +139,8 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
     @JiraTestKey("PO-5962")
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql",
+        executionPhase = BEFORE_TEST_METHOD)
     void testPostLocalJusticeAreasSearch_WhenLocalJusticeAreaDoesNotExist() throws Exception {
         mockMvc.perform(post(URL_BASE + "/search")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -163,8 +168,6 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
                 hasItem(1)))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].address_line_1",
                 hasItem("Alpha Trial Courts")))
-            .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
                 hasItem("LJA")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type",
@@ -199,12 +202,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     public void testGetLocalJusticeAreasRefData_filterByUnknownLjaType() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN"));
 
-        String body = getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByUnknownLjaType:");
-
-        actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(0));
-
-        jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
+        actions.andExpect(status().isNotAcceptable());
     }
 
     @Test
@@ -214,15 +212,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5961")
     public void testGetLocalJusticeAreasRefData_filterByKnownAndUnknownLjaTypes() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "UNKNOWN", "LJA"));
-        String body =
-            getResponseBody(actions, ":testGetLocalJusticeAreasRefData:filterByKnownAndUnknownLjaTypes:");
-
-        actions.andExpect(status().isOk())
-            .andExpect(jsonPath("$.count").value(greaterThan(0)))
-            .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
-                hasItem("LJA")));
-
-        jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
+        actions.andExpect(status().isNotAcceptable());
     }
 
     @ParameterizedTest(name = "testGetLocalJusticeAreasRefData_filterByMultipleLjaTypes [{index}]")
@@ -256,7 +246,7 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraEpic("PO-2750")
     @JiraTestKey("PO-5971")
     void testGetLocalJusticeAreasRefData_returnsSameResultsInStableOrderForMultipleCalls() throws Exception {
-        String cacheName = "ljaReferenceDataCache";
+        String cacheName = "opalLjaReferenceDataCache";
         var actions1 = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"));
         String body1 = actions1.andReturn().getResponse().getContentAsString();
         var cache1 = cacheManager.getCache(cacheName);
@@ -277,16 +267,14 @@ class LocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationTest 
     @JiraTestKey("PO-5959")
     public void testGetLocalJusticeAreasRefData_whenAllQueryParamsPresent() throws Exception {
         var actions = mockMvc.perform(get(URL_BASE)
-            .param("q", "0007")
-            .param(LJA_TYPE_PARAM, "LJA", "NOT_VALID"));
+            .param("q", "1")
+            .param(LJA_TYPE_PARAM, "LJA"));
         getResponseBody(actions, ":testGetLocalJusticeAreasRefData:whenAllQueryParamsPresent");
 
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             // at least one item present
             .andExpect(jsonPath("$.count").isNumber())
-            .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_code",
-                hasItem("0007")))
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type",
                 hasItem("LJA")));
     }

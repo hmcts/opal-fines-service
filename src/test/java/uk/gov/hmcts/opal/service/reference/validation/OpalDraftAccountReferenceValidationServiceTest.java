@@ -18,7 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
@@ -820,8 +820,8 @@ class OpalDraftAccountReferenceValidationServiceTest {
             """.formatted(accountType, originatorType, originatorId, originatorName);
     }
 
-    private static LocalJusticeAreaLegacyEntity localJusticeArea(Short id, String name, LocalJusticeAreaType type) {
-        return LocalJusticeAreaLegacyEntity.builder()
+    private static LocalJusticeAreaEntity localJusticeArea(Short id, String name, LocalJusticeAreaType type) {
+        return LocalJusticeAreaEntity.builder()
             .localJusticeAreaId(id)
             .name(name)
             .ljaType(type)

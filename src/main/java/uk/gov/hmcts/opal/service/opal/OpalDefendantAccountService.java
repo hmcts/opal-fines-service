@@ -46,7 +46,7 @@ import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -505,7 +505,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
             .orElse(null);
     }
 
-    private LocalJusticeAreaLegacyEntity fetchLja(DefendantAccountEntity entity) {
+    private LocalJusticeAreaEntity fetchLja(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
             .flatMap(localJusticeAreaRepository::findById)
             .orElse(null);
