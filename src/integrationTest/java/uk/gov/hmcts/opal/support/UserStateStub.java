@@ -115,43 +115,41 @@ public class UserStateStub {
 
     public String getUserStateDtoAsJson() {
         try {
-            UserStateV2 userState = getUserState();
-            UserStateV2Dto userStateDto = UserStateV2Dto
-                .builder()
-                .userId(userState.getUserId())
-                .username(userState.getUsername())
-                .name(userState.getName())
-                .status(userState.getStatus().name())
-                .version(userState.getVersion())
-                .cacheName(userState.getCacheName())
-                .domains(new HashMap<>() {{
-                    for (Domain domain : userState.getDomains().keySet()) {
-                        DomainBusinessUnitUsers sourceDomain = userState.getDomains().get(domain);
-                        put(domain, DomainDto
-                            .builder()
-                            .businessUnitUsers(new ArrayList<>() {{
-                                for(BusinessUnitUserV2 businessUnitUser :
-                                    sourceDomain.getBusinessUnitUsers()) {
-                                    add(new BusinessUnitUserV2Dto(
-                                        businessUnitUser.getBusinessUnitUserId(),
-                                        businessUnitUser.getBusinessUnitId(),
-                                        new ArrayList<>() {{
-                                            for (PermissionV2 permission :
-                                                businessUnitUser.getPermissions()) {
-                                                add(new PermissionV2Dto(permission.getPermissionCode(),
-                                                    permission.getPermissionName()));
-                                            }
-                                        }}
-                                    ));
-                                }
-                            }}).build());
-                    }
-                }}).build();
-
-            return USER_STATE_MAPPER.writeValueAsString(userStateDto);
+            return USER_STATE_MAPPER.writeValueAsString(toUserStateDto(getUserState()));
         } catch (JsonProcessingException e) {
             throw new IllegalStateException("Failed to serialise user state", e);
         }
+    }
+
+    private UserStateV2Dto toUserStateDto(UserStateV2 source) {
+        return UserStateV2Dto.builder()
+            .userId(source.getUserId())
+            .username(source.getUsername())
+            .name(source.getName())
+            .status(source.getStatus().name())
+            .version(source.getVersion())
+            .cacheName(source.getCacheName())
+            .domains(source.getDomains().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                    entry -> toDomainDto(entry.getValue()))))
+            .build();
+    }
+
+    private DomainDto toDomainDto(DomainBusinessUnitUsers source) {
+        return DomainDto.builder().businessUnitUsers(source.getBusinessUnitUsers().stream()
+                .map(this::toBusinessUnitUserDto)
+                .collect(Collectors.toCollection(ArrayList::new)))
+            .build();
+    }
+
+    private BusinessUnitUserV2Dto toBusinessUnitUserDto(BusinessUnitUserV2 source) {
+        return new BusinessUnitUserV2Dto(source.getBusinessUnitUserId(), source.getBusinessUnitId(),
+            source.getPermissions().stream().map(this::toPermissionDto)
+                .collect(Collectors.toCollection(ArrayList::new)));
+    }
+
+    private PermissionV2Dto toPermissionDto(PermissionV2 source) {
+        return new PermissionV2Dto(source.getPermissionCode(), source.getPermissionName());
     }
 
     public void createAuthentication() {
