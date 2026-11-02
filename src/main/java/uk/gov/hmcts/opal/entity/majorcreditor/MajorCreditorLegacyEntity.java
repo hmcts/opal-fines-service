@@ -33,24 +33,24 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "major_creditors")
+@Table(name = "major_creditors_legacy")
 @EqualsAndHashCode(callSuper = true, exclude = "creditorAccountEntity")
 @ToString(callSuper = true, exclude = "creditorAccountEntity")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "majorCreditorId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-@NamedEntityGraph(name = MajorCreditorEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(name = MajorCreditorLegacyEntity.ENTITY_GRAPH_LITE)
 @NamedEntityGraph(
-    name = MajorCreditorEntity.ENTITY_GRAPH_FULL,
+    name = MajorCreditorLegacyEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
         @NamedAttributeNode("creditorAccountEntity")
     }
 )
-public class MajorCreditorEntity extends AddressEntity {
+public class MajorCreditorLegacyEntity extends AddressEntity {
 
-    public static final String ENTITY_GRAPH_LITE = "MajorCreditorEntity.lite";
-    public static final String ENTITY_GRAPH_FULL = "MajorCreditorEntity.full";
+    public static final String ENTITY_GRAPH_LITE = "MajorCreditorLegacyEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "MajorCreditorLegacyEntity.full";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "major_creditor_id_seq_generator")

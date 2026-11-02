@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 
 @ExtendWith(MockitoExtension.class)
@@ -33,12 +33,13 @@ class LocalJusticeAreaControllerTest {
     @Test
     void testGetLocalJusticeArea_Success() {
         // Arrange
-        LocalJusticeAreaEntity entity = LocalJusticeAreaEntity.builder().build();
+        LocalJusticeAreaLegacyEntity entity = LocalJusticeAreaLegacyEntity.builder().build();
 
         when(localJusticeAreaService.getLocalJusticeAreaById(anyShort())).thenReturn(entity);
 
         // Act
-        ResponseEntity<LocalJusticeAreaEntity> response = localJusticeAreaController.getLocalJusticeAreaById((short) 1);
+        ResponseEntity<LocalJusticeAreaLegacyEntity> response =
+            localJusticeAreaController.getLocalJusticeAreaById((short) 1);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

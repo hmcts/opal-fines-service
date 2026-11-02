@@ -35,13 +35,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
@@ -125,7 +125,7 @@ class OpalDefendantAccountUpdateTest {
         // Echo the saved entity (so assertions see updated values)
         when(defendantAccountRepository.save(any(DefendantAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        CourtEntity court = CourtEntity.builder()
+        CourtLegacyEntity court = CourtLegacyEntity.builder()
             .courtId(100L)
             .name("Central Magistrates")
             .build();
@@ -133,18 +133,18 @@ class OpalDefendantAccountUpdateTest {
         when(courtLiteRepo.findById(100L)).thenReturn(Optional.of(court));
 
         // Reference entities: stub getters so the service can copy IDs onto the account
-        ResultEntity eor = mock(ResultEntity.class);
+        ResultLegacyEntity eor = mock(ResultLegacyEntity.class);
         when(eor.getResultId()).thenReturn("EO-1");
         when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
 
-        EnforcerEntity enforcer = mock(EnforcerEntity.class);
+        EnforcerLegacyEntity enforcer = mock(EnforcerLegacyEntity.class);
         when(enforcer.getEnforcerId()).thenReturn(22L);
         when(enforcerRepo.findById(22L)).thenReturn(Optional.of(enforcer));
         when(enforcerDefendantAccountMapper.toDto(enforcer)).thenReturn(EnforcerDefendantAccount.builder()
             .enforcerId(22L)
             .build());
 
-        LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
+        LocalJusticeAreaLegacyEntity lja = mock(LocalJusticeAreaLegacyEntity.class);
         when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
         when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
         when(noteRepository.save(any())).thenReturn(null);
@@ -568,7 +568,7 @@ class OpalDefendantAccountUpdateTest {
         doNothing().when(entityManager).lock(any(), any());
 
         long courtId = 780000000185L;
-        CourtEntity court = CourtEntity.builder()
+        CourtLegacyEntity court = CourtLegacyEntity.builder()
             .courtId(courtId)
             .name("Test Court")
             .build();

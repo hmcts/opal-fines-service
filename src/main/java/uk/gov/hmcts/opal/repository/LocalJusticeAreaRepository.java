@@ -3,9 +3,9 @@ package uk.gov.hmcts.opal.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 
 @Repository
-public interface LocalJusticeAreaRepository extends JpaRepository<LocalJusticeAreaEntity, Short>,
-    JpaSpecificationExecutor<LocalJusticeAreaEntity> {
+public interface LocalJusticeAreaRepository extends JpaRepository<LocalJusticeAreaLegacyEntity, Short>,
+    JpaSpecificationExecutor<LocalJusticeAreaLegacyEntity> {
 }
