@@ -4,6 +4,6 @@ import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 
 public interface SuspenseAccountsSummaryServiceInterface {
 
-    SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Long businessUnitId, Long suspenseItemNumber);
+    SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber);
 
 }

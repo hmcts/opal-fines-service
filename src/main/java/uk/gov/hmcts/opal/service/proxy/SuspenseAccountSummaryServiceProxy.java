@@ -23,7 +23,7 @@ public class SuspenseAccountSummaryServiceProxy implements SuspenseAccountsSumma
     }
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Long businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber) {
         return getCurrentModeService().getSuspenseAccountsSummary(businessUnitId, suspenseItemNumber);
     }
 
