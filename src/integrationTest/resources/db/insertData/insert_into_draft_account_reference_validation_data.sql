@@ -1,4 +1,4 @@
-INSERT INTO local_justice_areas (
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id,
     name,
     address_line_1,

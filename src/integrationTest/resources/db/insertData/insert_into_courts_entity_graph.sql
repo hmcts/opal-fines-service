@@ -30,6 +30,10 @@ VALUES (951, 'Court Graph LJA', 'Court Graph Address 1', 'Court Graph Address 2'
  'CG1 1CG', '0951', 'LJA', NULL, NULL, NULL
        );
 
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 951
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
 INSERT INTO courts_legacy (
     court_id, business_unit_id, court_code, parent_court_id, name, name_cy,
     address_line_1, address_line_2, address_line_3,
