@@ -265,12 +265,20 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 String expectedRenderRequest = objectMapper.writeValueAsString(Map.of(
                     "templateName", "cash-till.docx",
                     "outputName", "cash-till.pdf",
-                    "accessKey", TEST_DOCMOSIS_API_KEY));
+                    "accessKey", TEST_DOCMOSIS_API_KEY,
+                    "data", Map.of(
+                        "created_at", "2026-05-27T09:15:30",
+                        "created_by", "Some Body",
+                        "number_of_records", 1,
+                        "report_data", Map.of(
+                            "allocated_report", false,
+                            "rows", objectMapper.readTree(cashTillStoredReportBytes)
+                                .path("reportData").path("rows")))));
                 String pdfContent = Arrays.toString(PDF_CONTENT);
 
                 stubFor(post(urlEqualTo("/api/render"))
                     .withHeader("Content-Type", containing(MediaType.APPLICATION_JSON_VALUE))
-                    .withRequestBody(equalToJson(expectedRenderRequest, false, true))
+                    .withRequestBody(equalToJson(expectedRenderRequest))
                     .willReturn(ok()
                         .withHeader("Content-Type", MediaType.APPLICATION_PDF_VALUE)
                         .withBody(pdfContent)));
@@ -287,7 +295,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
                 assertThat(readBlob(GENERATED_PDF_LOCATION)).isEqualTo(pdfContent);
                 assertThat(blobCount()).isEqualTo(blobCountBefore + 1);
 
-                WireMock.verify(1, postRequestedFor(urlEqualTo("/api/render")));
+                WireMock.verify(1, postRequestedFor(urlEqualTo("/api/render"))
+                    .withRequestBody(equalToJson(expectedRenderRequest)));
                 Optional<ReportInstanceFileEntity> savedFile = reportInstanceFileRepository
                     .findByReportInstanceIdAndFileType(CASH_TILL_REPORT_INSTANCE_ID, SupportedFileType.PDF);
 

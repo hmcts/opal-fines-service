@@ -69,7 +69,8 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
 
     private byte[] convertReportDataToPdf(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
         validateReportData(reportData);
-        return pdfGenerationService.generatePdf(reportInstance.getTemplateName(), reportData);
+        return pdfGenerationService.generatePdf(
+            reportInstance.getTemplateName(), PdfReportData.from(reportInstance, reportData));
     }
 
     private static Specification<PaymentInEntity> paymentSearch(CashTillReportParameters parameters, long tillId) {

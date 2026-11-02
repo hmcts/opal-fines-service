@@ -39,6 +39,7 @@ import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
+import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -309,17 +310,27 @@ class CashTillReportServiceTest {
     }
 
     @Test
-    void convertReportDataToFileType_whenValidData_callsPdfService() {
+    void convertReportDataToFileType_whenPdfRequested_passesInstanceMetadata() {
         CashTillReportData reportData = allocatedReportData(List.of(olderRow(), newerRow()));
-        ReportInstanceEntity reportInstance = ReportInstanceEntity.builder().templateName("template-name").build();
+        ReportInstanceEntity reportInstance = ReportInstanceEntity.builder()
+            .report(ReportEntity.builder().templateName("current-template.docx").build())
+            .templateName("instance-template.docx")
+            .createdTimestamp(LocalDateTime.of(2026, Month.MAY, 27, 9, 15, 30))
+            .requestedAt(LocalDateTime.of(2026, Month.MAY, 27, 9, 0))
+            .requestedBy(12345678L)
+            .requestedByName("Some Body")
+            .noOfRecords(42L)
+            .build();
+        PdfReportData<CashTillReportData> expectedPayload = new PdfReportData<>(
+            LocalDateTime.of(2026, Month.MAY, 27, 9, 15, 30), "Some Body", 42L, reportData);
 
         byte[] pdf = {37, 80, 68, 70};
-        when(pdfGenerationService.generatePdf("template-name", reportData)).thenReturn(pdf);
+        when(pdfGenerationService.generatePdf("instance-template.docx", expectedPayload)).thenReturn(pdf);
 
         byte[] result = service.convertReportDataToFileType(reportInstance, reportData, PDF);
 
         assertThat(result).isEqualTo(pdf);
-        verify(pdfGenerationService, times(1)).generatePdf(eq("template-name"), eq(reportData));
+        verify(pdfGenerationService, times(1)).generatePdf(eq("instance-template.docx"), eq(expectedPayload));
     }
 
     @Test
