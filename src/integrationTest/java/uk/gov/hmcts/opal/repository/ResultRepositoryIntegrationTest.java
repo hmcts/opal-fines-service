@@ -22,7 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 
 import java.util.Map;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -65,7 +65,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6317")
     void shouldKeepEnforcementsLazyWhenNoEntityGraphIsUsed() {
-        ResultEntity result = entityManager.find(ResultEntity.class, RESULT_ID);
+        ResultLegacyEntity result = entityManager.find(ResultLegacyEntity.class, RESULT_ID);
 
         assertAll(
             () -> assertNotNull(result),
@@ -78,7 +78,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6318")
     void shouldKeepEnforcementsLazyForRepositoryFindById() {
-        ResultEntity result = resultRepository.findById(RESULT_ID).orElseThrow();
+        ResultLegacyEntity result = resultRepository.findById(RESULT_ID).orElseThrow();
 
         assertAll(
             () -> assertNotNull(result),
@@ -91,9 +91,9 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6315")
     void shouldLoadFullEntityGraphWhenRequestedExplicitly() {
-        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultEntity.ENTITY_GRAPH_FULL);
-        ResultEntity result = entityManager.find(
-            ResultEntity.class,
+        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultLegacyEntity.ENTITY_GRAPH_FULL);
+        ResultLegacyEntity result = entityManager.find(
+            ResultLegacyEntity.class,
             RESULT_ID,
             Map.of("jakarta.persistence.fetchgraph", fullGraph)
         );
@@ -111,11 +111,11 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6316")
     void shouldKeepEnforcementsLazyForSpecificationFetch() {
-        Specification<ResultEntity> spec =
+        Specification<ResultLegacyEntity> spec =
             (root, query, builder) -> builder.equal(root.get("resultId"), RESULT_ID);
 
-        Page<ResultEntity> page = resultRepository.findBy(spec, query -> query.page(Pageable.unpaged()));
-        ResultEntity result = page.getContent().get(0);
+        Page<ResultLegacyEntity> page = resultRepository.findBy(spec, query -> query.page(Pageable.unpaged()));
+        ResultLegacyEntity result = page.getContent().get(0);
 
         assertAll(
             () -> assertEquals(1, page.getTotalElements()),

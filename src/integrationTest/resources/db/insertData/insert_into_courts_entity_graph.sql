@@ -22,7 +22,7 @@ VALUES (
         'CG',NULL,'Fines',false
        );
 
-INSERT INTO local_justice_areas (
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
     postcode, lja_code, lja_type, address_line_4, address_line_5, end_date
 )
@@ -30,7 +30,11 @@ VALUES (951, 'Court Graph LJA', 'Court Graph Address 1', 'Court Graph Address 2'
  'CG1 1CG', '0951', 'LJA', NULL, NULL, NULL
        );
 
-INSERT INTO courts (
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 951
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO courts_legacy (
     court_id, business_unit_id, court_code, parent_court_id, name, name_cy,
     address_line_1, address_line_2, address_line_3,
     address_line_1_cy, address_line_2_cy, address_line_3_cy, postcode,
@@ -54,3 +58,7 @@ VALUES (
     951, 'MC', '02', 'PM',
     '14:00', 4, 'N', 240, 'CHILD'
     );
+
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id IN (951001, 951002)
+ON CONFLICT (court_id) DO NOTHING;

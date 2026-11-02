@@ -37,9 +37,9 @@ import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
@@ -60,11 +60,12 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short)123).build());
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
-            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+            LocalJusticeAreaLegacyEntity.builder().ljaCode("6-7").build());
 
-        when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultLegacyEntity.builder()
             .enfNextPermittedActions("All").build()));
 
         ResponseEntity<String> serverSuccessResponse =
@@ -143,9 +144,10 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short)123).build());
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
-            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+            LocalJusticeAreaLegacyEntity.builder().ljaCode("6-7").build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
@@ -204,7 +206,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
             FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
@@ -250,7 +253,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short)123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
@@ -295,7 +299,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short)123).build());
 
         EnforcementStatus response = legacyDefendantAccountService.getEnforcementStatus(72L);
 

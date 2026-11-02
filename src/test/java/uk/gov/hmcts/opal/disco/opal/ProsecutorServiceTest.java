@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.mapper.ProsecutorMapper;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.service.opal.ProsecutorService;
@@ -44,11 +44,11 @@ class ProsecutorServiceTest {
     void testGetProsecutor() {
         // Arrange
 
-        ProsecutorEntity entity = ProsecutorEntity.builder().prosecutorCode("AAAX").build();
+        ProsecutorLegacyEntity entity = ProsecutorLegacyEntity.builder().prosecutorCode("AAAX").build();
         when(prosecutorRepository.findById(any())).thenReturn(Optional.of(entity));
 
         // Act
-        ProsecutorEntity result = prosecutorService.getProsecutorById(1);
+        ProsecutorLegacyEntity result = prosecutorService.getProsecutorById(1);
 
         // Assert
         assertEquals(entity, result);
@@ -62,8 +62,8 @@ class ProsecutorServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        ProsecutorEntity entity = ProsecutorEntity.builder().prosecutorCode("AAAZ").build();
-        Page<ProsecutorEntity> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
+        ProsecutorLegacyEntity entity = ProsecutorLegacyEntity.builder().prosecutorCode("AAAZ").build();
+        Page<ProsecutorLegacyEntity> mockPage = new PageImpl<>(List.of(entity), Pageable.unpaged(), 999L);
 
         when(prosecutorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -83,12 +83,12 @@ class ProsecutorServiceTest {
     @Test
     void testAddressLine1LengthLimit() {
         // Arrange
-        ProsecutorEntity validEntity = ProsecutorEntity.builder()
+        ProsecutorLegacyEntity validEntity = ProsecutorLegacyEntity.builder()
             .prosecutorCode("VAL60")
             .addressLine1("A".repeat(60))
             .build();
 
-        ProsecutorEntity invalidEntity = ProsecutorEntity.builder()
+        ProsecutorLegacyEntity invalidEntity = ProsecutorLegacyEntity.builder()
             .prosecutorCode("INV61")
             .addressLine1("A".repeat(61))
             .build();
@@ -99,7 +99,7 @@ class ProsecutorServiceTest {
             .thenThrow(new IllegalArgumentException("address_line_1 exceeds 60 characters"));
 
         // Act
-        ProsecutorEntity saved = prosecutorRepository.save(validEntity);
+        ProsecutorLegacyEntity saved = prosecutorRepository.save(validEntity);
 
         // Assert
         assertEquals(60, saved.getAddressLine1().length());

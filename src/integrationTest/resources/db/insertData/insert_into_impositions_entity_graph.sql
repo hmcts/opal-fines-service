@@ -21,7 +21,7 @@ VALUES
      55, 'Graph Test Business Unit', 'GT', 'Area', false
     );
 
-INSERT INTO local_justice_areas (
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date
     )
 VALUES
@@ -29,7 +29,11 @@ VALUES
     5501, 'IGL1', 'Graph Test LJA', '3 LJA Street', NULL, NULL, NULL
     );
 
-INSERT INTO courts (
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 5501
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO courts_legacy (
     court_id, business_unit_id, court_code, parent_court_id, name, name_cy, address_line_1,
     address_line_2, address_line_3, address_line_1_cy, address_line_2_cy, address_line_3_cy,
     postcode, local_justice_area_id, national_court_code, gob_enforcing_court_code, lja,
@@ -44,7 +48,11 @@ VALUES
     5501, 'MC', '01', NULL, NULL, NULL, NULL, NULL, NULL
     );
 
-INSERT INTO results (
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 551001
+ON CONFLICT (court_id) DO NOTHING;
+
+INSERT INTO results_legacy (
     result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category,
     imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement,
     enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold,
@@ -61,7 +69,11 @@ VALUES
     FALSE, NULL, FALSE
     );
 
-INSERT INTO offences (
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'IGR001'
+ON CONFLICT (result_id) DO NOTHING;
+
+INSERT INTO offences_legacy (
     offence_id, cjs_code, offence_title, offence_title_cy, offence_oas, offence_oas_cy,
     date_used_from, date_used_to
     )
@@ -71,7 +83,11 @@ VALUES
     NULL, DATE '2025-01-01', NULL
     );
 
-INSERT INTO major_creditors (
+INSERT INTO offences
+SELECT * FROM offences_legacy WHERE offence_id = 5510
+ON CONFLICT (offence_id) DO NOTHING;
+
+INSERT INTO major_creditors_legacy (
     major_creditor_id, business_unit_id, major_creditor_code, name, address_line_1, address_line_2,
     address_line_3, postcode
     )
@@ -80,6 +96,10 @@ VALUES
     551003, 55, 'IGMC', 'Graph Major Creditor', '2 Creditor Road',
     NULL, NULL, 'GT1 2MC'
     );
+
+INSERT INTO major_creditors
+SELECT * FROM major_creditors_legacy WHERE major_creditor_id = 551003
+ON CONFLICT (major_creditor_id) DO NOTHING;
 
 INSERT INTO creditor_accounts (
     creditor_account_id, business_unit_id, account_number, creditor_account_type, prosecution_service,

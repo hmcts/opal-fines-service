@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.dto.reference.EnforcerReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
@@ -39,21 +39,21 @@ public class EnforcerController {
 
     @GetMapping(value = "/{enforcerId}")
     @Operation(summary = "Returns the Enforcer for the given enforcerId.")
-    public ResponseEntity<EnforcerEntity> getEnforcerById(@PathVariable Long enforcerId) {
+    public ResponseEntity<EnforcerLegacyEntity> getEnforcerById(@PathVariable Long enforcerId) {
 
         log.debug(":GET:getEnforcerById: enforcerId: {}", enforcerId);
 
-        EnforcerEntity response = enforcerService.getEnforcerById(enforcerId);
+        EnforcerLegacyEntity response = enforcerService.getEnforcerById(enforcerId);
 
         return buildResponse(response);
     }
 
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches Enforcers based upon criteria in request body")
-    public ResponseEntity<List<EnforcerEntity>> postEnforcersSearch(@RequestBody EnforcerSearchDto criteria) {
+    public ResponseEntity<List<EnforcerLegacyEntity>> postEnforcersSearch(@RequestBody EnforcerSearchDto criteria) {
         log.debug(":POST:postEnforcersSearch: query: \n{}", criteria);
 
-        List<EnforcerEntity> response = enforcerService.searchEnforcers(criteria);
+        List<EnforcerLegacyEntity> response = enforcerService.searchEnforcers(criteria);
 
         return buildResponse(response);
     }

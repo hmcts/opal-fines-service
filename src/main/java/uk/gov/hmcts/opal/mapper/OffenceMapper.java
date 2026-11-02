@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity;
 
 @Mapper(componentModel = "spring")
 public interface OffenceMapper {
@@ -16,7 +16,7 @@ public interface OffenceMapper {
         target = "dateUsedTo",
         expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedTo()))"
     )
-    OffenceReferenceData toRefData(OffenceEntity entity);
+    OffenceReferenceData toRefData(OffenceLegacyEntity entity);
 
     @Mapping(
         target = "dateUsedFrom",
@@ -26,5 +26,5 @@ public interface OffenceMapper {
         target = "dateUsedTo",
         expression = "java(uk.gov.hmcts.opal.util.DateTimeUtils.toUtcDateTime(entity.getDateUsedTo()))"
     )
-    OffenceSearchData toSearchData(OffenceEntity entity);
+    OffenceSearchData toSearchData(OffenceLegacyEntity entity);
 }

@@ -2,10 +2,10 @@ package uk.gov.hmcts.opal.mapper;
 
 import org.mapstruct.Mapper;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 
 @Mapper(componentModel = "spring")
 public interface ProsecutorMapper {
 
-    ProsecutorReferenceData toRefData(ProsecutorEntity entity);
+    ProsecutorReferenceData toRefData(ProsecutorLegacyEntity entity);
 }

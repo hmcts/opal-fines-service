@@ -33,7 +33,7 @@ ON CONFLICT (business_unit_id) DO UPDATE
         business_unit_type = EXCLUDED.business_unit_type,
         welsh_language = EXCLUDED.welsh_language;
 
-INSERT INTO enforcers (
+INSERT INTO enforcers_legacy (
     enforcer_id,
     business_unit_id,
     enforcer_code,
@@ -47,7 +47,14 @@ ON CONFLICT (enforcer_id) DO UPDATE
         enforcer_code = EXCLUDED.enforcer_code,
         name = EXCLUDED.name;
 
-INSERT INTO local_justice_areas (
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 780000000021
+ON CONFLICT (enforcer_id) DO UPDATE
+    SET business_unit_id = EXCLUDED.business_unit_id,
+        enforcer_code = EXCLUDED.enforcer_code,
+        name = EXCLUDED.name;
+
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id,
     lja_code,
     name,
@@ -61,7 +68,11 @@ ON CONFLICT (local_justice_area_id) DO UPDATE
         name = EXCLUDED.name,
         address_line_1 = EXCLUDED.address_line_1;
 
-INSERT INTO courts (
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 230
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO courts_legacy (
     court_id, business_unit_id, court_code, parent_court_id, name,
     address_line_1, address_line_2,
     local_justice_area_id,
@@ -85,6 +96,10 @@ ON CONFLICT (court_id) DO UPDATE
         lja = EXCLUDED.lja,
         court_type = EXCLUDED.court_type,
         division = EXCLUDED.division;
+
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 1
+ON CONFLICT (court_id) DO NOTHING;
 
 INSERT INTO parties (
     party_id,
@@ -1039,4 +1054,3 @@ ON CONFLICT (imposition_id) DO UPDATE
         posted_date = EXCLUDED.posted_date,
         paid_amount = EXCLUDED.paid_amount,
         creditor_account_id = EXCLUDED.creditor_account_id;
-

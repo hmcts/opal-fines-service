@@ -24,7 +24,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "prisons")
+@Table(name = "prisons_legacy")
 @SuperBuilder
 @ToString(callSuper = true)
 @NoArgsConstructor
@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PrisonEntity extends AddressEntity {
+public class PrisonLegacyEntity extends AddressEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "prison_id_seq_generator")

@@ -24,7 +24,7 @@ VALUES
 ,'XX',NULL,'Fines',false
 );
 
-INSERT INTO enforcers
+INSERT INTO enforcers_legacy
 (
 enforcer_id, business_unit_id, enforcer_code, name, name_cy
 ,address_line_1, address_line_2, address_line_3
@@ -38,3 +38,7 @@ VALUES
 , NULL, NULL, NULL
 , 'EF1 1EF', '101/09/00000', 666
 );
+
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 1
+ON CONFLICT (enforcer_id) DO NOTHING;

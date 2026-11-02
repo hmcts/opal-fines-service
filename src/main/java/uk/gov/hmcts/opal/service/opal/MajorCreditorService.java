@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity_;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
@@ -37,16 +37,16 @@ public class MajorCreditorService {
 
     private final MajorCreditorSpecs specs = new MajorCreditorSpecs();
 
-    public MajorCreditorEntity getMajorCreditorById(long majorCreditorId) {
+    public MajorCreditorLegacyEntity getMajorCreditorById(long majorCreditorId) {
         return majorCreditorRepository.findById(majorCreditorId)
             .orElseThrow(() -> new EntityNotFoundException("Major creditor not found with id: " + majorCreditorId));
     }
 
-    public List<MajorCreditorEntity> searchMajorCreditors(MajorCreditorSearchDto criteria) {
+    public List<MajorCreditorLegacyEntity> searchMajorCreditors(MajorCreditorSearchDto criteria) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorLegacyEntity_.NAME);
 
-        Page<MajorCreditorEntity> page = majorCreditorRepository
+        Page<MajorCreditorLegacyEntity> page = majorCreditorRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -62,9 +62,9 @@ public class MajorCreditorService {
     public List<MajorCreditorReferenceData> getReferenceData(Optional<String> filter, Optional<Short> businessUnitId) {
 
         log.debug(":getReferenceData: filter: {}, businessUnitId: {}", filter, businessUnitId);
-        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorLegacyEntity_.NAME);
 
-        Page<MajorCreditorEntity> page = majorCreditorRepository
+        Page<MajorCreditorLegacyEntity> page = majorCreditorRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)

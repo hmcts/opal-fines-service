@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
 import uk.gov.hmcts.opal.dto.response.RefDataResponse;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.ProsecutorService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -36,11 +36,11 @@ public class ProscutorController {
     @GetMapping(value = "/{prosecutorId}")
     @Operation(summary = "Returns the Prosecutor for the given prosecutorId.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<ProsecutorEntity> getProsecutorById(@PathVariable Long prosecutorId) {
+    public ResponseEntity<ProsecutorLegacyEntity> getProsecutorById(@PathVariable Long prosecutorId) {
 
         log.debug(":GET:getProsecutorById: prosecutorId: {}", prosecutorId);
 
-        ProsecutorEntity response = prosecutorservice.getProsecutorById(prosecutorId);
+        ProsecutorLegacyEntity response = prosecutorservice.getProsecutorById(prosecutorId);
 
         return buildResponse(response);
     }
