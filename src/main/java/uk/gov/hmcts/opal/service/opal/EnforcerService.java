@@ -12,8 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
 import uk.gov.hmcts.opal.entity.AddressEntity_;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.jpa.EnforcerSpecs;
@@ -31,17 +30,17 @@ public class EnforcerService {
 
     private final EnforcerSpecs specs = new EnforcerSpecs();
 
-    public EnforcerEntity getEnforcerById(long enforcerId) {
+    public EnforcerLegacyEntity getEnforcerById(long enforcerId) {
         return enforcerRepository.findById(enforcerId)
             .orElseThrow(() -> new EntityNotFoundException("Enforcer not found with id: " + enforcerId));
     }
 
-    public List<EnforcerEntity> searchEnforcers(EnforcerSearchDto criteria) {
+    public List<EnforcerLegacyEntity> searchEnforcers(EnforcerSearchDto criteria) {
         log.info(":searchEnforcers: criteria: {}", criteria);
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<EnforcerEntity> page = enforcerRepository
+        Page<EnforcerLegacyEntity> page = enforcerRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -54,9 +53,9 @@ public class EnforcerService {
     public List<EnforcerReferenceData> getReferenceData(Optional<String> filter) {
 
         // Note - might we want to sort by Welsh name?
-        Sort nameSort = Sort.by(Sort.Direction.ASC, MajorCreditorEntity_.NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<EnforcerEntity> page = enforcerRepository
+        Page<EnforcerLegacyEntity> page = enforcerRepository
             .findBy(specs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -65,7 +64,7 @@ public class EnforcerService {
         return page.getContent().stream().map(this::toRefData).toList();
     }
 
-    private EnforcerReferenceData toRefData(EnforcerEntity entity) {
+    private EnforcerReferenceData toRefData(EnforcerLegacyEntity entity) {
         return new EnforcerReferenceData(
             entity.getEnforcerId(),
             entity.getEnforcerCode(),

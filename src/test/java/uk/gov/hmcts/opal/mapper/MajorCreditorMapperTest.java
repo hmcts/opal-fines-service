@@ -11,7 +11,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 
 class MajorCreditorMapperTest {
 
@@ -21,7 +21,7 @@ class MajorCreditorMapperTest {
     @DisplayName("toRefData maps major creditor and creditor account fields")
     void toRefData_mapsMajorCreditorFields() {
         LocalDateTime lastChangedDate = LocalDateTime.of(2026, 4, 23, 9, 30);
-        MajorCreditorEntity entity = MajorCreditorEntity.builder()
+        MajorCreditorLegacyEntity entity = MajorCreditorLegacyEntity.builder()
             .majorCreditorId(101L)
             .businessUnitId((short) 78)
             .majorCreditorCode("MC01")

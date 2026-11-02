@@ -9,13 +9,13 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity_;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity_;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 
-public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> {
+public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaLegacyEntity> {
 
-    public Specification<LocalJusticeAreaEntity> findBySearchCriteria(LocalJusticeAreaSearchDto criteria) {
+    public Specification<LocalJusticeAreaLegacyEntity> findBySearchCriteria(LocalJusticeAreaSearchDto criteria) {
         return Specification.allOf(specificationList(
             findByAddressCriteria(criteria),
             notBlank(criteria.getLjaCode()).map(LocalJusticeAreaSpecs::likeLjaCode),
@@ -23,34 +23,34 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
         ));
     }
 
-    public Specification<LocalJusticeAreaEntity> referenceDataFilter(Optional<String> filter,
+    public Specification<LocalJusticeAreaLegacyEntity> referenceDataFilter(Optional<String> filter,
         Optional<List<String>> ljaTypesFilter,
         LocalDateTime currentDateTime) {
 
-        Optional<Specification<LocalJusticeAreaEntity>> ljaTypeSpec =
+        Optional<Specification<LocalJusticeAreaLegacyEntity>> ljaTypeSpec =
             ljaTypesFilter.filter(s -> !s.isEmpty()).map(this::containsLocalJusticeAreaTypes);
-        Optional<Specification<LocalJusticeAreaEntity>> filterSpec =
+        Optional<Specification<LocalJusticeAreaLegacyEntity>> filterSpec =
             filter.filter(s -> !s.isBlank()).map(this::likeAnyLocalJusticeArea);
 
         return Specification.allOf(specificationList(
             List.of(filterSpec, ljaTypeSpec), endDateGreaterThenEqualToDate(currentDateTime)));
     }
 
-    public static Specification<LocalJusticeAreaEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
+    public static Specification<LocalJusticeAreaLegacyEntity> equalsLocalJusticeAreaId(Short localJusticeAreaId) {
         return (root, query, builder) -> equalsLocalJusticeAreaIdPredicate(root, builder, localJusticeAreaId);
     }
 
-    public static Predicate equalsLocalJusticeAreaIdPredicate(From<?, LocalJusticeAreaEntity> from,
+    public static Predicate equalsLocalJusticeAreaIdPredicate(From<?, LocalJusticeAreaLegacyEntity> from,
                                                               CriteriaBuilder builder, Short localJusticeAreaId) {
-        return builder.equal(from.get(LocalJusticeAreaEntity_.localJusticeAreaId), localJusticeAreaId);
+        return builder.equal(from.get(LocalJusticeAreaLegacyEntity_.localJusticeAreaId), localJusticeAreaId);
     }
 
-    public static Specification<LocalJusticeAreaEntity> likeLjaCode(String ljaCode) {
+    public static Specification<LocalJusticeAreaLegacyEntity> likeLjaCode(String ljaCode) {
         return (root, query, builder) ->
-            likeWildcardPredicate(root.get(LocalJusticeAreaEntity_.ljaCode), builder, ljaCode);
+            likeWildcardPredicate(root.get(LocalJusticeAreaLegacyEntity_.ljaCode), builder, ljaCode);
     }
 
-    public Specification<LocalJusticeAreaEntity> likeAnyLocalJusticeArea(String filter) {
+    public Specification<LocalJusticeAreaLegacyEntity> likeAnyLocalJusticeArea(String filter) {
         return Specification.anyOf(
             likeLjaCode(filter),
             likeName(filter),
@@ -58,19 +58,19 @@ public class LocalJusticeAreaSpecs extends AddressSpecs<LocalJusticeAreaEntity> 
         );
     }
 
-    public static Specification<LocalJusticeAreaEntity> endDateGreaterThenEqualToDate(LocalDateTime expiryDate) {
+    public static Specification<LocalJusticeAreaLegacyEntity> endDateGreaterThenEqualToDate(LocalDateTime expiryDate) {
         return (root, query, builder) -> builder.or(
-            builder.isNull(root.get(LocalJusticeAreaEntity_.endDate)),
-            builder.greaterThanOrEqualTo(root.get(LocalJusticeAreaEntity_.endDate), expiryDate)
+            builder.isNull(root.get(LocalJusticeAreaLegacyEntity_.endDate)),
+            builder.greaterThanOrEqualTo(root.get(LocalJusticeAreaLegacyEntity_.endDate), expiryDate)
         );
     }
 
-    public Specification<LocalJusticeAreaEntity> containsLocalJusticeAreaTypes(List<String> ljaTypes) {
+    public Specification<LocalJusticeAreaLegacyEntity> containsLocalJusticeAreaTypes(List<String> ljaTypes) {
         List<LocalJusticeAreaType> parsedLjaTypes = ljaTypes.stream()
             .flatMap(LocalJusticeAreaSpecs::parseLocalJusticeAreaType)
             .toList();
 
-        return (root, query, builder) -> root.get(LocalJusticeAreaEntity_.ljaType).in(parsedLjaTypes);
+        return (root, query, builder) -> root.get(LocalJusticeAreaLegacyEntity_.ljaType).in(parsedLjaTypes);
     }
 
     private static Stream<LocalJusticeAreaType> parseLocalJusticeAreaType(String ljaType) {
