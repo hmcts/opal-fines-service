@@ -4,6 +4,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.args;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.withAuth;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.withAuthAndJson;
 
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;

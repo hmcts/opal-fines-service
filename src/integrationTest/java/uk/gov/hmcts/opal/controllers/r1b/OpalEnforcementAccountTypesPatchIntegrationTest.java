@@ -14,7 +14,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.LowHighValue;
 import uk.gov.hmcts.opal.entity.enforcement.AccountType;
@@ -39,7 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     scripts = "classpath:db/deleteData/delete_from_enforcement_account_types.sql",
     executionPhase = ExecutionPhase.AFTER_TEST_METHOD
 )
-class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationWithSecurityTest {
+class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String URL_BASE = "/enforcement-accounts-types";
 
@@ -317,7 +317,7 @@ class OpalEnforcementAccountTypesPatchIntegrationTest extends AbstractIntegratio
             authoriseNoPermissions(); // Auto enforcement permission
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(expiredToken);
+            headers.setBearerAuth(userStateStub.getBearerToken());
 
             List<EnforcementAccountTypeCommon> body = List.of(
                 EnforcementAccountTypeCommon.builder()

@@ -25,7 +25,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import uk.gov.hmcts.opal.support.UserStateStub;
 
-@ActiveProfiles(profiles = {"integration-with-spring-security"}, inheritProfiles = false)
+@ActiveProfiles(profiles = {"integration", "integration-with-spring-security"}, inheritProfiles = false)
 @DisplayName("JWT Controller Integration Tests")
 public class AbstractIntegrationWithSecurityTest extends AbstractIntegrationTest {
 

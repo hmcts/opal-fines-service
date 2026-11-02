@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
-@Profile("!integration")
+@Profile({"!integration", "integration-with-spring-security"})
 public class SecurityConfig {
 
     private final CustomAuthenticationExceptions customAuthenticationExceptions;

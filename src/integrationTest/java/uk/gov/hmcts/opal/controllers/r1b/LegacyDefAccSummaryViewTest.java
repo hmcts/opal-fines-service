@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -28,7 +28,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @DisplayName("Defendant Account Summary View Legacy Integration Test")
 @Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyDefAccSummaryViewTest")
-public class LegacyDefAccSummaryViewTest extends AbstractIntegrationWithSecurityTest {
+public class LegacyDefAccSummaryViewTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANT_ACCOUNTS_SUMMARY_URL = "/defendant-accounts/{id}/header-summary";
 

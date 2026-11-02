@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.TestPropertySource;
-import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.DestinationType;
@@ -42,7 +42,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=true")
 @DisplayName("POST /tills integration tests")
 @Tag("ExtendedTest")
-class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
+class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
     @MockitoBean
     private PreAllocatedCashTillService preAllocatedCashTillService;
