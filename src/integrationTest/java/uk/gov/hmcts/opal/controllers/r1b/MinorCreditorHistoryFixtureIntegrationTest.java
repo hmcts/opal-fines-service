@@ -8,12 +8,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Objects;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -29,15 +30,15 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.MinorCreditorHistoryFixtureIntegrationTest")
 @DisplayName("MinorCreditorHistoryFixtureController Integration Test")
+@RequiredArgsConstructor
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class MinorCreditorHistoryFixtureIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/testing-support/minor-creditor-history";
 
-    @Autowired
-    private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
+    private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
 
-    @Autowired
-    private PartyRepository partyRepository;
+    private final PartyRepository partyRepository;
 
     @Test
     @JiraStory("PO-2642")

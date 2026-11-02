@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.sql.Types;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalTime;
 import lombok.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class MinorCreditorHistoryFixtureService {
 
     private static final short BUSINESS_UNIT_ID = 77;
-    private static final String CREDITOR_RECORD_TYPE = "creditor_accounts";
-    private static final String DEFENDANT_RECORD_TYPE = "defendant_accounts";
+    private static final SqlParameterValue CREDITOR_RECORD_TYPE =
+        new SqlParameterValue(Types.OTHER, "creditor_accounts");
+    private static final SqlParameterValue DEFENDANT_RECORD_TYPE =
+        new SqlParameterValue(Types.OTHER, "defendant_accounts");
 
     private final JdbcTemplate jdbcTemplate;
     private final Clock clock;
@@ -94,13 +98,13 @@ public class MinorCreditorHistoryFixtureService {
         );
 
         jdbcTemplate.update(
-            "DELETE FROM notes WHERE associated_record_type = ?::public.t_associated_record_type_enum "
+            "DELETE FROM notes WHERE associated_record_type = ? "
                 + "AND associated_record_id = ?",
             CREDITOR_RECORD_TYPE,
             String.valueOf(creditorAccountId)
         );
         jdbcTemplate.update(
-            "DELETE FROM amendments WHERE associated_record_type = ?::public.t_associated_record_type_enum "
+            "DELETE FROM amendments WHERE associated_record_type = ? "
                 + "AND associated_record_id = ?",
             CREDITOR_RECORD_TYPE,
             String.valueOf(creditorAccountId)
@@ -259,7 +263,7 @@ public class MinorCreditorHistoryFixtureService {
                   amended_date, amended_by, amended_by_name, field_code, old_value, new_value,
                   case_reference, function_code
                 )
-                VALUES (?, ?, ?::public.t_associated_record_type_enum, ?, ?, 'MCHAMD', 'Minor Creditor History',
+                VALUES (?, ?, ?, ?, ?, 'MCHAMD', 'Minor Creditor History',
                         ?, ?, ?, null, 'minor-creditor-history')
                 """,
             nextVal("amendment_id_seq"),
@@ -280,7 +284,7 @@ public class MinorCreditorHistoryFixtureService {
                   note_id, note_type, associated_record_type, associated_record_id,
                   note_text, posted_date, posted_by, posted_by_name
                 )
-                VALUES (?, 'AA', ?::public.t_associated_record_type_enum, ?, ?, ?, 'MCHNOTE',
+                VALUES (?, 'AA', ?, ?, ?, ?, 'MCHNOTE',
                         'Minor Creditor History')
                 """,
             nextVal("note_id_seq"),
@@ -306,7 +310,7 @@ public class MinorCreditorHistoryFixtureService {
                   payment_reference, status, status_date, associated_record_type, associated_record_id
                 )
                 VALUES (?, ?, ?, 'MCHFIN', 'Minor Creditor History', 'PAYMNT', ?, null, true,
-                        ?, 'C', ?, ?::public.t_associated_record_type_enum, ?)
+                        ?, 'C', ?, ?, ?)
                 """,
             nextVal("creditor_transaction_id_seq"),
             creditorAccountId,
