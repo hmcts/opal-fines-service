@@ -1,85 +1,310 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 
 class DefendantAccountPartyPdplLoggingServiceTest {
 
+    private static final OffsetDateTime NOW = OffsetDateTime.parse("2026-10-06T10:15:30Z");
+    private static final Clock CLOCK = Clock.fixed(NOW.toInstant(), ZoneOffset.UTC);
+
+    @Nested
+    class LogAddedParentGuardian {
+
+        @Test
+        void whenQueueAccepts_queuesExactPdpoDetails_happyPath() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+            when(userState.getUserId()).thenReturn(123L);
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+            boolean queued;
+            try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+                logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+                queued = service.logAddedParentGuardian("98765", userState);
+            }
+
+            PersonalDataProcessingLogDetails details = captureLogDetails(loggingService);
+            assertAll(
+                () -> assertThat(queued).isTrue(),
+                () -> assertThat(details.getBusinessIdentifier()).isEqualTo("Add Parent/Guardian"),
+                () -> assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.COLLECTION),
+                () -> assertCommonDetails(details)
+            );
+        }
+
+        @Test
+        void whenQueueRejects_returnsFalse_sadPath() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+            when(userState.getUserId()).thenReturn(123L);
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+            boolean queued;
+            try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+                logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+                queued = service.logAddedParentGuardian("98765", userState);
+            }
+
+            assertThat(queued).isFalse();
+            verify(loggingService).personalDataAccessLogAsync(any());
+        }
+    }
+
+    @Nested
+    class LogRemovedParentGuardian {
+
+        @Test
+        void whenQueueAccepts_queuesExactPdpoDetails_happyPath() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+            when(userState.getUserId()).thenReturn(123L);
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+            try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+                logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+                service.logRemovedParentGuardian(999L, requestWithPartyId(), successfulResponse(), userState);
+            }
+
+            PersonalDataProcessingLogDetails details = captureLogDetails(loggingService);
+            assertAll(
+                () -> assertThat(details.getBusinessIdentifier()).isEqualTo("Remove Parent/Guardian"),
+                () -> assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.ERASURE),
+                () -> assertCommonDetails(details)
+            );
+        }
+
+        @Test
+        void whenQueueRejects_throwsPdplLoggingException_sadPath() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+            when(userState.getUserId()).thenReturn(123L);
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+            PdplLoggingException exception = assertThrows(PdplLoggingException.class,
+                () -> service.logRemovedParentGuardian(
+                    999L, requestWithPartyId(), successfulResponse(), userState));
+
+            assertAll(
+                () -> assertThat(exception.getMessage())
+                    .isEqualTo("Unable to queue PDPO log for removed Parent/Guardian"),
+                () -> verify(loggingService).personalDataAccessLogAsync(any())
+            );
+        }
+
+        @Test
+        void whenRemovalFails_doesNotQueuePdpoLog() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+
+            service.logRemovedParentGuardian(
+                999L, requestWithPartyId(), new RemoveDefendantAccountPartyResponseDefendantAccount(), userState);
+
+            verifyNoInteractions(loggingService, userState);
+        }
+
+        @Test
+        void whenRequestHasNoPartyDetails_usesPathPartyIdentifier() {
+            LoggingService loggingService = mock(LoggingService.class);
+            UserState userState = mock(UserState.class);
+            DefendantAccountPartyPdplLoggingService service =
+                new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
+            when(userState.getUserId()).thenReturn(123L);
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+            RemoveDefendantAccountPartyRequestDefendantAccount request =
+                RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+                    .defendantAccountPartyId("legacy-party-reference")
+                    .build();
+
+            service.logRemovedParentGuardian(98765L, request, successfulResponse(), userState);
+
+            assertThat(captureLogDetails(loggingService).getIndividuals().getFirst().getIdentifier())
+                .isEqualTo("98765");
+        }
+    }
+
+    private PersonalDataProcessingLogDetails captureLogDetails(LoggingService loggingService) {
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        return captor.getValue();
+    }
+
+    private void assertCommonDetails(PersonalDataProcessingLogDetails details) {
+        assertAll(
+            () -> assertThat(details.getCreatedBy().getIdentifier()).isEqualTo("123"),
+            () -> assertThat(details.getCreatedBy().getType()).isEqualTo(PdplIdentifierType.OPAL_USER_ID),
+            () -> assertThat(details.getIndividuals()).hasSize(1),
+            () -> assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765"),
+            () -> assertThat(details.getIndividuals().getFirst().getType())
+                .isEqualTo(PdplIdentifierType.PARENT_GUARDIAN),
+            () -> assertThat(details.getIpAddress()).isEqualTo("192.0.2.1"),
+            () -> assertThat(details.getCreatedAt()).isEqualTo(NOW),
+            () -> assertThat(details.getRecipient()).isNull()
+        );
+    }
+
+    private RemoveDefendantAccountPartyRequestDefendantAccount requestWithPartyId() {
+        return RemoveDefendantAccountPartyRequestDefendantAccount.builder()
+            .partyDetails(RemoveDefendantAccountPartyDetailsCommonStrict.builder()
+                .partyId("98765")
+                .build())
+            .build();
+    }
+
+    private RemoveDefendantAccountPartyResponseDefendantAccount successfulResponse() {
+        return RemoveDefendantAccountPartyResponseDefendantAccount.builder()
+            .defendantAccountPartyId("999")
+            .build();
+    }
+
     @Test
-    void logAddedParentGuardian_queuesExactPdpoDetails() {
-        // Arrange
+    void logViewedDefendant_queuesExactPdpoDetails() {
+        //Arrange
         LoggingService loggingService = mock(LoggingService.class);
         UserState userState = mock(UserState.class);
-        OffsetDateTime now = OffsetDateTime.parse("2026-10-06T10:15:30Z");
-        Clock clock = Clock.fixed(now.toInstant(), ZoneOffset.UTC);
-        DefendantAccountPartyPdplLoggingService service =
-            new DefendantAccountPartyPdplLoggingService(loggingService, clock);
+        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
+            loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
         when(userState.getUserId()).thenReturn(123L);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
 
-        // Act
-        boolean queued;
+        //Act
         try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
             logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
-            queued = service.logAddedParentGuardian("98765", userState);
+            service.logViewedDefendant("98765", userState);
         }
 
-        // Assert
+        //Assert
         ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
             ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
         verify(loggingService).personalDataAccessLogAsync(captor.capture());
         PersonalDataProcessingLogDetails details = captor.getValue();
-
-        assertThat(queued).isTrue();
-        assertThat(details.getBusinessIdentifier()).isEqualTo("Add Parent/Guardian");
-        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.COLLECTION);
-        assertThat(details.getCreatedBy().getIdentifier()).isEqualTo("123");
-        assertThat(details.getCreatedBy().getType()).isEqualTo(PdplIdentifierType.OPAL_USER_ID);
-        assertThat(details.getIndividuals()).hasSize(1);
+        assertThat(details.getBusinessIdentifier()).isEqualTo("View Defendant");
+        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
         assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765");
-        assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.PARENT_GUARDIAN);
-        assertThat(details.getIpAddress()).isEqualTo("192.0.2.1");
-        assertThat(details.getCreatedAt()).isEqualTo(now);
-        assertThat(details.getRecipient()).isNull();
+        assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.DEFENDANT_ACCOUNT);
     }
 
     @Test
-    void logAddedParentGuardian_whenQueueRejects_returnsFalse() {
-        // Arrange
+    void logViewedParentGuardian_queuesExactPdpoDetails() {
+        //Arrange
         LoggingService loggingService = mock(LoggingService.class);
         UserState userState = mock(UserState.class);
-        Clock clock = Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC);
-        DefendantAccountPartyPdplLoggingService service =
-            new DefendantAccountPartyPdplLoggingService(loggingService, clock);
+        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
+            loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
+        when(userState.getUserId()).thenReturn(123L);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+
+        //Act
+        try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
+            logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
+            service.logViewedParentGuardian("98765", userState);
+        }
+
+        //Assert
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        PersonalDataProcessingLogDetails details = captor.getValue();
+        assertThat(details.getBusinessIdentifier()).isEqualTo("View Parent/Guardian");
+        assertThat(details.getCategory()).isEqualTo(PersonalDataProcessingCategory.CONSULTATION);
+        assertThat(details.getIndividuals().getFirst().getIdentifier()).isEqualTo("98765");
+        assertThat(details.getIndividuals().getFirst().getType()).isEqualTo(PdplIdentifierType.PARENT_GUARDIAN);
+    }
+
+    @Test
+    void logViewedDefendant_whenQueueRejects_throwsPdplLoggingException() {
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
+            loggingService, Clock.systemUTC());
         when(userState.getUserId()).thenReturn(123L);
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
 
-        // Act
-        boolean queued;
-        try (MockedStatic<LogUtil> logUtil = mockStatic(LogUtil.class)) {
-            logUtil.when(LogUtil::getIpAddress).thenReturn("192.0.2.1");
-            queued = service.logAddedParentGuardian("98765", userState);
-        }
+        PdplLoggingException exception = assertThrows(PdplLoggingException.class,
+            () -> service.logViewedDefendant("98765", userState));
 
-        // Assert
-        assertThat(queued).isFalse();
-        verify(loggingService).personalDataAccessLogAsync(any());
+        assertThat(exception).hasMessage("Unable to queue PDPO log for viewing a party");
+    }
+
+    @Test
+    void queuePdpoForViewedParty_whenPartyIsDefendant_logsViewedDefendant() {
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = spy(
+            new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
+        PartyResponseDefendantAccount response = responseWithParty(
+            "98765", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
+        doNothing().when(service).logViewedDefendant("98765", userState);
+
+        service.queuePdpoForViewedParty(response, userState);
+
+        verify(service).logViewedDefendant("98765", userState);
+    }
+
+    @Test
+    void queuePdpoForViewedParty_whenPartyIsParentGuardian_logsViewedParentGuardian() {
+        LoggingService loggingService = mock(LoggingService.class);
+        UserState userState = mock(UserState.class);
+        DefendantAccountPartyPdplLoggingService service = spy(
+            new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
+        PartyResponseDefendantAccount response = responseWithParty(
+            "98765", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
+        doNothing().when(service).logViewedParentGuardian("98765", userState);
+
+        service.queuePdpoForViewedParty(response, userState);
+
+        verify(service).logViewedParentGuardian("98765", userState);
+    }
+
+    private PartyResponseDefendantAccount responseWithParty(
+        String partyId, DefendantAccountParty.DefendantAccountPartyTypeEnum partyType) {
+
+        return PartyResponseDefendantAccount.builder()
+            .defendantAccountParty(DefendantAccountParty.builder()
+                .defendantAccountPartyType(partyType)
+                .partyDetails(PartyDetailsCommonStrict.builder().partyId(partyId).build())
+                .build())
+            .build();
     }
 }

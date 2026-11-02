@@ -1,0 +1,55 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  === Test setup ===
+NOTICE:  === Test 1: Insert and verify all fields ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === Test 2: Insert a one penny payment with required posting fields ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === Test 3: Reject a NULL creditor account ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3801 - Creditor account ID cannot be null
+NOTICE:  TEST 3 PASSED
+NOTICE:  === Test 4: Reject a NULL amount ===
+NOTICE:  Error in p_insert_creditor_transactions: P3802 - Imposition allocation amount must be greater than zero
+NOTICE:  TEST 4 PASSED
+NOTICE:  === Test 5: Reject a zero amount ===
+NOTICE:  Error in p_insert_creditor_transactions: P3802 - Imposition allocation amount must be greater than zero
+NOTICE:  TEST 5 PASSED
+NOTICE:  === Test 6: Reject a negative amount ===
+NOTICE:  Error in p_insert_creditor_transactions: P3802 - Imposition allocation amount must be greater than zero
+NOTICE:  TEST 6 PASSED
+NOTICE:  === Test 7: Reject a NULL result ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3803 - Result ID cannot be null or blank
+NOTICE:  TEST 7 PASSED
+NOTICE:  === Test 8: Reject an empty result ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3803 - Result ID cannot be null or blank
+NOTICE:  TEST 8 PASSED
+NOTICE:  === Test 9: Reject a blank result ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3803 - Result ID cannot be null or blank
+NOTICE:  TEST 9 PASSED
+NOTICE:  === Test 10: Reject a NULL transaction type ===
+NOTICE:  Error in p_insert_creditor_transactions: P3804 - Transaction type cannot be null
+NOTICE:  TEST 10 PASSED
+NOTICE:  === Test 11: Reject a NULL imposition ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3805 - Imposition ID cannot be null
+NOTICE:  TEST 11 PASSED
+NOTICE:  === Test 12: Reject an unknown creditor account ===
+NOTICE:  Error in p_insert_creditor_transactions: P3806 - Creditor account -3450 was not found
+NOTICE:  TEST 12 PASSED
+NOTICE:  === Test 13: Reject an unknown imposition ===
+NOTICE:  Error in p_insert_creditor_transactions: P3807 - Imposition -3450 was not found
+NOTICE:  TEST 13 PASSED
+NOTICE:  === Test 14: Reject an unknown result ID ===
+NOTICE:  Error in p_insert_creditor_transactions: P3808 - Result ID UT9999 was not found
+NOTICE:  TEST 14 PASSED
+NOTICE:  === Test 15: Reject a NULL posted by ===
+NOTICE:  Error in p_insert_creditor_transactions: P3809 - Posted by cannot be null or blank
+NOTICE:  TEST 15 PASSED
+NOTICE:  === Test 16: Reject a NULL posted by name ===
+NOTICE:  Error in p_insert_creditor_transactions: P3810 - Posted by name cannot be null or blank
+NOTICE:  TEST 16 PASSED
+NOTICE:  === Test 17: Reject a NULL payment reference ===
+NOTICE:  Error in p_insert_creditor_transactions: P3811 - Payment reference cannot be null or blank
+NOTICE:  TEST 17 PASSED
+NOTICE:  === Cleanup data after tests ===
+DO
+
+Query returned successfully in 57 msec.

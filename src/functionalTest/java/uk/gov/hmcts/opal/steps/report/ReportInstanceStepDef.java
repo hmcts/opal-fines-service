@@ -6,12 +6,6 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import uk.gov.hmcts.opal.context.ScenarioContextHolder;
-import uk.gov.hmcts.opal.steps.BaseStepDef;
-import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
-import uk.gov.hmcts.opal.utils.TestHttpClient;
-import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -19,16 +13,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.gov.hmcts.opal.context.ScenarioContextHolder;
+import uk.gov.hmcts.opal.steps.BaseStepDef;
+import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
+import uk.gov.hmcts.opal.utils.TestHttpClient;
+import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
-import static uk.gov.hmcts.opal.config.Constants.REPORT_INSTANCES_URI;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.hmcts.opal.config.Constants.REPORT_INSTANCES_URI;
 
 public class ReportInstanceStepDef extends BaseStepDef {
 
@@ -315,6 +313,28 @@ public class ReportInstanceStepDef extends BaseStepDef {
         log.info("Report instance request body: {}", requestBody);
         log.info("Report instance response status: {}", latestRawReportInstanceResponse.statusCode());
         log.info("Report instance response body: {}", latestRawReportInstanceResponse.body());
+        ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
+    }
+
+    @When("I create the operational payment report instance for business unit {int}")
+    public void createOperationalPaymentReportInstance(int businessUnitId) {
+        String requestBody = """
+            {
+              "business_unit_ids": [%d],
+              "report_id": "operational_report_payment",
+              "report_name": "test-template-name-test.doc",
+              "report_parameters": {
+                "businessUnitIds": [%d], "reportType": "SUMMARY", "isPaymentMade": true,
+                "reportMode": "SINCE_DATE", "sinceDate": "2026-01-01", "includeAdult": true,
+                "includeYouth": true, "includeCompany": true
+              }
+            }
+            """.formatted(businessUnitId, businessUnitId);
+
+        latestRawReportInstanceResponse = TestHttpClient.request(
+            "POST", getTestUrl() + REPORT_INSTANCES_URI,
+            Map.of("Accept", "*/*", "Content-Type", "application/json",
+                "Authorization", "Bearer " + BearerTokenStepDef.getToken()), requestBody);
         ScenarioContextHolder.current().setLatestHttpResponse(latestRawReportInstanceResponse);
     }
 

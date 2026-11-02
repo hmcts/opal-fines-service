@@ -38,9 +38,12 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
                 () -> client.getInterfaceFiles(
                     params.getSource(),
                     params.getTarget(),
+                    null,
                     params.getType(),
                     params.getDomain(),
                     params.getStatus(),
+                    null,
+                    null,
                     params.getFromDate(),
                     params.getToDate()
                 ).getBody()

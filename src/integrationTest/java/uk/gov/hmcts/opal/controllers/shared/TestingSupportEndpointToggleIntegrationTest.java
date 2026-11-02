@@ -23,7 +23,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
     static Stream<Arguments> testingSupportEndpoints() {
         return Stream.of(
-            // TestingSupportController
+            args("DELETE /testing-support/tills",
+                withAuth(delete("/testing-support/tills").queryParam("ids", "1"))),
             args("GET /testing-support/is-legacy-mode",
                 withAuth(get("/testing-support/is-legacy-mode"))),
             args("GET /testing-support/launchdarkly/bool/{featureKey}",

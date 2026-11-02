@@ -43,6 +43,9 @@ public class ReportEntity {
     @Column(name = "report_group", length = 50, nullable = false)
     private String reportGroup;
 
+    @Column(name = "template_name")
+    private String templateName;
+
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "supported_file_types", columnDefinition = "r_supported_file_type_enum[]")
     private List<SupportedFileType> supportedFileTypes;
