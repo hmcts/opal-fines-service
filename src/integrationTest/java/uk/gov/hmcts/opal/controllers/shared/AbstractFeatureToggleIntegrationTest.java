@@ -1,20 +1,16 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
 import org.junit.jupiter.params.provider.Arguments;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 
 /**
  * Base class for feature-toggle integration tests.
  * Provides shared constants and the withAuth() helper.
  * Each release gets its own subclass (Release1AFeatureToggleIntegrationTest, etc.).
  */
-public abstract class AbstractFeatureToggleIntegrationTest extends AbstractWebMvcIntegrationTest {
-
-    protected final Logger log = LoggerFactory.getLogger(getClass());
+public abstract class AbstractFeatureToggleIntegrationTest extends AbstractIntegrationTest {
 
     protected static final String AUTH_HEADER      = "authorization";
     protected static final String AUTH_VALUE       = "Bearer test";
