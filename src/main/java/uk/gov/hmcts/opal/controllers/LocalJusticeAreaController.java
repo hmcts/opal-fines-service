@@ -1,65 +1,42 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1A;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1A_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
-import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
-import uk.gov.hmcts.opal.dto.reference.LjaReferenceDataResults;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
-import uk.gov.hmcts.opal.util.FeatureFlags;
-
+import uk.gov.hmcts.opal.generated.http.api.LocalJusticeAreasApi;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeArea;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.generated.model.LocalJusticeAreasResponse;
+import uk.gov.hmcts.opal.service.proxy.LocalJusticeAreaServiceProxy;
 
 @RestController
-@RequestMapping("/local-justice-areas")
 @Slf4j(topic = "opal.LocalJusticeAreaController")
-@Tag(name = "LocalJusticeArea Controller")
-public class LocalJusticeAreaController {
+@RequiredArgsConstructor
+public class LocalJusticeAreaController implements LocalJusticeAreasApi {
 
-    private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final LocalJusticeAreaServiceProxy localJusticeAreaServiceProxy;
 
-    public LocalJusticeAreaController(LocalJusticeAreaService opalLocalJusticeAreaService) {
-        this.opalLocalJusticeAreaService = opalLocalJusticeAreaService;
-    }
-
-    @GetMapping(value = "/{localJusticeAreaId}")
-    @Operation(summary = "Returns the LocalJusticeArea for the given localJusticeAreaId.")
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
-        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<LocalJusticeAreaLegacyEntity> getLocalJusticeAreaById(
-        @PathVariable Short localJusticeAreaId) {
-
+    @Override
+    @FeatureToggle(feature = RELEASE_1A, defaultValueProperty = RELEASE_1A_ENABLED_PROPERTY)
+    public ResponseEntity<LocalJusticeArea> getLocalJusticeAreaById(Short localJusticeAreaId) {
         log.debug(":GET:getLocalJusticeAreaById: localJusticeAreaId: {}", localJusticeAreaId);
-
-        LocalJusticeAreaLegacyEntity response = opalLocalJusticeAreaService.getLocalJusticeAreaById(localJusticeAreaId);
-
-        return buildResponse(response);
+        return buildResponse(localJusticeAreaServiceProxy.getLocalJusticeAreaById(localJusticeAreaId));
     }
 
+    @Override
+    @FeatureToggle(feature = RELEASE_1A, defaultValueProperty = RELEASE_1A_ENABLED_PROPERTY)
+    public ResponseEntity<LocalJusticeAreasResponse> getLocalJusticeAreaRefData(
+        @Nullable String q, @Nullable List<LocalJusticeAreaType> ljaType) {
 
-
-    @GetMapping
-    @Operation(summary = "Returns Local Justice Area as reference data with an optional filter applied")
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
-        defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<LjaReferenceDataResults> getLocalJusticeAreaRefData(
-        @RequestParam("q") Optional<String> filter, @RequestParam("lja_type") Optional<List<String>> ljaType) {
-        log.debug(":GET:getLocalJusticeAreaRefData: filter: {}  ljaType: {}", filter, ljaType);
-
-        List<LjaReferenceData> refData = opalLocalJusticeAreaService.getReferenceData(filter, ljaType);
-
-        log.debug(":GET:getLocalJusticeAreaRefData: local justice area reference data count: {}", refData.size());
-        return ResponseEntity.ok(LjaReferenceDataResults.builder().refData(refData).build());
+        log.debug(":GET:getLocalJusticeAreaRefData: q: {} ljaType: {}", q, ljaType);
+        return buildResponse(localJusticeAreaServiceProxy.getLocalJusticeAreaRefData(q, ljaType));
     }
 }

@@ -42,7 +42,7 @@ import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
@@ -73,7 +73,7 @@ public class TestingSupportController {
     private final BusinessUnitService businessUnitService;
     private final OpalCreditorAccountService opalCreditorAccountService;
     private final DraftAccountService draftAccountService;
-    private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
     private final ReportInstanceDeletionService reportInstanceDeletionService;
     private final TestingSupportTillService testingSupportTillService;
 
@@ -281,7 +281,7 @@ public class TestingSupportController {
         @RequestBody LocalJusticeAreaSearchDto criteria) {
         log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
-        List<LocalJusticeAreaLegacyEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
+        List<LocalJusticeAreaLegacyEntity> response = legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
 
         return buildResponse(response);
     }
