@@ -13,6 +13,7 @@
 *
 **/
 
+DELETE FROM enforcers_legacy WHERE enforcer_id = 001;
 DELETE FROM enforcers WHERE enforcer_id = 001;
 
 DELETE FROM business_units WHERE business_unit_id = 10059;

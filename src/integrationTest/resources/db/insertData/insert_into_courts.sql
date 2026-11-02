@@ -26,7 +26,7 @@ VALUES
  'Fines',false
 );
 
-INSERT INTO courts
+INSERT INTO courts_legacy
 (
 court_id, business_unit_id, court_code, parent_court_id, name, name_cy
 , address_line_1, address_line_2, address_line_3
@@ -44,3 +44,7 @@ VALUES
 , 1013, 'MC', '01', NULL
 , NULL, NULL, NULL, NULL, NULL
 );
+
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 7
+ON CONFLICT (court_id) DO NOTHING;

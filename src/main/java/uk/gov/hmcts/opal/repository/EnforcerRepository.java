@@ -4,13 +4,14 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 
 @Repository
-public interface EnforcerRepository extends JpaRepository<EnforcerEntity, Long>,
-    JpaSpecificationExecutor<EnforcerEntity> {
+public interface EnforcerRepository extends JpaRepository<EnforcerLegacyEntity, Long>,
+    JpaSpecificationExecutor<EnforcerLegacyEntity> {
 
-    EnforcerEntity findByEnforcerId(Long enforcerId);
+    EnforcerLegacyEntity findByEnforcerId(Long enforcerId);
 
-    Optional<EnforcerEntity> findByEnforcerCodeAndBusinessUnit_businessUnitId(Short enforcerCode, Short businessUnitId);
+    Optional<EnforcerLegacyEntity> findByEnforcerCodeAndBusinessUnit_businessUnitId(
+        Short enforcerCode, Short businessUnitId);
 }

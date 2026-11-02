@@ -23,7 +23,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.repository.jpa.MajorCreditorSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -68,7 +68,8 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-6310")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
 
-        MajorCreditorEntity majorCreditor = entityManager.find(MajorCreditorEntity.class, MAJOR_CREDITOR_ID);
+        MajorCreditorLegacyEntity majorCreditor =
+            entityManager.find(MajorCreditorLegacyEntity.class, MAJOR_CREDITOR_ID);
 
         assertAll(
             () -> assertNotNull(majorCreditor),
@@ -81,9 +82,9 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6309")
     void shouldKeepAssociationsLazyForLiteEntityGraphFetch() {
-        EntityGraph<?> liteGraph = entityManager.getEntityGraph(MajorCreditorEntity.ENTITY_GRAPH_LITE);
-        MajorCreditorEntity majorCreditor = entityManager.find(
-            MajorCreditorEntity.class,
+        EntityGraph<?> liteGraph = entityManager.getEntityGraph(MajorCreditorLegacyEntity.ENTITY_GRAPH_LITE);
+        MajorCreditorLegacyEntity majorCreditor = entityManager.find(
+            MajorCreditorLegacyEntity.class,
             MAJOR_CREDITOR_ID,
             Map.of("jakarta.persistence.fetchgraph", liteGraph)
         );
@@ -100,7 +101,7 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6311")
     void shouldLoadFullEntityGraphForDirectFetch() {
-        MajorCreditorEntity majorCreditor = majorCreditorRepository.findById(MAJOR_CREDITOR_ID).orElseThrow();
+        MajorCreditorLegacyEntity majorCreditor = majorCreditorRepository.findById(MAJOR_CREDITOR_ID).orElseThrow();
 
         assertAll(
             () -> assertTrue(unitUtil.isLoaded(majorCreditor, "creditorAccountEntity")),
@@ -114,11 +115,11 @@ class MajorCreditorRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6308")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
-        Page<MajorCreditorEntity> page = majorCreditorRepository.findBy(
+        Page<MajorCreditorLegacyEntity> page = majorCreditorRepository.findBy(
             MajorCreditorSpecs.equalsMajorCreditorId(MAJOR_CREDITOR_ID),
             ffq -> ffq.page(Pageable.unpaged())
         );
-        MajorCreditorEntity majorCreditor = page.getContent().getFirst();
+        MajorCreditorLegacyEntity majorCreditor = page.getContent().getFirst();
 
         assertAll(
             () -> assertTrue(unitUtil.isLoaded(majorCreditor, "creditorAccountEntity")),

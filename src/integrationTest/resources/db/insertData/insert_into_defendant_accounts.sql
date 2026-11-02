@@ -23,7 +23,7 @@ SET search_path TO public;
 ALTER TABLE public.enforcers
   ADD COLUMN IF NOT EXISTS name varchar(255);
 
-ALTER TABLE public.local_justice_areas
+ALTER TABLE public.local_justice_areas_legacy
   ADD COLUMN IF NOT EXISTS name varchar(255);
 
 -- Ensure BU 78 exists for joins
@@ -44,20 +44,33 @@ ON CONFLICT (business_unit_id) DO UPDATE
 --   SET enforcement_override_result_name = EXCLUDED.enforcement_override_result_name;
 
 --  Enforcer referenced by enf_override_enforcer_id = 780000000021
-INSERT INTO enforcers (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
+INSERT INTO enforcers_legacy
+  (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
 VALUES (780000000021, 78, 21, 'North East Enforcement', NULL, NULL)
 ON CONFLICT (enforcer_id) DO UPDATE
   SET business_unit_id = EXCLUDED.business_unit_id,
       enforcer_code    = EXCLUDED.enforcer_code,
       name             = EXCLUDED.name;
 
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 780000000021
+ON CONFLICT (enforcer_id) DO UPDATE
+  SET business_unit_id = EXCLUDED.business_unit_id,
+      enforcer_code    = EXCLUDED.enforcer_code,
+      name             = EXCLUDED.name;
+
 --  Small-ID Enforcer for integration tests (fits in 32-bit int)
-INSERT INTO enforcers (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
+INSERT INTO enforcers_legacy
+  (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
 VALUES (21, 78, 21, 'North East Enforcement', NULL, NULL)
 ON CONFLICT (enforcer_id) DO NOTHING;
 
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 21
+ON CONFLICT (enforcer_id) DO NOTHING;
+
 -- Local Justice Area referenced by enf_override_tfo_lja_id = 240
-INSERT INTO local_justice_areas
+INSERT INTO local_justice_areas_legacy
   (local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date)
 VALUES
   (240, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', NULL, NULL, NULL)
@@ -66,21 +79,33 @@ ON CONFLICT (local_justice_area_id) DO UPDATE
       name     = EXCLUDED.name,
       address_line_1 = EXCLUDED.address_line_1;
 
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 240
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
 --  Enforcing court used by enforcing_court_id = 780000000185
-INSERT INTO courts (court_id, business_unit_id, court_code, name)
+INSERT INTO courts_legacy (court_id, business_unit_id, court_code, name)
 VALUES (780000000185, 78, 17, 'CH17')
 ON CONFLICT (court_id) DO UPDATE
   SET business_unit_id = EXCLUDED.business_unit_id,
       court_code       = EXCLUDED.court_code,
       name             = EXCLUDED.name;
 
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 780000000185
+ON CONFLICT (court_id) DO NOTHING;
+
 --  Small-ID court for integration tests (fits in 32-bit int)
-INSERT INTO courts (court_id, business_unit_id, court_code, name)
+INSERT INTO courts_legacy (court_id, business_unit_id, court_code, name)
 VALUES (100, 78, 100, 'Central Magistrates')
 ON CONFLICT (court_id) DO UPDATE
   SET business_unit_id = EXCLUDED.business_unit_id,
       court_code       = EXCLUDED.court_code,
       name             = EXCLUDED.name;
+
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 100
+ON CONFLICT (court_id) DO NOTHING;
 
 -- Basic setup for document template.
 INSERT INTO documents (document_id, recipient, document_language, priority)
@@ -1394,4 +1419,3 @@ VALUES (2007, 'N', NULL, 'Young', 'Casey', 'Mx',
 INSERT INTO defendant_account_parties
 (defendant_account_party_id, defendant_account_id, party_id, association_type, debtor)
 VALUES (2007, 2007, 2007, 'Defendant', 'Y');
-

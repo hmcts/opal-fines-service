@@ -47,6 +47,7 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountEnforcementLegacyResponse;
@@ -64,7 +65,6 @@ import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
@@ -362,7 +362,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
@@ -441,7 +442,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
 
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
@@ -515,7 +517,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountEnforcementService
@@ -563,7 +566,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
 
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
         when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         // Act
         EnforcementStatus response = legacyDefendantAccountEnforcementService
@@ -665,7 +669,8 @@ class LegacyDefendantAccountEnforcementServiceTest {
         )).thenReturn(responseBody);
         when(restClient.responseSpec.toEntity(String.class))
             .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
-        when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+        when(courtService.getCourtById(anyLong())).thenReturn(
+            CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         EnforcementStatus response = legacyDefendantAccountEnforcementService
             .getEnforcementStatus(66L);
@@ -814,7 +819,7 @@ class LegacyDefendantAccountEnforcementServiceTest {
             .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong()))
-            .thenReturn(CourtEntity.builder().courtCode((short) 123).build());
+            .thenReturn(CourtLegacyEntity.builder().courtCode((short) 123).build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);

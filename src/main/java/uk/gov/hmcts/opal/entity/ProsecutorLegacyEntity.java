@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @EqualsAndHashCode()
-@Table(name = "prosecutors")
+@Table(name = "prosecutors_legacy")
 @SuperBuilder
 @ToString(callSuper = true)
 @NoArgsConstructor
@@ -31,7 +31,7 @@ import java.time.LocalDateTime;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "prosecutor_id")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProsecutorEntity {
+public class ProsecutorLegacyEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

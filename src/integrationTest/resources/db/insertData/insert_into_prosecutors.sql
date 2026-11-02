@@ -15,7 +15,7 @@
 *
 **/
 
-INSERT INTO prosecutors
+INSERT INTO prosecutors_legacy
 (
 prosecutor_id, name, prosecutor_code
 ,address_line_1, address_line_2, address_line_3
@@ -49,3 +49,6 @@ NULL, NULL, 'PR06 0PR',
 NULL
 );
 
+INSERT INTO prosecutors
+SELECT * FROM prosecutors_legacy WHERE prosecutor_id IN (1111, 2222, 3333, 9990)
+ON CONFLICT (prosecutor_id) DO NOTHING;
