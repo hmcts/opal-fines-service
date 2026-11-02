@@ -9,25 +9,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
-import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
-import uk.gov.hmcts.opal.controllers.DefendantAccountApiController;
-import uk.gov.hmcts.opal.controllers.FeatureToggleWebMvcTestConfiguration;
-import uk.gov.hmcts.opal.mapper.history.DefendantAccountHistoryResponseMapper;
-import uk.gov.hmcts.opal.mapper.request.ReplacePartyRequestMapper;
-import uk.gov.hmcts.opal.service.DefendantAccountEnforcementService;
-import uk.gov.hmcts.opal.service.DefendantAccountFixedPenaltyService;
-import uk.gov.hmcts.opal.service.DefendantAccountPartyService;
-import uk.gov.hmcts.opal.service.DefendantAccountPaymentTermsService;
-import uk.gov.hmcts.opal.service.ImpositionService;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.service.DefendantAccountService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -41,23 +27,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 })
 @DisplayName("Defendant account search release-1b disabled Integration Test")
 @Tag("ExtendedTest")
-@WebMvcTest(controllers = DefendantAccountApiController.class,
-    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class))
-@Import({FeatureToggleWebMvcTestConfiguration.class, DefendantAccountApiController.class})
-class DefendantSearchR1bDisabledTest extends AbstractWebMvcIntegrationTest {
+class DefendantSearchR1bDisabledTest extends AbstractIntegrationTest {
 
     private static final String DEFENDANTS_SEARCH_URL = "/defendant-accounts/search";
 
     @MockitoBean
     private DefendantAccountService defendantAccountService;
-
-    @MockitoBean private DefendantAccountEnforcementService defendantAccountEnforcementService;
-    @MockitoBean private DefendantAccountHistoryResponseMapper defendantAccountHistoryResponseMapper;
-    @MockitoBean private ImpositionService impositionService;
-    @MockitoBean private DefendantAccountPartyService defendantAccountPartyService;
-    @MockitoBean private DefendantAccountFixedPenaltyService defendantAccountFixedPenaltyService;
-    @MockitoBean private DefendantAccountPaymentTermsService defendantAccountPaymentTermsService;
-    @MockitoBean private ReplacePartyRequestMapper replacePartyRequestMapper;
 
     @Test
     @DisplayName("POST /defendant-accounts/search is unavailable when release-1b is disabled")
@@ -66,7 +41,8 @@ class DefendantSearchR1bDisabledTest extends AbstractWebMvcIntegrationTest {
     @JiraTestKey("PO-7572")
     void postDefendantAccountsSearch_returnsFeatureDisabledWhenRelease1bDisabled() throws Exception {
         mockMvc.perform(post(DEFENDANTS_SEARCH_URL)
-                .header("authorization", "Bearer test")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(searchCriteria(true)))
             .andExpect(status().isNotFound())

@@ -8,54 +8,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.ComponentScan.Filter;
-import org.springframework.context.annotation.FilterType;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
-import uk.gov.hmcts.opal.controllers.AbstractWebMvcIntegrationTest;
-import uk.gov.hmcts.opal.controllers.FeatureToggleWebMvcTestConfiguration;
-import uk.gov.hmcts.opal.controllers.till.TillsApiController;
-import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
-import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
-import uk.gov.hmcts.opal.service.opal.till.TillAllocationService;
-import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
-import uk.gov.hmcts.opal.service.opal.till.TillsService;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=false")
 @DisplayName("Tills Feature Toggle Integration Tests")
-@WebMvcTest(controllers = TillsApiController.class,
-    excludeFilters = @Filter(type = FilterType.ASSIGNABLE_TYPE, classes = CommonGlobalExceptionHandler.class))
-@Import({FeatureToggleWebMvcTestConfiguration.class, TillsApiController.class})
-class TillsFeatureToggleDisabledIntegrationTest extends AbstractWebMvcIntegrationTest {
-
-    @MockitoBean
-    private DynamicConfigService dynamicConfigService;
-
-    @MockitoBean
-    private TillSearchService tillSearchService;
-
-    @MockitoBean
-    private TillsService tillsService;
-
-    @MockitoBean
-    private CreateTillService createTillService;
-
-    @MockitoBean
-    private TillAllocationService tillAllocationService;
+class TillsFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @JiraStory("PO-3423")
     @JiraEpic("PO-2116")
     void rejectsAllocationWhenDisabled() throws Exception {
-        mockMvc.perform(post("/tills/allocate")
+        mockMvc.perform(post("/tills/allocate").with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"tills\":[{\"till_id\":1,\"business_unit_id\":78}]}"))
             .andExpect(status().isNotFound())
