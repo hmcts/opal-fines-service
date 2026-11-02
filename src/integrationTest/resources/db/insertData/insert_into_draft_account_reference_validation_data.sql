@@ -1,4 +1,4 @@
-INSERT INTO local_justice_areas (
+INSERT INTO local_justice_areas_legacy (
     local_justice_area_id,
     name,
     address_line_1,
@@ -52,7 +52,11 @@ VALUES
         NULL
     );
 
-INSERT INTO prosecutors (
+INSERT INTO local_justice_areas
+SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id IN (32001, 32002, 32003)
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
+INSERT INTO prosecutors_legacy (
     prosecutor_id,
     name,
     prosecutor_code,
@@ -76,3 +80,7 @@ VALUES (
     'VP1 1VP',
     NULL
 );
+
+INSERT INTO prosecutors
+SELECT * FROM prosecutors_legacy WHERE prosecutor_id = 32010
+ON CONFLICT (prosecutor_id) DO NOTHING;
