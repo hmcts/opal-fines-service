@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
@@ -122,11 +122,11 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(any(Long.class),
             any(String.class))).thenReturn(Optional.of(enforcementLite));
 
-        ResultEntity resultEntityLite = new ResultEntity();
-        resultEntityLite.setResultId(String.valueOf(55L));
-        resultEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
+        ResultLegacyEntity resultLegacyEntityLite = new ResultLegacyEntity();
+        resultLegacyEntityLite.setResultId(String.valueOf(55L));
+        resultLegacyEntityLite.setExtendTtpPreserveLastEnf(Boolean.FALSE);
 
-        when(resultService.getResultById("55")).thenReturn(resultEntityLite);
+        when(resultService.getResultById("55")).thenReturn(resultLegacyEntityLite);
 
         // Request DTO (minimal)
         AddPaymentTermsRequestDefendantAccount request = paymentTermsRequest();

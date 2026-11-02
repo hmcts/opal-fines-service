@@ -61,7 +61,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity_;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount_;
 
 @Component
@@ -290,11 +290,13 @@ public class DefendantAccountSpecs extends EntitySpecs<DefendantAccountEntity> {
     }
 
 
-    public static Join<DefendantAccountEntity, CourtEntity> joinEnforcingCourt(Root<DefendantAccountEntity> root) {
+    public static Join<DefendantAccountEntity, CourtLegacyEntity> joinEnforcingCourt(
+        Root<DefendantAccountEntity> root) {
+
         return root.join(DefendantAccountEntity_.enforcingCourt);
     }
 
-    public static Join<DefendantAccountEntity, CourtEntity> joinLastHearingCourt(
+    public static Join<DefendantAccountEntity, CourtLegacyEntity> joinLastHearingCourt(
         Root<DefendantAccountEntity> root) {
         return root.join(DefendantAccountEntity_.lastHearingCourt);
     }

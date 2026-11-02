@@ -114,12 +114,15 @@ WHERE party_id IN (
 DELETE FROM draft_accounts WHERE business_unit_id = 9999;
 
 -- Remove from enforcers referencing test BU
+DELETE FROM enforcers_legacy WHERE business_unit_id = 9999;
 DELETE FROM enforcers WHERE business_unit_id = 9999;
 
 -- Remove from prisons referencing test BU
+DELETE FROM prisons_legacy WHERE business_unit_id = 9999;
 DELETE FROM prisons WHERE business_unit_id = 9999;
 
 -- Remove from offences referencing test BU
+DELETE FROM offences_legacy WHERE business_unit_id = 9999;
 DELETE FROM offences WHERE business_unit_id = 9999;
 
 -- Remove from allocations referencing impositions of test creditor accounts
@@ -136,22 +139,25 @@ DELETE FROM impositions WHERE creditor_account_id IN (
 
 -- Remove from impositions referencing test courts as imposing_court_id
 DELETE FROM impositions WHERE imposing_court_id IN (
-    SELECT court_id FROM courts WHERE business_unit_id = 9999
+    SELECT court_id FROM courts_legacy WHERE business_unit_id = 9999
 );
 
 -- Remove from creditor_accounts referencing test BU
 DELETE FROM creditor_accounts WHERE business_unit_id = 9999;
 
 -- Remove from courts referencing test BU
+DELETE FROM courts_legacy WHERE business_unit_id = 9999;
 DELETE FROM courts WHERE business_unit_id = 9999;
 
 -- Remove test results if present (fix test count mismatches)
 DELETE FROM result_documents WHERE result_id IN ('TTPAY');
 
 -- Remove test results if present (fix test count mismatches)
+DELETE FROM results_legacy WHERE result_id IN ('TSTRES');
 DELETE FROM results WHERE result_id IN ('TSTRES');
 
 -- Remove from major_creditors referencing test BU
+DELETE FROM major_creditors_legacy WHERE business_unit_id = 9999;
 DELETE FROM major_creditors WHERE business_unit_id = 9999;
 
 -- Remove the test business unit
@@ -168,15 +174,22 @@ DELETE FROM business_units WHERE business_unit_id = 9999;
 -- WHERE enforcement_override_result_id IN ('FWEC');
 
 -- Remove test Local Justice Area used by ITs
+DELETE FROM local_justice_areas_legacy
+WHERE local_justice_area_id IN (240);
 DELETE FROM local_justice_areas
 WHERE local_justice_area_id IN (240);
 
 -- Remove test Enforcers used by ITs
+DELETE FROM enforcers_legacy
+WHERE enforcer_id IN (780000000021, 21)
+   OR (business_unit_id = 78 AND (enforcer_code = 21 OR name = 'North East Enforcement'));
 DELETE FROM enforcers
 WHERE enforcer_id IN (780000000021, 21)
    OR (business_unit_id = 78 AND (enforcer_code = 21 OR name = 'North East Enforcement'));
 
 -- Remove test Courts used by ITs
+DELETE FROM courts_legacy
+WHERE court_id IN (780000000185, 100);
 DELETE FROM courts
 WHERE court_id IN (780000000185, 100);
 

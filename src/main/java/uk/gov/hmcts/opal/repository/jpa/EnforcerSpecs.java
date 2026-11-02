@@ -4,17 +4,17 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity_;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.EnforcerEntity_;
 
 import java.util.Optional;
 
 import static uk.gov.hmcts.opal.repository.jpa.BusinessUnitSpecs.equalsBusinessUnitIdPredicate;
 
-public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
+public class EnforcerSpecs extends AddressCySpecs<EnforcerLegacyEntity> {
 
-    public Specification<EnforcerEntity> findBySearchCriteria(EnforcerSearchDto criteria) {
+    public Specification<EnforcerLegacyEntity> findBySearchCriteria(EnforcerSearchDto criteria) {
         return Specification.allOf(specificationList(
             findByAddressCyCriteria(criteria),
             notBlank(criteria.getEnforcerId()).map(EnforcerSpecs::equalsEnforcerId),
@@ -24,43 +24,43 @@ public class EnforcerSpecs extends AddressCySpecs<EnforcerEntity> {
         ));
     }
 
-    public Specification<EnforcerEntity> referenceDataFilter(Optional<String> filter) {
+    public Specification<EnforcerLegacyEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyEnforcer)
         ));
     }
 
-    public static Specification<EnforcerEntity> equalsEnforcerId(String enforcerId) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.enforcerId), enforcerId);
+    public static Specification<EnforcerLegacyEntity> equalsEnforcerId(String enforcerId) {
+        return (root, query, builder) -> builder.equal(root.get(EnforcerLegacyEntity_.enforcerId), enforcerId);
     }
 
-    public static Specification<EnforcerEntity> equalsBusinessUnitId(Short businessUnitId) {
+    public static Specification<EnforcerLegacyEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
             equalsBusinessUnitIdPredicate(joinBusinessUnit(root), builder, businessUnitId);
     }
 
-    public static Specification<EnforcerEntity> equalsEnforcerCode(String enforcerCode) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.enforcerCode), enforcerCode);
+    public static Specification<EnforcerLegacyEntity> equalsEnforcerCode(String enforcerCode) {
+        return (root, query, builder) -> builder.equal(root.get(EnforcerLegacyEntity_.enforcerCode), enforcerCode);
     }
 
-    public static Specification<EnforcerEntity> equalsWarrantReferenceSequence(String warrantReferenceSequence) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.warrantReferenceSequence),
+    public static Specification<EnforcerLegacyEntity> equalsWarrantReferenceSequence(String warrantReferenceSequence) {
+        return (root, query, builder) -> builder.equal(root.get(EnforcerLegacyEntity_.warrantReferenceSequence),
                                                        warrantReferenceSequence);
     }
 
-    public static Specification<EnforcerEntity> equalsWarrantRegisterSequence(String warrantRegisterSequence) {
-        return (root, query, builder) -> builder.equal(root.get(EnforcerEntity_.warrantRegisterSequence),
+    public static Specification<EnforcerLegacyEntity> equalsWarrantRegisterSequence(String warrantRegisterSequence) {
+        return (root, query, builder) -> builder.equal(root.get(EnforcerLegacyEntity_.warrantRegisterSequence),
                                                        warrantRegisterSequence);
     }
 
-    public Specification<EnforcerEntity> likeAnyEnforcer(String filter) {
+    public Specification<EnforcerLegacyEntity> likeAnyEnforcer(String filter) {
         return Specification.anyOf(
             likeName(filter),
             likeNameCy(filter)
         );
     }
 
-    public static Join<EnforcerEntity, BusinessUnitEntity> joinBusinessUnit(From<?, EnforcerEntity> from) {
-        return from.join(EnforcerEntity_.businessUnit);
+    public static Join<EnforcerLegacyEntity, BusinessUnitEntity> joinBusinessUnit(From<?, EnforcerLegacyEntity> from) {
+        return from.join(EnforcerLegacyEntity_.businessUnit);
     }
 }

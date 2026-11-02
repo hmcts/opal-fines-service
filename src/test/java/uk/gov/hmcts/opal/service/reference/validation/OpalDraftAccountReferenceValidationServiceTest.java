@@ -18,12 +18,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
@@ -378,7 +378,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private void stubResult(String resultId, ImpositionCreditor impositionCreditor) {
         when(resultRepository.findById(resultId)).thenReturn(
             Optional.of(
-                ResultEntity.builder()
+                ResultLegacyEntity.builder()
                     .resultId(resultId)
                     .active(true)
                     .imposition(true)
@@ -392,7 +392,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsNotAnEnforcement_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultLegacyEntity.builder()
             .resultId("COLLO")
             .enforcement(false)
             .active(true)
@@ -413,7 +413,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsInactive_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultLegacyEntity.builder()
             .resultId("COLLO")
             .enforcement(true)
             .active(false)
@@ -767,32 +767,32 @@ class OpalDraftAccountReferenceValidationServiceTest {
             """.formatted(resultId, majorCreditorValue, minorCreditorValue);
     }
 
-    private static ResultEntity activeImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultLegacyEntity activeImpositionResult(String resultId) {
+        return ResultLegacyEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(true)
             .build();
     }
 
-    private static ResultEntity activeNonImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultLegacyEntity activeNonImpositionResult(String resultId) {
+        return ResultLegacyEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(false)
             .build();
     }
 
-    private static ResultEntity inactiveImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultLegacyEntity inactiveImpositionResult(String resultId) {
+        return ResultLegacyEntity.builder()
             .resultId(resultId)
             .active(false)
             .imposition(true)
             .build();
     }
 
-    private static ResultEntity activeEnforcementResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultLegacyEntity activeEnforcementResult(String resultId) {
+        return ResultLegacyEntity.builder()
             .resultId(resultId)
             .active(true)
             .enforcement(true)
@@ -820,16 +820,16 @@ class OpalDraftAccountReferenceValidationServiceTest {
             """.formatted(accountType, originatorType, originatorId, originatorName);
     }
 
-    private static LocalJusticeAreaEntity localJusticeArea(Short id, String name, LocalJusticeAreaType type) {
-        return LocalJusticeAreaEntity.builder()
+    private static LocalJusticeAreaLegacyEntity localJusticeArea(Short id, String name, LocalJusticeAreaType type) {
+        return LocalJusticeAreaLegacyEntity.builder()
             .localJusticeAreaId(id)
             .name(name)
             .ljaType(type)
             .build();
     }
 
-    private static ProsecutorEntity prosecutor(Long id, String name) {
-        return ProsecutorEntity.builder()
+    private static ProsecutorLegacyEntity prosecutor(Long id, String name) {
+        return ProsecutorLegacyEntity.builder()
             .prosecutorId(id)
             .name(name)
             .build();

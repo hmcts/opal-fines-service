@@ -10,7 +10,7 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -40,12 +40,12 @@ class CourtControllerTest {
     @Test
     void testGetCourt_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
+        CourtLegacyEntity entity = CourtLegacyEntity.builder().build();
 
         when(courtService.getCourtById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<CourtEntity> response = courtController.getCourtById(1L);
+        ResponseEntity<CourtLegacyEntity> response = courtController.getCourtById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -56,20 +56,20 @@ class CourtControllerTest {
     @Test
     void testSearchCourts_Success() {
         // Arrange
-        CourtEntity entity = CourtEntity.builder().build();
-        List<CourtEntity> courtList = List.of(entity);
+        CourtLegacyEntity entity = CourtLegacyEntity.builder().build();
+        List<CourtLegacyEntity> courtList = List.of(entity);
 
         when(courtService.searchCourts(any())).thenReturn(courtList);
 
         // Act
         CourtSearchDto searchDto = CourtSearchDto.builder().build();
-        ResponseEntity<SearchDataResponse<CourtEntity>> response =
+        ResponseEntity<SearchDataResponse<CourtLegacyEntity>> response =
             courtController.postCourtsSearch(searchDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        SearchDataResponse<CourtEntity> responseBody = response.getBody();
+        SearchDataResponse<CourtLegacyEntity> responseBody = response.getBody();
         assertNotNull(responseBody);
         assertEquals(1, responseBody.getCount());
         assertEquals(courtList, responseBody.getSearchData());
