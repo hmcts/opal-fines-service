@@ -205,7 +205,7 @@ opal:
 
   publish-draft-accounts:
     service-bus:
-      queue-name: ${SERVICEBUS_PUBLISH_DRAFT_ACCOUNT_QUEUE_NAME:draft-account-publish}
+      queue-name: ${SERVICEBUS_PUBLISH_DRAFT_ACCOUNT_QUEUE_NAME:publish-draft-account-queue}
 
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
