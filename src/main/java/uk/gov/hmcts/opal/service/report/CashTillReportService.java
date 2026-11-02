@@ -69,7 +69,7 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
 
     private byte[] convertReportDataToPdf(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
         validateReportData(reportData);
-        return pdfGenerationService.generatePdf("", reportData);
+        return pdfGenerationService.generatePdf(reportInstance.getTemplateName(), reportData);
     }
 
     private static Specification<PaymentInEntity> paymentSearch(CashTillReportParameters parameters, long tillId) {
