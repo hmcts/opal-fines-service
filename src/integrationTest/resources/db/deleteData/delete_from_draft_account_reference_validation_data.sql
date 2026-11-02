@@ -1,3 +1,5 @@
+DELETE FROM prosecutors_legacy
+WHERE prosecutor_id IN (32010);
 DELETE FROM prosecutors
 WHERE prosecutor_code IN ('9210');
 DELETE FROM prosecutors_legacy
