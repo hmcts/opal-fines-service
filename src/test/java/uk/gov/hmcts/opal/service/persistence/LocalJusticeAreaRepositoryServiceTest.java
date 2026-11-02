@@ -11,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,12 +27,12 @@ class LocalJusticeAreaRepositoryServiceTest {
     void shouldReturnLocalJusticeAreaWhenIdExists() {
         // given
         short id = 10;
-        LocalJusticeAreaEntity entity = mock(LocalJusticeAreaEntity.class);
+        LocalJusticeAreaLegacyEntity entity = mock(LocalJusticeAreaLegacyEntity.class);
 
         when(localJusticeAreaRepository.findById(id)).thenReturn(Optional.of(entity));
 
         // when
-        Optional<LocalJusticeAreaEntity> result = service.getLjaById(id);
+        Optional<LocalJusticeAreaLegacyEntity> result = service.getLjaById(id);
 
         // then
         assertThat(result).isPresent();
@@ -48,7 +48,7 @@ class LocalJusticeAreaRepositoryServiceTest {
         when(localJusticeAreaRepository.findById(id)).thenReturn(Optional.empty());
 
         // when
-        Optional<LocalJusticeAreaEntity> result = service.getLjaById(id);
+        Optional<LocalJusticeAreaLegacyEntity> result = service.getLjaById(id);
 
         // then
         assertThat(result).isEmpty();
