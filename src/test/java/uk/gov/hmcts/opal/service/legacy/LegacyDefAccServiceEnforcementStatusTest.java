@@ -62,7 +62,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
-        when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
+        when(ljaService.getLocalJusticeAreaEntityById(anyShort())).thenReturn(
             LocalJusticeAreaLegacyEntity.builder().ljaCode("6-7").build());
 
         when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultLegacyEntity.builder()
@@ -146,7 +146,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
-        when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
+        when(ljaService.getLocalJusticeAreaEntityById(anyShort())).thenReturn(
             LocalJusticeAreaLegacyEntity.builder().ljaCode("6-7").build());
 
         ResponseEntity<String> serverSuccessResponse =

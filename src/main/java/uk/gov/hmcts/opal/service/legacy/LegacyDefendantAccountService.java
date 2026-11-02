@@ -108,7 +108,6 @@ import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -140,7 +139,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
     private final CourtService courtService;
-    private final LocalJusticeAreaService ljaService;
+    private final LegacyLocalJusticeAreaService ljaService;
     private final HistoryItemOrderingService historyItemOrderingService;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
@@ -1027,7 +1026,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     }
 
     private void populateLjaCode(LjaReference ljaRef) {
-        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaById(ljaRef.getLjaId()).getLjaCode());
+        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaEntityById(ljaRef.getLjaId()).getLjaCode());
     }
 
     private String toWelshSpeaking(String welshSpeaking) {

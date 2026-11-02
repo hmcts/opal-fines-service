@@ -5,5 +5,7 @@ public enum LocalJusticeAreaType {
     CRWCRT,
     SJCRT,
     NICRT,
-    SCSCRT
+    SCSCRT,
+    YCT,
+    SCDCRT
 }
