@@ -18,6 +18,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +32,14 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
+import uk.gov.hmcts.opal.repository.TillRepository;
+import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
@@ -49,6 +58,9 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final long REPORT_INSTANCE_ID = 99000000343000L;
     private static final long TILL_ID = 99000000343100L;
+    private static final short BUSINESS_UNIT_ID = 1777;
+    private static final short OTHER_BUSINESS_UNIT_ID = 1778;
+    private static final int REQUEST_TILL_NUMBER = 17;
     private static final UUID CASH_LIST_JSON_LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000004");
 
     private final ReportQueueConsumerService reportQueueConsumerService;
@@ -56,6 +68,10 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
     private ReportQueueListener reportQueueListener;
 
     private final ReportInstanceRepository reportInstanceRepository;
+    private final TillRepository tillRepository;
+    private final BusinessUnitRepository businessUnitRepository;
+    private final CashListReportService cashListReportService;
+    private final GenericReportService genericReportService;
 
     @MockitoBean
     private ReportBlobStore blobStore;
@@ -77,6 +93,81 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
     @Sql(scripts = "classpath:db/deleteData/delete_from_cash_list_report_data.sql",
         executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
     class GenerateCashListSuccessCases {
+
+        @Test
+        @JiraStory("PO-3432")
+        @JiraEpic("PO-2116")
+        void generateReportData_selectsTillWithinBusinessUnit() {
+            // Arrange
+            TillEntity originalTill = tillRepository.findById(TILL_ID).orElseThrow();
+            BusinessUnitEntity otherUnit = businessUnitRepository.findById(OTHER_BUSINESS_UNIT_ID).orElseThrow();
+            final TillEntity otherTill = tillRepository.saveAndFlush(
+                TillEntity.builder()
+                    .businessUnit(otherUnit)
+                    .tillNumber(originalTill.getTillNumber())
+                    .ownedBy("OTHER")
+                    .createdDate(LocalDateTime.of(2026, 5, 27, 9, 0))
+                    .build());
+            String reportParameters = "{\"till_number\":" + originalTill.getTillNumber() + "}";
+            ReportInstanceEntity originalInstance = ReportInstanceEntity.builder()
+                .businessUnit(List.of(BUSINESS_UNIT_ID))
+                .reportParameters(reportParameters)
+                .build();
+            ReportInstanceEntity otherInstance = ReportInstanceEntity.builder()
+                .businessUnit(List.of(OTHER_BUSINESS_UNIT_ID))
+                .reportParameters(reportParameters)
+                .build();
+
+            // Act
+            CashListReportData originalReport = cashListReportService.generateReportData(originalInstance);
+            CashListReportData otherReport = cashListReportService.generateReportData(otherInstance);
+
+            // Assert
+            assertThat(originalReport.getTillDetails().getTillId()).isEqualTo(TILL_ID);
+            assertThat(originalReport.getEntries()).hasSize(2);
+            assertThat(otherReport.getTillDetails().getTillId()).isEqualTo(otherTill.getTillId());
+        }
+
+        @Test
+        @JiraStory("PO-3432")
+        @JiraEpic("PO-2116")
+        void addReportInstance_generatesCashListUsingTillNumber() {
+            // Arrange
+            TillEntity till = tillRepository.findById(TILL_ID).orElseThrow();
+            till.setTillNumber((short) REQUEST_TILL_NUMBER);
+            tillRepository.saveAndFlush(till);
+            when(blobStore.storeReport(any(InputStream.class))).thenReturn(CASH_LIST_JSON_LOCATION);
+
+            CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+                .reportId("cash_list")
+                .businessUnitIds(List.of(BUSINESS_UNIT_ID))
+                .reportParameters(Map.of("till_number", REQUEST_TILL_NUMBER))
+                .reportName("Cash List test")
+                .build();
+
+            // Act
+            CreateReportInstanceResponseReports response =
+                genericReportService.addReportInstance(request, 42L, "Opal User", false);
+
+            // Assert
+            ReportInstanceEntity saved = reportInstanceRepository.findById(response.getReportInstanceId())
+                .orElseThrow();
+            assertThat(saved.getGenerationStatus()).isEqualTo(READY);
+            assertThat(saved.getLocation()).isEqualTo(CASH_LIST_JSON_LOCATION);
+            assertThat(saved.getNoOfRecords()).isEqualTo((short) 2);
+            assertThat(objectMapper.readTree(saved.getReportParameters()))
+                .isEqualTo(objectMapper.valueToTree(Map.of("till_number", REQUEST_TILL_NUMBER)));
+
+            ArgumentCaptor<InputStream> jsonCaptor = ArgumentCaptor.forClass(InputStream.class);
+            verify(blobStore).storeReport(jsonCaptor.capture());
+            JsonNode storedContent = objectMapper.readTree(jsonCaptor.getValue());
+            CashListReportData reportData = objectMapper.treeToValue(
+                storedContent.path("reportData"), CashListReportData.class);
+
+            assertThat(reportData.getTillDetails().getTillId()).isEqualTo(TILL_ID);
+            assertThat(reportData.getTillDetails().getTillNumber()).isEqualTo((short) REQUEST_TILL_NUMBER);
+            assertThat(reportData.getTotal()).isEqualByComparingTo("165.50");
+        }
 
         @Test
         @JiraStory("PO-3435")

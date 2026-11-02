@@ -187,3 +187,6 @@ INSERT INTO report_instances (
     CAST('REQUESTED' AS ri_generation_status_enum),
     'opal-test'
 );
+
+INSERT INTO business_units (business_unit_id, business_unit_name, business_unit_code, business_unit_type)
+VALUES (1778, 'Other Cash List Unit', 'CLSO', 'Area');

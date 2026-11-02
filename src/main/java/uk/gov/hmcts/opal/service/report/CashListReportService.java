@@ -39,8 +39,10 @@ public class CashListReportService implements ReportInterface<CashListReportData
     @Override
     @Transactional(readOnly = true)
     public CashListReportData generateReportData(ReportInstanceEntity reportInstance) {
-        Long tillId = extractTillId(readCashListReportParameters(reportInstance).tillId());
-        TillEntity till = getTill(tillId);
+        CashListReportParameters parameters = readCashListReportParameters(reportInstance);
+        TillEntity till = parameters.tillNumber() == null
+            ? getTill(extractTillId(parameters.tillId())) : getTillByNumber(reportInstance, parameters.tillNumber());
+        Long tillId = till.getTillId();
         BusinessUnitEntity businessUnit = getBusinessUnit(till, tillId);
         List<PaymentInEntity> payments =
             paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(tillId);
@@ -61,6 +63,21 @@ public class CashListReportService implements ReportInterface<CashListReportData
                 List.of(FileType.CSV.name()));
         }
         throw new UnsupportedOperationException("CSV conversion is handled by ReportCSVService");
+    }
+
+    private TillEntity getTillByNumber(ReportInstanceEntity reportInstance, Short tillNumber) {
+        Short businessUnitId = getSingleBusinessUnitId(reportInstance);
+        return tillRepository.findByBusinessUnit_BusinessUnitIdAndTillNumber(businessUnitId, tillNumber)
+            .orElseThrow(() -> new EntityNotFoundException("Cash List report till not found for business unit "
+                + businessUnitId + " and till_number " + tillNumber));
+    }
+
+    private static Short getSingleBusinessUnitId(ReportInstanceEntity reportInstance) {
+        List<Short> businessUnits = reportInstance.getBusinessUnit();
+        if (businessUnits == null || businessUnits.size() != 1 || businessUnits.getFirst() == null) {
+            throw new IllegalArgumentException("Cash List report requires exactly one business unit");
+        }
+        return businessUnits.getFirst();
     }
 
     private static long extractTillId(String tillIdParameter) {
@@ -107,7 +124,8 @@ public class CashListReportService implements ReportInterface<CashListReportData
         }
     }
 
-    private record CashListReportParameters(@JsonProperty(TILL_ID) String tillId) {
+    private record CashListReportParameters(@JsonProperty(TILL_ID) String tillId,
+                                            @JsonProperty("till_number") Short tillNumber) {
 
     }
 }

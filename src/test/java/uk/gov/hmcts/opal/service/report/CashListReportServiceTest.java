@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
@@ -118,6 +120,52 @@ class CashListReportServiceTest {
             .isInstanceOf(EntityNotFoundException.class)
             .hasMessage("Cash List report business unit not found for till_id: " + TILL_ID);
         verify(cashListReportAssembler, never()).toReportData(any(), any(), any());
+    }
+
+    @Test
+    void resolvesTillNumberWithinBusinessUnit() {
+        ReportInstanceEntity instance = numberedInstance("17");
+        when(tillRepository.findByBusinessUnit_BusinessUnitIdAndTillNumber((short) 77, (short) 17))
+            .thenReturn(Optional.of(till));
+        when(paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(TILL_ID))
+            .thenReturn(List.of());
+        service.generateReportData(instance);
+        verify(paymentInRepository).findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(TILL_ID);
+        verify(cashListReportAssembler).toReportData(till, businessUnit, List.of());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"32768", "\"abc\""})
+    void rejectsUnparseableTillNumber(String number) {
+        assertThatThrownBy(() -> service.generateReportData(numberedInstance(number)))
+            .isInstanceOf(IllegalArgumentException.class);
+        verifyNoInteractions(tillRepository);
+    }
+
+    @Test
+    void requiresOneBusinessUnit() {
+        ReportInstanceEntity instance = numberedInstance("17");
+        instance.setBusinessUnit(List.of((short) 77, (short) 78));
+        assertThatThrownBy(() -> service.generateReportData(instance))
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("exactly one business unit");
+        instance.setBusinessUnit(null);
+        assertThatThrownBy(() -> service.generateReportData(instance))
+            .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("exactly one business unit");
+    }
+
+    @Test
+    void rejectsMissingTill() {
+        when(tillRepository.findByBusinessUnit_BusinessUnitIdAndTillNumber((short) 77, (short) 17))
+            .thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.generateReportData(numberedInstance("17")))
+            .isInstanceOf(EntityNotFoundException.class);
+        verifyNoInteractions(paymentInRepository);
+    }
+
+    private static ReportInstanceEntity numberedInstance(String number) {
+        ReportInstanceEntity instance = reportInstance("{\"till_number\":" + number + "}");
+        instance.setBusinessUnit(List.of((short) 77));
+        return instance;
     }
 
     @Test

@@ -20,6 +20,23 @@ springdoc:
   writer-with-order-by-keys: true
 
 spring:
+  jms:
+    servicebus:
+      enabled: false
+  cloud:
+    azure:
+      servicebus:
+        enabled: ${opal.tills.service-bus.consumer-enabled}
+        connection-string: ${opal.common.service-bus.connection-string}
+        entity-name: ${opal.tills.service-bus.queue-name}
+        entity-type: queue
+        processor:
+          session-enabled: true
+          receive-mode: peek-lock
+          auto-complete: false
+          prefetch-count: 0
+          max-concurrent-calls: 1
+          max-concurrent-sessions: 1
   config:
     import: "optional:configtree:/mnt/secrets/opal/"
   application:
@@ -186,6 +203,7 @@ opal:
   tills:
     service-bus:
       queue-name: ${SERVICEBUS_ALLOCATE_TILLS_QUEUE_NAME:allocate-tills}
+      consumer-enabled: ${ALLOCATE_TILLS_CONSUMER_ENABLED:true}
 
   interface-jobs:
     service-bus:
