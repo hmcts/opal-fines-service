@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.entity;
 
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.ConsolidatedAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
@@ -36,8 +36,8 @@ class DefendantAccountEntityTest {
         defendantAccount.setAccountBalance(BigDecimal.valueOf(1.1));
         defendantAccount.setAccountStatus(DefendantAccountStatus.LIVE);
         defendantAccount.setCompletedDate(now);
-        defendantAccount.setEnforcingCourt(CourtEntity.builder().build());
-        defendantAccount.setLastHearingCourt(CourtEntity.builder().build());
+        defendantAccount.setEnforcingCourt(CourtLegacyEntity.builder().build());
+        defendantAccount.setLastHearingCourt(CourtLegacyEntity.builder().build());
         defendantAccount.setLastHearingDate(now);
         defendantAccount.setLastMovementDate(now);
         defendantAccount.setLastEnforcement("123456");
@@ -79,8 +79,8 @@ class DefendantAccountEntityTest {
         assertEquals(new BigDecimal("1.1"), defendantAccount.getAccountBalance());
         assertEquals(DefendantAccountStatus.LIVE, defendantAccount.getAccountStatus());
         assertEquals(now, defendantAccount.getCompletedDate());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getEnforcingCourt());
-        assertEquals(CourtEntity.builder().build(), defendantAccount.getLastHearingCourt());
+        assertEquals(CourtLegacyEntity.builder().build(), defendantAccount.getEnforcingCourt());
+        assertEquals(CourtLegacyEntity.builder().build(), defendantAccount.getLastHearingCourt());
         assertEquals(now, defendantAccount.getLastHearingDate());
         assertEquals(now, defendantAccount.getLastMovementDate());
         assertEquals("123456", defendantAccount.getLastEnforcement());

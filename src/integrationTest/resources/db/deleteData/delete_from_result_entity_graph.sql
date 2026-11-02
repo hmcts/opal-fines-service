@@ -15,8 +15,12 @@
 
 DELETE FROM enforcements WHERE enforcement_id = 920001;
 DELETE FROM defendant_accounts WHERE defendant_account_id = 920002;
+DELETE FROM results_legacy WHERE result_id = 'RG9200';
 DELETE FROM results WHERE result_id = 'RG9200';
+DELETE FROM enforcers_legacy WHERE enforcer_id = 920003;
 DELETE FROM enforcers WHERE enforcer_id = 920003;
+DELETE FROM courts_legacy WHERE court_id = 920004;
+DELETE FROM local_justice_areas_legacy WHERE local_justice_area_id = 920;
 DELETE FROM courts WHERE court_id = 920004;
 DELETE FROM local_justice_areas WHERE local_justice_area_id = 920;
 DELETE FROM business_units WHERE business_unit_id = 920;

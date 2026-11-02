@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.SearchDataResponse;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -40,12 +40,12 @@ public class CourtController {
     @GetMapping(value = "/{courtId}")
     @Operation(summary = "Returns the court for the given courtId.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<CourtEntity> getCourtById(
+    public ResponseEntity<CourtLegacyEntity> getCourtById(
         @PathVariable Long courtId) {
 
         log.debug(":GET:getCourtById: courtId: {}", courtId);
 
-        CourtEntity response = courtService.getCourtById(courtId);
+        CourtLegacyEntity response = courtService.getCourtById(courtId);
 
         return buildResponse(response);
     }
@@ -53,14 +53,14 @@ public class CourtController {
     @PostMapping(value = "/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches courts based upon criteria in request body")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<SearchDataResponse<CourtEntity>> postCourtsSearch(
+    public ResponseEntity<SearchDataResponse<CourtLegacyEntity>> postCourtsSearch(
         @RequestBody CourtSearchDto criteria) {
 
         log.debug(":POST:postCourtsSearch: query: \n{}", criteria);
 
-        List<CourtEntity> results = courtService.searchCourts(criteria);
+        List<CourtLegacyEntity> results = courtService.searchCourts(criteria);
 
-        return ResponseEntity.ok(SearchDataResponse.<CourtEntity>builder()
+        return ResponseEntity.ok(SearchDataResponse.<CourtLegacyEntity>builder()
             .searchData(results)
             .build());
     }

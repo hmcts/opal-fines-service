@@ -18,7 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.dto.reference.LjaReferenceData;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
@@ -45,11 +45,11 @@ class LocalJusticeAreaServiceTest {
     void testGetLocalJusticeArea() {
         // Arrange
 
-        LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
-        when(localJusticeAreaRepository.findById(any())).thenReturn(Optional.of(localJusticeAreaEntity));
+        LocalJusticeAreaLegacyEntity localJusticeAreaLegacyEntity = LocalJusticeAreaLegacyEntity.builder().build();
+        when(localJusticeAreaRepository.findById(any())).thenReturn(Optional.of(localJusticeAreaLegacyEntity));
 
         // Act
-        LocalJusticeAreaEntity result = localJusticeAreaService.getLocalJusticeAreaById((short)1);
+        LocalJusticeAreaLegacyEntity result = localJusticeAreaService.getLocalJusticeAreaById((short)1);
 
         // Assert
         assertNotNull(result);
@@ -63,8 +63,8 @@ class LocalJusticeAreaServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        LocalJusticeAreaEntity localJusticeAreaEntity = LocalJusticeAreaEntity.builder().build();
-        Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJusticeAreaEntity),
+        LocalJusticeAreaLegacyEntity localJusticeAreaLegacyEntity = LocalJusticeAreaLegacyEntity.builder().build();
+        Page<LocalJusticeAreaLegacyEntity> mockPage = new PageImpl<>(List.of(localJusticeAreaLegacyEntity),
                                                                Pageable.unpaged(), 999L);
         when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -72,11 +72,11 @@ class LocalJusticeAreaServiceTest {
         });
 
         // Act
-        List<LocalJusticeAreaEntity> result = localJusticeAreaService
+        List<LocalJusticeAreaLegacyEntity> result = localJusticeAreaService
             .searchLocalJusticeAreas(LocalJusticeAreaSearchDto.builder().build());
 
         // Assert
-        assertEquals(List.of(localJusticeAreaEntity), result);
+        assertEquals(List.of(localJusticeAreaLegacyEntity), result);
 
     }
 
@@ -87,9 +87,9 @@ class LocalJusticeAreaServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        LocalJusticeAreaEntity localJAEntity = LocalJusticeAreaEntity.builder().build();
+        LocalJusticeAreaLegacyEntity localJAEntity = LocalJusticeAreaLegacyEntity.builder().build();
         LjaReferenceData ljaReferenceData = LjaReferenceData.builder().build();
-        Page<LocalJusticeAreaEntity> mockPage = new PageImpl<>(List.of(localJAEntity), Pageable.unpaged(), 999L);
+        Page<LocalJusticeAreaLegacyEntity> mockPage = new PageImpl<>(List.of(localJAEntity), Pageable.unpaged(), 999L);
         when(localJusticeAreaRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;

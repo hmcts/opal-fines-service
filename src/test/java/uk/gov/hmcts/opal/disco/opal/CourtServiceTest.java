@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.mapper.CourtMapper;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
@@ -42,11 +42,11 @@ class CourtServiceTest {
     @Test
     void testGetCourt() {
         // Arrange
-        CourtEntity courtEntity = CourtEntity.builder().build();
-        when(courtLiteRepository.findById(any())).thenReturn(Optional.of(courtEntity));
+        CourtLegacyEntity courtLegacyEntity = CourtLegacyEntity.builder().build();
+        when(courtLiteRepository.findById(any())).thenReturn(Optional.of(courtLegacyEntity));
 
         // Act
-        CourtEntity result = courtService.getCourtById(1);
+        CourtLegacyEntity result = courtService.getCourtById(1);
 
         // Assert
         assertNotNull(result);
@@ -59,18 +59,18 @@ class CourtServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        CourtEntity courtEntity = CourtEntity.builder().build();
-        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 999L);
+        CourtLegacyEntity courtLegacyEntity = CourtLegacyEntity.builder().build();
+        Page<CourtLegacyEntity> mockPage = new PageImpl<>(List.of(courtLegacyEntity), Pageable.unpaged(), 999L);
         when(courtLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<CourtEntity> result = courtService.searchCourts(CourtSearchDto.builder().build());
+        List<CourtLegacyEntity> result = courtService.searchCourts(CourtSearchDto.builder().build());
 
         // Assert
-        assertEquals(List.of(courtEntity), result);
+        assertEquals(List.of(courtLegacyEntity), result);
     }
 
     @SuppressWarnings("unchecked")
@@ -81,7 +81,7 @@ class CourtServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         // Create court entity with direct field values (no relationships)
-        CourtEntity courtEntity = CourtEntity.builder()
+        CourtLegacyEntity courtLegacyEntity = CourtLegacyEntity.builder()
             .courtId(1L)
             .businessUnitId((short) 73)
             .courtCode((short) 101)
@@ -92,7 +92,7 @@ class CourtServiceTest {
             .division("01")
             .build();
 
-        Page<CourtEntity> mockPage = new PageImpl<>(List.of(courtEntity), Pageable.unpaged(), 1L);
+        Page<CourtLegacyEntity> mockPage = new PageImpl<>(List.of(courtLegacyEntity), Pageable.unpaged(), 1L);
 
         // Create expected reference data
         CourtReferenceData refData = new CourtReferenceData(
@@ -107,12 +107,12 @@ class CourtServiceTest {
 
         // Set up mocks
         when(courtLiteRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
-            Function<SpecificationFluentQuery, Page<CourtEntity>> function = iom.getArgument(1);
+            Function<SpecificationFluentQuery, Page<CourtLegacyEntity>> function = iom.getArgument(1);
             return function.apply(sfq);
         }).thenReturn(mockPage);
 
         when(sfq.page(any())).thenReturn(mockPage);
-        when(courtMapper.toRefData(courtEntity)).thenReturn(refData);
+        when(courtMapper.toRefData(courtLegacyEntity)).thenReturn(refData);
 
         // Act
         List<CourtReferenceData> result = courtService.getReferenceData(Optional.empty(), Optional.empty());

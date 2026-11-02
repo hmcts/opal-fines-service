@@ -31,20 +31,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "results")
+@Table(name = "results_legacy")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@NamedEntityGraph(name = ResultEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(name = ResultLegacyEntity.ENTITY_GRAPH_LITE)
 @NamedEntityGraph(
-    name = ResultEntity.ENTITY_GRAPH_FULL,
+    name = ResultLegacyEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
         @NamedAttributeNode("enforcements"),
         @NamedAttributeNode("impositionCategory")
     }
 )
-public class ResultEntity {
+public class ResultLegacyEntity {
 
-    public static final String ENTITY_GRAPH_LITE = "ResultEntity.lite";
-    public static final String ENTITY_GRAPH_FULL = "ResultEntity.full";
+    public static final String ENTITY_GRAPH_LITE = "ResultLegacyEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "ResultLegacyEntity.full";
 
     @Id
     @Column(name = "result_id")

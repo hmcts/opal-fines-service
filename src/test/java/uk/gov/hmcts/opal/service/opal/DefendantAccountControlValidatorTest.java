@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -117,7 +117,7 @@ class DefendantAccountControlValidatorTest {
     @Test
     void isProtectedUpdate_returnsFalseWhenProtectedFieldIsUnchanged() {
         DefendantAccountEntity account = DefendantAccountEntity.builder()
-            .enforcingCourt(CourtEntity.builder().courtId(100L).build())
+            .enforcingCourt(CourtLegacyEntity.builder().courtId(100L).build())
             .collectionOrder(true)
             .collectionOrderEffectiveDate(LocalDate.of(2025, Month.JANUARY, 1))
             .build();

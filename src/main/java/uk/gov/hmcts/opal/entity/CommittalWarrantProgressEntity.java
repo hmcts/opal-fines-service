@@ -59,6 +59,6 @@ public class CommittalWarrantProgressEntity {
 
     @ManyToOne
     @JoinColumn(name = "prison_id")
-    private PrisonEntity prison;
+    private PrisonLegacyEntity prison;
 
 }

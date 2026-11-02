@@ -67,7 +67,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon.AccountStatusCodeEnum;
@@ -1047,7 +1047,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private String retrieveEnforcementNextPermittedActions(LegacyGetDefendantAccountEnforcementStatusResponse status) {
         return getEnforcementActionResultId(status)
             .flatMap(resultRepository::findById)
-            .map(ResultEntity::getEnfNextPermittedActions)
+            .map(ResultLegacyEntity::getEnfNextPermittedActions)
             .orElse(null);
     }
 

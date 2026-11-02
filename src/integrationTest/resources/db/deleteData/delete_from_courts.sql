@@ -13,6 +13,7 @@
 *
 **/
 
+DELETE FROM courts_legacy WHERE court_id = 000000000007;
 DELETE FROM courts WHERE court_id = 000000000007;
 
 DELETE FROM business_units WHERE business_unit_id = 991;

@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor.Specific
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.service.opal.OffenceService;
@@ -51,10 +51,10 @@ class OffenceServiceTest {
     @Test
     void testGetOffence() {
         // Arrange
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
-        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceEntity));
+        OffenceLegacyEntity offenceLegacyEntity = OffenceLegacyEntity.builder().build();
+        when(offenceRepository.findById(any())).thenReturn(Optional.of(offenceLegacyEntity));
         // Act
-        OffenceEntity result = offenceService.getOffence((short) 1);
+        OffenceLegacyEntity result = offenceService.getOffence((short) 1);
         // Assert
         assertNotNull(result);
         verify(offenceRepository).findById(1L);
@@ -69,15 +69,15 @@ class OffenceServiceTest {
         when(sfq.sortBy(any())).thenReturn(sfq);
         when(sfq.limit(anyInt())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder().build();
-        Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
+        OffenceLegacyEntity offenceLegacyEntity = OffenceLegacyEntity.builder().build();
+        Page<OffenceLegacyEntity> mockPage = new PageImpl<>(List.of(offenceLegacyEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         OffenceSearchData mappedSearchData = new OffenceSearchData(null, null, null, null, null, null, null, null);
-        when(offenceMapper.toSearchData(offenceEntity)).thenReturn(mappedSearchData);
+        when(offenceMapper.toSearchData(offenceLegacyEntity)).thenReturn(mappedSearchData);
 
         // Act
         List<OffenceSearchData> result = offenceService.searchOffences(OffenceSearchDto.builder().build());
@@ -94,7 +94,7 @@ class OffenceServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        OffenceEntity offenceEntity = OffenceEntity.builder()
+        OffenceLegacyEntity offenceLegacyEntity = OffenceLegacyEntity.builder()
             .offenceId(1L)
             .cjsCode("NINE")
             .offenceTitle("Theft from a Palace")
@@ -102,7 +102,7 @@ class OffenceServiceTest {
             .offenceOas("A")
             .offenceOasCy("B")
             .build();
-        Page<OffenceEntity> mockPage = new PageImpl<>(List.of(offenceEntity), Pageable.unpaged(), 999L);
+        Page<OffenceLegacyEntity> mockPage = new PageImpl<>(List.of(offenceLegacyEntity), Pageable.unpaged(), 999L);
         when(offenceRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
@@ -116,7 +116,7 @@ class OffenceServiceTest {
                                        null,
                                        LocalDateTime.of(1909, 3, 3, 3, 30).atOffset(ZoneOffset.UTC),
                                        null, "A", "B");
-        when(offenceMapper.toRefData(offenceEntity)).thenReturn(mappedRefData);
+        when(offenceMapper.toRefData(offenceLegacyEntity)).thenReturn(mappedRefData);
 
         // Act
         List<OffenceReferenceData> result = offenceService.getReferenceData(Optional.empty(),

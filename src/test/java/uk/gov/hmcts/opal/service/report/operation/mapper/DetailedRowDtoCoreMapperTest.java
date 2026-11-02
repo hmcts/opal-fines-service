@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.service.report.ReportMetadataContext;
@@ -28,7 +28,7 @@ class DetailedRowDtoCoreMapperTest {
         entity.setAccountNumber(ACCOUNT_NO);
         entity.setCollectionOrder(true);
 
-        CourtEntity court = new CourtEntity();
+        CourtLegacyEntity court = new CourtLegacyEntity();
         court.setName(COURT_NAME);
         entity.setEnforcingCourt(court);
 
