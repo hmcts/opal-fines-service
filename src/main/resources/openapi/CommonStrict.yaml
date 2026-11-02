@@ -709,6 +709,8 @@ components:
       type: object
       additionalProperties: false
       properties:
+        business_unit_details:
+          $ref: './common.yaml#/components/schemas/businessUnitSummaryLite'
         suspense_item_id:
           type:
             - integer
@@ -724,7 +726,7 @@ components:
             - 'null'
         balance:
           type:
-            - integer
+            - string
             - 'null'
 
     suspenseItemHistory:

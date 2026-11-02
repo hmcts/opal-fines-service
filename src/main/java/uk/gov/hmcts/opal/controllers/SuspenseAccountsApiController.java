@@ -26,14 +26,14 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
 
     @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
     @Override
-    public ResponseEntity<SuspenseItemSummaryCommonStrict> getSuspenseItemSummary(Long businessUnitId,
+    public ResponseEntity<SuspenseItemSummaryCommonStrict> getSuspenseItemSummary(Integer businessUnitId,
         Long suspenseItemNumber) {
 
         log.debug("GET: getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",
             businessUnitId, suspenseItemNumber);
 
         return buildResponse(suspenseAccountsSummaryService
-            .getSuspenseAccountsSummary(businessUnitId, suspenseItemNumber));
+            .getSuspenseAccountsSummary(businessUnitId.shortValue(), suspenseItemNumber));
     }
 
     @Override

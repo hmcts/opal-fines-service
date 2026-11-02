@@ -22,7 +22,7 @@ public class SuspenseAccountsSummaryService implements SuspenseAccountsSummarySe
     private final UserStateService userStateService;
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Long businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber) {
 
         log.debug("getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",
             businessUnitId, suspenseItemNumber);
