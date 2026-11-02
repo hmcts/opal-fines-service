@@ -57,8 +57,8 @@ legacy-gateway:
 opal:
   common:
     docmosis:
-      url: ${DOCMOSIS_ENDPOINT:http://localhost:4553}
-      api_key: ${DOCMOSIS_API_KEY:test-api-key}
+      url: http://localhost:4553
+      api_key: test-api-key
     system-users:
       token-url: http://localhost
       users:

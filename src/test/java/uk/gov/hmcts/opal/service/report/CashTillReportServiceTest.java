@@ -311,14 +311,15 @@ class CashTillReportServiceTest {
     @Test
     void convertReportDataToFileType_whenValidData_callsPdfService() {
         CashTillReportData reportData = allocatedReportData(List.of(olderRow(), newerRow()));
+        ReportInstanceEntity reportInstance = ReportInstanceEntity.builder().templateName("template-name").build();
 
         byte[] pdf = {37, 80, 68, 70};
-        when(pdfGenerationService.generatePdf("", reportData)).thenReturn(pdf);
+        when(pdfGenerationService.generatePdf("template-name", reportData)).thenReturn(pdf);
 
-        byte[] result = service.convertReportDataToFileType(REPORT_INSTANCE, reportData, PDF);
+        byte[] result = service.convertReportDataToFileType(reportInstance, reportData, PDF);
 
         assertThat(result).isEqualTo(pdf);
-        verify(pdfGenerationService, times(1)).generatePdf(eq(""), eq(reportData));
+        verify(pdfGenerationService, times(1)).generatePdf(eq("template-name"), eq(reportData));
     }
 
     @Test

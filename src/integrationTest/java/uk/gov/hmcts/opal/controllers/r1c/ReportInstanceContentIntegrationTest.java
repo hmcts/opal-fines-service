@@ -263,8 +263,8 @@ class ReportInstanceContentIntegrationTest extends AbstractIntegrationTest {
             void whenPdfRequestedAndNoRenderedFileExists_generatesAndReturnsPdf() throws Exception {
                 when(uuidProvider.getUuid()).thenReturn(GENERATED_PDF_LOCATION);
                 String expectedRenderRequest = objectMapper.writeValueAsString(Map.of(
-                    "templateName", "",
-                    "outputName", "",
+                    "templateName", "cash-till.docx",
+                    "outputName", "cash-till.pdf",
                     "accessKey", TEST_DOCMOSIS_API_KEY));
                 String pdfContent = Arrays.toString(PDF_CONTENT);
 
