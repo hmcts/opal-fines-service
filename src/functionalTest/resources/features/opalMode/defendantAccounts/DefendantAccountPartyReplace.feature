@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry @R1BDrop1
+@Opal @JIRA-LABEL:account-enquiry @R1BDrop1 @ExcludeFromDemoNightlyAsNotLegacy
 Feature: PDPO logging for defendant account party replacement
 
   Background:
