@@ -241,6 +241,12 @@ sourceSets {
     resources.srcDir file('src/functionalTest/resources')
   }
 
+  test {
+    // Allow unit tests for functional-test helpers without importing suite resources.
+    compileClasspath += functionalTest.output.classesDirs
+    runtimeClasspath += functionalTest.output.classesDirs
+  }
+
   integrationTest {
     java {
       compileClasspath += main.output
