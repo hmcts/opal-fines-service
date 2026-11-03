@@ -27,7 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.ReportEntity;
 import uk.gov.hmcts.opal.entity.configurationitem.ConfigurationItemEntity;
 import uk.gov.hmcts.opal.generated.model.ReportReports;
@@ -53,9 +53,9 @@ class ReportServiceTest {
     @InjectMocks
     private ReportService reportService;
 
-    private UserState stubUserAndRepo(String reportId, ReportEntity repoResult) {
-        UserState userState = mock(UserState.class);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+    private UserStateV2 stubUserAndRepo(String reportId, ReportEntity repoResult) {
+        UserStateV2 userState = mock(UserStateV2.class);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(reportRepository.findById(reportId)).thenReturn(Optional.ofNullable(repoResult));
         return userState;
     }
@@ -75,7 +75,7 @@ class ReportServiceTest {
         @MethodSource("successCases")
         void getReport_success(ReportEntity entity) {
             ReportReports reportDto = createDefaultReportDto();
-            UserState userState = stubUserAndRepo(entity.getReportId(), entity);
+            UserStateV2 userState = stubUserAndRepo(entity.getReportId(), entity);
             when(reportMapper.toDto(entity)).thenReturn(reportDto);
             when(userState.anyBusinessUnitUserHasPermission(null)).thenReturn(true);
             when(userState.anyBusinessUnitUserHasPermission(any(FinesPermission.class))).thenReturn(true);

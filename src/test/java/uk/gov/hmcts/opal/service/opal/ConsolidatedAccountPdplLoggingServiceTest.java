@@ -23,6 +23,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -40,7 +41,7 @@ import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 class ConsolidatedAccountPdplLoggingServiceTest {
 
     private static final OffsetDateTime DATE_TIME = OffsetDateTime.parse("2026-10-19T10:15:30Z");
-    private static final UserState USER_STATE = UserState.builder().userId(42L).build();
+    private static final UserStateV2 USER_STATE = UserStateV2.builder().userId(42L).build();
 
     private ConsolidatedAccountPdplLoggingService service;
 

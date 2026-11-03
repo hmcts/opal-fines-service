@@ -28,7 +28,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
@@ -153,7 +153,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenQueueAccepts_queuesExactPdpoDetails_happyPath() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
             when(userState.getUserId()).thenReturn(123L);
@@ -177,7 +177,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenQueueRejects_returnsFalse_sadPath() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
             when(userState.getUserId()).thenReturn(123L);
@@ -200,7 +200,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenQueueAccepts_queuesExactPdpoDetails_happyPath() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
             when(userState.getUserId()).thenReturn(123L);
@@ -222,7 +222,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenQueueRejects_throwsPdplLoggingException_sadPath() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
             when(userState.getUserId()).thenReturn(123L);
@@ -242,7 +242,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenRemovalFails_doesNotQueuePdpoLog() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
 
@@ -255,7 +255,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
         @Test
         void whenRequestHasNoPartyDetails_usesPathPartyIdentifier() {
             LoggingService loggingService = mock(LoggingService.class);
-            UserState userState = mock(UserState.class);
+            UserStateV2 userState = mock(UserStateV2.class);
             DefendantAccountPartyPdplLoggingService service =
                 new DefendantAccountPartyPdplLoggingService(loggingService, CLOCK);
             when(userState.getUserId()).thenReturn(123L);
@@ -311,7 +311,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
     void logViewedDefendant_queuesExactPdpoDetails() {
         //Arrange
         LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
             loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
         when(userState.getUserId()).thenReturn(123L);
@@ -338,7 +338,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
     void logViewedParentGuardian_queuesExactPdpoDetails() {
         //Arrange
         LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
             loggingService, Clock.fixed(OffsetDateTime.parse("2026-10-06T10:15:30Z").toInstant(), ZoneOffset.UTC));
         when(userState.getUserId()).thenReturn(123L);
@@ -364,7 +364,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
     @Test
     void logViewedDefendant_whenQueueRejects_throwsPdplLoggingException() {
         LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         DefendantAccountPartyPdplLoggingService service = new DefendantAccountPartyPdplLoggingService(
             loggingService, Clock.systemUTC());
         when(userState.getUserId()).thenReturn(123L);
@@ -379,7 +379,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
     @Test
     void queuePdpoForViewedParty_whenPartyIsDefendant_logsViewedDefendant() {
         LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         DefendantAccountPartyPdplLoggingService service = spy(
             new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
         PartyResponseDefendantAccount response = responseWithParty(
@@ -394,7 +394,7 @@ class DefendantAccountPartyPdplLoggingServiceTest {
     @Test
     void queuePdpoForViewedParty_whenPartyIsParentGuardian_logsViewedParentGuardian() {
         LoggingService loggingService = mock(LoggingService.class);
-        UserState userState = mock(UserState.class);
+        UserStateV2 userState = mock(UserStateV2.class);
         DefendantAccountPartyPdplLoggingService service = spy(
             new DefendantAccountPartyPdplLoggingService(loggingService, Clock.systemUTC()));
         PartyResponseDefendantAccount response = responseWithParty(

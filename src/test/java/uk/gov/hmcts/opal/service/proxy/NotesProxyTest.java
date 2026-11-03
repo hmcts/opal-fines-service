@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
@@ -30,7 +30,7 @@ class NotesProxyTest extends ProxyTestsBase {
 
     @Mock private OpalNotesService notesService;
     @Mock private LegacyNotesService legacyNotesService;
-    @Mock private UserState userState;
+    @Mock private UserStateV2 userState;
 
     @InjectMocks
     private NotesProxy notesProxy;

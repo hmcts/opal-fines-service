@@ -6,7 +6,7 @@ import static uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCa
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
@@ -22,7 +22,7 @@ public class MinorCreditorSummaryPdplLoggingService extends AbstractPdplLoggingS
         super(loggingService, clock);
     }
 
-    public void logIndividualMinorCreditorSummary(Long minorCreditorAccountId, UserState userState,
+    public void logIndividualMinorCreditorSummary(Long minorCreditorAccountId, UserStateV2 userState,
         MinorCreditorAccountHeaderSummaryResponse response) {
         if (response == null || response.getParty() == null
             || !Boolean.FALSE.equals(response.getParty().getOrganisationFlag())) {

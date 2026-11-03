@@ -24,8 +24,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
@@ -49,7 +49,7 @@ class DefendantAccountPartyServiceTest {
     private DefendantAccountPartyPdplLoggingService pdplLoggingService;
 
     @Mock
-    private UserState userState;
+    private UserStateV2 userState;
 
     @InjectMocks
     private DefendantAccountPartyService defendantAccountPartyService;
@@ -66,7 +66,7 @@ class DefendantAccountPartyServiceTest {
         PartyResponseDefendantAccount expectedResponse = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(expectedResponse);
@@ -77,7 +77,7 @@ class DefendantAccountPartyServiceTest {
 
         // Assert
         assertThat(actual).isSameAs(expectedResponse);
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountPartyServiceProxy).getDefendantAccountParty(defendantAccountId, defendantAccountPartyId);
         verify(pdplLoggingService).queuePdpoForViewedParty(expectedResponse, userState);
@@ -90,7 +90,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 2L;
         PartyResponseDefendantAccount response = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
             .thenReturn(response);
@@ -111,7 +111,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 2L;
         PartyResponseDefendantAccount response = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.DEFENDANT);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
@@ -134,7 +134,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountPartyId = 2L;
         PartyResponseDefendantAccount response = responseWithParty(
             "12345", DefendantAccountParty.DefendantAccountPartyTypeEnum.PARENT_GUARDIAN);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
@@ -153,7 +153,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
         ResponseStatusException notFound = new ResponseStatusException(HttpStatus.NOT_FOUND);
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
             .thenReturn(true);
         when(defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId, defendantAccountPartyId))
@@ -174,7 +174,7 @@ class DefendantAccountPartyServiceTest {
         Long defendantAccountId = 1L;
         Long defendantAccountPartyId = 2L;
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
 
         // Act & Assert
@@ -186,7 +186,7 @@ class DefendantAccountPartyServiceTest {
 
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verifyNoInteractions(defendantAccountPartyServiceProxy, pdplLoggingService);
     }
@@ -197,7 +197,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
-        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
         stubAccountMaintenanceUser(buId, "theUserName", Optional.of(buUser));
 
@@ -245,7 +245,7 @@ class DefendantAccountPartyServiceTest {
         String businessUnitId = "5";
         short buId = Short.parseShort(businessUnitId);
         PartyResponseDefendantAccount expectedResponse = mock(PartyResponseDefendantAccount.class);
-        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("b-user-id");
         stubAccountMaintenanceUser(buId, "theUserName", Optional.of(buUser));
 
@@ -381,7 +381,7 @@ class DefendantAccountPartyServiceTest {
     @Test
     void addDefendantAccountParty_nonPayingParentGuardianWithoutPermissionDoesNotCallPdpoLogger() {
         short businessUnitId = 3;
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -543,7 +543,7 @@ class DefendantAccountPartyServiceTest {
         String stringBusinessUnitId = String.valueOf(businessUnitId);
         DefendantAccountParty request = new DefendantAccountParty();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -557,7 +557,7 @@ class DefendantAccountPartyServiceTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
 
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
@@ -572,7 +572,7 @@ class DefendantAccountPartyServiceTest {
         String stringBusinessUnitId = String.valueOf(businessUnitId);
         AddPartyRequestDefendantAccount request = new AddPartyRequestDefendantAccount();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(false);
 
@@ -586,7 +586,7 @@ class DefendantAccountPartyServiceTest {
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isEqualTo(businessUnitId);
 
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
     }
@@ -603,7 +603,7 @@ class DefendantAccountPartyServiceTest {
         RemoveDefendantAccountPartyResponseDefendantAccount expectedResponse =
             mock(RemoveDefendantAccountPartyResponseDefendantAccount.class);
 
-        BusinessUnitUser buUser = mock(BusinessUnitUser.class);
+        BusinessUnitUserV2 buUser = mock(BusinessUnitUserV2.class);
         when(buUser.getBusinessUnitUserId()).thenReturn("bu-user-id");
         stubAccountMaintenanceUser(businessUnitId, "theUserName", Optional.of(buUser));
         when(defendantAccountPartyServiceProxy.removeDefendantAccountParty(
@@ -715,7 +715,7 @@ class DefendantAccountPartyServiceTest {
         RemoveDefendantAccountPartyRequestDefendantAccount request =
             new RemoveDefendantAccountPartyRequestDefendantAccount();
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.hasBusinessUnitUserWithPermission(
             businessUnitId,
             FinesPermission.ACCOUNT_MAINTENANCE
@@ -730,7 +730,7 @@ class DefendantAccountPartyServiceTest {
         // When the user does not have the correct permission, the call is not passed to the proxy
         assertThat(ex.getPermission()).containsExactly(FinesPermission.ACCOUNT_MAINTENANCE);
         assertThat(ex.getBusinessUnitId()).isNull();
-        verify(userStateService).getUserStateV1FromSecurityContext();
+        verify(userStateService).getUserStateFromSecurityContext();
         verify(userState).hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE);
         verifyNoInteractions(defendantAccountPartyServiceProxy);
         verifyNoInteractions(pdplLoggingService);
@@ -763,10 +763,10 @@ class DefendantAccountPartyServiceTest {
     }
 
     private void stubAccountMaintenanceUser(short businessUnitId, String userName,
-        Optional<BusinessUnitUser> businessUnitUser) {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        Optional<BusinessUnitUserV2> businessUnitUser) {
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.getBusinessUnitUserForBusinessUnit(businessUnitId)).thenReturn(businessUnitUser);
-        when(userState.getUserName()).thenReturn(userName);
+        when(userState.getUsername()).thenReturn(userName);
         when(userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.ACCOUNT_MAINTENANCE))
             .thenReturn(true);
     }

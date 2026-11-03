@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
@@ -25,7 +25,7 @@ public class MajorCreditorHistoryPdplLoggingService extends AbstractPdplLoggingS
         super(loggingService, clock);
     }
 
-    public void logHistoryItems(UserState userState, GetMajorCreditorHistoryResponse response) {
+    public void logHistoryItems(UserStateV2 userState, GetMajorCreditorHistoryResponse response) {
         List<ParticipantIdentifier> individuals = getUniquePostedUsers(response);
 
         if (individuals.isEmpty()) {
