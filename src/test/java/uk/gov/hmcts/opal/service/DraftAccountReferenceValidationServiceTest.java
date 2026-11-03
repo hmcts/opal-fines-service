@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -28,10 +29,12 @@ import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
+import uk.gov.hmcts.opal.repository.LegacyJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 
 @ExtendWith(MockitoExtension.class)
 class DraftAccountReferenceValidationServiceTest {
@@ -57,6 +60,11 @@ class DraftAccountReferenceValidationServiceTest {
 
     @Mock
     private ProsecutorRepository prosecutorRepository;
+    @Mock
+    private LegacyJusticeAreaRepository legacyJusticeAreaRepository;
+
+    @Mock
+    private DynamicConfigService dynamicConfigService;
 
     @InjectMocks
     private DraftAccountReferenceValidationService service;
@@ -66,6 +74,7 @@ class DraftAccountReferenceValidationServiceTest {
         lenient().when(courtLiteRepository.existsById(anyLong())).thenReturn(true);
         lenient().when(offenceRepository.existsByOffenceIdAvailableToBusinessUnit(anyLong(), eq(BUSINESS_UNIT_ID)))
             .thenReturn(true);
+        lenient().when(dynamicConfigService.isLegacyMode()).thenReturn(false);
     }
 
     @Test
@@ -445,6 +454,34 @@ class DraftAccountReferenceValidationServiceTest {
 
         verify(localJusticeAreaRepository).findById((short)32001);
         verifyNoInteractions(prosecutorRepository);
+    }
+
+    @Test
+    void validateReferences_whenLegacyModeEnabled_shouldUseLegacyJusticeAreaRepository() {
+
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+
+        when(legacyJusticeAreaRepository.findById((short) 32001))
+            .thenReturn(Optional.of(
+                LocalJusticeAreaLegacyEntity.builder()
+                    .localJusticeAreaId((short) 32001)
+                    .name("Draft Account Validation LJA")
+                    .ljaType(LocalJusticeAreaType.LJA)
+                    .build()
+            ));
+
+        assertDoesNotThrow(() -> service.validateReferences(
+            BUSINESS_UNIT_ID,
+            originatorAccountJson(
+                DraftAccountType.FINE,
+                "NEW",
+                32001L,
+                "Draft Account Validation LJA"
+            )
+        ));
+
+        verify(legacyJusticeAreaRepository).findById((short) 32001);
+        verifyNoInteractions(localJusticeAreaRepository);
     }
 
     @Test

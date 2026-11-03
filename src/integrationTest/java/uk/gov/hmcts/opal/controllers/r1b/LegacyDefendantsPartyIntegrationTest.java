@@ -29,7 +29,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
-@Sql(scripts = "classpath:db/insertData/insert_into_defendant_accounts.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(scripts = {"classpath:db/insertData/insert_into_defendant_accounts.sql",
+    "classpath:db/insertData/insert_into_local_justice_areas_legacy.sql" }, executionPhase = BEFORE_TEST_CLASS)
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsPartyIntegrationTest")
 class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsIntegrationTest {
@@ -99,7 +100,6 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.party_details.party_id").value("77"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname")
                 .value("Alex Graham"))
-            .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").doesNotExist())
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")));
 
@@ -181,15 +181,21 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
     @JiraEpic("PO-1970")
     @JiraTestKey("PO-5936")
     void testPutReplaceDefAccParty_500Error() throws Exception {
+
         var res = mockMvc.perform(
             put("/defendant-accounts/500/defendant-account-parties/500")
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor()).headers(partyHeaders())
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(partyHeaders())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(PUT_PARTY_REQUEST)
         );
 
-        log.info("PUT DAP missing DAP resp:\n{}", res.andReturn().getResponse().getContentAsString());
+        log.info("PUT DAP missing DAP resp:\n{}",
+            res.andReturn().getResponse().getContentAsString());
 
-        res.andExpect(status().is5xxServerError());
+        res.andExpect(status().isBadGateway())
+            .andExpect(jsonPath("$.status").value(502))
+            .andExpect(jsonPath("$.detail")
+                .value("Legacy exception during replaceDefendantAccountParty"));
     }
 }

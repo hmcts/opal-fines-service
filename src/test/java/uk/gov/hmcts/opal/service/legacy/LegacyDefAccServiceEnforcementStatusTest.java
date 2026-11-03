@@ -37,7 +37,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.dto.LocalJusticeAreaDto;
 import uk.gov.hmcts.opal.entity.court.CourtEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
@@ -62,7 +62,9 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
-            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+            LocalJusticeAreaDto.builder()
+                .ljaCode("6-7")
+                .build());
 
         when(resultRepository.findById("FEE")).thenReturn(Optional.of(ResultEntity.builder()
             .enfNextPermittedActions("All").build()));
@@ -142,10 +144,11 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         when(restClient.responseSpec
             .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
             .thenReturn(responseBody);
-
         when(courtService.getCourtById(anyLong())).thenReturn(CourtEntity.builder().courtCode((short)123).build());
         when(ljaService.getLocalJusticeAreaById(anyShort())).thenReturn(
-            LocalJusticeAreaEntity.builder().ljaCode("6-7").build());
+            LocalJusticeAreaDto.builder()
+                .ljaCode("6-7")
+                .build());
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
