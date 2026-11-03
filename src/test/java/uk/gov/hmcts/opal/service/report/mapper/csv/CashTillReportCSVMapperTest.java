@@ -99,6 +99,17 @@ class CashTillReportCSVMapperTest {
             .hasMessage("Cash Till report row 1 is required");
     }
 
+    @Test
+    void reportToCSVString_acceptsNullSource() {
+        List<CashTillReportRow> rows = List.of(newerRow(), olderRow());
+        CashTillReportData reportData = reportDataWithRows(rows);
+        reportData.setSource(null);
+
+        String csv = mapper.reportToCSVString(typicalReportInstance(), reportData);
+        assertThat(csv).isEqualTo(typicalCsvWithRowsNoSource(
+            List.of(NEWER_CSV_ROW, OLDER_CSV_ROW), "19.80", SUMMARY_ROW));
+    }
+
     @ParameterizedTest(name = "{0}")
     @MethodSource("missingFieldCases")
     void reportToCSVString_whenMandatoryFieldIsMissing_throwsException(String description,
@@ -247,8 +258,25 @@ class CashTillReportCSVMapperTest {
         return csv.toString();
     }
 
+    private static String typicalCsvWithRowsNoSource(List<String> expectedRows, String totalAmount, String summary) {
+        StringBuilder csv = new StringBuilder(CSV_REPORT_HEADER).append("\n");
+        csv.append(csvReportRowNoSource(totalAmount, String.valueOf(expectedRows.size())));
+        csv.append("\n\n");
+        csv.append(CSV_DETAIL_HEADER).append("\n");
+        expectedRows.forEach(r -> csv.append(r).append("\n"));
+        csv.append("\n");
+        csv.append(CSV_SUMMARY_HEADER).append("\n");
+        csv.append(summary);
+        return csv.toString();
+    }
+
     private static String typicalCsvReportRow(String totalAmount, String numRecords) {
         return "REPORT,Allocated,22,BARCLAYCARD," + totalAmount + ",Alex,30/10/2026,01:02,Central Unit,"
+            + numRecords + ",John Smith";
+    }
+
+    private static String csvReportRowNoSource(String totalAmount, String numRecords) {
+        return "REPORT,Allocated,22,," + totalAmount + ",Alex,30/10/2026,01:02,Central Unit,"
             + numRecords + ",John Smith";
     }
 

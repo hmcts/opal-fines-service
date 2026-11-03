@@ -90,7 +90,7 @@ public class CashTillReportCSVMapper implements ReportCSVMapper<CashTillReportDa
             "REPORT",
             escapeCsv(reportData.getAllocatedReport() ? REPORT_TYPE_ALLOCATED : REPORT_TYPE_PREALLOCATED),
             escapeCsv(reportData.getCashTillNumber()),
-            escapeCsv(reportData.getSource().name()),
+            escapeCsv(reportData.getSource() == null ? "" : reportData.getSource().name()),
             escapeCsv(formatMoney(reportData.getTotalAmount())),
             escapeCsv(reportData.getCashier()),
             escapeCsv(formatReportDate(reportInstance.getCreatedTimestamp())),
