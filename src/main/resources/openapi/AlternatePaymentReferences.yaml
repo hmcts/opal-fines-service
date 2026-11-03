@@ -109,7 +109,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -134,7 +134,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:
@@ -206,7 +206,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -231,7 +231,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:
@@ -288,10 +288,13 @@ paths:
       responses:
         '200':
           description: Alternate payment reference deleted
+          headers:
+            ETag:
+              $ref: './common.yaml#/components/headers/ETag'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+                $ref: '#/components/schemas/AlternatePaymentReferencesItem'
         '400':
           description: Bad request
           content:
@@ -316,7 +319,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-        '412':
+        '409':
           description: Defendant account version does not match If-Match
           content:
             application/problem+json:
@@ -348,20 +351,11 @@ components:
           maxLength: 18
           description: DB Mapping - alternate_payment_references.apr_text
 
-    AlternatePaymentReferencesSingleResponse:
-      title: Alternate Payment Reference Response
-      type: object
-      required:
-        - alternate_payment_reference
-      properties:
-        alternate_payment_reference:
-          $ref: '#/components/schemas/AlternatePaymentReferencesItem'
-
     AlternatePaymentReferencesListResponse:
       title: Alternate Payment References Response
       type: array
       items:
-        $ref: '#/components/schemas/AlternatePaymentReferencesSingleResponse'
+        $ref: '#/components/schemas/AlternatePaymentReferencesItem'
 
     AlternatePaymentReferencesItem:
       title: Alternate Payment Reference

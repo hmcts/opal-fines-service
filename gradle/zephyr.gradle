@@ -2,17 +2,20 @@ import groovy.transform.Field
 
 @Field
 List<String> zephyrBaseArgs = [
-        "jira-base-url=https://tools.hmcts.net/jira/rest/api/latest",
-        "jira-project-id=28500",
-        "jira-default-user=OPAL.Zephyr.automation",
+        "jira-base-url=https://api.atlassian.com/ex/jira/d4472f2d-5525-4dc9-8d92-04e5433d9947/rest/api/3",
+        "jira-project-id=10013",
+        "jira-default-user-id=${System.getenv('JIRA_ACCOUNT_ID')}",
+        "jira-auth-username=${System.getenv('JIRA_ACCOUNT_EMAIL')}",
         "jira-auth-token=${System.getenv('JIRA_AUTH_TOKEN')}",
-        "jira-epic-link-custom-field-id=customfield_10008",
         "jira-default-components=opal-fines-service",
         "execution-environment=${System.getenv('EXECUTION_ENVIRONMENT') ?: ''}",
         "execution-build=${System.getenv('EXECUTION_BUILD') ?: ''}",
         "execution-test-cycle-description=${System.getenv('EXECUTION_CYCLE_DESCRIPTION') ?: ''}",
         "success-status-id=${System.getenv('SUCCESS_STATUS_ID') ?: ''}",
-        "failed-status-id=${System.getenv('FAILED_STATUS_ID') ?: ''}"
+        "failed-status-id=${System.getenv('FAILED_STATUS_ID') ?: ''}",
+        "zephyr-access-key=${System.getenv('ZEPHYR_ACCESS_KEY') ?: ''}",
+        "zephyr-secret-key=${System.getenv('ZEPHYR_SECRET_KEY') ?: ''}",
+        "zephyr-account-id=${System.getenv('ZEPHYR_ACCOUNT_ID') ?: ''}"
 ]
 
 List<String> zephyrArgs(String processType, String actionType, String testFolder, String reportPath) {

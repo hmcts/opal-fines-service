@@ -1,0 +1,319 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Enforcers
+  version: 1.0.0
+  description: APIs for retrieving and searching enforcer reference data.
+
+paths:
+  /enforcers:
+    get:
+      tags:
+        - Enforcers
+      summary: Get enforcers
+      description: Returns enforcer reference data, sorted by enforcer name ascending.
+      operationId: getEnforcersRefData
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Optional filter applied to enforcer reference data.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Enforcers retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnforcersReferenceDataResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /enforcers/{enforcerId}:
+    get:
+      tags:
+        - Enforcers
+      summary: Get enforcer by ID
+      description: Returns the enforcer for the supplied enforcer identifier.
+      operationId: getEnforcerById
+      parameters:
+        - name: enforcerId
+          in: path
+          required: true
+          description: The unique enforcer identifier. DB Mapping - enforcers.enforcer_id
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Enforcer found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnforcersObject'
+        '400':
+          description: Invalid enforcer identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Enforcer not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /enforcers/search:
+    post:
+      tags:
+        - Enforcers
+      summary: Search enforcers
+      description: Returns enforcers matching the supplied criteria, sorted by enforcer name ascending.
+      operationId: postEnforcersSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnforcersSearchCriteria'
+      responses:
+        '200':
+          description: Matching enforcers retrieved
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EnforcersObject'
+        '400':
+          description: Invalid search criteria
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    EnforcersReferenceDataResponse:
+      title: Get Enforcers response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - refData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: Number of enforcers returned.
+        refData:
+          type: array
+          description: Enforcers sorted by name ascending.
+          items:
+            $ref: '#/components/schemas/EnforcersSummary'
+
+    EnforcersSearchCriteria:
+      title: Enforcer Search Criteria
+      type: object
+      additionalProperties: false
+      properties:
+        enforcerId:
+          type: string
+          description: DB Mapping - enforcers.enforcer_id
+        enforcerCode:
+          type: string
+          description: DB Mapping - enforcers.enforcer_code
+        name:
+          type: string
+          description: DB Mapping - enforcers.name
+        nameCy:
+          type: string
+          description: DB Mapping - enforcers.name_cy
+        addressLine:
+          type: string
+          description: >-
+            DB Mapping - enforcers.address_line_1, enforcers.address_line_2 and enforcers.address_line_3
+        addressLineCy:
+          type: string
+          description: >-
+            DB Mapping - enforcers.address_line_1_cy, enforcers.address_line_2_cy and
+            enforcers.address_line_3_cy
+        postcode:
+          type: string
+          description: DB Mapping - enforcers.postcode
+        warrantReferenceSequence:
+          type: string
+          description: DB Mapping - enforcers.warrant_reference_sequence
+        warrantRegisterSequence:
+          type: string
+          description: DB Mapping - enforcers.warrant_register_sequence
+
+    EnforcersObject:
+      title: Enforcer
+      type: object
+      additionalProperties: false
+      required:
+        - enforcerId
+        - enforcerCode
+        - name
+      properties:
+        enforcerId:
+          type: integer
+          format: int64
+          description: DB Mapping - enforcers.enforcer_id
+        enforcerCode:
+          type: integer
+          format: int16
+          description: DB Mapping - enforcers.enforcer_code
+        name:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.name
+        nameCy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.name_cy
+        businessUnitId:
+          type: integer
+          format: int16
+          description: DB Mapping - enforcers.business_unit_id
+        warrantReferenceSequence:
+          type: string
+          maxLength: 20
+          description: DB Mapping - enforcers.warrant_reference_sequence
+        warrantRegisterSequence:
+          type: integer
+          format: int32
+          description: DB Mapping - enforcers.warrant_register_sequence
+        addressLine1:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_1
+        addressLine2:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_2
+        addressLine3:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_3
+        addressLine1Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_1_cy
+        addressLine2Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_2_cy
+        addressLine3Cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.address_line_3_cy
+        postcode:
+          type: string
+          maxLength: 8
+          description: DB Mapping - enforcers.postcode
+
+    EnforcersSummary:
+      title: Enforcer Summary
+      type: object
+      additionalProperties: false
+      required:
+        - enforcer_id
+        - enforcer_code
+        - name
+      properties:
+        enforcer_id:
+          type: integer
+          format: int64
+          description: DB Mapping - enforcers.enforcer_id
+        enforcer_code:
+          type: integer
+          format: int16
+          description: DB Mapping - enforcers.enforcer_code
+        name:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.name
+        name_cy:
+          type: string
+          maxLength: 35
+          description: DB Mapping - enforcers.name_cy

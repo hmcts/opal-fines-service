@@ -2341,10 +2341,10 @@ components:
         days_in_default:
           type: integer
         enforcement_court:
+          nullable: true
           $ref: './common.yaml#/components/schemas/courtReference'
       required:
         - collection_order
-        - enforcement_court
     enforcementCourt:
       type: object
       properties:

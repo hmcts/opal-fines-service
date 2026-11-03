@@ -34,13 +34,14 @@ public class LegacyMinorCreditorHistoryMapper {
 
     public LegacyGetMinorCreditorAccountHistoryRequest toLegacyRequest(
         Long minorCreditorAccountId,
-        MinorCreditorHistoryFilters filters) {
+        MinorCreditorHistoryFilters filters,
+        boolean release1b11Enabled) {
 
         return LegacyGetMinorCreditorAccountHistoryRequest.builder()
             .creditorAccountId(String.valueOf(minorCreditorAccountId))
             .fromDate(filters == null ? null : filters.dateFrom())
             .toDate(filters == null ? null : filters.dateTo())
-            .itemTypes(toLegacyItemTypes(filters))
+            .itemTypes(toLegacyItemTypes(filters, release1b11Enabled))
             .build();
     }
 
@@ -163,9 +164,15 @@ public class LegacyMinorCreditorHistoryMapper {
         };
     }
 
-    private List<String> toLegacyItemTypes(MinorCreditorHistoryFilters filters) {
-        if (filters == null || filters.itemTypes().size() == MinorCreditorHistoryItemType.values().length) {
-            return null;
+    private List<String> toLegacyItemTypes(MinorCreditorHistoryFilters filters, boolean release1b11Enabled) {
+        if (filters == null || filters.itemTypes() == null
+            || filters.itemTypes().size() == MinorCreditorHistoryItemType.values().length) {
+            if (!release1b11Enabled) {
+                return null;
+            }
+            return Arrays.stream(MinorCreditorHistoryItemType.values())
+                .map(this::toLegacyItemType)
+                .toList();
         }
 
         return Arrays.stream(MinorCreditorHistoryItemType.values())

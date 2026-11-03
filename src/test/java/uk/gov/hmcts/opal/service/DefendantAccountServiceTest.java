@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -41,6 +42,7 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
+import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountSearchReferenceNumberDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetDefendantAccountHeaderSummary200Response;
 import uk.gov.hmcts.opal.generated.model.MasterAccountDefendantAccount;
@@ -50,8 +52,10 @@ import uk.gov.hmcts.opal.generated.model.UpdateDefendantAccountRequestPayload;
 import uk.gov.hmcts.opal.mapper.request.DefendantAccountSearchRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.DefendantAccountSearchResponseMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.service.opal.ConsolidatedAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountSearchPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.DefendantAccountSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalDefendantAccountService;
 import uk.gov.hmcts.opal.service.proxy.DefendantAccountServiceProxy;
 
@@ -94,6 +98,12 @@ class DefendantAccountServiceTest {
     @Mock
     private DefendantAccountSearchPdplLoggingService defendantAccountSearchPdplLoggingService;
 
+    @Mock
+    private DefendantAccountSummaryPdplLoggingService defendantAccountSummaryPdplLoggingService;
+
+    @Mock
+    private ConsolidatedAccountPdplLoggingService consolidatedAccountPdplLoggingService;
+
     @InjectMocks
     private DefendantAccountService defendantAccountService;
 
@@ -111,7 +121,8 @@ class DefendantAccountServiceTest {
 
         when(defendantAccountServiceProxy.getHeaderSummary(anyLong())).thenReturn(headerSummary);
 
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        UserState user = UserStateUtil.allFinesPermissionUser();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(user);
         // Act
         DefendantAccountHeaderSummary result = defendantAccountService.getHeaderSummary(1L);
 
@@ -119,6 +130,7 @@ class DefendantAccountServiceTest {
         assertNotNull(result);
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertFalse(result.getResponse().getHasConsolidatedAccounts());
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(headerSummary, user.getUserId());
     }
 
     @Test
@@ -176,6 +188,7 @@ class DefendantAccountServiceTest {
         assertEquals("X123", result.getResponse().getAccountNumber());
         assertTrue(result.getResponse().getHasConsolidatedAccounts());
         verify(defendantAccountServiceProxy).getHeaderSummary(1L);
+        verify(defendantAccountSummaryPdplLoggingService).logHeaderSummary(expected, 789L);
     }
 
     @Test
@@ -289,6 +302,7 @@ class DefendantAccountServiceTest {
         GetDefendantAccountAtAGlanceResponse proxyResponse = new GetDefendantAccountAtAGlanceResponse();
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(userState.getUserId()).thenReturn(789L);
         when(defendantAccountServiceProxy.getAtAGlance(defendantAccountId)).thenReturn(proxyResponse);
 
         // act
@@ -302,7 +316,9 @@ class DefendantAccountServiceTest {
         verify(userStateService).getUserStateV1FromSecurityContext();
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getAtAGlance(defendantAccountId);
-        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+        verify(defendantAccountSummaryPdplLoggingService).logAtAGlance(proxyResponse, 789L);
+        verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy,
+            defendantAccountSummaryPdplLoggingService);
     }
 
     @Test
@@ -350,6 +366,20 @@ class DefendantAccountServiceTest {
         verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         verify(defendantAccountServiceProxy).getConsolidatedAccounts(defendantAccountId);
         verifyNoMoreInteractions(userStateService, userState, defendantAccountServiceProxy);
+    }
+
+    @Test
+    void getConsolidatedAccounts_whenLoggingFails_propagatesFailure() {
+        GetDefendantAccountConsolidatedAccountsResult response =
+            GetDefendantAccountConsolidatedAccountsResult.builder()
+                .payload(List.of(ConsolidatedAccountDefendantAccount.builder().accountId(101L).build()))
+                .build();
+        givenConsolidatedAccountsResponse(response);
+        RuntimeException failure = new RuntimeException("queue unavailable");
+        doThrow(failure).when(consolidatedAccountPdplLoggingService)
+            .logIndividualChildAccounts(userState, response);
+
+        assertThrows(RuntimeException.class, () -> defendantAccountService.getConsolidatedAccounts(77L));
     }
 
     @Test
@@ -465,4 +495,11 @@ class DefendantAccountServiceTest {
         when(domainBusinessUnitUsers.anyBusinessUnitUserHasPermission(
             FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(hasPermission);
     }
+
+    private void givenConsolidatedAccountsResponse(GetDefendantAccountConsolidatedAccountsResult response) {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
+        when(defendantAccountServiceProxy.getConsolidatedAccounts(77L)).thenReturn(response);
+    }
+
 }

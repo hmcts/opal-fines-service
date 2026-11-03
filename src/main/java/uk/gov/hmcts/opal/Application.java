@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import uk.gov.hmcts.common.exceptions.StandardExceptionHandler;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
 import uk.gov.hmcts.opal.config.FeignConfiguration;
 
@@ -23,9 +24,9 @@ import uk.gov.hmcts.opal.config.FeignConfiguration;
 @EnableFeignClients(basePackages = "uk.gov.hmcts.opal.*", defaultConfiguration = FeignConfiguration.class)
 @EntityScan("uk.gov.hmcts.opal.*")
 @EnableCaching
+@Import({StandardExceptionHandler.class, OpalGlobalExceptionHandler.class})
 @Slf4j
 @ConfigurationPropertiesScan
-@Import(OpalGlobalExceptionHandler.class)
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class
 public class Application {
 

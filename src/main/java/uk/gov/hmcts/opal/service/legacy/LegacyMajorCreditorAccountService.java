@@ -22,13 +22,13 @@ import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyRe
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
-import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
-import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryResponseLegacyMapper;
+import uk.gov.hmcts.opal.mapper.legacy.LegacyMajorCreditorHistoryMapper;
 import uk.gov.hmcts.opal.service.iface.MajorCreditorAccountServiceInterface;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -48,7 +48,7 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
     private final GetMajorCreditorAccountAtAGlanceResponseLegacyMapper atAGlanceResponseMapper;
     private final GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper headerSummaryResponseMapper;
     private final GetMajorCreditorAccountHistoryRequestLegacyMapper historyRequestMapper;
-    private final GetMajorCreditorAccountHistoryResponseLegacyMapper historyResponseMapper;
+    private final LegacyMajorCreditorHistoryMapper historyResponseMapper;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
     private final FeatureToggleApi featureToggleApi;
 
@@ -102,9 +102,9 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         GetMajorCreditorAccountHistoryLegacyRequest majorCreditorAccountHistoryRequest =
             buildLegacyRequest(majorCreditorAccountId, dateFrom, dateTo, itemTypes);
 
-        Response<GetMajorCreditorAccountHistoryLegacyResponse> response =
+        Response<LegacyMajorCreditorHistoryResponse> response =
             gatewayService.postToGateway(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
-                GetMajorCreditorAccountHistoryLegacyResponse.class, majorCreditorAccountHistoryRequest, null);
+                LegacyMajorCreditorHistoryResponse.class, majorCreditorAccountHistoryRequest, null);
 
         checkResponseForError(response, "getHistory");
 

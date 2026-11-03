@@ -25,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
@@ -53,6 +54,8 @@ import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory.TypeEnum;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
@@ -67,6 +70,7 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseM
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyMinorCreditorServiceTest {
@@ -101,6 +105,9 @@ class LegacyMinorCreditorServiceTest {
     @Mock
     private LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
 
+    @Mock
+    private FeatureToggleApi featureToggleApi;
+
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
 
@@ -127,7 +134,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
             MinorCreditorHistoryLegacyResponse.class,
@@ -135,13 +142,67 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
 
         // Assert
         assertSame(mappedResponse, result);
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        verify(gatewayService).postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        );
+        verify(minorCreditorHistoryMapper).toOpal(legacyResponse);
+    }
+
+    @Test
+    void getMinorCreditorHistory_shouldCallGatewayAndReturnMappedResponseInRelease1B11Mode() {
+        // Arrange
+        MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
+            LocalDate.of(2026, 1, 1),
+            LocalDate.of(2026, 1, 31),
+            null
+        );
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            LegacyGetMinorCreditorAccountHistoryRequest.builder()
+                .creditorAccountId("101")
+                .fromDate(LocalDate.of(2026, 1, 1))
+                .toDate(LocalDate.of(2026, 1, 31))
+                .itemTypes(List.of("Amendment", "Financial", "Note"))
+                .build();
+        MinorCreditorHistoryLegacyResponse legacyResponse =
+            MinorCreditorHistoryLegacyResponse.builder().build();
+        GatewayService.Response<MinorCreditorHistoryLegacyResponse> gatewayResponse =
+            new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of(
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.AMENDMENT).build(),
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.FINANCIAL).build(),
+                MinorCreditorHistoryItemHistory.builder().type(TypeEnum.NOTE).build())))
+            .build();
+
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, true)).thenReturn(request);
+        when(gatewayService.postToGateway(
+            "LIBRA.get_minor_creditor_account_history",
+            MinorCreditorHistoryLegacyResponse.class,
+            request,
+            null
+        )).thenReturn(gatewayResponse);
+        when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        // Act
+        GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
+
+        // Assert
+        assertSame(mappedResponse, result);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, true);
         verify(gatewayService).postToGateway(
             "LIBRA.get_minor_creditor_account_history",
             MinorCreditorHistoryLegacyResponse.class,
@@ -170,7 +231,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
             MinorCreditorHistoryLegacyResponse.class,
@@ -178,6 +239,8 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result =
@@ -209,7 +272,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
             MinorCreditorHistoryLegacyResponse.class,
@@ -217,6 +280,8 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result =
@@ -241,7 +306,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
             "LIBRA.get_minor_creditor_account_history",
             MinorCreditorHistoryLegacyResponse.class,
@@ -249,6 +314,8 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);

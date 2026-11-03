@@ -1,6 +1,12 @@
 @Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History
 
+  @cleanUpData @JIRA-STORY:PO-10763 @JIRA-EPIC:PO-10729
+  Scenario: An individual minor creditor summary read emits a PDPO consultation without changing the response
+    Given a minor creditor account with representative history exists for submitted by "MCSUM001"
+    When I request the header summary twice for the created minor creditor account
+    Then the logging service contains an individual minor creditor summary consultation
+
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9546
   Scenario: Minor creditor account history - E2E.01 Happy path history retrieval
     Given a minor creditor account with representative history exists for submitted by "MCHIST001"
@@ -11,6 +17,16 @@ Feature: Minor Creditor Account History
       | Financial | 3 |
       | Note      | 3 |
     And the minor creditor account history is ordered newest first
+
+  @cleanUpData @JIRA-STORY:PO-10762 @JIRA-EPIC:PO-10729
+  Scenario: Returned minor creditor history users are recorded in a PDPO consultation
+    Given a minor creditor account with representative history exists for submitted by "MCPDPO001"
+    When I request minor creditor account history for the created minor creditor account
+    Then the minor creditor account history response is returned as documented
+    And the logging service contains a minor creditor history consultation for these users
+      | MCHAMD  |
+      | MCHFIN  |
+      | MCHNOTE |
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-9547
   Scenario: E2E.02 Authentication
