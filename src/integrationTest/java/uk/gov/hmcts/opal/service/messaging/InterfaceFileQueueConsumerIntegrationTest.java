@@ -38,12 +38,6 @@ import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.StatusEnum;
 })
 class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
-    private static final String INTERFACE_FILE_ID_1 = """
-        {
-          "interfaceFileId": 1
-        }
-         """;
-
     @Autowired
     private InterfaceFileQueueListener listener;
 
@@ -68,7 +62,7 @@ class InterfaceFileQueueConsumerIntegrationTest extends AbstractIntegrationWithS
         );
 
         TextMessage textMessage = mock(TextMessage.class);
-        when(textMessage.getText()).thenReturn(INTERFACE_FILE_ID_1);
+        when(textMessage.getText()).thenReturn("1");
 
         InterfaceFileObject interfaceFileObject = sourceJsonInterfaceFile();
         InterfaceFileObject transformedFile = transformedJsonInterfaceFile();
