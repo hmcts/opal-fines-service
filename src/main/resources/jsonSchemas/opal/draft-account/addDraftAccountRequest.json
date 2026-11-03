@@ -27,6 +27,15 @@
       "type": ["string", "null"],
       "minLength": 1,
       "description": "System message related to the account_status"
+    },
+    "source": {
+      "enum": ["MAC", "CPP", "VPFPO"],
+      "description": "Source of the Draft Account"
+    },
+    "source_reference": {
+      "type": "integer",
+      "format": "int32",
+      "description": "A valid registration ID when source=VPFPO"
     }
   },
   "required": [
