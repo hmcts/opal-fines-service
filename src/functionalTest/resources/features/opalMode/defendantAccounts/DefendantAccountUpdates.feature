@@ -1,4 +1,4 @@
-@Opal
+@Opal @JIRA-STORY:PO-11193 @JIRA-EPIC:PO-8248 @R1BDrop2
 Feature: Update defendant accounts
 
   @cleanUpData
