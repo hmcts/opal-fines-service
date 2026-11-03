@@ -86,6 +86,9 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should allow top-level fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
+    @JiraTestKey(value = "PO-11271", name = "[1] propertyName = \"submitted_by\"")
+    @JiraTestKey(value = "PO-11272", name = "[2] propertyName = \"submitted_by_name\"")
+    @JiraTestKey(value = "PO-11273", name = "[3] propertyName = \"version\"")
     void testReplaceDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {
         String request = validReplaceRequestBody(0L).replace(
             "\"business_unit_id\": 78,",
@@ -543,6 +546,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("PO-5742: Replace draft account - Should reject TFO fine originator from prosecutors")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11274")
     void shouldRejectTfoFineOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         String request = replaceRequestBody(0L, "Fine", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
@@ -566,6 +570,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("PO-5742: Replace draft account - Should reject TFO confiscation originator from prosecutors")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11280")
     void shouldRejectTfoConfiscationOriginatorWhenItUsesProsecutorReferenceData() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         String request = replaceRequestBody(0L, "Confiscation", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
@@ -589,6 +594,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("PO-5742: Replace draft account - Should reject confiscation LJA name mismatch")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11283")
     void shouldRejectTfoConfiscationOriginatorWhenLjaNameDoesNotMatch() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         String request = replaceRequestBody(0L, "Confiscation", "TFO", 32002L, "Wrong LJA Name");
@@ -614,6 +620,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("PO-5742: Replace draft account - Should reject unsupported TFO conditional caution combination")
     @JiraStory("PO-5742")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11278")
     void shouldRejectUnsupportedTfoConditionalCautionOriginatorCombination() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         String request = replaceRequestBody(0L, "Conditional Caution", "TFO", VALID_PROSECUTOR_ORIGINATOR_ID,
@@ -640,6 +647,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("PO-5746: Replace draft account - Should return 400 for an invalid offence ID")
     @JiraStory("PO-5746")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-11275")
     void shouldReturn400WhenOffenceIdIsInvalid() throws Exception {
         String request = validReplaceRequestBody(0L)
             .replace("\"offence_id\": 35014", "\"offence_id\": 999998");
@@ -665,6 +673,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should accept a valid major creditor id for an Any result rule")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11279")
     void shouldReplaceDraftAccountWhenMajorCreditorResolvesForAnyRule() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         mockMvc.perform(put(URL_BASE + "/5")
@@ -680,6 +689,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when major creditor id is for another business unit")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11284")
     void shouldReturn400WhenMajorCreditorDoesNotResolveForBusinessUnitOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         mockMvc.perform(put(URL_BASE + "/5")
@@ -700,6 +710,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when an Any result has neither major nor minor creditor")
     @JiraStory("PO-5750")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11277")
     void shouldReturn400WhenMinorCreditorIsMissingForAnyRuleOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
         mockMvc.perform(put(URL_BASE + "/5")
@@ -728,6 +739,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         scripts = "classpath:db/insertData/insert_into_central_fund_creditor_account.sql",
         executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD
     )
+    @JiraTestKey("PO-11285")
     void shouldReturn400WhenCentralFundAccountIsMissingOnPut() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -754,6 +766,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11282")
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsMissing() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -775,6 +788,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Replace draft account - Should return 400 when enforcement court does not exist")
     @JiraStory("PO-5745")
     @JiraEpic("PO-8248")
+    @JiraTestKey("PO-11270")
     void testReplaceDraftAccount_whenEnforcementCourtDoesNotExist_returns400AndLeavesDataUnchanged() throws Exception {
         DraftAccountEntity before = getDraftAccount(5L);
         long countBefore = draftAccountRepository.count();
@@ -819,6 +833,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11276")
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsNotAnEnforcement() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
 
@@ -845,6 +860,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
         executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD
     )
     @Transactional
+    @JiraTestKey("PO-11281")
     void shouldReturn400WhenPutPaymentTermEnforcementResultIsInactive() throws Exception {
         String ifMatch = getIfMatchForDraftAccount(5L);
 

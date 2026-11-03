@@ -42,7 +42,12 @@ def testEnvironments = [
 
 def secrets = [
     'opal-${env}': [
-        secret('jiraAuthToken', 'JIRA_AUTH_TOKEN'),
+            secret('jira-auth-token', 'JIRA_AUTH_TOKEN'),
+            secret('jira-account-id', 'JIRA_ACCOUNT_ID'),
+            secret('jira-zephyr-account-email', 'JIRA_ACCOUNT_EMAIL'),
+            secret('zephyr-access-key', 'ZEPHYR_ACCESS_KEY'),
+            secret('zephyr-secret-key', 'ZEPHYR_SECRET_KEY'),
+            secret('zephyr-account-id', 'ZEPHYR_ACCOUNT_ID'),
     ],
 ]
 

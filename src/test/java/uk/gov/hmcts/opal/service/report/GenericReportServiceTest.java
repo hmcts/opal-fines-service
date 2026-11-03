@@ -321,6 +321,7 @@ class GenericReportServiceTest {
         when(reportInstanceMapper.toResponseDto(reportInstance)).thenReturn(reportInstanceResponse);
         when(reportParameterValidator.validateReportInstanceParameterValues(reportParameters, reportEntity))
             .thenReturn(true);
+        when(reportEntity.getTemplateName()).thenReturn("test-template-name.doc");
         reportInstance.setReportInstanceId(123L);
 
         //test
@@ -333,6 +334,10 @@ class GenericReportServiceTest {
                 .build(), USER_ID, "test-user", true)).isEqualTo(reportInstanceResponse);
 
         verify(reportQueuePublisher).publish(123L);
+        ArgumentCaptor<ReportInstanceEntity> captor =
+            ArgumentCaptor.forClass(ReportInstanceEntity.class);
+        verify(reportInstanceRepository).save(captor.capture());
+        assertThat(captor.getValue().getTemplateName()).isEqualTo("test-template-name.doc");
     }
 
     @Test
