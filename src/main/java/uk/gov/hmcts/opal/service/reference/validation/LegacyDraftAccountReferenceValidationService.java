@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 
 @Service
@@ -27,7 +27,7 @@ public class LegacyDraftAccountReferenceValidationService extends AbstractDraftA
 
     @Override
     void validatePaymentTermsEnforcements(DocContext docContext, List<String> failures,
-        Map<String, Optional<ResultEntity>> resultCache) {
+        Map<String, Optional<ResultLegacyEntity>> resultCache) {
         opalService.validatePaymentTermsEnforcements(docContext, failures, resultCache);
     }
 
