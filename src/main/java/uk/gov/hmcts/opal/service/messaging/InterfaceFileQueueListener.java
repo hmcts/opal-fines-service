@@ -40,14 +40,14 @@ public class InterfaceFileQueueListener {
     }
 
     protected void consume(String messagePayload) {
-        InterfaceFileQueueMessage message = parse(messagePayload);
+        Long message = parse(messagePayload);
 
-        log.info("Interface file queue message received. interfaceFileId={}", message.interfaceFileId());
-        interfaceFileProcessorService.process(message.interfaceFileId());
+        log.info("Interface file queue message received. interfaceFileId={}", message);
+        interfaceFileProcessorService.process(message);
 
     }
 
-    private InterfaceFileQueueMessage parse(String messagePayload) {
+    private Long parse(String messagePayload) {
         if (messagePayload == null || messagePayload.isBlank()) {
             throw new IllegalArgumentException(
                 "Interface file message payload is blank"
@@ -57,7 +57,7 @@ public class InterfaceFileQueueListener {
         try {
             return objectMapper.readValue(
                 messagePayload,
-                InterfaceFileQueueMessage.class
+                Long.class
             );
         } catch (JacksonException ex) {
             log.error("Interface file queue message parse failed", ex);
