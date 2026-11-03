@@ -52,8 +52,14 @@ VALUES
         NULL
     );
 
-INSERT INTO local_justice_areas
-SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id IN (32001, 32002, 32003)
+INSERT INTO local_justice_areas (
+    local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
+    postcode, address_line_4, address_line_5, end_date, lja_type
+)
+SELECT
+    local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
+    postcode, address_line_4, address_line_5, end_date, lja_type
+FROM local_justice_areas_legacy WHERE local_justice_area_id IN (32001, 32002, 32003)
 ON CONFLICT (local_justice_area_id) DO NOTHING;
 
 INSERT INTO prosecutors_legacy (
