@@ -43,7 +43,7 @@ class InterfaceFileQueueListenerTest {
     @Test
     void shouldProcessInterfaceFileMessage() throws Exception {
 
-        String payload = "{\"interfaceFileId\":123}";
+        String payload = "123";
 
         when(textMessage.getText()).thenReturn(payload);
 
