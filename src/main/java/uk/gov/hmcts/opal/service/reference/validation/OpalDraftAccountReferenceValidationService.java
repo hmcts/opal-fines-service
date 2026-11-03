@@ -11,14 +11,14 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
@@ -73,7 +73,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
             return;
         }
 
-        Map<String, Optional<ResultEntity>> resultCache = new HashMap<>();
+        Map<String, Optional<ResultLegacyEntity>> resultCache = new HashMap<>();
         for (int offenceIndex = 0; offenceIndex < offences.size(); offenceIndex++) {
             String offencePath = ROOT_PATH + ".offences[" + offenceIndex + "]";
             String offenceDisplayPath = "account.offences[" + offenceIndex + "]";
@@ -98,7 +98,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-                Optional<ResultEntity> result = findResult(resultId, resultCache);
+                Optional<ResultLegacyEntity> result = findResult(resultId, resultCache);
                 if (resultId != null && result.isEmpty()) {
                     failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
                     continue;
@@ -121,7 +121,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     void validatePaymentTermsEnforcements(
         JsonPathUtil.DocContext docContext,
         List<String> failures,
-        Map<String, Optional<ResultEntity>> resultCache) {
+        Map<String, Optional<ResultLegacyEntity>> resultCache) {
         List<?> enforcements = safeReadList(docContext, ROOT_PATH + ".payment_terms.enforcements");
         if (enforcements == null) {
             return;
@@ -132,7 +132,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
             if (resultId != null) {
-                Optional<ResultEntity> result = findResult(resultId, resultCache);
+                Optional<ResultLegacyEntity> result = findResult(resultId, resultCache);
                 if (result.isEmpty()) {
                     failures.add(enforcementPath + RESULT_ID_PREFIX + resultId + DOES_NOT_EXIST);
                 } else if (!result.get().isEnforcement()) {
@@ -144,7 +144,8 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
         }
     }
 
-    private Optional<ResultEntity> findResult(String resultId, Map<String, Optional<ResultEntity>> resultCache) {
+    private Optional<ResultLegacyEntity> findResult(
+        String resultId, Map<String, Optional<ResultLegacyEntity>> resultCache) {
         if (resultId == null) {
             return Optional.empty();
         }
@@ -154,7 +155,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     private boolean validateImpositionResult(
         String resultId,
         String resultPath,
-        ResultEntity result,
+        ResultLegacyEntity result,
         List<String> failures
     ) {
         boolean valid = true;
@@ -303,7 +304,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
             return;
         }
 
-        LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
+        LocalJusticeAreaLegacyEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
             .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
             .orElse(null);
 
@@ -320,7 +321,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     }
 
     private void validateProsecutorOriginator(Long originatorId, String originatorName, List<String> failures) {
-        ProsecutorEntity prosecutor = prosecutorRepository.findById(originatorId).orElse(null);
+        ProsecutorLegacyEntity prosecutor = prosecutorRepository.findById(originatorId).orElse(null);
         if (prosecutor == null) {
             failures.add(ORIGINATOR_ID_PATH + ": prosecutor id " + originatorId + DOES_NOT_EXIST);
             return;
