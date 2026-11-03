@@ -36,4 +36,14 @@ VALUES
   020,  'CCCC Trial Court'
 , 'Charlie Trial Courts', 'Court Quarter', '666 Trial Street'
 , 'TR12 1TR', 'SJCRT', 'Trialton', 'Trialshire', NULL
-);
+)
+ON CONFLICT (local_justice_area_id) DO UPDATE SET
+    name = EXCLUDED.name,
+    address_line_1 = EXCLUDED.address_line_1,
+    address_line_2 = EXCLUDED.address_line_2,
+    address_line_3 = EXCLUDED.address_line_3,
+    postcode = EXCLUDED.postcode,
+    lja_type = EXCLUDED.lja_type,
+    address_line_4 = EXCLUDED.address_line_4,
+    address_line_5 = EXCLUDED.address_line_5,
+    end_date = EXCLUDED.end_date;
