@@ -373,6 +373,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
 
     private Map<String, String> auditableAccountData(String submittedBy, String accountFixture) {
         Map<String, String> accountData = new LinkedHashMap<>();
+        accountData.put("source", "MAC");
         accountData.put("business_unit_id", BUSINESS_UNIT_ID);
         accountData.put("account", accountFixture);
         accountData.put("account_type", "Fine");
