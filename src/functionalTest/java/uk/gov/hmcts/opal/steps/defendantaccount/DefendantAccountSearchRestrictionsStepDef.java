@@ -273,6 +273,7 @@ public class DefendantAccountSearchRestrictionsStepDef extends BaseStepDef {
         JSONObject requestBody = new JSONObject();
         requestBody.put("business_unit_id", Long.parseLong(DEFAULT_BUSINESS_UNIT_ID));
         requestBody.put("account_type", "Fine");
+        requestBody.put("source", "MAC");
         requestBody.put("account_status", JSONObject.NULL);
         requestBody.put("account", buildAccountFixture(accountData));
         return requestBody;
