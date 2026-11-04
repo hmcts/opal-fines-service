@@ -7,6 +7,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 
 @Service
@@ -22,9 +23,11 @@ public class NotesService {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (!userState.hasBusinessUnitUserWithPermission(
-            businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES)) {
-            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES);
+        FinesPermission permission =
+            request.getActivityNote().getRecordType() == NoteCommon.RecordTypeEnum.SUSPENSE_ITEMS
+            ? FinesPermission.MANAGE_SUSPENSE_ITEMS : FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES;
+        if (!userState.hasBusinessUnitUserWithPermission(businessUnitId, permission)) {
+            throw new PermissionNotAllowedException(businessUnitId, permission);
         }
 
         return notesProxy.addNote(request, ifMatch, userState, businessUnitId);

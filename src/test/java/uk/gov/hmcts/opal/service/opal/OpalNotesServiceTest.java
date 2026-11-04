@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.Clock;
 import java.time.Instant;
@@ -29,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -38,14 +40,16 @@ import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
+import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -58,12 +62,78 @@ class OpalNotesServiceTest {
     @Mock private NoteRepository repository;
     @Mock private DefendantAccountRepositoryService defendantAccountRepositoryService;
     @Mock private CreditorAccountRepository creditorAccountRepository;
+    @Mock private SuspenseItemRepository suspenseItemRepository;
     @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private Clock clock;
     @Mock private UserState user;
 
     @InjectMocks
     private OpalNotesService service;
+
+    @Test
+    void addNote_savesSuspenseItemNoteAndIncrementsVersion() {
+        SuspenseItemEntity item = SuspenseItemEntity.builder().suspenseItemId(105L).versionNumber(3L).build();
+        when(suspenseItemRepository.findBySuspenseItemId(105L)).thenReturn(Optional.of(item));
+        when(user.getBusinessUnitUserForBusinessUnit((short) 78)).thenReturn(Optional.of(
+            BusinessUnitUser.builder().businessUnitUserId("USER-78").build()));
+        when(user.getDisplayName()).thenReturn("Suspense User");
+        when(clock.instant()).thenReturn(Instant.parse("2026-11-04T10:15:30Z"));
+        when(clock.getZone()).thenReturn(ZoneOffset.UTC);
+        when(repository.save(any(NoteEntity.class))).thenReturn(NoteEntity.builder().noteId(1002L).build());
+
+        String result = service.addNote(buildRequest("105", RecordTypeEnum.SUSPENSE_ITEMS), "\"3\"", user,
+            suspenseTarget());
+
+        assertThat(result).isEqualTo("1002");
+        assertThat(item.getVersionNumber()).isEqualTo(4L);
+        ArgumentCaptor<NoteEntity> captor = ArgumentCaptor.forClass(NoteEntity.class);
+        verify(repository).save(captor.capture());
+        NoteEntity note = captor.getValue();
+        assertThat(note.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.SUSPENSE_ITEMS);
+        assertThat(note.getAssociatedRecordId()).isEqualTo("105");
+        assertThat(note.getNoteType()).isEqualTo(NoteType.AA);
+        assertThat(note.getNoteText()).isEqualTo("test");
+        assertThat(note.getBusinessUnitUserId()).isEqualTo("USER-78");
+        assertThat(note.getPostedByUsername()).isEqualTo("Suspense User");
+        assertThat(note.getPostedDate()).isEqualTo(LocalDateTime.of(2026, 11, 4, 10, 15, 30));
+        verifyNoInteractions(defendantAccountRepositoryService, creditorAccountRepository);
+    }
+
+    @Test
+    void addNote_rejectsSuspenseItemFromAnotherBusinessUnit() {
+        AddNoteRequestNotes request = buildRequest("105", RecordTypeEnum.SUSPENSE_ITEMS);
+        when(accountNoteContextFactory.from(request.getActivityNote())).thenReturn(suspenseTarget());
+
+        assertThrows(AccessDeniedException.class, () -> service.addNote(request, "3", user, (short) 79));
+
+        verifyNoInteractions(repository, suspenseItemRepository);
+    }
+
+    @Test
+    void addNote_rejectsStaleSuspenseItemVersion() {
+        SuspenseItemEntity item = SuspenseItemEntity.builder().suspenseItemId(105L).versionNumber(3L).build();
+        when(suspenseItemRepository.findBySuspenseItemId(105L)).thenReturn(Optional.of(item));
+
+        assertThrows(ObjectOptimisticLockingFailureException.class, () -> service.addNote(
+            buildRequest("105", RecordTypeEnum.SUSPENSE_ITEMS), "2", user, suspenseTarget()));
+
+        assertThat(item.getVersionNumber()).isEqualTo(3L);
+        verifyNoInteractions(repository);
+    }
+
+    @Test
+    void addNote_rejectsMissingSuspenseItem() {
+        when(suspenseItemRepository.findBySuspenseItemId(105L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> service.addNote(
+            buildRequest("105", RecordTypeEnum.SUSPENSE_ITEMS), "3", user, suspenseTarget()));
+
+        verifyNoInteractions(repository);
+    }
+
+    private static AccountNoteContext suspenseTarget() {
+        return new AccountNoteContext(SuspenseItemEntity.class, 105L, (short) 78, AssociatedRecordType.SUSPENSE_ITEMS);
+    }
 
     @Test
     @DisplayName("addNote saves a note and returns the note id")
