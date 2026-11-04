@@ -7,6 +7,7 @@ Feature: Draft Account Snapshot Identity
   @JIRA-STORY:PO-936 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5634
   Scenario: Submitted-by snapshot values come from the access token identity
     When I create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
