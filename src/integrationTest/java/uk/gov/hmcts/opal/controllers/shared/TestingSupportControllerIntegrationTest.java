@@ -88,9 +88,12 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private DynamicConfigService dynamicConfigService;
 
+    //TODO FeatureToggleApi more appropriate for an MVC Slice ot Unit test
     @MockitoBean
     private FeatureToggleApi featureToggleApi;
 
+
+    //TODO UserStateClientService more appropriate for an MVC Slice ot Unit test
     @MockitoBean
     private UserStateClientService userStateClientService;
 

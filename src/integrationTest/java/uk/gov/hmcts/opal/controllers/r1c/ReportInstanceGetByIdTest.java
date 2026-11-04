@@ -11,6 +11,7 @@ import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectEntityNotFoun
 import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -46,12 +47,16 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     private static final short BU_ID_1 = 1;
     private static final short BU_ID_2_WELSH_LANGUAGE = 2;
 
+    @BeforeEach
+    void resetUserPermissions() {
+        userStateStub.setupWithNoPermissions();
+    }
+
     @Test
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8275")
     void getReportInstance_success_singleBUInstance() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -92,7 +97,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8280")
     void getReportInstance_success_multiBUInstance() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
         userStateStub.addPermissions(BU_ID_2_WELSH_LANGUAGE, FinesPermission.ACCOUNT_ENQUIRY);
 
@@ -124,7 +128,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8279")
     void getReportInstance_success_useReportInstanceNameOverride() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
         userStateStub.addPermissions(BU_ID_2_WELSH_LANGUAGE, FinesPermission.ACCOUNT_ENQUIRY);
 
@@ -149,7 +152,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8272")
     void getReportInstance_success_butReportInstanceDataHasErrors() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -177,7 +179,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8273")
     void getReportInstance_success_allSupportedTypes() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -201,7 +202,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8276")
     void getReportInstance_success_reportParameters() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -223,7 +223,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8281")
     void getReportInstance_success_notReady_notDownloadable() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -250,7 +249,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8277")
     void getReportInstance_success_readyNoTypes_notDownloadable() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -275,7 +273,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraStory("PO-2254")
     @JiraEpic("PO-2248")
     void getReportInstance_success_whenUserHasAccessToOneOfMultipleBusinessUnits() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -298,7 +295,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8274")
     void getReportInstance_whenUserHasNoAccessToAssociatedBusinessUnits_returnsForbidden() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions((short) 3, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
@@ -318,7 +314,6 @@ public class ReportInstanceGetByIdTest extends AbstractIntegrationTest {
     @JiraEpic("PO-2248")
     @JiraTestKey("PO-8271")
     void getReportInstance_404_reportInstanceNotFound() throws Exception {
-        userStateStub.getUserState();
         userStateStub.addPermissions(BU_ID_1, FinesPermission.ACCOUNT_ENQUIRY);
 
         ResultActions result = mockMvc.perform(
