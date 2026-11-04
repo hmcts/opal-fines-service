@@ -137,6 +137,7 @@ components:
           description: DB Mapping - prisons.prison_id
         name:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.name
 
     PrisonsPrison:
@@ -155,22 +156,29 @@ components:
           description: DB Mapping - prisons.prison_id
         name:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.name
         address_line_1:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.address_line_1
         address_line_2:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.address_line_2
         address_line_3:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.address_line_3
         address_line_4:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.address_line_4
         address_line_5:
           type: string
+          maxLength: 35
           description: DB Mapping - prisons.address_line_5
         postcode:
           type: string
+          maxLength: 8
           description: DB Mapping - prisons.postcode
