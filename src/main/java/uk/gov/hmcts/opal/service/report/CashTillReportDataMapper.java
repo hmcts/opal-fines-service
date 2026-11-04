@@ -173,7 +173,7 @@ public class CashTillReportDataMapper {
     }
 
     private static String suspenseDetails(PaymentInEntity payment) {
-        String additionalInformation = payment.getAdditionalInformation();
+        String additionalInformation = PaymentReportAdditionalInformation.displayText(payment);
         return additionalInformation == null || additionalInformation.isBlank() ? "Suspense" : additionalInformation;
     }
 }

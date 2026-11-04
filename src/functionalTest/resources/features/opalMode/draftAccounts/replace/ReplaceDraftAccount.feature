@@ -7,6 +7,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-746 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5667
   Scenario: Update draft account - update account details
     And a replaceable draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -49,6 +50,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-947 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5668
   Scenario: Update draft account - update account details ignores submitted by name
     And a replaceable draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -89,6 +91,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5669
   Scenario: Update draft account - Update (Defendant) logs PDPO
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -113,6 +116,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5670
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
     And a draft account exists with the following details
+      | source            | MAC                                                 |
       | business_unit_id  | 73                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
       | account_type      | Fine                                                |
@@ -138,6 +142,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replace draft account - TFO confiscation originator resolves against a valid CRWCRT
     And a replaceable draft account exists with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Fine                                 |
@@ -166,6 +171,7 @@ Feature: Replace Draft Account
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replace draft account - FP fixed penalty originator resolves against a prosecutor
     And a replaceable draft account exists with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Fine                                 |

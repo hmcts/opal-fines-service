@@ -129,6 +129,15 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "account_number", length = 25)
     private String accountNumber;
 
+    @Column(name = "source", nullable = false, columnDefinition =  "t_dra_source_enum")
+    @ColumnTransformer(write = "?::t_dra_source_enum")
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    private DraftAccountSource source;
+
+    @Column(name = "source_reference")
+    private Long sourceReference;
+
     @Column(name = "version_number")
     @Version
     private Long versionNumber;
