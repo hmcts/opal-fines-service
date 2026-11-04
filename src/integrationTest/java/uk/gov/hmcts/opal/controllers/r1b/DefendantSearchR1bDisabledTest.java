@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1bDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles("integration")
+@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-write-off=true")
 @DisplayName("Defendant account search release-1b disabled Integration Test")
 @Tag("ExtendedTest")
 class DefendantSearchR1bDisabledTest extends AbstractRelease1bDisabledIntegrationTest {
