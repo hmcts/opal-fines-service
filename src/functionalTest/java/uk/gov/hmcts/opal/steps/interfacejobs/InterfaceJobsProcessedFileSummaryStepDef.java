@@ -55,7 +55,8 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
         ]
         """;
     private static final int RECORD_COUNT = 1;
-    private static final BigDecimal TOTAL_AMOUNT = new BigDecimal("123.45");
+    private static final BigDecimal TOTAL_AMOUNT_PENCE = new BigDecimal("12345");
+    private static final BigDecimal TOTAL_AMOUNT_POUNDS = new BigDecimal("123.45");
     private static final Set<String> SUMMARY_FIELDS = Set.of(
         "file_name", "source", "business_unit_name", "total_amount", "total_records", "total_errors",
         "interface_messages"
@@ -233,7 +234,7 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     }
 
     /**
-     * Confirms that the summary returns the file details and totals supplied when the job was created.
+     * Confirms that the summary returns the file details and converts the supplied pence total to pounds.
      */
     @Then("the processed file summary contains the expected file details and totals")
     public void processedFileSummaryContainsExpectedFileDetailsAndTotals() {
@@ -241,7 +242,7 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
 
         assertEquals("e2e-processed-file-summary.dat", response.path("file_name").asText());
         assertEquals("NATWEST", response.path("source").asText());
-        assertEquals(TOTAL_AMOUNT, response.path("total_amount").decimalValue());
+        assertEquals(0, TOTAL_AMOUNT_POUNDS.compareTo(response.path("total_amount").decimalValue()));
         assertEquals(RECORD_COUNT, response.path("total_records").intValue());
     }
 
@@ -275,7 +276,7 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
                 }
               ]
             }
-            """.formatted(OBJECT_MAPPER.writeValueAsString(PAYMENT_RECORDS), RECORD_COUNT, TOTAL_AMOUNT,
+            """.formatted(OBJECT_MAPPER.writeValueAsString(PAYMENT_RECORDS), RECORD_COUNT, TOTAL_AMOUNT_PENCE,
                 BUSINESS_UNIT_ID, INTERFACE_NAME);
     }
 
