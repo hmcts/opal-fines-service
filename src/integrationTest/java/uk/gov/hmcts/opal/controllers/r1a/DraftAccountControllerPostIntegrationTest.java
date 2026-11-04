@@ -33,6 +33,7 @@ import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
@@ -47,6 +48,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .source(DraftAccountSource.MAC)
             .businessUnitId((short) 78)
             .account(validAccountJsonString())
             .accountType(DraftAccountType.FINE)
@@ -61,6 +63,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
 
     private String invalidLanguageRawJsonCreateRequestBody(String languageField) {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()
+            .source(DraftAccountSource.MAC)
             .businessUnitId((short) 78)
             .account(validAccountJsonStringWithDebtorLanguages()
                 .replace("\"%s\": \"EN\"".formatted(languageField), "\"%s\": \"English\"".formatted(languageField)))
@@ -1049,6 +1052,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private static String validCreateRequestBody() {
         return """
             {
+              "source": "MAC",
               "business_unit_id": 78,
               "account": {
                 "account_type": "Fine",
@@ -1237,6 +1241,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validPostRequestBody() {
         return """
             {
+              "source": "MAC",
               "business_unit_id": 78,
               "account": {
                 "account_type": "Fine",
@@ -1363,6 +1368,7 @@ class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountContro
     private String validFPPostRequestBody() {
         return """
             {
+               "source":"MAC",
                "business_unit_id":77,
                "account":{
                   "account_type":"Fixed Penalty",

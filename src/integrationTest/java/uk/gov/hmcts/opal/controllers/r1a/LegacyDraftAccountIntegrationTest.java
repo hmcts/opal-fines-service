@@ -87,6 +87,7 @@ public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControl
     private static String createValidCreateRequestBody() {
         return """
             {
+              "source": "MAC",
               "business_unit_id": 78,
               "account": {
                 "account_type": "Fine",
