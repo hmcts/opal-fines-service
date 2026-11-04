@@ -18,6 +18,8 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.math.BigInteger;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,8 +27,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
+import uk.gov.hmcts.opal.util.Versioned;
 
 @Entity
 @Table(name = "suspense_items")
@@ -38,7 +39,7 @@ import java.time.LocalDateTime;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "suspense_itemId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class SuspenseItemEntity {
+public class SuspenseItemEntity implements Versioned {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "suspense_item_id_seq_generator")
@@ -74,4 +75,9 @@ public class SuspenseItemEntity {
 
     @Column(name = "version_number")
     private Long versionNumber;
+
+    @Override
+    public BigInteger getVersion() {
+        return BigInteger.valueOf(versionNumber == null ? 0L : versionNumber);
+    }
 }
