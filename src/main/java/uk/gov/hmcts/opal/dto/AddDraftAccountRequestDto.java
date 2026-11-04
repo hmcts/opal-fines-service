@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import tools.jackson.databind.annotation.JsonDeserialize;
@@ -58,4 +59,10 @@ public class AddDraftAccountRequestDto implements ToJsonString, DraftAccountRequ
 
     @JsonProperty("timeline_data")
     private Object timelineData;
+
+    @JsonProperty(value = "source")
+    private DraftAccountSource source;
+
+    @JsonProperty("source_reference")
+    private Long sourceReference;
 }
