@@ -43,9 +43,6 @@ import java.time.LocalDateTime;
 public class LocalJusticeAreaEntity extends AddressEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "local_justice_area_id_seq_generator")
-    @SequenceGenerator(name = "local_justice_area_id_seq_generator", sequenceName = "local_justice_area_id_seq",
-        allocationSize = 1)
     @Column(name = "local_justice_area_id", nullable = false)
     private Short localJusticeAreaId;
 
