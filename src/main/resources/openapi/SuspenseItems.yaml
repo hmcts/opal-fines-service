@@ -324,10 +324,9 @@ components:
       type: object
       additionalProperties: false
       description: >-
-        Payment hold must be false for this API; the backend stores it in creditor_accounts.hold_payout.
+        Payment hold is not included in this API's request; the backend sets creditor_accounts.hold_payout to false.
       required:
         - pay_by_bacs
-        - hold_payment
       properties:
         account_name:
           type: string
@@ -352,10 +351,6 @@ components:
         pay_by_bacs:
           type: boolean
           description: DB Mapping - creditor_accounts.pay_by_bacs
-        hold_payment:
-          type: boolean
-          const: false
-          description: DB Mapping - creditor_accounts.hold_payout
       allOf:
         - if:
             properties:
