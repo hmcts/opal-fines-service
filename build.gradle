@@ -8,15 +8,12 @@ buildscript {
   ext {
     cucumberQueryVersion = "16.1.1"
     cucumberMessagesVersion = "34.2.1"
-    jspecifyVersion = "1.0.1"
   }
 
   configurations.classpath {
     resolutionStrategy {
       force "io.cucumber:query:${cucumberQueryVersion}"
       force "io.cucumber:messages:${cucumberMessagesVersion}"
-      // Cucumber requests a version range; pin it to avoid Maven metadata lookups.
-      force "org.jspecify:jspecify:${jspecifyVersion}"
     }
   }
 
@@ -281,10 +278,6 @@ configurations.configureEach {
     force "io.cucumber:cucumber-core:${cucumberVersion}"
     force "io.cucumber:cucumber-java:${cucumberVersion}"
     force "io.cucumber:cucumber-junit:${cucumberVersion}"
-    // Apply the plugin classpath pins to test dependencies with the same version ranges.
-    force "io.cucumber:query:${cucumberQueryVersion}"
-    force "io.cucumber:messages:${cucumberMessagesVersion}"
-    force "org.jspecify:jspecify:${jspecifyVersion}"
   }
 }
 
