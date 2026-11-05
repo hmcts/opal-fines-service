@@ -34,7 +34,7 @@ public enum FinesPermission implements PermissionDescriptor {
     ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor"),
     VIEW_SUSPENSE_ITEMS(21L, "View Suspense Items"),
     MANAGE_SUSPENSE_ITEMS(22L, "Manage Suspense Items"),
-    MANAGE_ALTERNATE_PAYMENT_REFERENCES(21L, "Manage Alternate Payment References");
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES(23L, "Manage Alternate Payment References");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
