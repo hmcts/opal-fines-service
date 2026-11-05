@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static uk.gov.hmcts.opal.service.report.CashTillReportDataValidator.validateReportData;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -68,7 +67,6 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     }
 
     private byte[] convertReportDataToPdf(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
-        validateReportData(reportData);
         return pdfGenerationService.generatePdf(
             reportInstance.getTemplateName(), PdfReportData.from(reportInstance, reportData));
     }
