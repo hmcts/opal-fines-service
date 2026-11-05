@@ -37,7 +37,7 @@ public interface MinorCreditorMapper {
             .defendantAccountId(entity.getDefendantAccountId() != null
                 ? String.valueOf(entity.getDefendantAccountId()) : null)
             .organisation(entity.getDefendantAccountId() == null
-                ? Boolean.FALSE : defendantOrganisations.get(entity.getDefendantAccountId()))
+                ? Boolean.valueOf(entity.isOrganisation()) : defendantOrganisations.get(entity.getDefendantAccountId()))
             .organisationName(entity.getDefendantOrganisationName())
             .firstnames(entity.getDefendantFornames())
             .surname(entity.getDefendantSurname())

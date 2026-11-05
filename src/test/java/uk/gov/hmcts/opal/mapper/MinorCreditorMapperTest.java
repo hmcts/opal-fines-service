@@ -7,6 +7,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.Creditor;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
@@ -100,15 +101,20 @@ class MinorCreditorMapperTest {
         assertThat(result.getDefendant().getOrganisation()).isEqualTo(defendantOrganisation);
     }
 
-    @Test
-    void missingDefendantPreservesExistingResponse() {
-        MinorCreditorEntity entity = MinorCreditorEntity.builder().creditorId(123L).build();
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void missingDefendantPreservesExistingResponse(boolean creditorOrganisation) {
+        MinorCreditorEntity entity = MinorCreditorEntity.builder()
+            .creditorId(123L).organisation(creditorOrganisation).build();
 
         MinorCreditorAccountSearchResultMinorCreditor result =
             minorCreditorMapper.toCreditorAccountDto(entity, Map.of());
 
         assertThat(result.getDefendant().getDefendantAccountId()).isNull();
-        assertThat(result.getDefendant().getOrganisation()).isFalse();
+        assertThat(result.getDefendant().getOrganisation()).isEqualTo(creditorOrganisation);
+        assertThat(result.getDefendant().getOrganisationName()).isNull();
+        assertThat(result.getDefendant().getFirstnames()).isNull();
+        assertThat(result.getDefendant().getSurname()).isNull();
     }
 
     @Test
