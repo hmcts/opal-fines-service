@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.reference.validation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -12,13 +11,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -43,7 +38,7 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
     private LegacyDraftAccountReferenceValidationService validationService;
 
     @Test
-    void validateReferences_correctlyDelegatesToOpalService() {
+    void validateReferences_delegatesUnmigratedValidationToOpalService() {
         try (MockedStatic<JsonPathUtil> jsonPathUtil = mockStatic(JsonPathUtil.class)) {
             // Arrange
             String accountJson = "{}";
@@ -58,16 +53,13 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
             verify(delegateService, times(1)).validateEnforcementCourt(eq(docContext), anyList());
             verify(delegateService, times(1)).validateOffences(eq(BUSINESS_UNIT_ID), eq(docContext), anyList());
             verify(delegateService, times(1)).validatePaymentTermsEnforcements(eq(docContext), anyList(), anyMap());
-            verify(delegateService, times(1)).validateOriginator(eq(docContext), anyList(), any());
         }
     }
 
     @Test
-    void validateOriginator_usesLegacyLocalJusticeAreaRepository() {
+    void validateReferences_whenOriginatorIsLocalJusticeArea_usesLegacyRepository() {
         Short localJusticeAreaId = 104;
         String localJusticeAreaName = "West London";
-        DocContext docContext = mock(DocContext.class);
-        List<String> failures = new ArrayList<>();
         LocalJusticeAreaLegacyEntity localJusticeArea = LocalJusticeAreaLegacyEntity.builder()
             .localJusticeAreaId(localJusticeAreaId)
             .ljaType(LocalJusticeAreaTypeLegacy.LJA)
@@ -76,10 +68,15 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
         when(localJusticeAreaLegacyRepository.findById(localJusticeAreaId))
             .thenReturn(Optional.of(localJusticeArea));
 
-        validationService.validateOriginator(docContext, failures);
+        assertDoesNotThrow(() -> validationService.validateReferences(BUSINESS_UNIT_ID, """
+            {
+              "account_type": "Fine",
+              "originator_type": "NEW",
+              "originator_id": 104,
+              "originator_name": "West London"
+            }
+            """));
 
-        ArgumentCaptor<Function<Short, Optional<String>>> finderCaptor = ArgumentCaptor.captor();
-        verify(delegateService).validateOriginator(eq(docContext), eq(failures), finderCaptor.capture());
-        assertEquals(Optional.of(localJusticeAreaName), finderCaptor.getValue().apply(localJusticeAreaId));
+        verify(localJusticeAreaLegacyRepository).findById(localJusticeAreaId);
     }
 }
