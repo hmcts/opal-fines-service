@@ -13,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -21,9 +20,6 @@ import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @DisplayName("Interface Job Processed File Summary Error Integration Tests")
 class InterfaceJobProcessedFileSummaryErrorIT extends AbstractIntegrationTest {
 

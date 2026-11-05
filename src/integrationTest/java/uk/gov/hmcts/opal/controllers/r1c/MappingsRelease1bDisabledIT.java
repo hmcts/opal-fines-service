@@ -19,9 +19,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false",
-    "launchdarkly.default-flag-values.release-1c-payment=true"
+    "launchdarkly.default-flag-values.release-1b=false"
 })
 @DisplayName("Mappings with Release 1B disabled")
 class MappingsRelease1bDisabledIT extends AbstractIntegrationTest {

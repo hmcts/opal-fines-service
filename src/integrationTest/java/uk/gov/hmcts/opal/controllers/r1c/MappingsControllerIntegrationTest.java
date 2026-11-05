@@ -11,18 +11,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true",
-    "launchdarkly.default-flag-values.release-1c-payment=true",
-    "launchdarkly.enabled=false"
-})
 @DisplayName("MappingsController Integration Test")
 class MappingsControllerIntegrationTest extends AbstractIntegrationTest {
 

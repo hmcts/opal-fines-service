@@ -28,7 +28,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -48,10 +47,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(
     scripts = "classpath:db/deleteData/delete_from_consolidated_accounts.sql",
