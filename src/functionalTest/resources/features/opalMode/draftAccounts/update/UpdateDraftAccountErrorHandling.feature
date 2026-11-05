@@ -7,6 +7,7 @@ Feature: Update Draft Account Error Handling
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5698
   Scenario: Patching a draft account with invalid data is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -24,6 +25,7 @@ Feature: Update Draft Account Error Handling
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5699
   Scenario: Patching a draft account without a valid access token is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -68,6 +70,7 @@ Feature: Update Draft Account Error Handling
   @JIRA-STORY:PO-747 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5704
   Scenario: Reusing a stale ETag when patching a draft account is rejected as conflict
     When I create a draft account with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |

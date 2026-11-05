@@ -59,6 +59,16 @@ public abstract class AbstractPdplLoggingService {
         PersonalDataProcessingCategory category,
         List<ParticipantIdentifier> individuals,
         ParticipantIdentifier recipient,
+        UserState userState,
+        String failureMessage) {
+
+        logPdplOrThrow(businessIdentifier, category, individuals, recipient, userState.getUserId(), failureMessage);
+    }
+
+    protected void logPdplOrThrow(String businessIdentifier,
+        PersonalDataProcessingCategory category,
+        List<ParticipantIdentifier> individuals,
+        ParticipantIdentifier recipient,
         Long userId,
         String failureMessage) {
 

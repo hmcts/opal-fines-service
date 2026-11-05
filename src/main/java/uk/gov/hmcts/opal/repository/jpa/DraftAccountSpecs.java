@@ -7,6 +7,7 @@ import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 
@@ -32,13 +33,15 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
     public Specification<DraftAccountEntity> findForSummaries(
         Collection<Short> businessUnitIds, Collection<DraftAccountStatus> statuses,
         Collection<String> submittedBys, Collection<String> notSubmitted,
-        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
+        Optional<DraftAccountSource> source) {
 
         return Specification.allOf(specificationList(
             equalsAnyBusinessUnitId(businessUnitIds),
             equalsAnyAccountStatus(statuses),
             equalsAnySubmittedBy(submittedBys),
             equalsNotSubmittedBy(notSubmitted),
+            equalsSource(source),
             accountStatusDateUpTo(accountStatusDateTo.map(toDate -> toDate.plusDays(1).atStartOfDay())),
             accountStatusDateFrom(accountStatusDateFrom.map(LocalDate::atStartOfDay))
         ));
@@ -123,5 +126,11 @@ public class DraftAccountSpecs extends EntitySpecs<DraftAccountEntity> {
 
     public static Join<DraftAccountEntity, BusinessUnitEntity> joinBusinessUnit(From<?, DraftAccountEntity> from) {
         return from.join(DraftAccountEntity_.businessUnit);
+    }
+
+    public static Optional<Specification<DraftAccountEntity>> equalsSource(Optional<DraftAccountSource> source) {
+        return source.map(draftAccountSource -> (root, query, builder) ->
+            builder.equal(root.get(DraftAccountEntity_.source), draftAccountSource)
+        );
     }
 }

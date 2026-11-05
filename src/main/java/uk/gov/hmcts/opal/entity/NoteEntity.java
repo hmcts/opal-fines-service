@@ -11,21 +11,20 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.ColumnTransformer;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnTransformer;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.entity.converter.AssociatedRecordTypeConverter;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notes")
@@ -37,6 +36,7 @@ import java.time.LocalDateTime;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 public class NoteEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "note_id_seq_generator")
@@ -71,4 +71,11 @@ public class NoteEntity {
     @Column(name = "posted_by_name", length = 100)
     private String postedByUsername;
 
+    public NoteEntity(
+        NoteType noteType, String noteText, AssociatedRecordType associatedRecordType, String associatedRecordId) {
+        this.noteType = noteType;
+        this.associatedRecordType = associatedRecordType;
+        this.associatedRecordId = associatedRecordId;
+        this.noteText = noteText;
+    }
 }
