@@ -20,7 +20,7 @@ class GetTillMapperTest {
 
     @Test
     void whenTillIsProvided_mapsTopLevelResponse_happyPath() {
-        TillsGetResponse response = mapper.toResponse(till(), List.of(), Map.of());
+        TillsGetResponse response = mapper.toResponse(till(), List.of(), Map.of(), Map.of());
 
         assertAll(
             () -> assertEquals((short) 42, response.getTillNumber()),
