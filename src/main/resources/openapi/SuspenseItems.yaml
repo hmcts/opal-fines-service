@@ -179,6 +179,100 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+  /suspense-items/{suspense_item_id}/repay-defendant/{defendant_account_id}:
+    post:
+      tags:
+        - Suspense Items
+      summary: Repay Suspense Item to Defendant
+      description: >-
+        Records the repayment instruction and audit trail for an amount from a suspense item to an
+        existing defendant account. This operation does not move money or print a cheque. The amount
+        must be greater than zero and must not exceed the suspense item balance.
+      operationId: repaySuspenseItemToDefendant
+      security:
+        - permissions:
+            - Manage Suspense Items (in the specified BU)
+      parameters:
+        - in: path
+          name: suspense_item_id
+          description: DB Mapping - suspense_items.suspense_item_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: path
+          name: defendant_account_id
+          description: DB Mapping - defendant_accounts.defendant_account_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: Business-Unit-Id
+          description: DB Mapping - business_units.business_unit_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          description: Current version of the suspense item.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepaySuspenseItemToDefendantRequest'
+      responses:
+        '200':
+          description: Suspense item repaid to defendant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaySuspenseItemToDefendantResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Suspense item or defendant account not found in the supplied business unit
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '409':
+          description: Suspense item or defendant account version does not match the supplied version
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
 components:
   securitySchemes:
     permissions:
@@ -408,3 +502,67 @@ components:
           description: >-
             DB Mapping - court_fees_received.court_fee_received_id. Returned only when a related court fee
             record exists and the repayment conditions result in a record being created.
+
+    RepaySuspenseItemToDefendantRequest:
+      title: Repay Suspense Item to Defendant Request
+      type: object
+      additionalProperties: false
+      required:
+        - defendant_account_version
+        - amount
+        - note_text
+      properties:
+        defendant_account_version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - defendant_accounts.version_number
+        amount:
+          type: number
+          minimum: 0.01
+          multipleOf: 0.01
+          description: >-
+            Positive repayment amount. DB Mapping - suspense_transactions.amount; stored as a negative
+            value in the suspense transaction and control total. The amount cannot exceed the current
+            suspense item balance.
+        note_text:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          description: DB Mapping - notes.note_text
+
+    RepaySuspenseItemToDefendantResponse:
+      title: Repay Suspense Item to Defendant Response
+      type: object
+      additionalProperties: false
+      required:
+        - suspense_item_version
+        - defendant_account_version
+        - defendant_transactions
+        - suspense_transaction_id
+        - note_id
+        - control_total_id
+      properties:
+        suspense_item_version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: Updated version of the suspense item. DB Mapping - suspense_items.version_number
+        defendant_account_version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: Updated version of the defendant account. DB Mapping - defendant_accounts.version_number
+        defendant_transactions:
+          type: array
+          description: The repayment and cheque defendant transaction IDs.
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        suspense_transaction_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - suspense_transactions.suspense_transaction_id
+        note_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - notes.note_id
+        control_total_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - control_totals.control_total_id
+        court_fee_received_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - court_fees_received.court_fee_received_id
