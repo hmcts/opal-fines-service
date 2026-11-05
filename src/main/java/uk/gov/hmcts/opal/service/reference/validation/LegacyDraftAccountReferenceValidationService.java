@@ -36,14 +36,15 @@ public class LegacyDraftAccountReferenceValidationService extends AbstractDraftA
     }
 
     @Override
-    void validateOriginator(DocContext docContext, List<String> failures) {
-        opalService.validateOriginator(docContext, failures, this::findLocalJusticeAreaName);
-    }
-
-    private Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
+    Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
         return localJusticeAreaLegacyRepository.findById(localJusticeAreaId)
             .filter(entity -> entity.getLjaType() == LocalJusticeAreaTypeLegacy.LJA
                 || entity.getLjaType() == LocalJusticeAreaTypeLegacy.CRWCRT)
             .map(LocalJusticeAreaLegacyEntity::getName);
+    }
+
+    @Override
+    Optional<String> findProsecutorName(Long prosecutorId) {
+        return opalService.findProsecutorName(prosecutorId);
     }
 }
