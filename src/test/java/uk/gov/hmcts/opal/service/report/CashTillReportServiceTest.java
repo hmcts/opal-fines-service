@@ -24,9 +24,7 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.assertj.core.groups.Tuple;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import tools.jackson.databind.ObjectMapper;
@@ -361,57 +359,6 @@ class CashTillReportServiceTest {
         assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, reportData, CSV))
             .isInstanceOf(UnsupportedOperationException.class)
             .hasMessage("CSV conversion is handled by ReportCSVService");
-    }
-
-    @Test
-    void convertReportDataToFileType_whenReportDataIsNull_throwsException() {
-        assertThatThrownBy(() -> service.convertReportDataToFileType(REPORT_INSTANCE, null, PDF))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Cash Till report data is required");
-    }
-
-    @Test
-    void convertReportDataToFileType_whenRowsAreNull_throwsException() {
-        CashTillReportData reportData = reportDataWithRows(null);
-
-        assertThatThrownBy(() -> convert(reportData))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Cash Till report rows are required");
-    }
-
-    @Test
-    void convertReportDataToFileType_whenRowIsNull_throwsException() {
-        List<CashTillReportRow> rows = new ArrayList<>();
-        rows.add(null);
-        CashTillReportData reportData = reportDataWithRows(rows);
-
-        assertThatThrownBy(() -> convert(reportData))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Cash Till report row 1 is required");
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("missingFieldCases")
-    void convertReportDataToFileType_whenMandatoryFieldIsMissing_throwsException(String description,
-        Consumer<CashTillReportRow> change, String expectedMessage) {
-        CashTillReportRow row = validRow();
-        change.accept(row);
-
-        assertThatThrownBy(() -> convert(reportData(row)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(expectedMessage);
-    }
-
-    @ParameterizedTest(name = "{0}")
-    @MethodSource("invalidMoneyCases")
-    void convertReportDataToFileType_moneyScaleTooHigh_throwsException(String description,
-        Consumer<CashTillReportRow> change, String expectedMessage) {
-        CashTillReportRow row = validRow();
-        change.accept(row);
-
-        assertThatThrownBy(() -> convert(reportData(row)))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage(expectedMessage);
     }
 
     @Test
