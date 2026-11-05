@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENABLED_PROPERTY;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -32,8 +33,14 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
         log.debug("GET: getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",
             businessUnitId, suspenseItemNumber);
 
-        return buildResponse(suspenseAccountsSummaryService
-            .getSuspenseAccountsSummary(businessUnitId.shortValue(), suspenseItemNumber));
+        SuspenseItemSummaryCommonStrict response = suspenseAccountsSummaryService
+            .getSuspenseAccountsSummary(businessUnitId.shortValue(), suspenseItemNumber);
+
+        if (response == null) {
+            throw new EntityNotFoundException("Suspense item summary not found");
+        }
+
+        return buildResponse(response);
     }
 
     @Override
