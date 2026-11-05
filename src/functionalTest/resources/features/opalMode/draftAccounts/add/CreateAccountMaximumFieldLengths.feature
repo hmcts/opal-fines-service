@@ -1,7 +1,7 @@
-@Opal @JIRA-LABEL:manual-account-creation @R1A @JIRA-DEFECT:PO-11118 @JIRA-STORY:11192 @JIRA-EPIC:PO-50 @Ignore
+@Opal @JIRA-LABEL:manual-account-creation @R1A @JIRA-STORY:11192 @JIRA-EPIC:PO-50 @Ignore
 Feature: Create accounts with maximum-length fields
 
-  @cleanUpData
+  @cleanUpData @JIRA-DEFECT:PO-11118
   Scenario: Published individual account retains maximum-length header values
     Given a defendant account with header summary data exists for submitted by "MAXLEN-IND-001" using fixture "draftAccounts/accountJson/individualMaxLengths.json"
     When I request defendant account header summary for the created defendant account

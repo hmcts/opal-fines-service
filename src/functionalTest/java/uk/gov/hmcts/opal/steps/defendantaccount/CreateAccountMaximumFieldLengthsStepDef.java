@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.steps.defendantaccount;
 
 import static net.serenitybdd.rest.SerenityRest.given;
 import static net.serenitybdd.rest.SerenityRest.lastResponse;
+import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -37,6 +38,7 @@ public class CreateAccountMaximumFieldLengthsStepDef extends BaseStepDef {
             .when()
             .get(getTestUrl() + "/defendant-accounts/"
                 + scenarioContext().getCreatedDefendantAccountIdOrFail() + "/" + endpoint);
+        then().log().body();
     }
 
     /** Requests defendant party details using its association ID from the account header summary. */
@@ -52,13 +54,14 @@ public class CreateAccountMaximumFieldLengthsStepDef extends BaseStepDef {
 
         String defendantAccountPartyId = headerSummary.jsonPath().getString("defendant_account_party_id");
         assertNotNull(defendantAccountPartyId, "Header summary must include defendant_account_party_id");
-        given()
+        Response partyDetailsResponse = given()
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + BearerTokenStepDef.getToken())
             .accept("*/*")
             .contentType("application/json")
             .when()
             .get(getTestUrl() + "/defendant-accounts/" + accountId
                 + "/defendant-account-parties/" + defendantAccountPartyId);
+        partyDetailsResponse.then().log().body();
     }
 
     /** Checks exact response values and their returned character lengths.
