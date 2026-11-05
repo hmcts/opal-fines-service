@@ -11,7 +11,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
@@ -80,13 +79,32 @@ class MinorCreditorSearchPdplLoggingIntegrationTest extends MinorCreditorSearchP
             PdplIdentifierType.DEFENDANT, "10764101");
     }
 
-    @ParameterizedTest
+    @Test
     @JiraStory("PO-10764")
     @JiraEpic("PO-10729")
-    @ValueSource(strings = {"PDPO6404", "PDPO6406"})
-    void companiesDoNotQueueLogs(String account) throws Exception {
+    void companiesDoNotQueueLogs() throws Exception {
         rejectQueueCall(1, true);
-        search(account).andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1));
+        search("PDPO6404").andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(true));
+
+        verifyNoInteractions(loggingService);
+    }
+
+    @Test
+    @JiraStory("PO-10764")
+    @JiraEpic("PO-10729")
+    void unassociatedCompanyDoesNotQueueLogs() throws Exception {
+        rejectQueueCall(1, true);
+        search("PDPO6406").andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(true))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").isEmpty())
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.firstnames").isEmpty())
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.surname").isEmpty())
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation_name").isEmpty());
 
         verifyNoInteractions(loggingService);
     }
@@ -107,6 +125,7 @@ class MinorCreditorSearchPdplLoggingIntegrationTest extends MinorCreditorSearchP
     void unassociatedIndividualQueuesOnlyCreditorLog() throws Exception {
         search("PDPO6407").andExpect(status().isOk())
             .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.creditor_accounts[0].defendant.organisation").value(false))
             .andExpect(jsonPath("$.creditor_accounts[0].defendant.defendant_account_id").isEmpty());
 
         assertLog(logs(1).getFirst(), "Search Account Results - Individual Minor Creditors",
