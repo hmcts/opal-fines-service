@@ -3,22 +3,31 @@ package uk.gov.hmcts.opal.service.refdata.lja;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
+@ExtendWith(MockitoExtension.class)
 class LocalJusticeAreaRefDataHandlerTest {
 
-    private final LocalJusticeAreaRepository repository = mock(LocalJusticeAreaRepository.class);
-    private final LocalJusticeAreaRefDataMapper mapper = mock(LocalJusticeAreaRefDataMapper.class);
-    private final LocalJusticeAreaRefDataHandler handler = new LocalJusticeAreaRefDataHandler(repository, mapper);
+    @Mock
+    private LocalJusticeAreaRepository repository;
+
+    @Mock
+    private LocalJusticeAreaRefDataMapper mapper;
+
+    @InjectMocks
+    private LocalJusticeAreaRefDataHandler handler;
 
     @Test
     void exposesReferenceDataHandlerMetadata() {
