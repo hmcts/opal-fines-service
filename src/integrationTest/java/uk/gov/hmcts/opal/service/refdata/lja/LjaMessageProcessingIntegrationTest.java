@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.refdata.lja;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 import java.util.stream.Stream;

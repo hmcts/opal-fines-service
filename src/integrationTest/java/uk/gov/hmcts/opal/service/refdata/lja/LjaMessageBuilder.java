@@ -20,7 +20,8 @@ public final class LjaMessageBuilder {
         String addressLine3, String addressLine4, String addressLine5, String postcode) {
         return buildMessage(dataProduct, List.of(buildRecord(ljaCode, includeLjaName ? ljaName : null, "CRWCRT",
             "2027-03-01", endDate, List.of(
-                address("Court Address", addressLine1, addressLine2, addressLine3, addressLine4, addressLine5, postcode),
+                address("Court Address", addressLine1, addressLine2, addressLine3, addressLine4,
+                    addressLine5, postcode),
                 address("Financial Office Address", "Secondary address line 1", null, null, null, null,
                     "NE1 2BB")))));
     }
