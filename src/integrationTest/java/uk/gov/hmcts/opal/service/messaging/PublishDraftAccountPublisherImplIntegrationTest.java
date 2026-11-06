@@ -24,7 +24,6 @@ import jakarta.jms.Queue;
 import jakarta.jms.Session;
 import jakarta.jms.TextMessage;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,12 +35,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.config.PublishDraftAccountsServiceBusProperties;
-import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
-import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.PublishDraftAccountQueueException;
-import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -60,9 +56,6 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
     private PublishDraftAccountPublisherImpl publisher;
 
     @Autowired
-    private DraftAccountMapper mapper;
-
-    @Autowired
     private PublishDraftAccountsServiceBusProperties properties;
 
     @MockitoSpyBean(name = "interfaceJobPublisherJmsTemplate")
@@ -75,17 +68,17 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
     @Test
     @JiraStory("PO-10663")
     @JiraEpic("PO-7462")
-    @DisplayName("AC1 - Publishes every summary and commits pending statuses")
-    void publish_sendsAllSummariesAndCommitsPendingStatuses() throws JMSException {
+    @DisplayName("AC1 - Publishes every draft account ID and commits pending statuses")
+    void publish_sendsAllIdsAndCommitsPendingStatuses() throws JMSException {
         stubJms();
 
-        DraftAccountsResponseDto draftAccounts = createDraftAccountsResponse(1L, 2L, 3L);
+        List<Long> draftAccountIds = List.of(2L, 1L, 3L);
         List<DraftAccountEntity> originalAccounts = repository.findAllById(List.of(1L, 2L, 3L));
         assertEquals(3, originalAccounts.size());
 
-        publisher.publish(draftAccounts);
+        publisher.publish(draftAccountIds);
 
-        assertSendAttempts(draftAccounts.getSummaries());
+        assertSendAttempts(draftAccountIds);
         assertPendingStatuses(originalAccounts);
 
         verify(jmsTemplate).execute(any(), eq(true));
@@ -106,15 +99,15 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
         JMSException sendFailure = new JMSException("Second send failed");
         doNothing().doThrow(sendFailure).when(jmsProducer).send(any(Message.class));
 
-        DraftAccountsResponseDto draftAccounts = createDraftAccountsResponse(1L, 2L, 3L);
+        List<Long> draftAccountIds = List.of(1L, 2L, 3L);
         List<DraftAccountEntity> originalAccounts = repository.findAllById(List.of(1L, 2L, 3L));
         assertEquals(3, originalAccounts.size());
 
         PublishDraftAccountQueueException exception = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccounts));
+            () -> publisher.publish(draftAccountIds));
 
         assertSame(sendFailure, exception.getCause());
-        assertSendAttempts(draftAccounts.getSummaries().subList(0, 2));
+        assertSendAttempts(draftAccountIds.subList(0, 2));
 
         verify(jmsTemplate).execute(any(), eq(true));
         verify(jmsSession, times(2)).createTextMessage(anyString());
@@ -125,14 +118,13 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
         assertAccountStateUnchanged(originalAccounts);
     }
 
-    private void assertSendAttempts(List<DraftAccountSummaryDto> expectedSummaries) throws JMSException {
+    private void assertSendAttempts(List<Long> expectedIds) throws JMSException {
         ArgumentCaptor<TextMessage> messages = ArgumentCaptor.forClass(TextMessage.class);
 
-        verify(jmsProducer, times(expectedSummaries.size())).send(messages.capture());
+        verify(jmsProducer, times(expectedIds.size())).send(messages.capture());
 
-        for (int i = 0; i < expectedSummaries.size(); i++) {
-            assertEquals(objectMapper.writeValueAsString(expectedSummaries.get(i)),
-                messages.getAllValues().get(i).getText());
+        for (int i = 0; i < expectedIds.size(); i++) {
+            assertEquals("{\"draft_account_id\":" + expectedIds.get(i) + "}", messages.getAllValues().get(i).getText());
         }
     }
 
@@ -178,15 +170,6 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
             when(message.getText()).thenReturn(invocation.getArgument(0));
             return message;
         });
-    }
-
-    private DraftAccountsResponseDto createDraftAccountsResponse(Long... draftAccountIds) {
-        return DraftAccountsResponseDto.builder()
-            .summaries(Arrays.stream(draftAccountIds)
-                .map(id -> repository.findById(id).orElseThrow())
-                .map(mapper::toDto)
-                .toList())
-            .build();
     }
 
 }

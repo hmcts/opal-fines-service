@@ -16,8 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.config.PublishDraftAccountsServiceBusProperties;
-import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
-import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.PublishDraftAccountQueueException;
@@ -37,9 +35,13 @@ public class PublishDraftAccountPublisherImpl implements PublishDraftAccountPubl
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void publish(DraftAccountsResponseDto draftAccounts) {
-        List<String> payloads = draftAccounts.getSummaries()
-            .stream()
+    public void publish(List<Long> draftAccountIds) {
+        List<DraftAccountEntity> draftAccounts = draftAccountIds.stream()
+            .map(id -> draftAccountRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Draft account not found: " + id)))
+            .toList();
+
+        List<String> payloads = draftAccountIds.stream()
             .map(this::toPayload)
             .toList();
 
@@ -49,9 +51,9 @@ public class PublishDraftAccountPublisherImpl implements PublishDraftAccountPubl
         jmsTemplate.execute(session -> sendBatch(session, payloads), true);
     }
 
-    private String toPayload(DraftAccountSummaryDto draftAccount) {
+    private String toPayload(Long draftAccountId) {
         try {
-            return objectMapper.writeValueAsString(draftAccount);
+            return objectMapper.writeValueAsString(new PublishDraftAccountQueueMessage(draftAccountId));
         } catch (JacksonException exception) {
             throw new IllegalStateException("Unable to serialise publish draft account message", exception);
         }
@@ -88,14 +90,10 @@ public class PublishDraftAccountPublisherImpl implements PublishDraftAccountPubl
         return cause;
     }
 
-    private void updateStatuses(DraftAccountsResponseDto draftAccounts) {
+    private void updateStatuses(List<DraftAccountEntity> draftAccounts) {
         LocalDateTime statusDate = LocalDateTime.now(clock);
 
-        for (var draftAccount : draftAccounts.getSummaries()) {
-            DraftAccountEntity account = draftAccountRepository.findById(draftAccount.getDraftAccountId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                    "Draft account not found: " + draftAccount.getDraftAccountId()));
-
+        for (DraftAccountEntity account : draftAccounts) {
             account.setAccountStatus(DraftAccountStatus.PUBLISHING_PENDING);
             account.setAccountStatusDate(statusDate);
         }
