@@ -1,8 +1,8 @@
 package uk.gov.hmcts.opal.service.messaging;
 
-import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
+import java.util.List;
 
 public interface PublishDraftAccountPublisherInterface {
 
-    void publish(DraftAccountsResponseDto draftAccounts);
+    void publish(List<Long> draftAccountIds);
 }
