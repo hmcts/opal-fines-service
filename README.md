@@ -246,8 +246,10 @@ separate names under `target/zephyr-reports/` and do not overwrite the full-suit
 For fresh measurements, add `--rerun-tasks --no-build-cache --console=plain` and retain the reports before
 rerunning. Cache counters are cumulative within each worker: do not sum snapshots or compare summed family
 misses directly with a full-suite cache. Separate family JVMs repeat startup costs and cannot prove the absence
-of full-suite failures. See the [PO-7203 follow-up](docs/testing/po-7203-context-families.md) for the inventory,
-validation results, baseline limitations, and external peak-RSS capture commands. Heap limits are not peak RSS.
+of full-suite failures. Heap limits are not peak RSS. For command-level memory measurements, use
+`/usr/bin/time -v` on Linux or `/usr/bin/time -l` on macOS; these do not isolate test-worker memory.
+For a Linux worker's peak RSS, capture `VmHWM` from `/proc/<worker-pid>/status` before the worker exits.
+The worker PID is recorded in its diagnostic JSON.
 
 ### Functional test tasks
 
