@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -24,7 +25,8 @@ class InterfaceJobsProcessedFileSummaryResponseTest {
         // Arrange
         InterfaceJobsMessage message = new InterfaceJobsMessage()
             .interfaceMessagesId(1L)
-            .messageData(Map.of("number", 1))
+            .messageData(Map.of("number", 1, "value", new BigDecimal("123.45"),
+                "court_amount", new BigDecimal("12.34")))
             .messageType(InterfaceJobsMessageType.ERROR);
 
         InterfaceJobsMessageGroup messageGroup = new InterfaceJobsMessageGroup()
@@ -52,7 +54,13 @@ class InterfaceJobsProcessedFileSummaryResponseTest {
             fieldNames(json.get("interface_messages").get(0).get("messages").get(0)));
         assertEquals("Error", json.get("interface_messages").get(0).get("messages").get(0)
             .get("message_type").asString());
-        assertEquals("12.34", json.get("total_amount").asString());
+        assertTrue(json.get("total_amount").isNumber());
+        assertEquals(0, new BigDecimal("12.34").compareTo(json.get("total_amount").decimalValue()));
+        JsonNode messageData = json.get("interface_messages").get(0).get("messages").get(0).get("message_data");
+        assertEquals(Set.of("number", "value", "court_amount"), fieldNames(messageData));
+        assertEquals(1, messageData.get("number").asInt());
+        assertEquals(0, new BigDecimal("123.45").compareTo(messageData.get("value").decimalValue()));
+        assertEquals(0, new BigDecimal("12.34").compareTo(messageData.get("court_amount").decimalValue()));
     }
 
     private Set<String> fieldNames(JsonNode node) {
