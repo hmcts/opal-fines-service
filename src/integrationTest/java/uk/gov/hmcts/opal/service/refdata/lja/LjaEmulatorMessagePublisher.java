@@ -10,13 +10,13 @@ import uk.gov.hmcts.opal.service.refdata.EmulatorUtil;
  *   ./gradlew publishServiceBusMessage --args='topic.refdata "{\"hello\":\"world\"}" session-1'
  *   ./gradlew publishServiceBusMessage --args='topic.refdata @message.json session-1'
  */
-public final class EmulatorMessagePublisher {
+public final class LjaEmulatorMessagePublisher {
 
     private static final String DEFAULT_CONNECTION_STRING =
         "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;"
             + "SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
 
-    private EmulatorMessagePublisher() {
+    private LjaEmulatorMessagePublisher() {
     }
 
     public static void main(String[] args) throws Exception {
