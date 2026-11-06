@@ -9,6 +9,8 @@ public final class FeatureFlags {
     public static final String RELEASE_1B_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B;
     public static final String RELEASE_1B_1_1 = "release-1b-1-1";
     public static final String RELEASE_1B_1_1_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B_1_1;
+    public static final String RELEASE_1B_1_2 = "release-1b-1-2";
+    public static final String RELEASE_1B_1_2_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1B_1_2;
     public static final String RELEASE_1C = "release-1c";
     public static final String RELEASE_1C_WRITE_OFF = "release-1c-write-off";
     public static final String RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY =
