@@ -63,7 +63,7 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAc
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -186,9 +186,8 @@ class OpalDefendantAccountEnforcementServiceTest {
             .name("North East Enforcement")
             .build();
 
-        LocalJusticeAreaLegacyEntity lja = LocalJusticeAreaLegacyEntity.builder()
+        LocalJusticeAreaEntity lja = LocalJusticeAreaEntity.builder()
             .localJusticeAreaId((short) 66)
-            .ljaCode("L066")
             .name("Tyne & Wear LJA")
             .build();
 
