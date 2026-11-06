@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doAnswer;
 
 import java.util.List;
 import java.util.Optional;
@@ -15,7 +14,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
@@ -60,24 +58,12 @@ class LocalJusticeAreaRefDataHandlerTest {
     void createsNewEntityWithMappedValues() {
         // Given
         LjaRecord record = validRecord();
-        doAnswer(invocation -> {
-            LocalJusticeAreaEntity entity = invocation.getArgument(1);
-            entity.setName(record.getLjaName());
-            entity.setLjaType(LocalJusticeAreaType.LJA);
-            entity.setAddressLine1(record.getAddresses().getFirst().getAddressLine1());
-            entity.setPostcode(record.getAddresses().getFirst().getPostCode());
-            return null;
-        }).when(mapper).updateEntityFromDto(record, org.mockito.ArgumentMatchers.any());
 
         // When
         LocalJusticeAreaEntity entity = handler.createEntityFromDto(record);
 
         // Then
         assertThat(entity.getLocalJusticeAreaId()).isEqualTo((short) 1234);
-        assertThat(entity.getName()).isEqualTo("Test LJA");
-        assertThat(entity.getLjaType()).isEqualTo(LocalJusticeAreaType.LJA);
-        assertThat(entity.getAddressLine1()).isEqualTo("Court address");
-        assertThat(entity.getPostcode()).isEqualTo("GIR 0AA");
         assertThat(entity.getEndDate()).isNull();
         verify(mapper).updateEntityFromDto(record, entity);
     }
