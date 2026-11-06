@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.config;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestClient;
+import uk.gov.hmcts.opal.common.legacy.client.LegacyGatewayClient;
 import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
@@ -13,7 +13,7 @@ import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 public class LegacyGatewayConfiguration {
 
     @Bean
-    public GatewayService gatewayService(LegacyGatewayProperties gatewayProperties, RestClient restClient) {
-        return new LegacyGatewayService(gatewayProperties, restClient);
+    public GatewayService gatewayService(LegacyGatewayProperties gatewayProperties, LegacyGatewayClient gatewayClient) {
+        return new LegacyGatewayService(gatewayProperties, gatewayClient);
     }
 }
