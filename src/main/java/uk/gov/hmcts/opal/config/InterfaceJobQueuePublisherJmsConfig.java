@@ -38,7 +38,11 @@ public class InterfaceJobQueuePublisherJmsConfig {
         return cachingFactory;
     }
 
-    @Bean({"interfaceJobPublisherJmsTemplate", "transactionalPublisherJmsTemplate"})
+    @Bean({
+        "interfaceJobPublisherJmsTemplate",
+        "transactionalPublisherJmsTemplate",
+        "publishDraftAccountPublisherTemplate"
+    })
     public JmsTemplate interfaceJobPublisherJmsTemplate(
         @Qualifier("interfaceJobPublisherConnectionFactory") ConnectionFactory connectionFactory) {
         JmsTemplate jmsTemplate = new JmsTemplate(connectionFactory);
