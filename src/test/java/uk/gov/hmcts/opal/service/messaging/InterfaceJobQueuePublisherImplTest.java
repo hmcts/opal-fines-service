@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.messaging;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -55,11 +54,10 @@ class InterfaceJobQueuePublisherImplTest {
         properties = new InterfaceJobServiceBusProperties();
         properties.setQueueName("process-interface-files");
 
-        when(jmsTemplate.<Void>execute(
-            ArgumentMatchers.any(), eq(true))).thenAnswer(invocation -> {
-                SessionCallback<Void> callback = invocation.getArgument(0);
-                return callback.doInJms(session);
-            });
+        when(jmsTemplate.execute(ArgumentMatchers.<SessionCallback<Void>>any())).thenAnswer(invocation -> {
+            SessionCallback<Void> callback = invocation.getArgument(0);
+            return callback.doInJms(session);
+        });
         when(session.createQueue("process-interface-files")).thenReturn(destination);
 
         publisher = new InterfaceJobQueuePublisherImpl(jmsTemplate, new ObjectMapper(), properties);
@@ -82,7 +80,7 @@ class InterfaceJobQueuePublisherImplTest {
         verify(producer).close();
         verify(session).commit();
         verify(session, never()).rollback();
-        verify(jmsTemplate).execute(ArgumentMatchers.<SessionCallback<Void>>any(), eq(true));
+        verify(jmsTemplate).execute(ArgumentMatchers.<SessionCallback<Void>>any());
     }
 
     @Test
@@ -106,6 +104,6 @@ class InterfaceJobQueuePublisherImplTest {
         verify(producer).close();
         verify(session).rollback();
         verify(session, never()).commit();
-        verify(jmsTemplate).execute(ArgumentMatchers.<SessionCallback<Void>>any(), eq(true));
+        verify(jmsTemplate).execute(ArgumentMatchers.<SessionCallback<Void>>any());
     }
 }

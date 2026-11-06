@@ -33,7 +33,7 @@ public class InterfaceJobQueuePublisherJmsConfig {
         qpidFactory.setPassword(details.sharedAccessKey());
 
         CachingConnectionFactory cachingFactory = new CachingConnectionFactory(qpidFactory);
-        cachingFactory.setCacheProducers(true);
+        cachingFactory.setCacheProducers(false);
         cachingFactory.setReconnectOnException(true);
         return cachingFactory;
     }
