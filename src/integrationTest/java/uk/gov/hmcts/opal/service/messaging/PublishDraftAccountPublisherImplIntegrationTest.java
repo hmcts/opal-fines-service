@@ -65,7 +65,7 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
     @Autowired
     private PublishDraftAccountsServiceBusProperties properties;
 
-    @MockitoSpyBean(name = "publishDraftAccountPublisherJmsTemplate")
+    @MockitoSpyBean(name = "interfaceJobPublisherJmsTemplate")
     private JmsTemplate jmsTemplate;
 
     private Session jmsSession;

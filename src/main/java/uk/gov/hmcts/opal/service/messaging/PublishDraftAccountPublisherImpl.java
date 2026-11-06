@@ -28,7 +28,7 @@ import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 @RequiredArgsConstructor
 public class PublishDraftAccountPublisherImpl implements PublishDraftAccountPublisherInterface {
 
-    @Qualifier("publishDraftAccountPublisherJmsTemplate")
+    @Qualifier("publishDraftAccountPublisherTemplate")
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
     private final PublishDraftAccountsServiceBusProperties properties;
