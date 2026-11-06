@@ -46,6 +46,8 @@ public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeature
                 withAuth(delete("/testing-support/ref-data/LJA/08104"))),
             args("POST /testing-support/ref-data/topic",
                 withAuthAndJson(post("/testing-support/ref-data/topic").content("{}"))),
+            args("DELETE /testing-support/suspense-items/{suspenseItemId}",
+                withAuth(delete("/testing-support/suspense-items/1"))),
 
             // CreateFineAccountsController
             args("POST /s2s/create-fine-accounts",
