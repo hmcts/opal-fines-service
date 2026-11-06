@@ -7,7 +7,6 @@ import static uk.gov.hmcts.opal.service.refdata.lja.LjaRecord.COURT_ADDRESS_TYPE
 
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;

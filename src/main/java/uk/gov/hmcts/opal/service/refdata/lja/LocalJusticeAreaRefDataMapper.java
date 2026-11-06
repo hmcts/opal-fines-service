@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.service.refdata.lja;
 
 import static uk.gov.hmcts.opal.service.refdata.lja.LjaRecord.COURT_ADDRESS_TYPE;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.function.Function;
 import org.mapstruct.Mapper;
