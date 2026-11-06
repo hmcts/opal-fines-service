@@ -251,4 +251,6 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId);
         return transactionIds.isEmpty() ? 0 : chequeRepository.countByDefendantTransactionIdIn(transactionIds);
     }
+
+
 }
