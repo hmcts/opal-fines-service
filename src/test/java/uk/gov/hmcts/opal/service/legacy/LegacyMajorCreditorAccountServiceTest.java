@@ -5,9 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -42,6 +39,11 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyMajorCreditorAccountServiceTest {
+
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
+        "getMajorCreditorAccountHeaderSummary";
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE = "getMajorCreditorAccountAtAGlance";
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY = "getMajorCreditorAccountHistory";
 
     @Mock
     private GatewayService gatewayService;
