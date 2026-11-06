@@ -18,6 +18,8 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=true")
@@ -33,6 +35,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     private final CacheManager cacheManager;
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void processesValidLjaMessage() {
         short localJusticeAreaId = 8102;
@@ -60,6 +64,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
 
     @ParameterizedTest(name = "{1} maps to {2}")
     @MethodSource("ljaTypeMappings")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void mapsSupportedLjaTypes(short localJusticeAreaId, String ljaType, LocalJusticeAreaType expectedType) {
         processor.processMessage(LjaMessageBuilder.validMessage(localJusticeAreaId, ljaType));
@@ -87,6 +93,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void usesCourtAddressWhenItIsNotTheFirstAddress() {
         short localJusticeAreaId = 8100;
@@ -110,6 +118,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void doesNotUpdateEndDateWhenMessageIsProcessed() {
         short localJusticeAreaId = 8101;
@@ -136,6 +146,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void deleteEntityDeletesLjaUsingBusinessKeyWithLeadingZeros() {
         short localJusticeAreaId = 8103;
@@ -151,6 +163,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void clearsOpalLjaReferenceDataCacheWhenMessageIsProcessed() {
         var cache = cacheManager.getCache("opalLjaReferenceDataCache");
