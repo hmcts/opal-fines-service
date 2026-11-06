@@ -896,9 +896,7 @@ tasks.register('copyIntegrationJunit5Report', Copy) {
 }
 
 def registerSpringContextCacheReportTask = { String integrationTaskName, String outputDirectory ->
-  def reportTaskName = "report${integrationTaskName.capitalize()}ContextCache"
-
-  tasks.register(reportTaskName, Exec) {
+  tasks.register("report${integrationTaskName.capitalize()}ContextCache", Exec) {
     description = "Reports Spring Test Context cache statistics for ${integrationTaskName}"
     group = "Verification"
     mustRunAfter integrationTaskName
@@ -908,8 +906,16 @@ def registerSpringContextCacheReportTask = { String integrationTaskName, String 
       '--xml-directory', layout.buildDirectory.dir("test-results/${integrationTaskName}").get().asFile.absolutePath,
       '--output-file', "${rootDir}/${outputDirectory}/spring-test-context-cache.json"
   }
+}
 
-  reportTaskName
+['R1A', 'R1B', 'R1C'].each { release ->
+  def reportTask = registerSpringContextCacheReportTask(
+    "integration${release}",
+    "integration-output-${release.toLowerCase()}"
+  )
+  tasks.named("package${release}IntegrationOutput") {
+    dependsOn reportTask
+  }
 }
 
 def integrationContextCacheReportTask = registerSpringContextCacheReportTask('integration', 'integration-output')
@@ -932,13 +938,6 @@ tasks.register('packageIntegrationOutput', Copy) {
   }
 }
 
-['R1A', 'R1B', 'R1C'].each { release ->
-  def releaseTaskName = "integration${release}"
-  def reportTaskName = registerSpringContextCacheReportTask(releaseTaskName, "integration-output-${release.toLowerCase()}")
-  tasks.named("package${release}IntegrationOutput") {
-    dependsOn reportTaskName
-  }
-}
 tasks.register('mergeFunctionalResults', Copy) {
   from layout.buildDirectory.dir("test-results/functional/opal")
   into layout.buildDirectory.dir("test-results/functional")
