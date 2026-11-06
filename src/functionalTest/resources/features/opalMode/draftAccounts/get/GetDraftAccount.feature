@@ -7,6 +7,7 @@ Feature: Retrieve Draft Account
   @JIRA-STORY:PO-591 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @JIRA-TEST-KEY:PO-5637
   Scenario: An existing draft account can be retrieved
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -31,6 +32,7 @@ Feature: Retrieve Draft Account
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5638
   Scenario: A draft account with multiple related parties can be retrieved
     And a draft account exists with the following details
+      | source            | MAC                                                    |
       | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |
@@ -56,6 +58,7 @@ Feature: Retrieve Draft Account
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5639
   Scenario: An invalid token cannot retrieve a created draft account
     And a draft account exists with the following details
+      | source            | MAC                                                    |
       | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |

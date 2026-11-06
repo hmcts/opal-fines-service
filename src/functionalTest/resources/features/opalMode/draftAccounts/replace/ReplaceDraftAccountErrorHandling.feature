@@ -7,6 +7,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5678
   Scenario: Replacing a draft account with invalid data is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -25,6 +26,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5679
   Scenario: Replacing a draft account without a valid access token is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -58,6 +60,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5681
   Scenario: Replacing a draft account with an unsupported response content type is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -76,6 +79,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-749 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5682
   Scenario: Replacing a draft account with an unsupported request format is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -94,6 +98,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replacing a draft account with an unknown originator id is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -121,6 +126,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replacing a draft account with a prosecutor id in the wrong source is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -148,6 +154,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replacing a draft account with a mismatched originator name is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -175,6 +182,7 @@ Feature: Replace Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replacing a draft account with an unsupported originator-account combination is rejected
     Given a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
