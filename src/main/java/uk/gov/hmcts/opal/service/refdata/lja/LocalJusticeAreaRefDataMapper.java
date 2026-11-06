@@ -16,7 +16,13 @@ import uk.gov.hmcts.opal.service.refdata.common.Address;
 @Mapper(componentModel = "spring")
 public interface LocalJusticeAreaRefDataMapper {
 
+    // This is the business key - we don't update this
     @Mapping(target = "localJusticeAreaId", ignore = true)
+
+    // Entity attributes we are choosing not to  update
+    @Mapping(target = "endDate", ignore = true)
+
+    // Entity attributes we are choosing to update
     @Mapping(target = "ljaType", expression = "java(toLocalJusticeAreaType(dto.getLjaType()))")
     @Mapping(target = "name", source = "ljaName")
     @Mapping(target = "addressLine1", expression = "java(courtAddressLine(dto, address -> address.getAddressLine1()))")
@@ -25,7 +31,7 @@ public interface LocalJusticeAreaRefDataMapper {
     @Mapping(target = "addressLine4", expression = "java(courtAddressLine(dto, address -> address.getAddressLine4()))")
     @Mapping(target = "addressLine5", expression = "java(courtAddressLine(dto, address -> address.getAddressLine5()))")
     @Mapping(target = "postcode", expression = "java(courtAddressLine(dto, address -> address.getPostCode()))")
-    @Mapping(target = "endDate", ignore = true)
+
 
     void updateEntityFromDto(LjaRecord dto, @MappingTarget LocalJusticeAreaEntity entity);
 
