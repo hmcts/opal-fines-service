@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.gov.hmcts.opal.controllers.TestingSupportReferenceDataApiController;
 import uk.gov.hmcts.opal.controllers.advice.GlobalExceptionHandler;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
@@ -86,6 +88,8 @@ class TestingSupportReferenceDataIntegrationTest {
     private ServiceBusSenderClient senderClient;
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_deletesUsingMatchingHandler() throws Exception {
         mockMvc.perform(delete(URL_BASE + "/LJA/08104"))
             .andExpect(status().isNoContent());
@@ -94,12 +98,16 @@ class TestingSupportReferenceDataIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_rejectsUnsupportedReferenceDataType() throws Exception {
         mockMvc.perform(delete(URL_BASE + "/UNKNOWN/123"))
             .andExpect(status().isBadRequest());
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_rejectsInvalidBusinessKey() throws Exception {
         doThrow(new IllegalArgumentException("Invalid business key received: not-a-short"))
             .when(handler).deleteEntity("not-a-short");
@@ -109,6 +117,8 @@ class TestingSupportReferenceDataIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void publishReferenceData_publishesValidMessageWithSessionId() throws Exception {
         mockMvc.perform(post(URL_BASE + "/topic")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -123,6 +133,8 @@ class TestingSupportReferenceDataIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void publishReferenceData_rejectsMessageThatDoesNotMatchSchema() throws Exception {
         mockMvc.perform(post(URL_BASE + "/topic")
                 .contentType(MediaType.APPLICATION_JSON)
