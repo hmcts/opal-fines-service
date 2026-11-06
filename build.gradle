@@ -226,6 +226,10 @@ sourceSets {
     }
   }
 
+  integrationTestSupport {
+    java.srcDir file('src/integrationTestSupport/java')
+  }
+
   main {
     java {
       srcDir "$buildDir/generated/openapi/src/main/java"
@@ -253,7 +257,14 @@ sourceSets {
       runtimeClasspath += main.output
       srcDir file('src/integrationTest/java')
     }
+    compileClasspath += integrationTestSupport.output
     resources.srcDir file('src/integrationTest/resources')
+    runtimeClasspath += integrationTestSupport.output
+  }
+
+  test {
+    compileClasspath += integrationTestSupport.output
+    runtimeClasspath += integrationTestSupport.output
   }
 }
 
@@ -266,6 +277,9 @@ configurations {
 
   integrationTestImplementation.extendsFrom testImplementation
   integrationTestRuntimeOnly.extendsFrom runtimeOnly
+
+  integrationTestSupportImplementation.extendsFrom testImplementation
+  integrationTestSupportRuntimeOnly.extendsFrom testRuntimeOnly
 
   smokeTestImplementation.extendsFrom testImplementation
   smokeTestRuntimeOnly.extendsFrom runtimeOnly
@@ -443,7 +457,8 @@ tasks.withType(Test).configureEach {
   testLogging {
     exceptionFormat = 'full'
   }
-  maxHeapSize = "4g" // THIS IS A TEMP FIX, AND SHOULD BE REMOVED AS SOON AS PO-8964 IS COMPLETE
+  // Retain the existing memory settings; context-family standardisation does not reduce heap requirements.
+  maxHeapSize = "4g"
   failFast = false
 }
 
@@ -457,6 +472,183 @@ tasks.register('integration', Test) {
     pullLatestLegacyStubImageIfLocal()
   }
   finalizedBy 'packageIntegrationOutput'
+}
+
+def integrationFamilyNames = ['integrationBase', 'integrationOpal', 'integrationLegacy', 'integrationSecurity']
+def integrationInventory = layout.buildDirectory.file('reports/integration-context-families/inventory.json')
+def integrationRevision = providers.exec {
+  commandLine 'git', 'rev-parse', 'HEAD'
+}.standardOutput.asText.map { it.trim() }
+def readIntegrationInventory = {
+  new groovy.json.JsonSlurper().parse(integrationInventory.get().asFile)
+}
+def selectIntegrationFamily = { Test family ->
+  def members = readIntegrationInventory().classes.findAll { it.task == family.name }
+  if (members.empty) {
+    throw new GradleException("No integration classes assigned to ${family.name}; inspect the family inventory")
+  }
+  family.setIncludes(members.collectMany {
+    def path = it.className.replace('.', '/')
+    ["${path}.class".toString(), "${path}\$*.class".toString()]
+  } as Set)
+}
+
+tasks.register('integrationContextFamilyInventory', JavaExec) {
+  group = 'Verification'
+  description = 'Discovers integration context families without starting application contexts'
+  dependsOn 'integrationTestClasses', 'integrationTestSupportClasses'
+  classpath = sourceSets.integrationTestSupport.runtimeClasspath + sourceSets.integrationTest.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.testsupport.IntegrationContextFamilies'
+  inputs.files(sourceSets.integrationTest.output, sourceSets.integrationTestSupport.output)
+  outputs.file(integrationInventory)
+  doFirst {
+    args = [integrationInventory.get().asFile.absolutePath] +
+      sourceSets.integrationTest.output.classesDirs.files.collect { it.absolutePath }
+  }
+}
+
+integrationFamilyNames.each { familyName ->
+  tasks.register(familyName, Test) {
+    group = 'Verification'
+    description = "Runs the ${familyName - 'integration'} integration context family (full suite: integration)"
+    dependsOn 'integrationContextFamilyInventory'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    inputs.file(integrationInventory)
+    exclude '**/ReportQueueConnectivityIntegrationTest.class'
+    systemProperty 'zephyr.report.location', "${rootDir}/target/zephyr-reports/Junit5Report-${familyName}.json"
+    doFirst { Test family ->
+      selectIntegrationFamily(family)
+      pullLatestLegacyStubImageIfLocal()
+    }
+  }
+}
+
+tasks.register('checkIntegrationContextFamilies') {
+  group = 'Verification'
+  description = 'Checks actual family class selectors cover the full integration inventory exactly once'
+  dependsOn 'integrationContextFamilyInventory'
+  doLast {
+    def inventory = readIntegrationInventory()
+    def full = tasks.named('integration', Test).get()
+    def selectedBy = [:].withDefault { [] }
+    def matchesClass = { Test task, String className ->
+      def path = className.replace('.', '/') + '.class'
+      task.testClassesDirs.asFileTree.matching {
+        if (!task.includes.empty) {
+          include task.includes
+        }
+        exclude task.excludes
+      }.files.any { it.path.replace(File.separator, '/').endsWith('/' + path) }
+    }
+    integrationFamilyNames.each { name ->
+      def family = tasks.named(name, Test).get()
+      selectIntegrationFamily(family)
+      ['maxHeapSize', 'minHeapSize', 'jvmArgs', 'maxParallelForks', 'forkEvery', 'failFast', 'ignoreFailures'].each {
+        if (family.property(it) != full.property(it)) {
+          throw new GradleException("${name} differs from integration in ${it}")
+        }
+      }
+      def reportingProperties = ['zephyr.report.location', 'opal.integration.diagnostics.directory']
+      if (family.systemProperties.findAll { !reportingProperties.contains(it.key) } !=
+          full.systemProperties.findAll { !reportingProperties.contains(it.key) }) {
+        throw new GradleException("${name} has different test system properties from integration")
+      }
+      if (family.classpath.files != full.classpath.files || family.testClassesDirs.files != full.testClassesDirs.files) {
+        throw new GradleException("${name} has a different source set or runtime classpath from integration")
+      }
+      inventory.classes.each { member ->
+        if (matchesClass(family, member.className)) {
+          selectedBy[member.className] << name
+        }
+      }
+    }
+    def violations = []
+    inventory.classes.each { member ->
+      if (!matchesClass(full, member.className)) {
+        violations << "Full integration task unexpectedly excludes ${member.className}"
+      }
+      if (selectedBy[member.className] != [member.task]) {
+        violations << "${member.className}: expected ${member.task}, selected by ${selectedBy[member.className]}"
+      }
+    }
+    inventory.excluded.each { className ->
+      ([full] + integrationFamilyNames.collect { tasks.named(it, Test).get() }).each { task ->
+        if (matchesClass(task, className)) {
+          violations << "${task.name} unexpectedly includes manual helper ${className}"
+        }
+      }
+    }
+    if (!violations.empty) {
+      throw new GradleException(violations.join('\n'))
+    }
+    integrationFamilyNames.each { name ->
+      logger.lifecycle("${name}: ${inventory.classes.count { it.task == name }} executable classes")
+    }
+    logger.lifecycle("Integration family coverage: ${inventory.classes.size()} classes, no overlaps or gaps. " +
+      "Intentional exclusions: ${inventory.excluded}")
+  }
+}
+
+// A service-loaded JUnit listener observes the existing Spring cache; it adds no Spring configuration.
+(['integration'] + integrationFamilyNames).each { taskName ->
+  def diagnosticsDirectory = layout.buildDirectory.dir("reports/integration-context-families/${taskName}")
+  def summaryFile = diagnosticsDirectory.map { it.file('summary.json') }
+  def testTask = tasks.named(taskName, Test)
+  long taskStarted = 0
+  testTask.configure {
+    inputs.property('extendedTests', extendedTests)
+    systemProperty 'opal.integration.diagnostics.directory', diagnosticsDirectory.get().asFile.absolutePath
+    testLogging.showStandardStreams = true
+    doFirst {
+      delete diagnosticsDirectory
+      diagnosticsDirectory.get().asFile.mkdirs()
+      taskStarted = System.nanoTime()
+      summaryFile.get().asFile.text = groovy.json.JsonOutput.toJson([
+        task: name, status: 'RUNNING', observedAt: java.time.Instant.now().toString(), revision: integrationRevision.get(),
+        extendedTests: extendedTests.get(), requestedTasks: gradle.startParameter.taskNames,
+        filters: filter.commandLineIncludePatterns, dryRun: dryRun.get(), maxHeapSize: maxHeapSize,
+        minHeapSize: minHeapSize, memoryArguments: jvmArgs.findAll {
+          it.startsWith('-Xmx') || it.startsWith('-Xms') || it.startsWith('-XX:MaxMetaspaceSize=')
+        }, maxParallelForks: maxParallelForks, forkEvery: forkEvery, ignoreFailures: ignoreFailures, failFast: failFast,
+        contextCacheMaxSize: systemProperties['spring.test.context.cache.maxSize'],
+        gradleJvmArguments: java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.findAll {
+          it.startsWith('-Xmx') || it.startsWith('-Xms') || it.startsWith('-XX:MaxMetaspaceSize=')
+        }
+      ])
+    }
+    afterSuite { descriptor, result ->
+      if (descriptor.parent == null) {
+        def summary = new groovy.json.JsonSlurper().parse(summaryFile.get().asFile)
+        summary.tests = [total: result.testCount, passed: result.successfulTestCount,
+                         failed: result.failedTestCount, skipped: result.skippedTestCount]
+        summary.runtimeSeconds = (System.nanoTime() - taskStarted) / 1_000_000_000.0
+        summary.testRuntimeSeconds = (result.endTime - result.startTime) / 1000.0
+        summaryFile.get().asFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(summary))
+        logger.lifecycle("${taskName}: ${summary.tests}, runtime ${summary.runtimeSeconds}s. " +
+          "Diagnostics: ${diagnosticsDirectory.get().asFile}")
+      }
+    }
+    finalizedBy "${taskName}Diagnostics"
+  }
+  tasks.register("${taskName}Diagnostics") {
+    description = "Retains ${taskName} diagnostics, including incomplete/failed executions"
+    doLast {
+      if (summaryFile.get().asFile.exists()) {
+        def summary = new groovy.json.JsonSlurper().parse(summaryFile.get().asFile)
+        def state = testTask.get().state
+        def workers = fileTree(diagnosticsDirectory).matching { include 'worker-*.json' }.files.sort().collect {
+          new groovy.json.JsonSlurper().parse(it)
+        }
+        summary.workers = workers
+        summary.includes = testTask.get().includes
+        summary.excludes = testTask.get().excludes
+        summary.status = state.upToDate ? 'UP-TO-DATE' : state.failure ? 'FAILED' : state.skipped ? 'SKIPPED' : 'FINISHED'
+        summary.complete = !state.upToDate && summary.containsKey('tests') && !workers.empty && workers.every { it.complete }
+        summaryFile.get().asFile.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(summary))
+      }
+    }
+  }
 }
 
 def registerReleaseIntegrationTask = { String release ->
@@ -894,9 +1086,13 @@ tasks.register('copyIntegrationJunit5Report', Copy) {
 }
 tasks.register('packageIntegrationOutput', Copy) {
   dependsOn 'copyIntegrationJunit5Report'
+  mustRunAfter 'integrationDiagnostics'
   into("${rootDir}/integration-output")
   from(layout.buildDirectory.dir("reports/tests/integration")) {
     into("report")
+  }
+  from(layout.buildDirectory.dir('reports/integration-context-families/integration')) {
+    into('diagnostics')
   }
 }
 tasks.register('mergeFunctionalResults', Copy) {
@@ -1110,6 +1306,7 @@ tasks.named("sonarqube") {
 }
 tasks.named("check") {
   dependsOn(tasks.named("checkTestJiraAnnotations"))
+  dependsOn(tasks.named("checkIntegrationContextFamilies"))
   dependsOn(tasks.named("integration"))
 }
 
@@ -1284,6 +1481,7 @@ dependencies {
   testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.1.0'
   integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.5'
+  testImplementation 'org.junit.platform:junit-platform-launcher'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.1.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
