@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.test.context.TestConstructor;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
@@ -29,6 +30,7 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     private final RefDataMessageProcessor processor;
     private final LocalJusticeAreaRepository repository;
     private final LocalJusticeAreaRefDataHandler handler;
+    private final CacheManager cacheManager;
 
     @Test
     @JiraTestKey("PO-10709")
@@ -145,6 +147,23 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
             assertThat(repository.findById(localJusticeAreaId)).isEmpty();
         } finally {
             repository.deleteById(localJusticeAreaId);
+        }
+    }
+
+    @Test
+    @JiraTestKey("PO-10709")
+    void clearsOpalLjaReferenceDataCacheWhenMessageIsProcessed() {
+        var cache = cacheManager.getCache("opalLjaReferenceDataCache");
+        assertThat(cache).isNotNull();
+        cache.put("test-key", "cached-value");
+        assertThat(cache.get("test-key")).isNotNull();
+
+        processor.processMessage(LjaMessageBuilder.validMessage((short) 8104, "CRWCRT"));
+
+        try {
+            assertThat(cache.get("test-key")).isNull();
+        } finally {
+            repository.deleteById((short) 8104);
         }
     }
 

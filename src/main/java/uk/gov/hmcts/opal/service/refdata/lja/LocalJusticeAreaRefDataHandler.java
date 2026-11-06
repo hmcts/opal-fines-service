@@ -76,7 +76,7 @@ public class LocalJusticeAreaRefDataHandler
 
     @Override
     public List<String> cachesToClear() {
-        return List.of("ljaReferenceDataCache");
+        return List.of("opalLjaReferenceDataCache");
     }
 
     @Override
