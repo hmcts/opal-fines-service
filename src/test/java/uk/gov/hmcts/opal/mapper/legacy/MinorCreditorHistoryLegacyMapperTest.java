@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistoryDetails;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 
 class MinorCreditorHistoryLegacyMapperTest {
@@ -313,6 +314,29 @@ class MinorCreditorHistoryLegacyMapperTest {
         LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
 
         assertEquals(List.of("Amendment"), result.getItemTypes());
+    }
+
+    @Test
+    void toOpal_prefersNestedFinancialDetails() {
+        LegacyMinorCreditorAccountHistoryItem item =
+            financialItem(LocalDateTime.of(2026, 2, 3, 12, 0), "PAYMNT", "P", BigDecimal.valueOf(15.25));
+        LegacyMinorCreditorHistoryDetails nestedDetails = item.getDetails();
+
+        item.setDetails(LegacyMinorCreditorHistoryDetails.builder()
+            .paymentReference("REFERENCE")
+            .creditorTransactionDetails(nestedDetails)
+            .build());
+
+        MinorCreditorHistoryLegacyResponse legacyResponse = MinorCreditorHistoryLegacyResponse.builder()
+                .historyItems(List.of(item)).build();
+
+        GetMinorCreditorHistoryResponse response = mapper.toOpal(legacyResponse);
+
+        CreditorTransactionDetailsHistory details = assertInstanceOf(
+            CreditorTransactionDetailsHistory.class, response.getPayload().getHistoryItems().getFirst().getDetails());
+        assertEquals("PAY-1", details.getPaymentReference());
+        assertEquals(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT, details.getTransactionType().getTransactionType());
+        assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
     }
 
     private LegacyMinorCreditorAccountHistoryItem amendmentItem(

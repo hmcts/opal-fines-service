@@ -103,6 +103,8 @@ public class LegacyMinorCreditorHistoryMapper {
             return null;
         }
 
+        details = unwrapDetails(sourceType, details);
+
         return switch (sourceType) {
             case AMENDMENT -> new AmendmentTypeCommon()
                 .attributeName(details.getAttributeName())
@@ -125,6 +127,16 @@ public class LegacyMinorCreditorHistoryMapper {
                 .defendantAccountNumber(details.getDefendantAccountNumber())
                 .defendantAccountId(details.getDefendantAccountId());
             case NOTE -> new NoteDetailsHistory().noteText(details.getNoteText());
+        };
+    }
+
+    private LegacyMinorCreditorHistoryDetails unwrapDetails(MinorCreditorHistoryItemType minorCreditorHistoryItemType,
+        LegacyMinorCreditorHistoryDetails details) {
+        return switch (minorCreditorHistoryItemType) {
+            case FINANCIAL -> Optional.ofNullable(details.getCreditorTransactionDetails())
+                .orElse(details);
+            case NOTE -> Optional.ofNullable(details.getNoteDetails()).orElse(details);
+            case AMENDMENT -> details;
         };
     }
 
