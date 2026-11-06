@@ -24,6 +24,8 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
@@ -54,6 +56,8 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_usesMatchingHandler() {
         when(ljaHandler.refDataType()).thenReturn("LJA");
         when(courtHandler.refDataType()).thenReturn("Court");
@@ -65,6 +69,8 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_rejectsUnsupportedType() {
         when(ljaHandler.refDataType()).thenReturn("LJA");
         when(courtHandler.refDataType()).thenReturn("Court");
@@ -78,6 +84,8 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void deleteReferenceData_translatesInvalidBusinessKey() {
         IllegalArgumentException failure = new IllegalArgumentException("Invalid business key received: invalid");
         when(ljaHandler.refDataType()).thenReturn("LJA");
@@ -90,6 +98,8 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void publishReferenceData_validatesBeforeSendingWithSessionId() throws Exception {
         Map<String, Object> requestBody = Map.of(
             "header", Map.of("data_product", "LJA"),
@@ -109,6 +119,8 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
+    @JiraStory("PO-10705")
+    @JiraEpic("PO-9031")
     void publishReferenceData_doesNotSendInvalidMessage() {
         Map<String, Object> requestBody = Map.of("invalid", true);
         JsonSchemaValidationException failure = new JsonSchemaValidationException("Invalid reference data message");
