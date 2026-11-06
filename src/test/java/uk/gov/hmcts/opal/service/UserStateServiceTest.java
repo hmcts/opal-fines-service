@@ -25,7 +25,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.CommonUserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
@@ -39,7 +39,7 @@ class UserStateServiceTest {
     private AccessTokenService tokenService;
 
     @Mock
-    private UserStateMapper userStateMapper;
+    private CommonUserStateMapper userStateMapper;
 
     @Mock
     private UserStateClientService userStateClientService;
@@ -48,13 +48,16 @@ class UserStateServiceTest {
     private UserStateService userStateService;
 
     @Test
-    void checkForAuthorisedUser_returnsFinesSpecificV2State() {
-        UserStateV2 userState = mock(UserStateV2.class);
-        UserStateV2 finesUserState = mock(UserStateV2.class);
-        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
-        when(userStateMapper.toUserStateSpecific(userState, Domain.FINES)).thenReturn(finesUserState);
+    void checkForAuthorisedUser_returnsClientV2State() {
+        UserStateV2 userState = UserStateV2.builder()
+            .userId(1L)
+            .username("test-user")
+            .domains(Map.of())
+            .build();
 
-        assertSame(finesUserState, userStateService.checkForAuthorisedUser());
+        when(userStateClientService.getUserStateByAuthenticatedUser()).thenReturn(Optional.of(userState));
+
+        assertSame(userState, userStateService.checkForAuthorisedUser());
     }
 
     @Test

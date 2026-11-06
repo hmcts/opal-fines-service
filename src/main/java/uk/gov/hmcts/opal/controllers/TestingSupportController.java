@@ -7,7 +7,9 @@ import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,9 +27,10 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.UserStateMapper;
+import uk.gov.hmcts.opal.common.user.authorisation.client.mapper.CommonUserStateMapper;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
+import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
@@ -68,7 +71,7 @@ public class TestingSupportController {
     private final DefendantAccountDeletionService defendantAccountDeletionService;
     private final InterfaceJobService interfaceJobService;
     private final UserStateClientService userStateClientService;
-    private final UserStateMapper userStateMapper;
+    private final CommonUserStateMapper userStateMapper;
     private final MajorCreditorService majorCreditorService;
     private final BusinessUnitService businessUnitService;
     private final OpalCreditorAccountService opalCreditorAccountService;
@@ -106,9 +109,13 @@ public class TestingSupportController {
         }
 
         return userStateClientService.getUserStateByAuthenticatedUser()
-            .filter(UserStateV2.class::isInstance)
-            .map(UserStateV2.class::cast)
-            .map(userState -> userStateMapper.toUserStateSpecific(userState, Domain.FINES))
+            .map(userState -> {
+                Map<Domain, DomainBusinessUnitUsers> domainBusinessUnitUsers = userState.getDomains();
+                if (domainBusinessUnitUsers != null) {
+                    userState.setDomains(new LinkedHashMap<>(domainBusinessUnitUsers));
+                }
+                return userState;
+            })
             .map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.notFound().build());
     }
