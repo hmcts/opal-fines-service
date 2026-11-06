@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,11 @@ public class CashTillReportDataMapper {
 
         return CashTillReportData.builder()
             .allocatedReport(allocatedReport)
+            .businessUnit(getBusinessUnitName(till))
+            .cashTillNumber(String.valueOf(till.getTillNumber()))
+            .cashier(till.getOwnedBy())
+            .source(till.getSource())
+            .totalAmount(rows.stream().map(CashTillReportRow::getAmount).reduce(BigDecimal.ZERO, BigDecimal::add))
             .rows(rows)
             .reportMetaData(new ReportMetaData(pdpoParticipants(payments)))
             .build();
@@ -42,9 +48,6 @@ public class CashTillReportDataMapper {
                                                  Map<Long, String> defendantAccountNumbers,
                                                  Map<Long, String> miscellaneousAccountNumbers) {
         return CashTillReportRow.builder()
-            .businessUnit(getBusinessUnitName(till))
-            .cashTillNumber(String.valueOf(till.getTillNumber()))
-            .cashier(till.getOwnedBy())
             .paymentDateTime(payment.getPaymentDate())
             .destinationType(CashTillDestinationType.fromPaymentDestinationType(payment.getDestinationType()))
             .details(resolveDetails(payment, defendantAccountNumbers, miscellaneousAccountNumbers))

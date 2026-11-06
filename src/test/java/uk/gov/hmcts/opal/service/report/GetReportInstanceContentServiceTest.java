@@ -213,7 +213,7 @@ class GetReportInstanceContentServiceTest {
             byte[] expected = "a,b".getBytes();
             when(reportInstanceFileRepository.findByReportInstanceIdAndFileType(1L, SupportedFileType.CSV))
                 .thenReturn(Optional.empty());
-            when(csvService.convertReportDtoToCSV(reportData)).thenReturn(expected);
+            when(csvService.convertReportDtoToCSV(reportInstance, reportData)).thenReturn(expected);
             when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
 
             Object actual = getReportInstanceContentService.getReportInstanceContent(1L, CSV);
@@ -235,7 +235,7 @@ class GetReportInstanceContentServiceTest {
                 () -> assertEquals(LocalDateTime.now(clock), fileEntity.getValue().getLastAccessedTimestamp()),
                 () -> verify(reportInterfaceImplementation, never()).generateReportData(reportInstance),
                 () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
-                () -> verify(csvService).convertReportDtoToCSV(reportData),
+                () -> verify(csvService).convertReportDtoToCSV(reportInstance, reportData),
                 () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV)
             );
@@ -354,7 +354,7 @@ class GetReportInstanceContentServiceTest {
                 .when(reportInterfaceImplementation).getStoredReportDataClass(reportInstance);
             when(mapper.convertValue(Map.of("rows", 2), GetReportInstanceContentTestData.TestReportData.class))
                 .thenReturn(reportData);
-            when(csvService.convertReportDtoToCSV(reportData)).thenReturn(expected);
+            when(csvService.convertReportDtoToCSV(reportInstance, reportData)).thenReturn(expected);
             when(reportBlobStore.storeReport(any())).thenReturn(GENERATED_FILE_LOCATION);
 
             byte[] actual = getReportInstanceContentService.retrieveOrGenerateReportContent(
@@ -372,7 +372,7 @@ class GetReportInstanceContentServiceTest {
             assertAll(
                 () -> assertArrayEquals(expected, actual),
                 () -> verify(reportInterfaceImplementation).validateReportDataForFileType(CSV, reportData),
-                () -> verify(csvService).convertReportDtoToCSV(reportData),
+                () -> verify(csvService).convertReportDtoToCSV(reportInstance, reportData),
                 () -> verify(reportInterfaceImplementation, never())
                     .convertReportDataToFileType(reportInstance, reportData, CSV),
                 () -> verify(reportBlobStore).storeReport(storedFile.capture()),

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 
@@ -24,7 +25,7 @@ public class SummaryReportCSVMapper implements ReportCSVMapper<OperationSummaryR
     }
 
     @Override
-    public String reportToCSVString(OperationSummaryReport report) {
+    public String reportToCSVString(ReportInstanceEntity instanceEntity, OperationSummaryReport report) {
         SummaryReportDto summaryReport = summaryReport(report);
         List<SummaryOperationReportRowDto> rows = Optional.ofNullable(summaryReport.getReportSummaryRows())
             .orElse(List.of());

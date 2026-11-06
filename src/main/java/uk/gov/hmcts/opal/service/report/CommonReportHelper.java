@@ -75,13 +75,16 @@ public final class CommonReportHelper {
         }
     }
 
-    public static void validateMoney(BigDecimal value, String fieldName, String reportName, int rowNumber) {
+    public static void validateMoney(BigDecimal value, String fieldName, String reportName, Integer rowNumber) {
         if (value == null) {
             throw requiredField(fieldName, reportName, rowNumber);
         }
         try {
             formatMoney(value);
         } catch (ArithmeticException ex) {
+            if (rowNumber == null) {
+                throw new IllegalArgumentException(fieldName + " must not have more than two decimal places", ex);
+            }
             throw new IllegalArgumentException(
                 fieldName + " must not have more than two decimal places at " + reportName + " row " + rowNumber, ex);
         }
