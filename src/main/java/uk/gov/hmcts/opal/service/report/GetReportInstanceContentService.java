@@ -131,12 +131,11 @@ public class GetReportInstanceContentService {
         return retrieveOrGenerateReportContent(id, instance, storedReport, reportTemplate, fileType);
     }
 
-    @SuppressWarnings("unchecked")
     final <T extends ReportDataInterface> byte[] retrieveOrGenerateReportContent(
         Long id,
         ReportInstanceEntity instance,
         String storedReport,
-        ReportInterface<?> reportTemplate,
+        ReportInterface<T> reportTemplate,
         FileType fileType) {
 
         Optional<byte[]> existingReportContent = retrieveReportContent(instance, fileType);
@@ -144,12 +143,11 @@ public class GetReportInstanceContentService {
             return existingReportContent.get();
         }
 
-        ReportInterface<T> typedReportTemplate = (ReportInterface<T>) reportTemplate;
-        T reportData = readStoredReportData(id, instance, storedReport, typedReportTemplate);
-        typedReportTemplate.validateReportDataForFileType(fileType, reportData);
+        T reportData = readStoredReportData(id, instance, storedReport, reportTemplate);
+        reportTemplate.validateReportDataForFileType(fileType, reportData);
         byte[] data = switch (fileType) {
             case CSV -> csvService.convertReportDtoToCSV(reportData);
-            default -> typedReportTemplate.convertReportDataToFileType(instance, reportData, fileType);
+            default -> reportTemplate.convertReportDataToFileType(instance, reportData, fileType);
         };
 
         UUID location = blobStore.storeReport(new ByteArrayInputStream(data));
