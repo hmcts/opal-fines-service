@@ -49,6 +49,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @DisplayName("Publish Draft Account Publisher Impl Integration Test")
 public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractIntegrationTest {
 
+    private static final List<Long> DRAFT_ACCOUNT_IDS = List.of(1L, 2L, 3L);
+
     @Autowired
     private DraftAccountRepository repository;
 
@@ -72,13 +74,12 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
     void publish_sendsAllIdsAndCommitsPendingStatuses() throws JMSException {
         stubJms();
 
-        List<Long> draftAccountIds = List.of(2L, 1L, 3L);
-        List<DraftAccountEntity> originalAccounts = repository.findAllById(List.of(1L, 2L, 3L));
+        List<DraftAccountEntity> originalAccounts = repository.findAllById(DRAFT_ACCOUNT_IDS);
         assertEquals(3, originalAccounts.size());
 
-        publisher.publish(draftAccountIds);
+        publisher.publish(DRAFT_ACCOUNT_IDS);
 
-        assertSendAttempts(draftAccountIds);
+        assertSendAttempts(DRAFT_ACCOUNT_IDS);
         assertPendingStatuses(originalAccounts);
 
         verify(jmsTemplate).execute(any(), eq(true));
@@ -99,15 +100,14 @@ public class PublishDraftAccountPublisherImplIntegrationTest extends AbstractInt
         JMSException sendFailure = new JMSException("Second send failed");
         doNothing().doThrow(sendFailure).when(jmsProducer).send(any(Message.class));
 
-        List<Long> draftAccountIds = List.of(1L, 2L, 3L);
-        List<DraftAccountEntity> originalAccounts = repository.findAllById(List.of(1L, 2L, 3L));
+        List<DraftAccountEntity> originalAccounts = repository.findAllById(DRAFT_ACCOUNT_IDS);
         assertEquals(3, originalAccounts.size());
 
         PublishDraftAccountQueueException exception = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(DRAFT_ACCOUNT_IDS));
 
         assertSame(sendFailure, exception.getCause());
-        assertSendAttempts(draftAccountIds.subList(0, 2));
+        assertSendAttempts(DRAFT_ACCOUNT_IDS.subList(0, 2));
 
         verify(jmsTemplate).execute(any(), eq(true));
         verify(jmsSession, times(2)).createTextMessage(anyString());

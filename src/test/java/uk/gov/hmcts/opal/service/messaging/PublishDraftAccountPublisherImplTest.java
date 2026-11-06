@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -50,7 +49,22 @@ import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 public class PublishDraftAccountPublisherImplTest {
 
     private static final Instant FIXED_INSTANT = Instant.parse("2026-10-30T12:00:00Z");
+    private static final LocalDateTime FIXED_STATUS_DATE = LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC);
+    private static final LocalDateTime INITIAL_STATUS_DATE = FIXED_STATUS_DATE.minusDays(1);
     private static final String QUEUE_NAME = "publish-draft-accounts";
+    private static final short BUSINESS_UNIT_ID = 77;
+
+    private static final Long FIRST_ACCOUNT_ID = 1L;
+    private static final Long SECOND_ACCOUNT_ID = 2L;
+    private static final Long THIRD_ACCOUNT_ID = 3L;
+    private static final List<Long> SINGLE_ACCOUNT_IDS = List.of(FIRST_ACCOUNT_ID);
+    private static final List<Long> TWO_ACCOUNT_IDS = List.of(FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID);
+    private static final List<Long> THREE_ACCOUNT_IDS = List.of(FIRST_ACCOUNT_ID, SECOND_ACCOUNT_ID, THIRD_ACCOUNT_ID);
+
+    private static final String FIRST_MESSAGE_PAYLOAD = "{\"draft_account_id\":" + FIRST_ACCOUNT_ID + "}";
+    private static final String SECOND_MESSAGE_PAYLOAD = "{\"draft_account_id\":" + SECOND_ACCOUNT_ID + "}";
+    private static final String THIRD_MESSAGE_PAYLOAD = "{\"draft_account_id\":" + THIRD_ACCOUNT_ID + "}";
+    private static final String SEND_ERROR_MESSAGE = "Unable to send publish draft account messages";
 
     @Mock
     private JmsTemplate jmsTemplate;
@@ -97,27 +111,26 @@ public class PublishDraftAccountPublisherImplTest {
         stubClock();
 
         when(jmsSession.createProducer(jmsQueue)).thenReturn(jmsProducer);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":1"))).thenReturn(firstJmsMessage);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":2"))).thenReturn(secondJmsMessage);
+        when(jmsSession.createTextMessage(FIRST_MESSAGE_PAYLOAD)).thenReturn(firstJmsMessage);
+        when(jmsSession.createTextMessage(SECOND_MESSAGE_PAYLOAD)).thenReturn(secondJmsMessage);
 
-        List<Long> draftAccountIds = List.of(1L, 2L);
-        DraftAccountEntity firstAccount = stubDraftAccount(1L);
-        DraftAccountEntity secondAccount = stubDraftAccount(2L);
+        DraftAccountEntity firstAccount = stubDraftAccount(FIRST_ACCOUNT_ID);
+        DraftAccountEntity secondAccount = stubDraftAccount(SECOND_ACCOUNT_ID);
 
-        publisher.publish(draftAccountIds);
+        publisher.publish(TWO_ACCOUNT_IDS);
 
         assertThat(List.of(firstAccount, secondAccount))
             .isNotEmpty()
             .allSatisfy(account -> {
                 assertThat(account.getAccountStatus()).isEqualTo(DraftAccountStatus.PUBLISHING_PENDING);
                 assertThat(account.getAccountStatusDate())
-                    .isEqualTo(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC));
+                    .isEqualTo(FIXED_STATUS_DATE);
             });
 
         verify(jmsSession).createQueue(QUEUE_NAME);
         verify(jmsSession).createProducer(jmsQueue);
-        verify(jmsSession).createTextMessage("{\"draft_account_id\":1}");
-        verify(jmsSession).createTextMessage("{\"draft_account_id\":2}");
+        verify(jmsSession).createTextMessage(FIRST_MESSAGE_PAYLOAD);
+        verify(jmsSession).createTextMessage(SECOND_MESSAGE_PAYLOAD);
         verify(jmsSession).commit();
         verify(jmsSession, never()).rollback();
 
@@ -128,18 +141,17 @@ public class PublishDraftAccountPublisherImplTest {
         verify(jmsTemplate).execute(any(), eq(true));
 
         verify(draftAccountRepository).flush();
-        verify(draftAccountRepository).findById(1L);
-        verify(draftAccountRepository).findById(2L);
+        verify(draftAccountRepository).findById(FIRST_ACCOUNT_ID);
+        verify(draftAccountRepository).findById(SECOND_ACCOUNT_ID);
     }
 
     @Test
     void publish_serialisationFailureStopsProcessing() {
         doThrow(JacksonException.class).when(objectMapper).writeValueAsString(any());
 
-        List<Long> draftAccountIds = List.of(1L, 2L);
-        final DraftAccountEntity firstAccount = stubDraftAccount(1L);
-        stubDraftAccount(2L);
-        IllegalStateException exc = assertThrows(IllegalStateException.class, () -> publisher.publish(draftAccountIds));
+        final DraftAccountEntity firstAccount = stubDraftAccount(FIRST_ACCOUNT_ID);
+        stubDraftAccount(SECOND_ACCOUNT_ID);
+        IllegalStateException exc = assertThrows(IllegalStateException.class, () -> publisher.publish(TWO_ACCOUNT_IDS));
 
         assertInstanceOf(JacksonException.class, exc.getCause());
         assertEquals("Unable to serialise publish draft account message", exc.getMessage());
@@ -150,13 +162,12 @@ public class PublishDraftAccountPublisherImplTest {
 
     @Test
     void publish_missingAccountPreventsSending() throws JMSException {
-        List<Long> draftAccountIds = List.of(1L, 2L);
-        DraftAccountEntity firstAccount = stubDraftAccount(1L);
+        DraftAccountEntity firstAccount = stubDraftAccount(FIRST_ACCOUNT_ID);
 
         EntityNotFoundException exc = assertThrows(EntityNotFoundException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(TWO_ACCOUNT_IDS));
 
-        assertEquals("Draft account not found: 2", exc.getMessage());
+        assertEquals("Draft account not found: " + SECOND_ACCOUNT_ID, exc.getMessage());
         assertEquals(DraftAccountStatus.SUBMITTED, firstAccount.getAccountStatus());
         verifyNoInteractions(jmsTemplate);
         verify(jmsSession, never()).createQueue(QUEUE_NAME);
@@ -168,26 +179,25 @@ public class PublishDraftAccountPublisherImplTest {
         stubClock();
 
         when(jmsSession.createProducer(jmsQueue)).thenReturn(jmsProducer);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":1"))).thenReturn(firstJmsMessage);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":2"))).thenReturn(secondJmsMessage);
+        when(jmsSession.createTextMessage(FIRST_MESSAGE_PAYLOAD)).thenReturn(firstJmsMessage);
+        when(jmsSession.createTextMessage(SECOND_MESSAGE_PAYLOAD)).thenReturn(secondJmsMessage);
         JMSException sendFailure = new JMSException("Second send failed");
         doNothing().when(jmsProducer).send(firstJmsMessage);
         doThrow(sendFailure).when(jmsProducer).send(secondJmsMessage);
 
-        stubDraftAccount(1L);
-        stubDraftAccount(2L);
-        stubDraftAccount(3L);
-        List<Long> draftAccountIds = List.of(1L, 2L, 3L);
+        stubDraftAccount(FIRST_ACCOUNT_ID);
+        stubDraftAccount(SECOND_ACCOUNT_ID);
+        stubDraftAccount(THIRD_ACCOUNT_ID);
 
         PublishDraftAccountQueueException exc = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(THREE_ACCOUNT_IDS));
 
-        assertEquals("Unable to send publish draft account messages", exc.getMessage());
+        assertEquals(SEND_ERROR_MESSAGE, exc.getMessage());
         assertSame(sendFailure, exc.getCause());
         verify(jmsProducer).send(firstJmsMessage);
         verify(jmsProducer).send(secondJmsMessage);
         verify(jmsProducer).close();
-        verify(jmsSession, never()).createTextMessage(contains("\"draft_account_id\":3"));
+        verify(jmsSession, never()).createTextMessage(THIRD_MESSAGE_PAYLOAD);
         verify(jmsSession).rollback();
         verify(jmsSession, never()).commit();
     }
@@ -200,13 +210,12 @@ public class PublishDraftAccountPublisherImplTest {
         JMSException producerFailure = new JMSException("Unable to create producer");
         when(jmsSession.createProducer(jmsQueue)).thenThrow(producerFailure);
 
-        List<Long> draftAccountIds = List.of(1L);
-        stubDraftAccount(1L);
+        stubDraftAccount(FIRST_ACCOUNT_ID);
 
         PublishDraftAccountQueueException exc = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(SINGLE_ACCOUNT_IDS));
 
-        assertEquals("Unable to send publish draft account messages", exc.getMessage());
+        assertEquals(SEND_ERROR_MESSAGE, exc.getMessage());
         assertSame(producerFailure, exc.getCause());
         verify(jmsSession).rollback();
         verify(jmsSession, never()).commit();
@@ -219,17 +228,16 @@ public class PublishDraftAccountPublisherImplTest {
         stubClock();
 
         when(jmsSession.createProducer(jmsQueue)).thenReturn(jmsProducer);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":1"))).thenReturn(firstJmsMessage);
+        when(jmsSession.createTextMessage(FIRST_MESSAGE_PAYLOAD)).thenReturn(firstJmsMessage);
         JMSException commitFailure = new JMSException("Commit failed");
         doThrow(commitFailure).when(jmsSession).commit();
 
-        List<Long> draftAccountIds = List.of(1L);
-        stubDraftAccount(1L);
+        stubDraftAccount(FIRST_ACCOUNT_ID);
 
         PublishDraftAccountQueueException exc = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(SINGLE_ACCOUNT_IDS));
 
-        assertEquals("Unable to send publish draft account messages", exc.getMessage());
+        assertEquals(SEND_ERROR_MESSAGE, exc.getMessage());
         assertSame(commitFailure, exc.getCause());
         verify(jmsProducer).send(firstJmsMessage);
         verify(jmsProducer).close();
@@ -243,19 +251,18 @@ public class PublishDraftAccountPublisherImplTest {
         stubClock();
 
         when(jmsSession.createProducer(jmsQueue)).thenReturn(jmsProducer);
-        when(jmsSession.createTextMessage(contains("\"draft_account_id\":1"))).thenReturn(firstJmsMessage);
+        when(jmsSession.createTextMessage(FIRST_MESSAGE_PAYLOAD)).thenReturn(firstJmsMessage);
         JMSException sendFailure = new JMSException("Send failed");
         JMSException rollbackFailure = new JMSException("Rollback failed");
         doThrow(sendFailure).when(jmsProducer).send(firstJmsMessage);
         doThrow(rollbackFailure).when(jmsSession).rollback();
 
-        List<Long> draftAccountIds = List.of(1L);
-        stubDraftAccount(1L);
+        stubDraftAccount(FIRST_ACCOUNT_ID);
 
         PublishDraftAccountQueueException exc = assertThrows(PublishDraftAccountQueueException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(SINGLE_ACCOUNT_IDS));
 
-        assertEquals("Unable to send publish draft account messages", exc.getMessage());
+        assertEquals(SEND_ERROR_MESSAGE, exc.getMessage());
         assertSame(sendFailure, exc.getCause());
         assertThat(sendFailure.getSuppressed()).containsExactly(rollbackFailure);
         verify(jmsProducer).close();
@@ -270,11 +277,10 @@ public class PublishDraftAccountPublisherImplTest {
         UncategorizedJmsException connectionFailure = new UncategorizedJmsException("Connection failed");
         doThrow(connectionFailure).when(jmsTemplate).execute(any(), eq(true));
 
-        List<Long> draftAccountIds = List.of(1L);
-        stubDraftAccount(1L);
+        stubDraftAccount(FIRST_ACCOUNT_ID);
 
         UncategorizedJmsException exc = assertThrows(UncategorizedJmsException.class,
-            () -> publisher.publish(draftAccountIds));
+            () -> publisher.publish(SINGLE_ACCOUNT_IDS));
 
         assertSame(connectionFailure, exc);
         verify(draftAccountRepository).flush();
@@ -300,12 +306,12 @@ public class PublishDraftAccountPublisherImplTest {
     private DraftAccountEntity stubDraftAccount(Long draftAccountId) {
         DraftAccountEntity account = DraftAccountEntity.builder()
             .draftAccountId(draftAccountId)
-            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 77).build())
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build())
             .submittedBy("submitter")
             .accountType(DraftAccountType.FINE)
             .accountSnapshot("{\"snapshot\":\"draft account " + draftAccountId + "\"}")
             .accountStatus(DraftAccountStatus.SUBMITTED)
-            .accountStatusDate(LocalDateTime.ofInstant(FIXED_INSTANT, ZoneOffset.UTC).minusDays(1))
+            .accountStatusDate(INITIAL_STATUS_DATE)
             .build();
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(account));
         return account;
