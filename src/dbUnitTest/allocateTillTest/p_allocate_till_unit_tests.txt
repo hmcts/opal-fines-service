@@ -1,0 +1,111 @@
+NOTICE:  === Cleanup data before tests ===
+NOTICE:  Cleanup completed
+NOTICE:  === Setting up test data ===
+NOTICE:  Test data setup completed
+NOTICE:  === TEST 1: A manual partial payment updates the individual fields ===
+NOTICE:  TEST 1 PASSED
+NOTICE:  === TEST 2: An automatic overpayment settles the account and sends the excess to suspense ===
+NOTICE:  TEST 2 PASSED
+NOTICE:  === TEST 3: Two payments to the same account use the latest account balance ===
+NOTICE:  TEST 3 PASSED
+NOTICE:  === TEST 4: A written-off account sends the payment to suspense ===
+NOTICE:  TEST 4 PASSED
+NOTICE:  === TEST 5: A transfer-out pending account sends the payment to suspense ===
+NOTICE:  TEST 5 PASSED
+NOTICE:  === TEST 6: A transfer-out acknowledged account sends the payment to suspense ===
+NOTICE:  TEST 6 PASSED
+NOTICE:  === TEST 7: A transfer to NI or Scotland sends the payment to suspense ===
+NOTICE:  TEST 7 PASSED
+NOTICE:  === TEST 8: A zero-balance account sends the payment to suspense ===
+NOTICE:  TEST 8 PASSED
+NOTICE:  === TEST 9: An unknown defendant account sends the payment to suspense ===
+NOTICE:  TEST 9 PASSED
+NOTICE:  === TEST 10: A manual payment respects inhibited enforcement results ===
+NOTICE:  TEST 10 PASSED
+NOTICE:  === TEST 11: An automatic payment respects inhibited enforcement results ===
+NOTICE:  TEST 11 PASSED
+NOTICE:  === TEST 12: An inhibit override does not override written-off status ===
+NOTICE:  TEST 12 PASSED
+NOTICE:  === TEST 13: An automatic payment can override an enforcement inhibit ===
+NOTICE:  TEST 13 PASSED
+NOTICE:  === TEST 14: A consolidated account allocates to its top-level master ===
+NOTICE:  TEST 14 PASSED
+NOTICE:  === TEST 15: An exact court fee creates one received record ===
+NOTICE:  TEST 15 PASSED
+NOTICE:  === TEST 16: A court fee payment covers multiple items and its excess ===
+NOTICE:  TEST 16 PASSED
+NOTICE:  === TEST 17: A partial court fee creates one non-overpayment record ===
+NOTICE:  TEST 17 PASSED
+NOTICE:  === TEST 18: A court fee code resolves the fee and defaults to one item ===
+NOTICE:  TEST 18 PASSED
+NOTICE:  === TEST 19: A court fee overpayment creates linked fee and excess records ===
+NOTICE:  TEST 19 PASSED
+NOTICE:  === TEST 20: A manual suspense payment retains its reason and creates a note ===
+NOTICE:  TEST 20 PASSED
+NOTICE:  === TEST 21: Money beyond the eligible imposition balance goes to suspense ===
+NOTICE:  TEST 21 PASSED
+NOTICE:  === TEST 22: An account without eligible impositions sends the whole payment to suspense ===
+NOTICE:  TEST 22 PASSED
+NOTICE:  === TEST 23: A later payment failure rolls back every earlier change in the till ===
+NOTICE:  Error in p_insert_creditor_transactions: P3811 - Payment reference cannot be null or blank
+NOTICE:  Error in p_allocate_payments: P3811 - Payment reference cannot be null or blank
+NOTICE:  Error details: p_insert_creditor_transactions: pi_payment_reference is required
+NOTICE:  Expected error caught: P3811 - Payment reference cannot be null or blank
+NOTICE:  TEST 23 PASSED
+NOTICE:  === TEST 24: A missing court fee is rejected ===
+NOTICE:  Expected error caught: P0002 - query returned no rows
+NOTICE:  TEST 24 PASSED
+NOTICE:  === TEST 25: A court fee from another business unit is rejected ===
+NOTICE:  Expected error caught: P0002 - query returned no rows
+NOTICE:  TEST 25 PASSED
+NOTICE:  === TEST 26: A zero court fee item count is rejected ===
+NOTICE:  Expected error caught: P4110 - Payment 9999003417062 must specify a positive number of court fee items
+NOTICE:  TEST 26 PASSED
+NOTICE:  === TEST 27: A defendant account from another business unit is rejected ===
+NOTICE:  Expected error caught: P4112 - Defendant account 9999003417063 belongs to a different business unit
+NOTICE:  TEST 27 PASSED
+NOTICE:  === TEST 28: A positive defendant account balance is rejected ===
+NOTICE:  Expected error caught: P4113 - Defendant account 9999003417064 has an invalid positive account balance
+NOTICE:  TEST 28 PASSED
+NOTICE:  === TEST 29: A payment with a different mode from its till is rejected ===
+NOTICE:  Expected error caught: P4109 - Payment 9999003417065 has a different allocation mode from its till
+NOTICE:  TEST 29 PASSED
+NOTICE:  === TEST 30: A zero payment is rejected ===
+NOTICE:  Expected error caught: P4108 - Payment 9999003417066 must have a positive amount
+NOTICE:  TEST 30 PASSED
+NOTICE:  === TEST 31: A negative payment is rejected ===
+NOTICE:  Expected error caught: P4108 - Payment 9999003417067 must have a positive amount
+NOTICE:  TEST 31 PASSED
+NOTICE:  === TEST 32: A null till ID is rejected ===
+NOTICE:  Expected error caught: P4101 - Till ID cannot be null
+NOTICE:  TEST 32 PASSED
+NOTICE:  === TEST 33: A null business unit is rejected ===
+NOTICE:  Expected error caught: P4102 - Business unit ID cannot be null
+NOTICE:  TEST 33 PASSED
+NOTICE:  === TEST 34: A blank posting user is rejected ===
+NOTICE:  Expected error caught: P4103 - Posted by cannot be null or blank
+NOTICE:  TEST 34 PASSED
+NOTICE:  === TEST 35: A null posting name is rejected ===
+NOTICE:  Expected error caught: P4104 - Posted by name cannot be null or blank
+NOTICE:  TEST 35 PASSED
+NOTICE:  === TEST 36: An unknown till is rejected ===
+NOTICE:  Expected error caught: P4105 - Till 9999003417999 was not found
+NOTICE:  TEST 36 PASSED
+NOTICE:  === TEST 37: A till business unit mismatch is rejected ===
+NOTICE:  Expected error caught: P4106 - Till 9999003417083 belongs to a different business unit
+NOTICE:  TEST 37 PASSED
+NOTICE:  === TEST 38: An allocated till containing a pending payment is rejected ===
+NOTICE:  Expected error caught: P4107 - Allocated till 9999003417072 contains unallocated payments
+NOTICE:  TEST 38 PASSED
+NOTICE:  === TEST 39: A legacy automatic JSON string supplies the payment reference ===
+NOTICE:  TEST 39 PASSED
+NOTICE:  === TEST 40: Root JSON supplies a manual payment reference and source ===
+NOTICE:  TEST 40 PASSED
+NOTICE:  === TEST 41: Allocated receipts equal the defendant and suspense amounts ===
+NOTICE:  TEST 41 PASSED
+NOTICE:  === Cleanup data after tests ===
+NOTICE:  Cleanup completed
+NOTICE:  All p_allocate_till unit tests passed
+DO
+
+Query returned successfully in 200 msec.
