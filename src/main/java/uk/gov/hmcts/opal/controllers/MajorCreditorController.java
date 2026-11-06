@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
@@ -35,11 +35,11 @@ public class MajorCreditorController {
     @GetMapping(value = "/{majorCreditorId}")
     @Operation(summary = "Returns the MajorCreditor for the given majorCreditorId.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A, defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<MajorCreditorEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
+    public ResponseEntity<MajorCreditorLegacyEntity> getMajorCreditorById(@PathVariable Long majorCreditorId) {
 
         log.debug(":GET:getMajorCreditorById: majorCreditorId: {}", majorCreditorId);
 
-        MajorCreditorEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
+        MajorCreditorLegacyEntity response = majorCreditorService.getMajorCreditorById(majorCreditorId);
 
         return buildResponse(response);
     }

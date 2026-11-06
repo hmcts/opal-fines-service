@@ -13,7 +13,7 @@
  * 01/12/2025    M Mollins   1.1         Adjusted boolean fields and added rows to exercise controller filters
  **/
 
-INSERT INTO results
+INSERT INTO results_legacy
 (
     result_id,
     result_title,
@@ -175,3 +175,7 @@ VALUES
         NULL,    -- requires_lja
         FALSE    -- manual_enforcement
     );
+
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id IN ('AAAAAA', 'BBBBBB', 'DDDDDD', 'CC0000')
+ON CONFLICT (result_id) DO NOTHING;

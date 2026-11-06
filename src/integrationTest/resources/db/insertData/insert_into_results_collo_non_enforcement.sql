@@ -4,10 +4,13 @@ WHERE result_id = 'COLLO';
 DELETE FROM enforcements
 WHERE result_id = 'COLLO';
 
+DELETE FROM results_legacy
+WHERE result_id = 'COLLO';
+
 DELETE FROM results
 WHERE result_id = 'COLLO';
 
-INSERT INTO results
+INSERT INTO results_legacy
 (
     result_id,
     result_title,
@@ -73,3 +76,7 @@ VALUES
         NULL,
         FALSE
     );
+
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'COLLO'
+ON CONFLICT (result_id) DO NOTHING;

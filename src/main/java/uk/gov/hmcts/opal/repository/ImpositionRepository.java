@@ -74,10 +74,10 @@ public interface ImpositionRepository extends JpaRepository<ImpositionEntity, Lo
         FROM ImpositionEntity imposition
         JOIN imposition.defendantAccount defendantAccount
         JOIN imposition.creditorAccount creditorAccount
-        JOIN ResultEntity result ON result.resultId = imposition.resultId
+        JOIN ResultLegacyEntity result ON result.resultId = imposition.resultId
         LEFT JOIN creditorAccount.majorCreditor majorCreditor
         LEFT JOIN PartyEntity minorCreditor ON minorCreditor.partyId = creditorAccount.minorCreditorPartyId
-        LEFT JOIN OffenceEntity offence ON offence.offenceId = imposition.offenceId
+        LEFT JOIN OffenceLegacyEntity offence ON offence.offenceId = imposition.offenceId
         LEFT JOIN imposition.imposingCourt imposingCourt
         WHERE imposition.defendantAccountId = :defendantAccountId
         ORDER BY imposition.postedDate, imposition.impositionId

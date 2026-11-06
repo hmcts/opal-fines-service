@@ -11,8 +11,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity_;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity_;
 import uk.gov.hmcts.opal.mapper.ProsecutorMapper;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.jpa.ProsecutorSpecs;
@@ -32,7 +32,7 @@ public class ProsecutorService {
     private final ProsecutorSpecs specs = new ProsecutorSpecs();
 
 
-    public ProsecutorEntity getProsecutorById(long prosecutorId) {
+    public ProsecutorLegacyEntity getProsecutorById(long prosecutorId) {
         return prosecutorRepository.findById(prosecutorId)
             .orElseThrow(() -> new EntityNotFoundException("Prosecutor not found with id: " + prosecutorId));
     }
@@ -41,9 +41,9 @@ public class ProsecutorService {
     @Cacheable(cacheNames = "prosecutorReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<ProsecutorReferenceData> getReferenceData(Optional<String> filter) {
 
-        Sort nameSort = Sort.by(Sort.Direction.ASC, ProsecutorEntity_.NAME);
+        Sort nameSort = Sort.by(Sort.Direction.ASC, ProsecutorLegacyEntity_.NAME);
 
-        Page<ProsecutorEntity> page = prosecutorRepository
+        Page<ProsecutorLegacyEntity> page = prosecutorRepository
             .findBy(specs.referenceDataFilter(filter),
                     ffq -> ffq
                         .sortBy(nameSort)

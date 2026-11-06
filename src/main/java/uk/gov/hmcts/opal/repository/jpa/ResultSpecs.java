@@ -3,17 +3,17 @@ package uk.gov.hmcts.opal.repository.jpa;
 import org.hibernate.query.criteria.JpaExpression;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity_;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity_;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 
 import java.util.List;
 import java.util.Optional;
 
 @Component
-public class ResultSpecs extends EntitySpecs<ResultEntity> {
+public class ResultSpecs extends EntitySpecs<ResultLegacyEntity> {
 
-    public Specification<ResultEntity> findBySearchCriteria(ResultSearchDto criteria) {
+    public Specification<ResultLegacyEntity> findBySearchCriteria(ResultSearchDto criteria) {
         return Specification.allOf(specificationList(
             notBlank(criteria.getResultId()).map(ResultSpecs::likeResultId),
             notBlank(criteria.getResultTitle()).map(ResultSpecs::likeResultTitle),
@@ -25,13 +25,13 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
         ));
     }
 
-    public Specification<ResultEntity> referenceDataFilter(Optional<String> filter) {
+    public Specification<ResultLegacyEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyResult)
         ));
     }
 
-    public Specification<ResultEntity> referenceDataByIds(
+    public Specification<ResultLegacyEntity> referenceDataByIds(
         Optional<List<String>> resultIds,
         Boolean active,
         Boolean manualEnforcement,
@@ -52,43 +52,43 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
         ));
     }
 
-    public static Specification<ResultEntity> equalsAnyResultId(List<String> resultIds) {
-        return (root, query, builder) -> root.get(ResultEntity_.resultId).in(resultIds);
+    public static Specification<ResultLegacyEntity> equalsAnyResultId(List<String> resultIds) {
+        return (root, query, builder) -> root.get(ResultLegacyEntity_.resultId).in(resultIds);
     }
 
-    public static Specification<ResultEntity> likeResultId(String resultId) {
+    public static Specification<ResultLegacyEntity> likeResultId(String resultId) {
         return (root, query, builder) -> likeWildcardPredicate(
-            root.get(ResultEntity_.resultId), builder, resultId);
+            root.get(ResultLegacyEntity_.resultId), builder, resultId);
     }
 
-    public static Specification<ResultEntity> likeResultTitle(String resultTitle) {
-        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.resultTitle), builder,
+    public static Specification<ResultLegacyEntity> likeResultTitle(String resultTitle) {
+        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultLegacyEntity_.resultTitle), builder,
                                                                resultTitle);
     }
 
-    public static Specification<ResultEntity> likeResultTitleCy(String resultTitleCy) {
-        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultEntity_.resultTitleCy), builder,
+    public static Specification<ResultLegacyEntity> likeResultTitleCy(String resultTitleCy) {
+        return (root, query, builder) -> likeWildcardPredicate(root.get(ResultLegacyEntity_.resultTitleCy), builder,
                                                                resultTitleCy);
     }
 
-    public static Specification<ResultEntity> likeResultType(String resultType) {
+    public static Specification<ResultLegacyEntity> likeResultType(String resultType) {
         return (root, query, builder) -> likeWildcardPredicate(
-            ((JpaExpression<?>) root.get(ResultEntity_.resultType)).cast(String.class), builder, resultType);
+            ((JpaExpression<?>) root.get(ResultLegacyEntity_.resultType)).cast(String.class), builder, resultType);
     }
 
-    public static Specification<ResultEntity>
+    public static Specification<ResultLegacyEntity>
         equalsImpositionAllocationPriority(Short impositionAllocationPriority) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.impositionAllocationPriority),
+        return (root, query, builder) -> builder.equal(root.get(ResultLegacyEntity_.impositionAllocationPriority),
                                                        impositionAllocationPriority);
     }
 
-    public static Specification<ResultEntity> likeImpositionCreditor(String impositionCreditor) {
+    public static Specification<ResultLegacyEntity> likeImpositionCreditor(String impositionCreditor) {
         return (root, query, builder) -> likeWildcardPredicate(
-            ((JpaExpression<?>) root.get(ResultEntity_.impositionCreditor)).cast(String.class), builder,
+            ((JpaExpression<?>) root.get(ResultLegacyEntity_.impositionCreditor)).cast(String.class), builder,
             impositionCreditor);
     }
 
-    public Specification<ResultEntity> likeAnyResult(String filter) {
+    public Specification<ResultLegacyEntity> likeAnyResult(String filter) {
         return Specification.anyOf(
             likeResultId(filter),
             likeResultTitle(filter),
@@ -96,28 +96,28 @@ public class ResultSpecs extends EntitySpecs<ResultEntity> {
         );
     }
 
-    public static Specification<ResultEntity> hasActive(boolean active) {
+    public static Specification<ResultLegacyEntity> hasActive(boolean active) {
         return (root, query, builder) -> builder.equal(root.get(
-            ResultEntity_.active), active);
+            ResultLegacyEntity_.active), active);
     }
 
-    public static Specification<ResultEntity> hasManualEnforcementOnly(boolean manualEnforcement) {
+    public static Specification<ResultLegacyEntity> hasManualEnforcementOnly(boolean manualEnforcement) {
         return (root, query, builder) -> builder.equal(root.get(
-            ResultEntity_.manualEnforcement), manualEnforcement);
+            ResultLegacyEntity_.manualEnforcement), manualEnforcement);
     }
 
-    public static Specification<ResultEntity> hasGeneratesHearing(boolean generatesHearing) {
+    public static Specification<ResultLegacyEntity> hasGeneratesHearing(boolean generatesHearing) {
         return (root, query, builder) -> builder.equal(root.get(
-            ResultEntity_.generatesHearing), generatesHearing);
+            ResultLegacyEntity_.generatesHearing), generatesHearing);
     }
 
-    public static Specification<ResultEntity> hasEnforcement(boolean hasEnforcement) {
+    public static Specification<ResultLegacyEntity> hasEnforcement(boolean hasEnforcement) {
         return (root, query, builder) -> builder.equal(root.get(
-            ResultEntity_.enforcement), hasEnforcement);
+            ResultLegacyEntity_.enforcement), hasEnforcement);
     }
 
-    public static Specification<ResultEntity> hasEnforcementOverride(boolean enforcementOverride) {
-        return (root, query, builder) -> builder.equal(root.get(ResultEntity_.enforcementOverride),
+    public static Specification<ResultLegacyEntity> hasEnforcementOverride(boolean enforcementOverride) {
+        return (root, query, builder) -> builder.equal(root.get(ResultLegacyEntity_.enforcementOverride),
             enforcementOverride);
     }
 }

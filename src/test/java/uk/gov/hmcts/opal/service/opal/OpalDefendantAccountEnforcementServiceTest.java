@@ -56,21 +56,21 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
@@ -176,17 +176,17 @@ class OpalDefendantAccountEnforcementServiceTest {
             .enforcementOverrideTfoLjaId((short) 66)
             .build();
 
-        ResultEntity result = ResultEntity.builder()
+        ResultLegacyEntity result = ResultLegacyEntity.builder()
             .resultId("FWEC")
             .resultTitle("Witness Expenses")
             .build();
 
-        EnforcerEntity enforcer = EnforcerEntity.builder()
+        EnforcerLegacyEntity enforcer = EnforcerLegacyEntity.builder()
             .enforcerId(55L)
             .name("North East Enforcement")
             .build();
 
-        LocalJusticeAreaEntity lja = LocalJusticeAreaEntity.builder()
+        LocalJusticeAreaLegacyEntity lja = LocalJusticeAreaLegacyEntity.builder()
             .localJusticeAreaId((short) 66)
             .ljaCode("L066")
             .name("Tyne & Wear LJA")
@@ -288,7 +288,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
         when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+            .thenReturn(Optional.of(CourtLegacyEntity.builder().courtId(654L).build()));
         mockCreatedEnforcement();
         whenFeatureIsEnabled(false);
 
@@ -584,7 +584,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockCreatedEnforcement();
         whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+            .thenReturn(Optional.of(EnforcerLegacyEntity.builder().enforcerId(55L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             EnforcementResultResponseDefendantAccount.builder().parameterName("reason").response("test reason").build(),
@@ -723,9 +723,9 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockCreatedEnforcement();
         whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+            .thenReturn(Optional.of(EnforcerLegacyEntity.builder().enforcerId(55L).build()));
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+            .thenReturn(Optional.of(CourtLegacyEntity.builder().courtId(654L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("999"),

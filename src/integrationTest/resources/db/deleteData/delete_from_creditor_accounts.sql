@@ -16,6 +16,7 @@
 DELETE FROM public.creditor_accounts
 WHERE creditor_account_id = 100000000001;
 
+DELETE FROM public.major_creditors_legacy
+WHERE major_creditor_id = 0001;
 DELETE FROM public.major_creditors
 WHERE major_creditor_id = 0001;
-

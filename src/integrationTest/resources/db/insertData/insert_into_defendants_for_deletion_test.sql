@@ -9,15 +9,23 @@ VALUES (9200, 78, 'CRED001', 'MN',
         false, false, false, false);
 
 -- Add required court reference
-INSERT INTO courts (court_id, business_unit_id, court_code, name)
+INSERT INTO courts_legacy (court_id, business_unit_id, court_code, name)
 VALUES (9201, 78, 123, 'Test Court');
 
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 9201
+ON CONFLICT (court_id) DO NOTHING;
+
 -- Add required offence reference
-INSERT INTO offences (offence_id, cjs_code, business_unit_id, offence_title)
+INSERT INTO offences_legacy (offence_id, cjs_code, business_unit_id, offence_title)
 VALUES (9202, 'TEST001', 78, 'Test Offence');
 
+INSERT INTO offences
+SELECT * FROM offences_legacy WHERE offence_id = 9202
+ON CONFLICT (offence_id) DO NOTHING;
+
 -- Add required result reference
-INSERT INTO results (result_id, result_title, result_type, active, imposition,
+INSERT INTO results_legacy (result_id, result_title, result_type, active, imposition,
                      imposition_accruing, enforcement, enforcement_override,
                      further_enforcement_warn, further_enforcement_disallow, enforcement_hold,
                      requires_enforcer, generates_hearing, generates_warrant, collection_order,
@@ -28,6 +36,10 @@ VALUES ('TSTRES', 'Test Result', 'Result', true, true,
         false, false, false,
         false, false, false, false,
         false, false, false, false);
+
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'TSTRES'
+ON CONFLICT (result_id) DO NOTHING;
 
 INSERT INTO documents (document_id, recipient, document_language, priority)
 VALUES ('TTPLET', 'DEF', 'EN', '0')

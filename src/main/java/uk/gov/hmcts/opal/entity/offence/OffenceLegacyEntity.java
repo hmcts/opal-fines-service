@@ -44,18 +44,18 @@ import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "Offence")
 @Entity
-@Table(name = "offences")
-@NamedEntityGraph(name = OffenceEntity.ENTITY_GRAPH_LITE)
+@Table(name = "offences_legacy")
+@NamedEntityGraph(name = OffenceLegacyEntity.ENTITY_GRAPH_LITE)
 @NamedEntityGraph(
-    name = OffenceEntity.ENTITY_GRAPH_FULL,
+    name = OffenceLegacyEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
         @NamedAttributeNode("businessUnit")
     }
 )
-public class OffenceEntity {
+public class OffenceLegacyEntity {
 
-    public static final String ENTITY_GRAPH_LITE = "OffenceEntity.lite";
-    public static final String ENTITY_GRAPH_FULL = "OffenceEntity.full";
+    public static final String ENTITY_GRAPH_LITE = "OffenceLegacyEntity.lite";
+    public static final String ENTITY_GRAPH_FULL = "OffenceLegacyEntity.full";
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "offence_id_seq_generator")

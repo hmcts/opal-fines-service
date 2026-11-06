@@ -21,7 +21,7 @@ account_number_prefix,parent_business_unit_id,opal_domain,welsh_language
 VALUES
 (951,'Creditor Graph Business Unit','CGBU','Area','CG',NULL,'Fines',false);
 
-INSERT INTO major_creditors
+INSERT INTO major_creditors_legacy
 (
 major_creditor_id, business_unit_id, major_creditor_code,
 name, address_line_1, address_line_2, address_line_3, postcode
@@ -29,6 +29,10 @@ name, address_line_1, address_line_2, address_line_3, postcode
 VALUES
 (950001, 951, 'CG01',
 'Creditor Graph Major', '1 Graph Lane', 'Graph Town', 'Graph City', 'CG1 1CG');
+
+INSERT INTO major_creditors
+SELECT * FROM major_creditors_legacy WHERE major_creditor_id = 950001
+ON CONFLICT (major_creditor_id) DO NOTHING;
 
 INSERT INTO creditor_accounts
 (
