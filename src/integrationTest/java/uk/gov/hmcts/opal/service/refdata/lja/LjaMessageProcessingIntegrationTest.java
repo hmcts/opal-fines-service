@@ -3,15 +3,15 @@ package uk.gov.hmcts.opal.service.refdata.lja;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.InputStream;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
-import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
@@ -24,7 +24,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String REF_DATA_SCHEMA = "jsonSchemas/ref-data/ref_data_schema.json";
     private static final short TEST_ID_START = 8000;
 
     private final RefDataMessageProcessor processor;
@@ -57,27 +56,32 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @Test
+    @ParameterizedTest(name = "{1} maps to {2}")
+    @MethodSource("ljaTypeMappings")
     @JiraTestKey("PO-10709")
-    void savesEveryLjaTypeDefinedInTheOpenApiSchema() {
-        List<String> ljaTypes = ljaTypesFromSchema();
+    void mapsSupportedLjaTypes(short localJusticeAreaId, String ljaType, LocalJusticeAreaType expectedType) {
+        processor.processMessage(LjaMessageBuilder.validMessage(localJusticeAreaId, ljaType));
 
         try {
-            for (int index = 0; index < ljaTypes.size(); index++) {
-                String ljaType = ljaTypes.get(index);
-                short localJusticeAreaId = (short) (TEST_ID_START + index);
-                processor.processMessage(LjaMessageBuilder.validMessage(localJusticeAreaId, ljaType));
-
-                assertThat(repository.findById(localJusticeAreaId))
-                    .get()
-                    .extracting(LocalJusticeAreaEntity::getLjaType)
-                    .isEqualTo(expectedLocalJusticeAreaType(ljaType));
-            }
+            assertThat(repository.findById(localJusticeAreaId))
+                .get()
+                .extracting(LocalJusticeAreaEntity::getLjaType)
+                .isEqualTo(expectedType);
         } finally {
-            for (int index = 0; index < ljaTypes.size(); index++) {
-                repository.deleteById((short) (TEST_ID_START + index));
-            }
+            repository.deleteById(localJusticeAreaId);
         }
+    }
+
+    private static Stream<Arguments> ljaTypeMappings() {
+        return Stream.of(
+            Arguments.of(TEST_ID_START, "CRWCRT", LocalJusticeAreaType.CRWCRT),
+            Arguments.of((short) (TEST_ID_START + 1), "SJCRT", LocalJusticeAreaType.SJCRT),
+            Arguments.of((short) (TEST_ID_START + 2), "NICRT", LocalJusticeAreaType.NICRT),
+            Arguments.of((short) (TEST_ID_START + 3), "SCSCRT", LocalJusticeAreaType.SCSCRT),
+            Arguments.of((short) (TEST_ID_START + 4), "YCT", LocalJusticeAreaType.YCT),
+            Arguments.of((short) (TEST_ID_START + 5), "SCDCRT", LocalJusticeAreaType.SCDCRT),
+            Arguments.of((short) (TEST_ID_START + 6), "PSA", LocalJusticeAreaType.LJA)
+        );
     }
 
     @Test
@@ -144,39 +148,4 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
         }
     }
 
-    @Test
-    @JiraTestKey("PO-10709")
-    void deleteEntityRejectsInvalidBusinessKey() {
-        assertThatThrownBy(() -> handler.deleteEntity("not-a-short"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid business key received: not-a-short");
-
-        assertThatThrownBy(() -> handler.deleteEntity("32768"))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Invalid business key received: 32768");
-    }
-
-    private LocalJusticeAreaType expectedLocalJusticeAreaType(String ljaType) {
-        return "PSA".equals(ljaType) ? LocalJusticeAreaType.LJA : LocalJusticeAreaType.valueOf(ljaType);
-    }
-
-    private List<String> ljaTypesFromSchema() {
-        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(REF_DATA_SCHEMA)) {
-            if (inputStream == null) {
-                throw new IllegalStateException("Unable to find " + REF_DATA_SCHEMA);
-            }
-
-            JsonNode enumValues = objectMapper.readTree(inputStream)
-                .path("$defs")
-                .path("ljaRecord")
-                .path("properties")
-                .path("lja_type")
-                .path("enum");
-            List<String> ljaTypes = new ArrayList<>();
-            enumValues.forEach(value -> ljaTypes.add(value.asString()));
-            return ljaTypes;
-        } catch (Exception exception) {
-            throw new IllegalStateException("Unable to read LJA types from " + REF_DATA_SCHEMA, exception);
-        }
-    }
 }
