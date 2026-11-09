@@ -259,8 +259,11 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                 .andExpect(jsonPath(itemPath + ".postedDetails.posted_by").value("LEGUSR"))
                 .andExpect(jsonPath(itemPath + ".postedDetails.posted_by_name").value("Legacy User"))
                 .andExpect(jsonPath(itemPath + ".details.transactionType.transactionType").value("PAYMNT"))
+                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionTypeDisplayName").value("Payment"))
                 .andExpect(jsonPath(itemPath + ".details.paymentReference").value("PAY-" + (index + 1)))
                 .andExpect(jsonPath(itemPath + ".details.status.creditorTransactionStatus").value("C"))
+                .andExpect(jsonPath(itemPath + ".details.status.creditorTransactionStatusDisplayName")
+                    .value("Completed"))
                 .andExpect(jsonPath(itemPath + ".details.statusDate").value("2026-04-01T00:00:00"))
                 .andExpect(jsonPath(itemPath + ".details.associatedRecordType").value("defendant_accounts"))
                 .andExpect(jsonPath(itemPath + ".details.associatedRecordId").value("99264500001001"))
@@ -269,7 +272,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                 .andExpect(jsonPath(itemPath + ".details.defendantAccountId").value(99264500001001L));
         }
 
-        new JsonSchemaValidationService().validateOrError(result.andReturn().getResponse().getContentAsString(),
+        jsonSchemaValidationService.validateOrError(result.andReturn().getResponse().getContentAsString(),
             HISTORY_RESPONSE_SCHEMA);
 
         ArgumentCaptor<LegacyGetMinorCreditorAccountHistoryRequest> requestCaptor =
@@ -283,6 +286,63 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         assertThat(requestCaptor.getValue().getFromDate()).isEqualTo(LocalDate.of(2025, 1, 1));
         assertThat(requestCaptor.getValue().getToDate()).isEqualTo(LocalDate.of(2026, 11, 30));
         assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+    }
+
+    @Test
+    @JiraStory("PO-11461")
+    @JiraEpic("PO-2653")
+    @DisplayName("Legacy history maps Gateway XML amendments and masks BACS values")
+    void getMinorCreditorHistory_whenAmendmentsParsed_mapsAndMasksDetails() throws Exception {
+        mockLegacyResponse(XmlUtil.unmarshalXmlString("""
+            <response>
+              <history_items>
+                <history_items_element>
+                  <posted_details>
+                    <posted_date>2026-04-01T09:00:00</posted_date>
+                    <posted_by>LEGUSR</posted_by>
+                    <posted_by_name>Legacy User</posted_by_name>
+                  </posted_details>
+                  <type>Amendment</type>
+                  <details>
+                    <attribute_name>BACS Account Number</attribute_name>
+                    <old_value>12345678</old_value>
+                    <new_value>87654321</new_value>
+                  </details>
+                </history_items_element>
+                <history_items_element>
+                  <posted_details>
+                    <posted_date>2026-03-31T09:00:00</posted_date>
+                    <posted_by>LEGUSR</posted_by>
+                    <posted_by_name>Legacy User</posted_by_name>
+                  </posted_details>
+                  <type>Amendment</type>
+                  <details>
+                    <attribute_name>Hold Pay Out</attribute_name>
+                    <old_value>false</old_value>
+                    <new_value>true</new_value>
+                  </details>
+                </history_items_element>
+              </history_items>
+            </response>
+            """, MinorCreditorHistoryLegacyResponse.class));
+
+        ResultActions result = getHistory(MINOR_CREDITOR_ACCOUNT_ID);
+
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems", hasSize(2)))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[0].postedDetails.posted_date").value("2026-04-01T09:00:00"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("BACS Account Number"))
+            .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("******78"))
+            .andExpect(jsonPath("$.historyItems[0].details.newValue").value("******21"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[1].details.attributeName").value("Hold Pay Out"))
+            .andExpect(jsonPath("$.historyItems[1].details.oldValue").value("false"))
+            .andExpect(jsonPath("$.historyItems[1].details.newValue").value("true"));
+
+        jsonSchemaValidationService.validateOrError(result.andReturn().getResponse().getContentAsString(),
+            HISTORY_RESPONSE_SCHEMA);
     }
 
     private ResultActions getHistory(long accountId, String... queryParams) throws Exception {

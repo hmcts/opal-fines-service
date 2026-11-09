@@ -150,7 +150,7 @@ public class LegacyMinorCreditorHistoryMapper {
         return new CreditorTransactionTypeReferenceCommon()
             .transactionType(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(
                 transactionType.getTransactionType()))
-            .transactionTypeDisplayName(transactionType.getTransactionType());
+            .transactionTypeDisplayName(transactionType.getTransactionTypeDisplayName());
     }
 
     private CreditorTransactionStatusReferenceCommon toCreditorTransactionStatus(
@@ -164,7 +164,7 @@ public class LegacyMinorCreditorHistoryMapper {
             .creditorTransactionStatus(
                 CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.fromValue(
                     status.getCreditorTransactionStatus()))
-            .creditorTransactionStatusDisplayName(status.getCreditorTransactionStatus());
+            .creditorTransactionStatusDisplayName(status.getCreditorTransactionStatusDisplayName());
     }
 
     private MinorCreditorHistoryItemType toHistoryItemType(String legacyType) {

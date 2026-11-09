@@ -247,7 +247,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     @Test
-    void toOpal_mapsFinancialDetailsUsingCodeAsDisplayName() {
+    void toOpal_preservesFinancialDisplayNames() {
         // Arrange
         MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(financialItem(
@@ -272,12 +272,12 @@ class MinorCreditorHistoryLegacyMapperTest {
             CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT,
             details.getTransactionType().getTransactionType()
         );
-        assertEquals("PAYMNT", details.getTransactionType().getTransactionTypeDisplayName());
+        assertEquals("Payment", details.getTransactionType().getTransactionTypeDisplayName());
         assertEquals(
             CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.P,
             details.getStatus().getCreditorTransactionStatus()
         );
-        assertEquals("P", details.getStatus().getCreditorTransactionStatusDisplayName());
+        assertEquals("Pending", details.getStatus().getCreditorTransactionStatusDisplayName());
         assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
         assertEquals("Minor creditor", details.getAssociatedRecordType());
         assertEquals("777", details.getAssociatedRecordId());
@@ -389,12 +389,12 @@ class MinorCreditorHistoryLegacyMapperTest {
             .details(LegacyMinorCreditorHistoryDetails.builder()
                 .transactionType(LegacyCreditorTransactionTypeReference.builder()
                     .transactionType(transactionType)
-                    .transactionTypeDisplayName("Ignored display name")
+                    .transactionTypeDisplayName("Payment")
                     .build())
                 .paymentReference(paymentReference)
                 .status(LegacyCreditorTransactionStatusReference.builder()
                     .creditorTransactionStatus(status)
-                    .creditorTransactionStatusDisplayName("Ignored status")
+                    .creditorTransactionStatusDisplayName("Pending")
                     .build())
                 .statusDate(LocalDate.of(2026, 2, 3))
                 .associatedRecordType("Minor creditor")
