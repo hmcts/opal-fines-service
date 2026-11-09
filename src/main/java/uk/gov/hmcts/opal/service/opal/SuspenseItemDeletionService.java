@@ -62,25 +62,15 @@ public class SuspenseItemDeletionService {
 
         em.flush();
 
-        SuspenseItemCleanupOutcomeValues cleanupOutcomeValues = new SuspenseItemCleanupOutcomeValues(
-            suspenseItemId, suspenseTransactions.size(), courtFeeReceivedCount, controlTotalCount, noteCount);
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                log.info("Suspense Item with id {} deleted", cleanupOutcomeValues.suspenseItemId());
-                log.info("{} Suspense Transactions deleted", cleanupOutcomeValues.suspenseTransactionCount());
-                log.info("{} Court Fees Received deleted", cleanupOutcomeValues.courtFeeReceivedCount());
-                log.info("{} Control Totals deleted", cleanupOutcomeValues.controlTotalCount());
-                log.info("{} Notes deleted", cleanupOutcomeValues.noteCount());
+                log.info("Suspense Item with id {} deleted", suspenseItemId);
+                log.info("{} Suspense Transactions deleted", suspenseTransactions.size());
+                log.info("{} Court Fees Received deleted", courtFeeReceivedCount);
+                log.info("{} Control Totals deleted", controlTotalCount);
+                log.info("{} Notes deleted", noteCount);
             }
         });
-    }
-
-    private record SuspenseItemCleanupOutcomeValues(
-        Long suspenseItemId,
-        int suspenseTransactionCount,
-        long courtFeeReceivedCount,
-        long controlTotalCount,
-        long noteCount) {
     }
 }
