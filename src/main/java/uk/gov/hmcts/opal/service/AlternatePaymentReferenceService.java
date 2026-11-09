@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -86,8 +87,11 @@ public class AlternatePaymentReferenceService {
         VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountEntity.getId(),
             "deleteAlternatePaymentReferences");
 
+        verifyNotReadOnly(alternatePaymentReferenceEntity);
+
         AlternatePaymentReferencesItem returnItem =
             alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity);
+
         repository.delete(alternatePaymentReferenceEntity);
 
         notesService.addNote(
@@ -109,13 +113,7 @@ public class AlternatePaymentReferenceService {
 
         AlternatePaymentReferenceEntity alternatePaymentReferenceEntity =
             getAlternativePaymentReferenceEntity(defendantAccountId, alternatePaymentReferenceId);
-
-        if (!Relationship.APR.equals(alternatePaymentReferenceEntity.getRelationship())) {
-            throw new BusinessRuleViolationException(
-                "Alternate Payment Reference relationship does not have a relationship of APR",
-                "Alternate Payment Reference with relationship: " + alternatePaymentReferenceEntity.getRelationship()
-                    + " cannot be updated for defendant account: " + defendantAccountId);
-        }
+        verifyNotReadOnly(alternatePaymentReferenceEntity);
 
         VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountEntity.getId(),
             "updateAlternatePaymentReferences");
@@ -136,6 +134,20 @@ public class AlternatePaymentReferenceService {
             alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(alternatePaymentReferenceEntity),
             defendantAccountEntity.getVersionNumber()
         );
+    }
+
+    private void verifyNotReadOnly(AlternatePaymentReferenceEntity alternatePaymentReferenceEntity) {
+        if (Category.ACC.equals(alternatePaymentReferenceEntity.getCategory())
+            && Set.of(Relationship.CONSOLIDATED, Relationship.AMALGAMATED)
+            .contains(alternatePaymentReferenceEntity.getRelationship())) {
+
+            throw new BusinessRuleViolationException(
+                "Alternate Payment Reference is read-only",
+                "Alternate Payment Reference with relationship: " + alternatePaymentReferenceEntity.getRelationship()
+                    + " and category: " + alternatePaymentReferenceEntity.getCategory()
+                    + " cannot be modified or deleted for defendant account: "
+                    + alternatePaymentReferenceEntity.getDefendantAccount().getDefendantAccountId());
+        }
     }
 
     void verifyUniqueApr(BusinessUnitEntity businessUnit, String aprText) {
@@ -160,8 +172,8 @@ public class AlternatePaymentReferenceService {
         VersionUtils.verifyIfMatch(defendantAccountEntity, expectedVersion, defendantAccountId,
             "createAlternatePaymentReferences");
 
-        if (repository.existsByDefendantAccount_defendantAccountIdAndRelationship(
-            defendantAccountId, Relationship.APR)) {
+        if (repository.existsByDefendantAccount_defendantAccountIdAndRelationship(defendantAccountId,
+            Relationship.APR)) {
             throw new BusinessRuleViolationException(
                 "Alternate Payment Reference already exists for defendant account",
                 "Alternate Payment Reference with relationship APR already exists for defendant account: "
