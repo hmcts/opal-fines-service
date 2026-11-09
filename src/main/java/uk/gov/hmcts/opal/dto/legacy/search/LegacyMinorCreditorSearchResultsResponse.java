@@ -35,6 +35,6 @@ public class LegacyMinorCreditorSearchResultsResponse implements ToXmlString, Ha
     private int count;
 
     @XmlElementWrapper(name = "creditor_accounts")
-    @XmlElement(name = "creditorAccount")
+    @XmlElement(name = "creditor_accounts_element")
     private List<CreditorAccount> creditorAccounts;
 }
