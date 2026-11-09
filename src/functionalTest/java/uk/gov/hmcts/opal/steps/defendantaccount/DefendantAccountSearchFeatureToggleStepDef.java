@@ -161,9 +161,9 @@ public class DefendantAccountSearchFeatureToggleStepDef extends BaseStepDef {
         JSONObject requestBody = new JSONObject();
         requestBody.put("business_unit_id", Long.parseLong(businessUnitId));
         requestBody.put("account_type", "Fine");
+        requestBody.put("source", "MAC");
         requestBody.put("account_status", JSONObject.NULL);
         requestBody.put("account", buildUniqueAccountFixture());
-        //requestBody.put("timeline_data", requestFactory.loadDefaultTimelineFixture());
         return requestBody;
     }
 
