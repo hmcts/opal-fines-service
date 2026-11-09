@@ -5,13 +5,13 @@ meta {
 }
 
 delete {
-  url: /testing-support/suspense-items/{{suspenseItemId}}
+  url: {{baseURL}}/testing-support/suspense-items/{{suspenseItemId}}
   body: none
   auth: inherit
 }
 
 vars:pre-request {
-  suspenseItemId: 0
+  suspenseItemId: 1
 }
 
 settings {

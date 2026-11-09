@@ -18,6 +18,7 @@ import uk.gov.hmcts.opal.repository.ControlTotalRepository;
 import uk.gov.hmcts.opal.repository.CourtFeeRepository;
 import uk.gov.hmcts.opal.repository.CourtFeesReceivedRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.SuspenseAccountRepository;
 import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 import uk.gov.hmcts.opal.repository.SuspenseTransactionRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -42,6 +43,7 @@ class DeleteManualSuspenseItemIntegrationTest extends AbstractIntegrationTest {
     private static final long FIRST_CONTROL_TOTAL_ID = 99000000836520L;
     private static final long SECOND_CONTROL_TOTAL_ID = 99000000836521L;
     private static final long NOTE_ID = 99000000836540L;
+    private static final long SUSPENSE_ACCOUNT_ID = 99000000836502L;
 
     @Autowired
     private SuspenseItemRepository suspenseItemRepository;
@@ -60,6 +62,9 @@ class DeleteManualSuspenseItemIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private CourtFeeRepository courtFeeRepository;
+
+    @Autowired
+    private SuspenseAccountRepository suspenseAccountRepository;
 
     @Test
     @JiraStory("PO-10585")
@@ -111,5 +116,6 @@ class DeleteManualSuspenseItemIntegrationTest extends AbstractIntegrationTest {
         assertThat(noteRepository.findById(NOTE_ID)).isEmpty();
 
         assertThat(courtFeeRepository.findAllById(List.of(99000000836501L,99000000836502L)).size()).isEqualTo(2);
+        assertThat(suspenseAccountRepository.findById(SUSPENSE_ACCOUNT_ID)).isPresent();
     }
 }
