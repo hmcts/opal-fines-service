@@ -416,7 +416,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                 %s
           </history_items>
         </response>
-        """.formatted(
+            """.formatted(
             nestedFinancialItemXml("PAY-1", 10),
             nestedFinancialItemXml("PAY-2", 20),
             nestedFinancialItemXml("PAY-3", 30)
