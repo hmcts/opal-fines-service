@@ -47,6 +47,7 @@ import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.jpa.MinorCreditorSpecs;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -76,6 +77,8 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
     private final EntityManager em;
     private final MinorCreditorSpecs specs = new MinorCreditorSpecs();
     private final MinorCreditorMapper minorCreditorMapper;
+    private final MinorCreditorPdplLoggingService pdplLoggingService;
+    private final UserStateService userStateService;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest criteria) {
@@ -282,6 +285,9 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
 
         MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
         response.setVersion(creditorAccount.getVersion());
+        if (!party.isOrganisation()) {
+            pdplLoggingService.logUpdate(minorCreditorAccountId, userStateService.getUserStateV1FromSecurityContext());
+        }
         return response;
     }
 
