@@ -39,7 +39,9 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/minor-creditor-accounts/%d/history";
     private static final String HEADER_SUMMARY_PATH = "/minor-creditor-accounts/%d/header-summary";
-    private static final long LEGACY_HISTORY_ACCOUNT_ID = 99264500000001L;
+    // JCDE MET73 account 25000202N: prefix 2, three-digit schema ID, ten-digit creditor number.
+    // Alternative confirmed history account: 20730000001329.
+    private static final long LEGACY_HISTORY_ACCOUNT_ID = 20730000000836L;
     private static final String HISTORY_TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
@@ -207,7 +209,7 @@ public class MinorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
-     * Requests history for the account seeded in the legacy API stub.
+     * Requests history for the known JCDE legacy account.
      */
     @When("I request minor creditor account history for the seeded legacy minor creditor account")
     public void requestMinorCreditorHistoryForSeededLegacyAccount() {
