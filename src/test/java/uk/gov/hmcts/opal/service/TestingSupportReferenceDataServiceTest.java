@@ -6,16 +6,16 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.config.TestingSupportReferenceDataPublisherConfig.REF_DATA_SESSION_ID;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,10 +24,9 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.databind.ObjectMapper;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
+import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -37,9 +36,9 @@ class TestingSupportReferenceDataServiceTest {
     private static final String REF_DATA_SCHEMA = "ref-data/ref_data_schema.json";
 
     @Mock
-    private RefDataUpdateHandler<Object, Object> ljaHandler;
+    private RefDataHandlerRegistry handlerRegistry;
     @Mock
-    private RefDataUpdateHandler<Object, Object> courtHandler;
+    private RefDataUpdateHandler<Object, Object> handler;
     @Mock
     private JsonSchemaValidationService jsonSchemaValidationService;
     @Mock
@@ -51,45 +50,35 @@ class TestingSupportReferenceDataServiceTest {
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        service = new TestingSupportReferenceDataService(List.of(ljaHandler, courtHandler), objectMapper,
+        service = new TestingSupportReferenceDataService(handlerRegistry, objectMapper,
             jsonSchemaValidationService, senderClient);
     }
 
     @Test
-    @JiraStory("PO-10705")
-    @JiraEpic("PO-9031")
     void deleteReferenceData_usesMatchingHandler() {
-        when(ljaHandler.refDataType()).thenReturn("LJA");
-        when(courtHandler.refDataType()).thenReturn("Court");
+        when(handlerRegistry.find("Court")).thenReturn(Optional.of(handler));
 
         service.deleteReferenceData("Court", "123");
 
-        verify(courtHandler).deleteEntity("123");
-        verify(ljaHandler, never()).deleteEntity(anyString());
+        verify(handler).deleteEntity("123");
     }
 
     @Test
-    @JiraStory("PO-10705")
-    @JiraEpic("PO-9031")
     void deleteReferenceData_rejectsUnsupportedType() {
-        when(ljaHandler.refDataType()).thenReturn("LJA");
-        when(courtHandler.refDataType()).thenReturn("Court");
+        when(handlerRegistry.find("Prison")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.deleteReferenceData("Prison", "123"))
             .isInstanceOf(InvalidReferenceValidationException.class)
             .hasMessage("Unsupported reference data type: Prison");
 
-        verify(ljaHandler, never()).deleteEntity(anyString());
-        verify(courtHandler, never()).deleteEntity(anyString());
+        verifyNoInteractions(handler);
     }
 
     @Test
-    @JiraStory("PO-10705")
-    @JiraEpic("PO-9031")
     void deleteReferenceData_translatesInvalidBusinessKey() {
         IllegalArgumentException failure = new IllegalArgumentException("Invalid business key received: invalid");
-        when(ljaHandler.refDataType()).thenReturn("LJA");
-        doThrow(failure).when(ljaHandler).deleteEntity("invalid");
+        when(handlerRegistry.find("LJA")).thenReturn(Optional.of(handler));
+        doThrow(failure).when(handler).deleteEntity("invalid");
 
         assertThatThrownBy(() -> service.deleteReferenceData("LJA", "invalid"))
             .isInstanceOf(InvalidReferenceValidationException.class)
@@ -98,8 +87,6 @@ class TestingSupportReferenceDataServiceTest {
     }
 
     @Test
-    @JiraStory("PO-10705")
-    @JiraEpic("PO-9031")
     void publishReferenceData_validatesBeforeSendingWithSessionId() throws Exception {
         Map<String, Object> requestBody = Map.of(
             "header", Map.of("data_product", "LJA"),
@@ -115,12 +102,10 @@ class TestingSupportReferenceDataServiceTest {
 
         ServiceBusMessage message = messageCaptor.getValue();
         assertThat(objectMapper.readTree(message.getBody().toString())).isEqualTo(objectMapper.readTree(expectedBody));
-        assertThat(UUID.fromString(message.getSessionId())).isNotNull();
+        assertThat(message.getSessionId()).isEqualTo(REF_DATA_SESSION_ID);
     }
 
     @Test
-    @JiraStory("PO-10705")
-    @JiraEpic("PO-9031")
     void publishReferenceData_doesNotSendInvalidMessage() {
         Map<String, Object> requestBody = Map.of("invalid", true);
         JsonSchemaValidationException failure = new JsonSchemaValidationException("Invalid reference data message");
