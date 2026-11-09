@@ -1,10 +1,10 @@
 package uk.gov.hmcts.opal.service;
 
+import static uk.gov.hmcts.opal.config.TestingSupportReferenceDataPublisherConfig.REF_DATA_SESSION_ID;
+
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
+import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
@@ -22,16 +23,14 @@ public class TestingSupportReferenceDataService {
 
     private static final String REF_DATA_SCHEMA = "ref-data/ref_data_schema.json";
 
-    private final List<RefDataUpdateHandler<?, ?>> handlers;
+    private final RefDataHandlerRegistry handlerRegistry;
     private final ObjectMapper objectMapper;
     private final JsonSchemaValidationService jsonSchemaValidationService;
     private final ServiceBusSenderClient testingSupportReferenceDataSender;
 
     @Transactional
     public void deleteReferenceData(String refDataType, String businessKey) {
-        RefDataUpdateHandler<?, ?> handler = handlers.stream()
-            .filter(candidate -> candidate.refDataType().equals(refDataType))
-            .findFirst()
+        RefDataUpdateHandler<?, ?> handler = handlerRegistry.find(refDataType)
             .orElseThrow(() -> new InvalidReferenceValidationException(
                 "Unsupported reference data type: " + refDataType));
 
@@ -48,7 +47,7 @@ public class TestingSupportReferenceDataService {
         jsonSchemaValidationService.validateOrError(messageBody, REF_DATA_SCHEMA);
 
         ServiceBusMessage message = new ServiceBusMessage(messageBody);
-        message.setSessionId(UUID.randomUUID().toString());
+        message.setSessionId(REF_DATA_SESSION_ID);
         testingSupportReferenceDataSender.sendMessage(message);
     }
 }
