@@ -9,7 +9,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
 import com.azure.messaging.servicebus.ServiceBusMessage;
 import com.azure.messaging.servicebus.ServiceBusSenderClient;
@@ -113,7 +115,12 @@ class TestingSupportReferenceDataIntegrationTest {
             .when(handler).deleteEntity("not-a-short");
 
         mockMvc.perform(delete(URL_BASE + "/LJA/not-a-short"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                "Invalid business key received: not-a-short",
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"
+            ));
     }
 
     @Test
@@ -139,7 +146,12 @@ class TestingSupportReferenceDataIntegrationTest {
         mockMvc.perform(post(URL_BASE + "/topic")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{}"))
-            .andExpect(status().isBadRequest());
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(expectBadRequestWithoutStatus(
+                "The request does not conform to the required JSON schema",
+                "https://hmcts.gov.uk/problems/json-schema-validation"
+            ));
 
         verify(senderClient, never()).sendMessage(any(ServiceBusMessage.class));
     }
