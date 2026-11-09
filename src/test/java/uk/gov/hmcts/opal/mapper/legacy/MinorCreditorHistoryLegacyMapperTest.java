@@ -23,7 +23,6 @@ import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistoryDetails;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 
 class MinorCreditorHistoryLegacyMapperTest {
@@ -335,7 +334,8 @@ class MinorCreditorHistoryLegacyMapperTest {
         CreditorTransactionDetailsHistory details = assertInstanceOf(
             CreditorTransactionDetailsHistory.class, response.getPayload().getHistoryItems().getFirst().getDetails());
         assertEquals("PAY-1", details.getPaymentReference());
-        assertEquals(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT, details.getTransactionType().getTransactionType());
+        assertEquals(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT,
+            details.getTransactionType().getTransactionType());
         assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
     }
 
