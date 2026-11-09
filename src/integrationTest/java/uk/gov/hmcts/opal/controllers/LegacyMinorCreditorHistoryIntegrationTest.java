@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.noPermissionsUser;
 import static uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil.permissionUser;
 
+import jakarta.xml.bind.JAXBException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -46,6 +48,8 @@ import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMin
 import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryPostedDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
+import uk.gov.hmcts.opal.util.XmlUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -65,6 +69,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99264500000001L;
     private static final short BUSINESS_UNIT_ID = 32645;
+    private static final String HISTORY_RESPONSE_SCHEMA = "opal/minor-creditor/getMinorCreditorHistoryResponse.json";
 
     @MockitoBean
     private UserStateService userStateService;
@@ -74,6 +79,9 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
 
     @MockitoBean
     private LoggingService loggingService;
+
+    @Autowired
+    private JsonSchemaValidationService jsonSchemaValidationService;
 
     @BeforeEach
     void setUpAuthorisedUser() {
@@ -116,6 +124,9 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[3].details.paymentReference").value("PAY-2"))
             .andExpect(jsonPath("$.historyItems[4].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[4].details.noteText").value("Legacy same-day note"));
+
+        jsonSchemaValidationService.validateOrError(result.andReturn().getResponse().getContentAsString(),
+            HISTORY_RESPONSE_SCHEMA);
 
         ArgumentCaptor<LegacyGetMinorCreditorAccountHistoryRequest> requestCaptor =
             ArgumentCaptor.forClass(LegacyGetMinorCreditorAccountHistoryRequest.class);
@@ -221,6 +232,57 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(status().isInternalServerError())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.retriable").value(false));
+    }
+
+    @Test
+    @JiraStory("PO-11461")
+    @JiraEpic("PO-2653")
+    @DisplayName("Legacy history preserves nested financial and note details with date filters")
+    void getMinorCreditorHistory_whenDetailsNested_preservesDetails() throws Exception {
+        mockLegacyResponse(nestedLegacyResponse());
+
+        ResultActions result =
+            getHistory(MINOR_CREDITOR_ACCOUNT_ID, "dateFrom", "2025-01-01", "dateTo", "2026-11-30", "itemTypes",
+                "amendment,financial,note");
+
+        result.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems", hasSize(4)))
+            .andExpect(jsonPath("$.historyItems[3].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[3].details.noteText").value("Nested legacy note"));
+
+        for (int index = 0; index < 3; index++) {
+            String itemPath = "$.historyItems[" + index + "]";
+
+            result.andExpect(jsonPath(itemPath + ".type").value("Financial"))
+                .andExpect(jsonPath(itemPath + ".amount").value((index + 1) * 10))
+                .andExpect(jsonPath(itemPath + ".postedDetails.posted_date").value("2026-04-01T09:00:00"))
+                .andExpect(jsonPath(itemPath + ".postedDetails.posted_by").value("LEGUSR"))
+                .andExpect(jsonPath(itemPath + ".postedDetails.posted_by_name").value("Legacy User"))
+                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionType").value("PAYMNT"))
+                .andExpect(jsonPath(itemPath + ".details.paymentReference").value("PAY-" + (index + 1)))
+                .andExpect(jsonPath(itemPath + ".details.status.creditorTransactionStatus").value("C"))
+                .andExpect(jsonPath(itemPath + ".details.statusDate").value("2026-04-01T00:00:00"))
+                .andExpect(jsonPath(itemPath + ".details.associatedRecordType").value("defendant_accounts"))
+                .andExpect(jsonPath(itemPath + ".details.associatedRecordId").value("99264500001001"))
+                .andExpect(jsonPath(itemPath + ".details.accountNumber").value("MC2645"))
+                .andExpect(jsonPath(itemPath + ".details.defendantAccountNumber").value("DEF2645"))
+                .andExpect(jsonPath(itemPath + ".details.defendantAccountId").value(99264500001001L));
+        }
+
+        new JsonSchemaValidationService().validateOrError(result.andReturn().getResponse().getContentAsString(),
+            HISTORY_RESPONSE_SCHEMA);
+
+        ArgumentCaptor<LegacyGetMinorCreditorAccountHistoryRequest> requestCaptor =
+            ArgumentCaptor.forClass(LegacyGetMinorCreditorAccountHistoryRequest.class);
+
+        verify(gatewayService).postToGateway(eq(LEGACY_ACTION), eq(MinorCreditorHistoryLegacyResponse.class),
+            requestCaptor.capture(), isNull());
+
+        assertThat(requestCaptor.getValue().getCreditorAccountId()).isEqualTo(
+            String.valueOf(MINOR_CREDITOR_ACCOUNT_ID));
+        assertThat(requestCaptor.getValue().getFromDate()).isEqualTo(LocalDate.of(2025, 1, 1));
+        assertThat(requestCaptor.getValue().getToDate()).isEqualTo(LocalDate.of(2026, 11, 30));
+        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
     }
 
     private ResultActions getHistory(long accountId, String... queryParams) throws Exception {
@@ -330,5 +392,69 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .postedBy("LEGUSR")
             .postedByName("Legacy User")
             .build();
+    }
+
+    private MinorCreditorHistoryLegacyResponse nestedLegacyResponse() throws JAXBException {
+        String xml = """
+        <response>
+            <history_items>
+                <history_items_element>
+                    <posted_details>
+                        <posted_date>2026-04-01T09:00:00</posted_date>
+                        <posted_by>LEGUSR</posted_by>
+                        <posted_by_name>Legacy User</posted_by_name>
+                    </posted_details>
+                    <type>Note</type>
+                    <details>
+                        <note_details>
+                            <note_text>Nested legacy note</note_text>
+                        </note_details>
+                    </details>
+                </history_items_element>
+                %s
+                %s
+                %s
+          </history_items>
+        </response>
+        """.formatted(
+            nestedFinancialItemXml("PAY-1", 10),
+            nestedFinancialItemXml("PAY-2", 20),
+            nestedFinancialItemXml("PAY-3", 30)
+        );
+
+        return XmlUtil.unmarshalXmlString(xml, MinorCreditorHistoryLegacyResponse.class);
+    }
+
+    private String nestedFinancialItemXml(String paymentReference, int amount) {
+        return """
+        <history_items_element>
+          <posted_details>
+            <posted_date>2026-04-01T09:00:00</posted_date>
+            <posted_by>LEGUSR</posted_by>
+            <posted_by_name>Legacy User</posted_by_name>
+          </posted_details>
+          <type>Financial</type>
+          <details>
+            <creditor_transaction_details>
+              <transaction_type>
+                <transaction_type>PAYMNT</transaction_type>
+                <transaction_type_display_name>Payment</transaction_type_display_name>
+              </transaction_type>
+              <payment_reference>%s</payment_reference>
+              <status>
+                <creditor_transaction_status>C</creditor_transaction_status>
+                <creditor_transaction_status_display_name>Completed</creditor_transaction_status_display_name>
+              </status>
+              <status_date>2026-04-01</status_date>
+              <associated_record_type>defendant_accounts</associated_record_type>
+              <associated_record_id>99264500001001</associated_record_id>
+              <account_number>MC2645</account_number>
+              <defendant_account_number>DEF2645</defendant_account_number>
+              <defendant_account_id>99264500001001</defendant_account_id>
+            </creditor_transaction_details>
+          </details>
+          <amount>%d</amount>
+        </history_items_element>
+        """.formatted(paymentReference, amount);
     }
 }
