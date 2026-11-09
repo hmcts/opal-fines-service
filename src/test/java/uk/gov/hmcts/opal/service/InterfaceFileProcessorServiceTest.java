@@ -62,8 +62,6 @@ import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.OriginatorD
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.PaymentType;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.Transaction;
 import uk.gov.hmcts.opal.service.opal.accountnumbertranslation.model.TransformedInterfaceFileData;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ExtendWith(MockitoExtension.class)
 class InterfaceFileProcessorServiceTest {
@@ -108,8 +106,6 @@ class InterfaceFileProcessorServiceTest {
     @ParameterizedTest
     @EnumSource(PaymentType.class)
     @DisplayName("Processes a source JSON file and saves the transformed file and linked rows")
-    @JiraStory("PO-6460")
-    @JiraEpic("PO-3497")
     void process_uploadsTransformedJsonAndSavesLinkedRows(PaymentType paymentType) throws Exception {
         stubSuccessfulProcessing(paymentType);
         when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any()))
@@ -138,8 +134,6 @@ class InterfaceFileProcessorServiceTest {
 
     @Test
     @DisplayName("Skips a source JSON file that has already been processed")
-    @JiraStory("PO-6460")
-    @JiraEpic("PO-3497")
     void process_skipsSourceThatWasAlreadyProcessed() {
         when(interfaceFileRepository.findBySourceJsonId(SOURCE_ID)).thenReturn(Optional.of(new InterfaceFileEntity()));
 
@@ -151,8 +145,6 @@ class InterfaceFileProcessorServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"type", "domain", "target", "status"})
     @DisplayName("Rejects invalid source file metadata before upload")
-    @JiraStory("PO-6460")
-    @JiraEpic("PO-3497")
     void process_rejectsInvalidSourceBeforeUpload(String invalidField) {
         InterfaceFileObject.Builder source = sourceFile();
 
@@ -175,8 +167,6 @@ class InterfaceFileProcessorServiceTest {
     @ParameterizedTest
     @ValueSource(booleans = {true, false})
     @DisplayName("Rejects an upload response without a transformed file ID")
-    @JiraStory("PO-6460")
-    @JiraEpic("PO-3497")
     void process_rejectsUploadWithoutFileId(boolean missingResponse) {
         stubSuccessfulProcessing(PaymentType.CASH);
         when(fileHandlerAPIService.addInterfaceFile(eq(SYSTEM_USER), any(), any()))
@@ -191,8 +181,6 @@ class InterfaceFileProcessorServiceTest {
     @ParameterizedTest
     @ValueSource(strings = {"metadata", "content", "upload"})
     @DisplayName("Propagates the File Handler exception when processing fails")
-    @JiraStory("PO-6460")
-    @JiraEpic("PO-3497")
     void process_propagatesFileHandlerFailure(String failingCall) {
         DownstreamServiceUnavailableException failure = new DownstreamServiceUnavailableException(
             "File Handler returned HTTP 503", new IllegalStateException("Unexpected response"));
