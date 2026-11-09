@@ -23,7 +23,9 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import tools.jackson.databind.ObjectMapper;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -39,6 +41,7 @@ import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 
 @Import(TestingSupportReferenceDataIntegrationTest.RefDataProcessingTestConfiguration.class)
+@ActiveProfiles({"integration", "testing-support-reference-data"})
 class TestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/testing-support/ref-data";
@@ -184,6 +187,7 @@ class TestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest
     }
 
     @TestConfiguration
+    @Profile("testing-support-reference-data")
     static class RefDataProcessingTestConfiguration {
 
         @Bean
