@@ -92,6 +92,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     private static final short MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private PlatformTransactionManager transactionManager;
 
     @Nested
@@ -807,7 +808,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6175")
     void getAtAGlance_Success() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_Success(log);
+        super.getMinorCreditorAtAGlanceImpl_Success(log, "Speed Camera Services Ltd");
     }
 
     @Test

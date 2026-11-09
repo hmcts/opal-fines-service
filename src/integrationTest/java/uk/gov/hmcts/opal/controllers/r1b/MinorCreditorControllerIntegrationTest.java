@@ -73,12 +73,15 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     private JsonSchemaValidationService jsonSchemaValidationService;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private CreditorAccountRepository creditorAccountRepository;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private PartyRepository partyRepository;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private AmendmentRepository amendmentRepository;
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
@@ -1441,7 +1444,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
+    void getMinorCreditorAtAGlanceImpl_Success(Logger log, String defendantOrganisationName) throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{id}/at-a-glance", minorCreditorAccountId())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1482,7 +1485,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.defendant.forenames").value("Michael James"))
             .andExpect(jsonPath("$.defendant.surname").value("Johnson"))
             .andExpect(jsonPath("$.defendant.organisation").value(true))
-            .andExpect(jsonPath("$.defendant.organisation_name").value("Speed Camera Services Ltd"))
+            .andExpect(jsonPath("$.defendant.organisation_name").value(defendantOrganisationName))
 
             // payment
             .andExpect(jsonPath("$.payment.is_bacs").value(true))
