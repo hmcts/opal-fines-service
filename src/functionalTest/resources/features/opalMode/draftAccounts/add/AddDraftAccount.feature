@@ -7,6 +7,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5621
   Scenario: Create an adult fine draft account
     When I create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -32,6 +33,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5622
   Scenario: Create a parent or guardian draft account
     When I create a draft account with the following details
+      | source            | MAC                                                    |
       | business_unit_id  | 77                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |
@@ -56,6 +58,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5623
   Scenario: Create a minor creditor draft account
     When I create a draft account with the following details
+      | source            | MAC                                                 |
       | business_unit_id  | 77                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
       | account_type      | Fine                                                |
@@ -79,6 +82,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-7855
   Scenario: Emitted PDPO logs do not expose personal details
     When I create a draft account with the following details
+      | source            | MAC                                                    |
       | business_unit_id  | 77                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |
@@ -111,6 +115,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - NEW fine originator resolves against a valid CRWCRT
     When I create a draft account with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Fine                                 |
@@ -131,6 +136,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - NEW confiscation originator resolves against a valid CRWCRT
     When I create a draft account with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Confiscation                         |
@@ -151,6 +157,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - NEW conditional caution originator resolves against a prosecutor
     When I create a draft account with the following details
+      | source                   | MAC                                                   |
       | business_unit_id         | 73                                                    |
       | account                  | draftAccounts/accountJson/account.json                 |
       | account_type             | Conditional Caution                                   |
@@ -171,6 +178,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - TFO fine originator resolves against a valid LJA
     When I create a draft account with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Fine                                 |
@@ -191,6 +199,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - TFO fixed penalty originator resolves against a prosecutor
     When I create a draft account with the following details
+      | source                   | MAC                                                   |
       | business_unit_id         | 73                                                    |
       | account                  | draftAccounts/accountJson/account.json                 |
       | account_type             | Fixed Penalty                                         |
@@ -211,6 +220,7 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - FP fixed penalty originator resolves against a prosecutor
     When I create a draft account with the following details
+      | source                   | MAC                                                   |
       | business_unit_id         | 73                                                    |
       | account                  | draftAccounts/accountJson/account.json                 |
       | account_type             | Fixed Penalty                                         |

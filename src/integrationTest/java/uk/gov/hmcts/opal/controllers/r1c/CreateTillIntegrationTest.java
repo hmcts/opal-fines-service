@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.TestPropertySource;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -207,9 +208,11 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
             assertThat(payment.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
             assertThat(payment.getAssociatedRecordId()).isEqualTo("123");
             assertThat(payment.getThirdPartyPayerName()).isEqualTo("Test third-party payer");
-            assertThat(payment.getAdditionalInformation())
-                .contains("\"payment_received_from\":\"T\"")
-                .contains("\"transfer_source\":\"NATWEST\"");
+            JsonNode additionalInformation = objectMapper.readTree(payment.getAdditionalInformation());
+            assertThat(additionalInformation.isObject()).isTrue();
+            assertThat(additionalInformation.path("payment_received_from").asString()).isEqualTo("T");
+            assertThat(additionalInformation.path("additional_information").path("transfer_source").asString())
+                .isEqualTo("NATWEST");
         });
     }
 

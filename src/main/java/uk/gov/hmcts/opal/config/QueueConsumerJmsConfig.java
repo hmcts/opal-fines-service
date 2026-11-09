@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.config;
 import jakarta.jms.ConnectionFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.qpid.jms.JmsConnectionFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -23,7 +24,7 @@ public class QueueConsumerJmsConfig {
     private final ServiceBusConnectionStringParser serviceBusConnectionStringParser;
 
     @Bean
-    public ConnectionFactory reportConsumerConnectionFactory(ServiceBusProperties properties) {
+    public ConnectionFactory opalFinesConsumerConnection(ServiceBusProperties properties) {
         ServiceBusConnectionStringParser.ConnectionDetails details =
             serviceBusConnectionStringParser.parse(properties.getConnectionString());
 
@@ -40,12 +41,12 @@ public class QueueConsumerJmsConfig {
     }
 
     @Bean
-    public DefaultJmsListenerContainerFactory reportListenerContainerFactory(
-        ConnectionFactory reportConsumerConnectionFactory) {
+    public DefaultJmsListenerContainerFactory opalFinesConsumerConnectionFactory(
+        @Qualifier("opalFinesConsumerConnection")
+        ConnectionFactory opalFinesConsumerConnectionFactory) {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-        factory.setConnectionFactory(reportConsumerConnectionFactory);
+        factory.setConnectionFactory(opalFinesConsumerConnectionFactory);
         factory.setSessionTransacted(true);
         return factory;
     }
-
 }

@@ -24,17 +24,16 @@ public enum FinesPermission implements PermissionDescriptorV2 {
     AMEND_PAYMENT_TERMS("AMEND_PAYMENT_TERMS", "Amend Payment Terms"),
     ENTER_ENFORCEMENT("ENTER_ENFORCEMENT", "Enter Enforcement"),
     VIEW_CREDITOR_BACS("VIEW_CREDITOR_BACS", "View Creditor BACS"),
-    CONSOLIDATE("CONSOLIDATE", "Consolidate"),
-    // TODO verify this ID mirrors opal-user-service Permissions.ADD_AND_REMOVE_PAYMENT_HOLD ?
     ADD_AND_REMOVE_PAYMENT_HOLD("ADD_AND_REMOVE_PAYMENT_HOLD", "Add and Remove payment hold"),
+    CONSOLIDATE("CONSOLIDATE", "Consolidate"),
+    OPERATIONAL_REPORT_BY_ENFORCEMENT("OPERATIONAL_REPORT_BY_ENFORCEMENT", "Operational report by enforcement"),
+    OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report by payments"),
     PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
     AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
-    OPERATIONAL_REPORT_BY_ENFORCEMENT(
-        "OPERATIONAL_REPORT_BY_ENFORCEMENT", "Operational report by enforcement"),
-    OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report by payments"),
-    ACCOUNT_MAINTENANCE_MINOR_CREDITOR(
-        "ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance - Minor Creditor"),
-    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References");
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance - Minor Creditor"),
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References"),
+    VIEW_SUSPENSE_ITEMS("VIEW_SUSPENSE_ITEMS", "View Suspense Items"),
+    MANAGE_SUSPENSE_ITEMS("MANAGE_SUSPENSE_ITEMS", "Manage Suspense Items");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
@@ -52,6 +51,11 @@ public enum FinesPermission implements PermissionDescriptorV2 {
         try {
             return FinesPermission.valueOf(value);
         } catch (IllegalArgumentException e) {
+            for (FinesPermission permission : values()) {
+                if (permission.permissionCode.equals(value)) {
+                    return permission;
+                }
+            }
             throw new IllegalArgumentException("Unknown FinesPermission: " + value, e);
         }
     }

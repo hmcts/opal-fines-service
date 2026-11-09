@@ -5,6 +5,7 @@ Feature: Defendant Account Enforcements
   Scenario: An enforcement override can be applied to an enforceable defendant account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 77                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -24,6 +25,7 @@ Feature: Defendant Account Enforcements
   Scenario: A manual enforcement action can be added with hearing court and date responses
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 77                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

@@ -38,6 +38,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
@@ -48,6 +50,8 @@ import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity_;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.draft.TimelineData;
@@ -109,7 +113,34 @@ class DraftAccountTransactionalTest {
         // Act
         List<DraftAccountEntity> result = draftAccountTransactional.getDraftAccounts(
             List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
-            List.of(), List.of(), Optional.empty(), Optional.empty()
+            List.of(), List.of(), Optional.empty(), Optional.empty(),
+            Optional.empty()
+        );
+        // Assert
+        assertNotNull(result);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void testGetDraftAccounts_withSourceFilter() {
+        // Arrange
+        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        when(sfq.sortBy(Sort.by(Direction.ASC, DraftAccountEntity_.DRAFT_ACCOUNT_ID))).thenReturn(sfq);
+
+        DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
+                BusinessUnitEntity.builder().businessUnitId((short) 77).build())
+            .build();
+        Page<DraftAccountEntity> mockPage = new PageImpl<>(List.of(draftAccountEntity), Pageable.unpaged(), 999L);
+        when(draftAccountRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
+            iom.getArgument(1, Function.class).apply(sfq);
+            return mockPage;
+        });
+
+        // Act
+        List<DraftAccountEntity> result = draftAccountTransactional.getDraftAccounts(
+            List.copyOf(Set.of((short) 1)), List.copyOf(Set.of(DraftAccountStatus.REJECTED)),
+            List.of(), List.of(), Optional.empty(), Optional.empty(),
+            Optional.of(DraftAccountSource.VPFPO)
         );
         // Assert
         assertNotNull(result);
@@ -127,6 +158,7 @@ class DraftAccountTransactionalTest {
             List.of(DraftAccountStatus.REJECTED),
             List.of(),
             List.of(),
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         );

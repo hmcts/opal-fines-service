@@ -19,8 +19,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
@@ -34,6 +37,7 @@ import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
@@ -41,6 +45,7 @@ import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 import uk.gov.hmcts.opal.service.proxy.DraftAccountPublishProxy;
+import uk.gov.hmcts.opal.service.reference.validation.DraftAccountReferenceValidationServiceLocator;
 import uk.gov.hmcts.opal.util.MapUtils;
 
 
@@ -64,7 +69,7 @@ public class DraftAccountService {
 
     private final JsonSchemaValidationService jsonSchemaValidationService;
 
-    private final DraftAccountReferenceValidationService referenceValidationService;
+    private final DraftAccountReferenceValidationServiceLocator refValidationServiceLocator;
 
     private final DraftAccountMapper draftAccountMapper;
 
@@ -73,6 +78,7 @@ public class DraftAccountService {
     private final DraftAccountPdplLoggingService loggingService;
     private final SecurityEventLoggingService securityEventLoggingService;
     private final Clock clock;
+    private final FeatureToggleApi featureToggleApi;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
@@ -100,10 +106,15 @@ public class DraftAccountService {
     public DraftAccountsResponseDto getDraftAccounts(
         Optional<List<Short>> optionalBusinessUnitIds, Optional<List<DraftAccountStatus>> optionalStatus,
         Optional<List<String>> optionalSubmittedBys, Optional<List<String>> optionalNotSubmittedBys,
-        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo) {
+        Optional<LocalDate> accountStatusDateFrom, Optional<LocalDate> accountStatusDateTo,
+        Optional<DraftAccountSource> source) {
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         if (userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
+
+            if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+                source = source.or(() -> Optional.of(DraftAccountSource.MAC));
+            }
 
             List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
             List<String> notSubmitted = optionalNotSubmittedBys.orElse(Collections.emptyList());
@@ -118,8 +129,8 @@ public class DraftAccountService {
             log.debug(":getDraftAccounts: status: {}; business ids: {}", statuses, optionalBusinessUnitIds);
 
             List<DraftAccountEntity> entities = draftAccountTransactional
-                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()),
-                                  statuses, submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo);
+                .getDraftAccounts(optionalBusinessUnitIds.orElse(Collections.emptyList()), statuses,
+                    submittedBys, notSubmitted, accountStatusDateFrom, accountStatusDateTo, source);
 
             log.debug(":getDraftAccounts: pre-auth summaries count: {}", entities.size());
 
@@ -152,12 +163,17 @@ public class DraftAccountService {
         Optional<List<String>> optionalSubmittedBys,
         Optional<List<String>> optionalNotSubmittedBys,
         Optional<LocalDate> accountStatusDateFrom,
-        Optional<LocalDate> accountStatusDateTo) {
+        Optional<LocalDate> accountStatusDateTo,
+        Optional<DraftAccountSource> source) {
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
 
         if (!userState.anyBusinessUnitUserHasAnyPermission(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS)) {
             throw new PermissionNotAllowedException(FinesPermission.DRAFT_ACCOUNT_PERMISSIONS);
+        }
+
+        if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+            source = source.or(() -> Optional.of(DraftAccountSource.MAC));
         }
 
         List<String> submittedBys = optionalSubmittedBys.orElse(Collections.emptyList());
@@ -192,7 +208,8 @@ public class DraftAccountService {
             submittedBys,
             notSubmittedBys,
             accountStatusDateFrom,
-            accountStatusDateTo
+            accountStatusDateTo,
+            source
         );
 
         return DraftAccountsResponseDto.countOnly(Math.toIntExact(count));
@@ -227,10 +244,22 @@ public class DraftAccountService {
         if (userState.hasBusinessUnitUserWithPermission(dto.getBusinessUnitId(),
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
 
-            BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
+            if (dto.getSource() == null) {
+                if (featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)) {
+                    throw new BadRequestException("Missing property source", "required property 'source' not found");
+                } else {
+                    dto.setSource(DraftAccountSource.MAC);
+                }
+            }
+
+            if (dto.getSource() == DraftAccountSource.VPFPO && dto.getSourceReference() == null) {
+                throw new BadRequestException("Missing property source_reference",
+                    "source_reference cannot be blank when source is VPFPO");
+            }
 
             jsonSchemaValidationService.validateOrError(dto.toJson(), ADD_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            refValidationServiceLocator.getService().validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             DraftAccountEntity entity = draftAccountTransactional.submitDraftAccount(
                 dto, unitUser.getBusinessUnitUserId(), userState.getName());
             log.debug(":submitDraftAccount: created in DB: {}", entity);
@@ -257,7 +286,7 @@ public class DraftAccountService {
                                                         FinesPermission.CREATE_MANAGE_DRAFT_ACCOUNTS)) {
             BusinessUnitUserV2 unitUser = getBusinessUnitUserOrThrow(userState, dto.getBusinessUnitId());
             jsonSchemaValidationService.validateOrError(dto.toJson(), REPLACE_DRAFT_ACCOUNT_REQUEST_JSON);
-            referenceValidationService.validateReferences(dto.getBusinessUnitId(), dto.getAccount());
+            refValidationServiceLocator.getService().validateReferences(dto.getBusinessUnitId(), dto.getAccount());
             DraftAccountEntity replacedEntity = draftAccountTransactional
                 .replaceDraftAccount(draftAccountId, dto, draftAccountTransactional, ifMatch,
                                      unitUser.getBusinessUnitUserId(), userState.getName());

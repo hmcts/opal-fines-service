@@ -744,3 +744,24 @@ components:
             - string
             - 'null'
           description: Derived from payments_in.additional_information.payer_details.organisation.organisation_name
+
+    InterfacePaymentAdditionalInformation:
+      type: object
+      additionalProperties: false
+      description: JSON stored in payments_in.additional_information by p_int_payments_in.
+      required:
+        - interface_name
+        - additional_information
+      properties:
+        interface_name:
+          type: string
+          description: Name of the interface job that produced the payment.
+        additional_information:
+          type: object
+          additionalProperties: false
+          required:
+            - originator_reference
+          properties:
+            originator_reference:
+              type: [ string, 'null' ]
+              description: Incoming payment record reference; null when no reference was supplied.
