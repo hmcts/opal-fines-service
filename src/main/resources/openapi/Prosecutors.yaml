@@ -58,18 +58,22 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
-  /prosecutors/{prosecutorId}:
+  /prosecutors/{prosecutorKey}:
     get:
       tags:
         - Prosecutors
-      summary: Get prosecutor by ID
-      description: Returns the prosecutor for the supplied prosecutor identifier.
-      operationId: getProsecutorById
+      summary: Get prosecutor by key
+      description: >-
+        Returns the prosecutor for the supplied mode-specific key. The key is prosecutors_legacy.prosecutor_id in
+        legacy mode and prosecutors.prosecutor_code in Opal mode.
+      operationId: getProsecutorByKey
       parameters:
-        - name: prosecutorId
+        - name: prosecutorKey
           in: path
           required: true
-          description: The unique prosecutor identifier. DB Mapping - prosecutors.prosecutor_id
+          description: >-
+            The mode-specific prosecutor key. DB Mapping - prosecutors_legacy.prosecutor_id in legacy mode;
+            prosecutors.prosecutor_code in Opal mode.
           schema:
             type: integer
             format: int64
@@ -143,21 +147,20 @@ components:
       additionalProperties: false
       x-json-include: NON_NULL
       required:
-        - prosecutor_id
         - name
       properties:
         prosecutor_id:
           type: integer
-          format: int16
-          description: DB Mapping - prosecutors.prosecutor_id
+          format: int64
+          description: Legacy prosecutor identifier. DB Mapping - prosecutors_legacy.prosecutor_id
         name:
           type: string
           maxLength: 200
           description: DB Mapping - prosecutors.name
         prosecutor_code:
-          type: string
-          maxLength: 4
-          description: DB Mapping - prosecutors.prosecutor_code
+          type: integer
+          format: int16
+          description: Opal prosecutor code. DB Mapping - prosecutors.prosecutor_code
         address_line_1:
           type: string
           maxLength: 60

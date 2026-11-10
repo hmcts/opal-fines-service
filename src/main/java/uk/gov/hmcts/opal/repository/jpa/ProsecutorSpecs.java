@@ -15,11 +15,7 @@ public class ProsecutorSpecs extends EntitySpecs<ProsecutorEntity> {
         ));
     }
 
-    public static Specification<ProsecutorEntity> equalsProsecutorId(String prosecutorId) {
-        return (root, query, builder) -> builder.equal(root.get(ProsecutorEntity_.prosecutorId), prosecutorId);
-    }
-
-    public static Specification<ProsecutorEntity> equalsProsecutorCode(String prosecutorCode) {
+    public static Specification<ProsecutorEntity> equalsProsecutorCode(Short prosecutorCode) {
         return (root, query, builder) -> builder.equal(root.get(ProsecutorEntity_.prosecutorCode), prosecutorCode);
     }
 

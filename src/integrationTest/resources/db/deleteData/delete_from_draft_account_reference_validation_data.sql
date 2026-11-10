@@ -1,4 +1,7 @@
 DELETE FROM prosecutors
+WHERE prosecutor_code IN (32010);
+
+DELETE FROM prosecutors_legacy
 WHERE prosecutor_id IN (32010);
 
 DELETE FROM local_justice_areas

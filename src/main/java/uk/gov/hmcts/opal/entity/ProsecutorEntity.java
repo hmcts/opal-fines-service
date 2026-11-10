@@ -7,18 +7,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-
-import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -29,19 +26,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "prosecutor_id")
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "prosecutor_code")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProsecutorEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "prosecutor_id", nullable = false)
-    @JsonProperty("prosecutor_id")
-    private Long prosecutorId;
-
-    @Column(name = "prosecutor_code", length = 4)
+    @Column(name = "prosecutor_code", nullable = false)
     @JsonProperty("prosecutor_code")
-    private String prosecutorCode;
+    private Short prosecutorCode;
 
     @Column(name = "name", length = 200)
     private String name;

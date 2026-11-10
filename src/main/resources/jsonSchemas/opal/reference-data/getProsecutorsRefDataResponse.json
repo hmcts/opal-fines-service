@@ -7,7 +7,7 @@
       "type": ["integer", "null"],
       "description": "The count of prosecutors returned in this response"
     },
-    "ref-data": {
+    "ref_data": {
       "type": ["array", "null"],
       "items": {
         "$ref": "#/$defs/prosecutor"
@@ -20,17 +20,18 @@
       "additionalProperties": false,
       "properties": {
         "prosecutor_id": {
-          "type": "integer",
-          "format": "int16",
-          "description": "Unique ID (DB Primary Key) for the prosecutor"
+          "type": ["integer", "null"],
+          "format": "int64",
+          "description": "Legacy prosecutor identifier"
         },
         "name": {
           "type": "string",
           "description": "The name of the prosecutor"
         },
         "prosecutor_code": {
-          "type": ["string", "null"],
-          "description": "The code for the prosecutor"
+          "type": ["integer", "null"],
+          "format": "int16",
+          "description": "The Opal prosecutor code"
         },
         "address_line_1": {
           "type": ["string", "null"],
@@ -64,16 +65,7 @@
         }
       },
       "required": [
-        "prosecutor_id",
-        "name",
-        "prosecutor_code",
-        "address_line_1",
-        "address_line_2",
-        "address_line_3",
-        "address_line_4",
-        "address_line_5",
-        "postcode",
-        "end_date"
+        "name"
       ]
     }
   }

@@ -5,13 +5,16 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.repository.ProsecutorLegacyRepository;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 
 @Service
 @RequiredArgsConstructor
 public class LegacyDraftAccountReferenceValidationService extends AbstractDraftAccountReferenceValidationService {
     private final OpalDraftAccountReferenceValidationService opalService;
+    private final ProsecutorLegacyRepository prosecutorLegacyRepository;
 
     // Created in PO-10909 - Subsequent tickets will move each method over to use legacy repositories incrementally
 
@@ -32,7 +35,12 @@ public class LegacyDraftAccountReferenceValidationService extends AbstractDraftA
     }
 
     @Override
-    void validateOriginator(DocContext docContext, List<String> failures) {
-        opalService.validateOriginator(docContext, failures);
+    Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
+        return opalService.findLocalJusticeAreaName(localJusticeAreaId);
+    }
+
+    @Override
+    Optional<String> findProsecutorName(Long prosecutorKey) {
+        return prosecutorLegacyRepository.findById(prosecutorKey).map(ProsecutorLegacyEntity::getName);
     }
 }

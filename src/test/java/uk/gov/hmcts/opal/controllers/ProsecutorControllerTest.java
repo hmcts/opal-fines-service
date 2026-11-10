@@ -1,5 +1,10 @@
 package uk.gov.hmcts.opal.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -7,63 +12,43 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
-import uk.gov.hmcts.opal.dto.response.RefDataResponse;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
-import uk.gov.hmcts.opal.service.opal.ProsecutorService;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import uk.gov.hmcts.opal.generated.model.ProsecutorsObject;
+import uk.gov.hmcts.opal.generated.model.ProsecutorsReferenceDataResponse;
+import uk.gov.hmcts.opal.service.proxy.ProsecutorServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class ProsecutorControllerTest {
 
     @Mock
-    private ProsecutorService prosecutorService;
+    private ProsecutorServiceProxy prosecutorServiceProxy;
 
     @InjectMocks
-    private ProscutorController prosecutorController;
+    private ProsecutorController prosecutorController;
 
     @Test
-    void testGetProsecutor_Success() {
-        // Arrange
-        ProsecutorEntity entity = ProsecutorEntity.builder().build();
+    void getProsecutorByKey_returnsProsecutor() {
+        ProsecutorsObject prosecutor = ProsecutorsObject.builder().name("Prosecutor").build();
+        when(prosecutorServiceProxy.getProsecutorByKey(1L)).thenReturn(prosecutor);
 
-        when(prosecutorService.getProsecutorById(any(Long.class))).thenReturn(entity);
+        ResponseEntity<ProsecutorsObject> response = prosecutorController.getProsecutorByKey(1L);
 
-        // Act
-        ResponseEntity<ProsecutorEntity> response = prosecutorController.getProsecutorById(1L);
-
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(entity, response.getBody());
-        verify(prosecutorService, times(1)).getProsecutorById(any(Long.class));
+        assertEquals(prosecutor, response.getBody());
+        verify(prosecutorServiceProxy).getProsecutorByKey(1L);
     }
 
     @Test
-    void testGetProsecutorsRefData_Success() {
-        // Arrange
-        ProsecutorReferenceData refData = ProsecutorReferenceData.builder().build();
-        List<ProsecutorReferenceData> refDataList = List.of(refData);
+    void getProsecutorsRefData_returnsResponse() {
+        ProsecutorsReferenceDataResponse expected = ProsecutorsReferenceDataResponse.builder()
+            .count(1)
+            .refData(List.of(ProsecutorsObject.builder().name("Prosecutor").build()))
+            .build();
+        when(prosecutorServiceProxy.getProsecutorsRefData(null)).thenReturn(expected);
 
-        when(prosecutorService.getReferenceData(any())).thenReturn(refDataList);
+        ResponseEntity<ProsecutorsReferenceDataResponse> response = prosecutorController.getProsecutorsRefData(null);
 
-        // Act
-        Optional<String> filter = Optional.empty();
-        ResponseEntity<RefDataResponse<ProsecutorReferenceData>> response = prosecutorController
-            .getProsecutorsRefData(filter);
-
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        RefDataResponse<ProsecutorReferenceData> refDataResults = response.getBody();
-        assertEquals(1, refDataResults.getCount());
-        assertEquals(refDataList, refDataResults.getRefData());
-        verify(prosecutorService, times(1)).getReferenceData(any());
+        assertEquals(expected, response.getBody());
+        verify(prosecutorServiceProxy).getProsecutorsRefData(null);
     }
 }

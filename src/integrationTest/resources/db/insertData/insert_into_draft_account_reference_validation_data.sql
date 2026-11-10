@@ -53,6 +53,29 @@ VALUES
     );
 
 INSERT INTO prosecutors (
+    prosecutor_code,
+    name,
+    address_line_1,
+    address_line_2,
+    address_line_3,
+    address_line_4,
+    address_line_5,
+    postcode,
+    end_date
+)
+VALUES (
+    32010,
+    'Draft Account Validation Prosecutor',
+    '4 Validation Street',
+    NULL,
+    NULL,
+    NULL,
+    NULL,
+    'VP1 1VP',
+    NULL
+);
+
+INSERT INTO prosecutors_legacy (
     prosecutor_id,
     name,
     prosecutor_code,
@@ -67,7 +90,7 @@ INSERT INTO prosecutors (
 VALUES (
     32010,
     'Draft Account Validation Prosecutor',
-    'VP01',
+    NULL,
     '4 Validation Street',
     NULL,
     NULL,
