@@ -10,7 +10,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +41,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyMajorCreditorHeaderTest extends AbstractIntegrationTest {
 
     private static final String URL = "/major-creditor-accounts/{id}/header-summary";
-    private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000801L;
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
+        "getMajorCreditorAccountHeaderSummary";
+    private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99000000000800L;
+    private static final String ACCOUNT_VERSION_ETAG = "\"7\"";
 
     @MockitoSpyBean
     private GatewayService gatewayService;
@@ -68,7 +70,7 @@ class LegacyMajorCreditorHeaderTest extends AbstractIntegrationTest {
         resultActions
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG))
+            .andExpect(header().string(HttpHeaders.ETAG, ACCOUNT_VERSION_ETAG))
             .andExpect(jsonPath("$.major_creditor.creditor_account_id").value(MAJOR_CREDITOR_ACCOUNT_ID))
             .andExpect(jsonPath("$.major_creditor.account_number").value("87654321"))
             .andExpect(jsonPath("$.major_creditor.name").value("Major Creditor Test Ltd"))
@@ -112,8 +114,8 @@ class LegacyMajorCreditorHeaderTest extends AbstractIntegrationTest {
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
 
-        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
-        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, OVER_LONG_VERSION_ETAG));
+        first.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, ACCOUNT_VERSION_ETAG));
+        second.andExpect(status().isOk()).andExpect(header().string(HttpHeaders.ETAG, ACCOUNT_VERSION_ETAG));
         assertThat(second.andReturn().getResponse().getContentAsString())
             .isEqualTo(first.andReturn().getResponse().getContentAsString());
     }
