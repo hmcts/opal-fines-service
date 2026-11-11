@@ -21,7 +21,7 @@ public class OpalSuspenseAccountsSummaryService implements SuspenseAccountsSumma
     public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber) {
 
         SuspenseItemSummaryEntity suspenseItemSummary = suspenseItemSummaryRepository
-            .findByBusinessUnitIdAndSuspenseItemNumber(suspenseItemNumber, businessUnitId);
+            .findByBusinessUnitIdAndSuspenseItemNumber(businessUnitId, suspenseItemNumber);
 
         return suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(suspenseItemSummary);
     }

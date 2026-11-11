@@ -5,7 +5,7 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.SuspenseItemSummaryEntity;
 
 @Repository
-public interface SuspenseItemSummaryRepository  extends JpaRepository<SuspenseItemSummaryEntity, Long> {
+public interface SuspenseItemSummaryRepository extends JpaRepository<SuspenseItemSummaryEntity, Long> {
 
-    SuspenseItemSummaryEntity findByBusinessUnitIdAndSuspenseItemNumber(Long suspenseItemNumber, Short businessUnitId);
+    SuspenseItemSummaryEntity findByBusinessUnitIdAndSuspenseItemNumber(Short businessUnitId, Long suspenseItemNumber);
 }
