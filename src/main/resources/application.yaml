@@ -178,8 +178,8 @@ opal:
       container: ${REPORT_AZURE_STORAGE_CONTAINER:reports}
     service-bus:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
-      consumer-enabled: false
-      publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
+      consumer-enabled: ${REPORT_CONSUMER_ENABLED:false}
+      publisher-enabled: ${REPORT_PUBLISHER_ENABLED:false}
 
   tills:
     service-bus:
