@@ -745,7 +745,13 @@ components:
             - array
             - 'null'
           items:
-            $ref: '#/components/schemas/suspenseNote'
+            $ref: '#/components/schemas/suspense_note'
+        suspense_transactions:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/suspenseTransaction'
 
     suspense_note:
       title: Suspense Note
@@ -753,54 +759,9 @@ components:
       additionalProperties: false
       properties:
         note:
-          ref: '#/components/schemas/suspenseNote'
+          $ref: './common.yaml#/components/schemas/note'
         posted_details:
-          ref: '#/components/schemas/postedDetails'
-
-    suspenseNote:
-      title: Suspense Note
-      type: object
-      additionalProperties: false
-      properties:
-        note:
-          type:
-            - object
-          additionalProperties: false
-          required:
-            - record_type
-            - record_id
-          properties:
-            record_type:
-              type:
-                - string
-              enum:
-                - defendant_accounts
-                - creditor_accounts
-                - suspense_ items
-                - report_instances
-            record_id:
-              type:
-                - string
-            note_text:
-              type:
-                - string
-                - 'null'
-            note_type:
-              type:
-                - string
-
-    postedDetails:
-      title: Posted Details
-      additionalProperties: false
-      type: object
-      properties:
-        posted_date:
-          type: string
-          format: date-time
-        posted_by:
-          type: string
-        posted_by_name:
-          type: string
+          $ref: './common.yaml#/components/schemas/postedDetails'
 
     suspenseTransaction:
       title: Suspense Transaction
@@ -811,9 +772,9 @@ components:
           type: integer
           format: int64
         transaction_type:
-          ref: '#/components/schemas/transactionType'
+          $ref: '#/components/schemas/transactionType'
         posted_details:
-          ref: '#/components/schemas/postedDetails'
+          $ref: './common.yaml#/components/schemas/postedDetails'
         amount:
           type:
             - integer
@@ -827,6 +788,7 @@ components:
             - $ref: '#/components/schemas/thirdPartyRepayDetails'
             - $ref: '#/components/schemas/reversalDetails'
             - $ref: '#/components/schemas/adjustmentDetails'
+            - $ref: '#/components/schemas/creditor_details'
               
     transactionType:
       title: Transaction Type

@@ -8,7 +8,7 @@ import uk.gov.hmcts.opal.service.iface.SuspenseAccountsHistoryServiceInterface;
 public class LegacySuspenseAccountsHistoryService implements SuspenseAccountsHistoryServiceInterface {
 
     @Override
-    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemId) {
         throw new UnsupportedOperationException("LegacySuspenseAccountSummaryService is not implemented yet");
     }
 

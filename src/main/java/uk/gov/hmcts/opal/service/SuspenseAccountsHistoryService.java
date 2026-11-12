@@ -22,15 +22,15 @@ public class SuspenseAccountsHistoryService implements SuspenseAccountsHistorySe
     private final UserStateService userStateService;
 
     @Override
-    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemId) {
 
-        log.debug("getSuspenseItemHistory businessUnitId: {}, suspenseItemNumber: {}",
-            businessUnitId, suspenseItemNumber);
+        log.debug("getSuspenseItemHistory businessUnitId: {}, suspenseItemId: {}",
+            businessUnitId, suspenseItemId);
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasAnyPermission(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS)) {
-            return suspenseAccountHistoryServiceProxy.getSuspenseItemHistory(businessUnitId, suspenseItemNumber);
+            return suspenseAccountHistoryServiceProxy.getSuspenseItemHistory(businessUnitId, suspenseItemId);
         } else {
             throw new PermissionNotAllowedException(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS);
         }

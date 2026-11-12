@@ -42,4 +42,22 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long>, JpaSpec
         @Param("postedFromInclusive") LocalDateTime postedFromInclusive,
         @Param("postedToExclusive") LocalDateTime postedToExclusive);
 
+    @Query(value = """
+        SELECT n.*
+        FROM public.notes n
+        JOIN public.suspense_items si
+          ON n.associated_record_id = si.suspense_item_id::text
+        JOIN public.suspense_accounts sa
+          ON sa.suspense_account_id = si.suspense_account_id
+        WHERE n.associated_record_type =
+              'suspense_items'::public.t_associated_record_type_enum
+          AND n.note_type = 'AA'::public.t_note_type_enum
+          AND si.suspense_item_id = :suspenseItemId
+          AND sa.business_unit_id = :businessUnitId
+        ORDER BY n.posted_date DESC NULLS LAST, n.note_id DESC
+        """, nativeQuery = true)
+    List<NoteEntity> findSuspenseItemNotes(
+        @Param("businessUnitId") Long businessUnitId,
+        @Param("suspenseItemId") Long suspenseItemId);
+
 }

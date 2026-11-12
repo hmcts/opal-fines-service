@@ -46,13 +46,13 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
     @Override
     @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
     public ResponseEntity<SuspenseItemHistoryCommonStrict> getSuspenseItemHistory(Long businessUnitId,
-        Long suspenseItemNumber) {
+        Long suspenseItemId) {
 
-        log.debug("GET: getSuspenseItemHistory: businessUnitId: {}, suspenseItemNumber: {}",
-            businessUnitId, suspenseItemNumber);
+        log.debug("GET: getSuspenseItemHistory: businessUnitId: {}, suspenseItemId: {}",
+            businessUnitId, suspenseItemId);
 
         return buildResponse(suspenseAccountsHistoryService
-            .getSuspenseItemHistory(businessUnitId, suspenseItemNumber));
+            .getSuspenseItemHistory(businessUnitId, suspenseItemId));
     }
 
 }
