@@ -17,6 +17,8 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=true")
@@ -32,6 +34,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     private final LocalJusticeAreaRefDataHandler handler;
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void processesValidLjaMessage() {
         short localJusticeAreaId = 8102;
@@ -58,6 +62,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void savesEveryLjaTypeDefinedInTheOpenApiSchema() {
         List<String> ljaTypes = ljaTypesFromSchema();
@@ -81,6 +87,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void usesCourtAddressWhenItIsNotTheFirstAddress() {
         short localJusticeAreaId = 8100;
@@ -104,6 +112,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void doesNotUpdateEndDateWhenMessageIsProcessed() {
         short localJusticeAreaId = 8101;
@@ -130,6 +140,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void deleteEntityDeletesLjaUsingBusinessKeyWithLeadingZeros() {
         short localJusticeAreaId = 8103;
@@ -145,6 +157,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void deleteEntityRejectsInvalidBusinessKey() {
         assertThatThrownBy(() -> handler.deleteEntity("not-a-short"))

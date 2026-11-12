@@ -20,6 +20,8 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
@@ -92,6 +94,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC1: A valid LJA message updates an existing local justice area.
     void processMessage_updatesExistingLocalJusticeAreaFromPayload() {
@@ -139,6 +143,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC1: A valid LJA message inserts a new local justice area.
     void processMessage_insertsNewLocalJusticeAreaFromPayload() {
@@ -181,6 +187,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC2: A valid unsupported reference-data type is consumed without changing LJA data.
     void processMessage_ignoresValidUnsupportedReferenceDataType() {
@@ -209,6 +217,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC3: A failed record rolls back all updates from the same message.
     void processMessage_rollsBackAllUpdatesWhenRecordProcessingFails() {
@@ -242,6 +252,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC4: A repeatedly failing message remains at the front of the queue and is never dead-lettered.
     void processMessage_keepsFailingMessageAtFrontOfQueueAcrossRetries() {
@@ -268,6 +280,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC5: A malformed JSON message remains queued and is not dead-lettered.
     void processMessage_leavesInvalidPayloadOnQueueAndNotInDlq() {
@@ -287,6 +301,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @JiraTestKey("PO-10709")
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @Test
     // AC4: A failed message remains queued and is not dead-lettered.
     // AC5: A schema-invalid message stops session processing and remains queued.
