@@ -1,4 +1,4 @@
-@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorUpdatePdpo
+@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorUpdatePdpo @ExcludeFromDemoNightlyAsNotLegacy
 Feature: PDPO logging for minor creditor account updates
 
   Background:
