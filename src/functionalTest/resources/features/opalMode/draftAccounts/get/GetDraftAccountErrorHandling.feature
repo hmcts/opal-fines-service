@@ -17,6 +17,7 @@ Feature: Get Draft Account Error Handling
   @JIRA-STORY:PO-690 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5647
   Scenario: Retrieving a draft account with an unsupported response content type is rejected
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
