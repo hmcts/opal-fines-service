@@ -134,7 +134,7 @@ class LegacyMinorCreditorSearchPdplLoggingIntegrationTest extends MinorCreditorS
         String xml = LegacyMinorCreditorSearchResultsResponse.builder().count(accounts.length)
             .creditorAccounts(Arrays.asList(accounts)).build().toXml();
         stubFor(post(urlPathEqualTo("/opal"))
-            .withQueryParam("actionType", equalTo("getMinorCreditorAccount"))
+            .withQueryParam("actionType", equalTo("searchMinorCreditorAccounts"))
             .willReturn(aResponse().withHeader("Content-Type", MediaType.APPLICATION_XML_VALUE).withBody(xml)));
     }
 
