@@ -38,6 +38,7 @@ DECLARE
     v_pcr_defendant_account_ids       BIGINT[] := ARRAY[]::BIGINT[];
     v_name_on_card              TEXT;
     v_title_initials            TEXT;
+    v_pg_exception_detail       TEXT;
 BEGIN
     po_payment_card_requests_json := '[]'::JSON;
 
@@ -190,5 +191,16 @@ BEGIN
        SET interface_job_id = po_interface_job_id
      WHERE defendant_account_id = ANY(v_pcr_defendant_account_ids)
        AND interface_job_id IS NULL;
+
+EXCEPTION
+    WHEN SQLSTATE 'P4001' THEN
+        RAISE NOTICE 'Error in p_int_payment_card_requests: % - %', SQLSTATE, SQLERRM;
+        RAISE;
+    WHEN OTHERS THEN
+        GET STACKED DIAGNOSTICS v_pg_exception_detail = PG_EXCEPTION_DETAIL;
+        RAISE NOTICE 'Error in p_int_payment_card_requests: % - %', SQLSTATE, SQLERRM;
+        RAISE NOTICE 'Error details: %', v_pg_exception_detail;
+        RAISE EXCEPTION 'Error in p_int_payment_card_requests: % - %', SQLSTATE, SQLERRM
+            USING DETAIL = v_pg_exception_detail;
 END;
 $$;
