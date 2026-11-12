@@ -74,6 +74,7 @@ java:
     SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME: "{{ .Release.Name}}-servicebus-auto-payments-process-interface-files"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
+    SERVICEBUS_FULLY_QUALIFIED_NAMESPACE: opal-sb-dev.servicebus.windows.net
   postgresql:
     enabled: true
     primary:

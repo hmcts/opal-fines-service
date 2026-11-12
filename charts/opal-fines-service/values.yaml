@@ -75,6 +75,7 @@ java:
     FLYWAY_LOCATIONS: classpath:db/migration/ddl,classpath:db/migration/data/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
+    SERVICEBUS_FULLY_QUALIFIED_NAMESPACE: opal-servicebus-ithc.servicebus.windows.net
   postgresql:
     enabled: false
     image:
