@@ -1,25 +1,31 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.SHORT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
+import tools.jackson.core.type.TypeReference;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
@@ -31,6 +37,12 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateFileItemTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItemTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSourceTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatusTestingSupport;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
@@ -250,5 +262,48 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         List<Long> transactionIds = defendantTransactionRepository
             .findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId);
         return transactionIds.isEmpty() ? 0 : chequeRepository.countByDefendantTransactionIdIn(transactionIds);
+    }
+
+    @Test
+    @JiraStory("PO-11124")
+    @JiraEpic("PO-3497")
+    void shouldCorrectlyReturnIdsWhenCreatingInterfaceJobs() throws Exception {
+        // Arrange
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 77, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+
+        InterfaceJobsCreateFileItemTestingSupport fileItem = InterfaceJobsCreateFileItemTestingSupport.builder()
+            .fileName("file-name.dat")
+            .overrideInhibits(true)
+            .recordCount((short)4)
+            .source(InterfaceJobsFileSourceTestingSupport.CDER)
+            .totalAmount(BigDecimal.valueOf(200L))
+            .build();
+
+        InterfaceJobsCreateItemTestingSupport jobItem = InterfaceJobsCreateItemTestingSupport.builder()
+            .businessUnitId((short)77)
+            .interfaceFile(fileItem)
+            .interfaceName("an interface")
+            .status(InterfaceJobsJobStatusTestingSupport.CREATED)
+            .createdDatetime(LocalDateTime.now())
+            .build();
+
+        InterfaceJobsCreateRequestTestingSupport request = InterfaceJobsCreateRequestTestingSupport.builder()
+            .interfaceJobs(List.of(jobItem))
+            .build();
+
+        // Act
+        ResultActions result = mockMvc.perform(post("/testing-support/interface-jobs")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)));
+
+        // Assert
+        result.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+        String body = result.andReturn().getResponse().getContentAsString();
+        InterfaceJobsCreateResponseTestingSupport response = objectMapper.readValue(body, new TypeReference<>() {});
+        assertThat(response.getInterfaceJobs()).singleElement();
+        assertThat(response.getInterfaceJobs().getFirst().getInterfaceFileId()).isGreaterThan(0);
+        assertThat(response.getInterfaceJobs().getFirst().getInterfaceJobId()).isGreaterThan(0);
     }
 }
