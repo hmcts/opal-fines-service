@@ -1,5 +1,8 @@
 openapi: 3.1.1
 
+servers:
+  - url: http://localhost:4550/
+
 info:
   description: Opal Fines Service - Suspense Items
   version: v0.0.1
@@ -90,7 +93,92 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-
+  /suspense-items/{suspense_item_id}/repay-third-party:
+    post:
+      tags:
+        - Suspense Items
+      summary: Repay Suspense Item to Third Party
+      description: >-
+        Creates a creditor account for a third party and transfers the repayment amount from the
+        suspense item. The backend sets creditor_accounts.hold_payout to false for this operation.
+      operationId: repaySuspenseItemToThirdParty
+      security:
+        - permissions:
+            - Manage Suspense Items (in the specified BU)
+      parameters:
+        - in: path
+          name: suspense_item_id
+          description: DB Mapping - suspense_items.suspense_item_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        - in: header
+          name: Business-Unit-Id
+          description: DB Mapping - business_units.business_unit_id
+          required: true
+          schema:
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
+        - in: header
+          name: If-Match
+          description: Current version of the suspense item.
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RepaySuspenseItemToThirdPartyRequest'
+      responses:
+        '201':
+          description: Suspense item repaid to third party
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RepaySuspenseItemToThirdPartyResponse'
+        '400':
+          description: Bad request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Suspense item not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '412':
+          description: Suspense item version does not match If-Match
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
 components:
   securitySchemes:
     permissions:
@@ -144,3 +232,179 @@ components:
         suspenseTransactionId:
           description: Identifier of the created transaction.
           $ref: './types.yaml#/components/schemas/BigInt'
+    RepaySuspenseItemToThirdPartyRequest:
+      title: Repay Suspense Item to Third Party Request
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+        - party_details
+        - payment
+        - note_text
+      properties:
+        amount:
+          type: number
+          multipleOf: 0.01
+          description: DB Mapping - suspense_transactions.amount
+        party_details:
+          $ref: '#/components/schemas/RepaySuspenseItemPartyDetails'
+        address:
+          $ref: '#/components/schemas/RepaySuspenseItemAddressDetails'
+        payment:
+          $ref: '#/components/schemas/RepaySuspenseItemPaymentDetails'
+        note_text:
+          type: string
+          description: DB Mapping - notes.note_text
+
+    RepaySuspenseItemPartyDetails:
+      title: Repay Suspense Item Party Details
+      type: object
+      additionalProperties: false
+      description: >-
+        Party details for the new party. Supply exactly one of organisation_details or individual_details,
+        as selected by organisation_flag.
+      required:
+        - organisation_flag
+      properties:
+        organisation_flag:
+          type: boolean
+          description: True for an organisation and false for an individual.
+        organisation_details:
+          $ref: './common.yaml#/components/schemas/organisationDetails'
+        individual_details:
+          $ref: './common.yaml#/components/schemas/individualDetails'
+      allOf:
+        - if:
+            properties:
+              organisation_flag:
+                const: true
+            required:
+              - organisation_flag
+          then:
+            required:
+              - organisation_details
+            not:
+              required:
+                - individual_details
+        - if:
+            properties:
+              organisation_flag:
+                const: false
+            required:
+              - organisation_flag
+          then:
+            required:
+              - individual_details
+            not:
+              required:
+                - organisation_details
+
+    RepaySuspenseItemAddressDetails:
+      title: Repay Suspense Item Address Details
+      type: object
+      additionalProperties: false
+      required:
+        - address_line_1
+      properties:
+        address_line_1:
+          type: string
+        address_line_2:
+          type: string
+        address_line_3:
+          type: string
+        address_line_4:
+          type: string
+        address_line_5:
+          type: string
+        postcode:
+          type: string
+
+    RepaySuspenseItemPaymentDetails:
+      title: Repay Suspense Item Payment Details
+      type: object
+      additionalProperties: false
+      description: >-
+        Payment hold is not included in this API's request; the backend sets creditor_accounts.hold_payout to false.
+      required:
+        - pay_by_bacs
+      properties:
+        account_name:
+          type: string
+          minLength: 1
+          maxLength: 18
+          description: DB Mapping - creditor_accounts.bank_account_name
+        sort_code:
+          type: string
+          minLength: 1
+          maxLength: 6
+          description: DB Mapping - creditor_accounts.bank_sort_code
+        account_number:
+          type: string
+          minLength: 1
+          maxLength: 10
+          description: DB Mapping - creditor_accounts.bank_account_number
+        account_reference:
+          type: string
+          minLength: 1
+          maxLength: 18
+          description: DB Mapping - creditor_accounts.bank_account_reference
+        pay_by_bacs:
+          type: boolean
+          description: DB Mapping - creditor_accounts.pay_by_bacs
+      allOf:
+        - if:
+            properties:
+              pay_by_bacs:
+                const: true
+            required:
+              - pay_by_bacs
+          then:
+            required:
+              - account_name
+              - sort_code
+              - account_number
+              - account_reference
+
+    RepaySuspenseItemToThirdPartyResponse:
+      title: Repay Suspense Item to Third Party Response
+      type: object
+      additionalProperties: false
+      required:
+        - suspense_item_version
+        - creditor_account_id
+        - party_id
+        - creditor_transactions
+        - suspense_transaction_id
+        - note_id
+        - control_total_id
+      properties:
+        suspense_item_version:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - suspense_items.version_number
+        creditor_account_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - creditor_accounts.creditor_account_id
+        party_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - parties.party_id
+        creditor_transactions:
+          type: array
+          description: The repayment and payment creditor transaction IDs.
+          minItems: 2
+          maxItems: 2
+          items:
+            $ref: './types.yaml#/components/schemas/BigInt'
+        suspense_transaction_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - suspense_transactions.suspense_transaction_id
+        note_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - notes.note_id
+        control_total_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - control_totals.control_total_id
+        court_fee_received_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: >-
+            DB Mapping - court_fees_received.court_fee_received_id. Returned only when a related court fee
+            record exists and the repayment conditions result in a record being created.
