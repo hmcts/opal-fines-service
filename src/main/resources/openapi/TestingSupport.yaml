@@ -80,12 +80,8 @@ components:
         - business_unit_id
         - interface_name
         - status
+        - interface_file
         - created_datetime
-        - file_name
-        - source
-        - override_inhibits
-        - record_count
-        - total_amount
       properties:
         business_unit_id:
           type: integer
@@ -98,10 +94,13 @@ components:
         status:
           $ref: '#/components/schemas/InterfaceJobsJobStatus'
           description: DB Mapping - interface_jobs.status
+        interface_file:
+          $ref: '#/components/schemas/InterfaceJobsCreateFileItem'
+          description: DB Mapping - interface_files.interface_job_id
         created_datetime:
           type: string
           format: date-time
-          description: DB Mapping - interface_jobs.created_datetime
+          description: DB Mapping - interface_jobs.created_datetime,interface_files.created_datetime
         started_datetime:
           type: string
           format: date-time
@@ -110,6 +109,17 @@ components:
           type: string
           format: date-time
           description: DB Mapping - interface_jobs.started_datetime
+
+    InterfaceJobsCreateFileItem:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - source
+        - override_inhibits
+        - record_count
+        - total_amount
+      properties:
         file_name:
           type: string
           minLength: 1
