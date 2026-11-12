@@ -73,7 +73,6 @@ Feature: Retrieve Draft Account
 
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5640
   Scenario: An invalid token cannot create a draft account in the retrieval flow
-    Given I record existing PDPO logs for business_identifier "Submit Draft Account - Defendant"
+    # PDPO non-emission is verified in DraftAccountCreationSecurityIT without shared-environment log traffic.
     When I attempt to create a draft account with an invalid token
     Then the request is rejected as unauthorized
-    Then no new PDPO logs exist for business_identifier "Submit Draft Account - Defendant"

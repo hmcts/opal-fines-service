@@ -240,7 +240,6 @@ Feature: Create Draft Accounts
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token
-    Given I record existing PDPO logs for business_identifier "Submit Draft Account - Defendant"
+    # PDPO non-emission is verified in DraftAccountCreationSecurityIT without shared-environment log traffic.
     When I attempt to create a draft account with an invalid token
     Then the request is rejected as unauthorized
-    Then no new PDPO logs exist for business_identifier "Submit Draft Account - Defendant"

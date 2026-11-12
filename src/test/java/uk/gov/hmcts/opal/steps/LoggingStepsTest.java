@@ -222,48 +222,6 @@ class LoggingStepsTest {
         }
     }
 
-    @Test
-    void allowsHistoricalLogsWhenNoNewLogsArrive() {
-        RequestSpecification request = requestReturning("[{\"pdpo_log_id\":1}]");
-        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
-            rest.when(SerenityRest::given).thenReturn(request);
-            LoggingSteps steps = new LoggingSteps();
-            steps.recordExistingPdpoLogs("Submit Draft Account - Defendant");
-
-            steps.noNewPdpoLogsExist("Submit Draft Account - Defendant");
-
-            ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
-            verify(request, atLeast(3)).body(body.capture());
-            var criteria = new ObjectMapper().readTree(body.getValue());
-            assertThat(criteria.size()).isEqualTo(1);
-            assertThat(criteria.path("business_identifier").asString()).isEqualTo("Submit Draft Account - Defendant");
-        }
-    }
-
-    @Test
-    void detectsNewLogEvenWhenTheTotalCountDoesNotChange() {
-        RequestSpecification request = requestReturning("[]");
-        when(request.post(anyString())).thenReturn(
-            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":1}]").build(),
-            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":1}]").build(),
-            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":2}]").build());
-        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
-            rest.when(SerenityRest::given).thenReturn(request);
-            LoggingSteps steps = new LoggingSteps();
-            steps.recordExistingPdpoLogs("Submit Draft Account - Defendant");
-
-            assertThatThrownBy(() -> steps.noNewPdpoLogsExist("Submit Draft Account - Defendant"))
-                .isInstanceOf(AssertionError.class).hasMessageContaining("Unexpected new PDPO logs");
-            verify(request, times(3)).post(anyString());
-        }
-    }
-
-    @Test
-    void requiresBaselineForTheSameOperation() {
-        assertThatThrownBy(() -> new LoggingSteps().noNewPdpoLogsExist("Submit Draft Account - Defendant"))
-            .isInstanceOf(AssertionError.class).hasMessageContaining("Record a PDPO log baseline");
-    }
-
     private DataTable table(String individualId, String count) {
         return DataTable.create(List.of(
             List.of("created_by_id", "created_by_type", "business_identifier", "individual_id", "expected_count"),
