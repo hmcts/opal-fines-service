@@ -7,6 +7,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-691 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5628
   Scenario: Creating a draft account with invalid data is rejected
     When I create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id_ | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -38,6 +39,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-691 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5633
   Scenario: Creating a draft account with malformed values is rejected
     When I create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa             |
@@ -49,6 +51,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Creating a draft account with an unknown originator id is rejected
     When I create a draft account with the following details
+      | source                   | MAC                                 |
       | business_unit_id         | 73                                  |
       | account                  | draftAccounts/accountJson/account.json |
       | account_type             | Fine                                 |
@@ -63,6 +66,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Creating a draft account with a prosecutor id in the wrong source is rejected
     When I create a draft account with the following details
+      | source                   | MAC                                                   |
       | business_unit_id         | 73                                                    |
       | account                  | draftAccounts/accountJson/account.json                 |
       | account_type             | Fine                                                   |
@@ -77,6 +81,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Creating a draft account with a mismatched originator name is rejected
     When I create a draft account with the following details
+      | source                   | MAC                                                  |
       | business_unit_id         | 73                                                   |
       | account                  | draftAccounts/accountJson/account.json                |
       | account_type             | Fine                                                  |
@@ -91,6 +96,7 @@ Feature: Add Draft Account Error Handling
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Creating a draft account with an unsupported originator-account combination is rejected
     When I create a draft account with the following details
+      | source                   | MAC                                                  |
       | business_unit_id         | 73                                                   |
       | account                  | draftAccounts/accountJson/account.json                |
       | account_type             | Conditional Caution                                   |
