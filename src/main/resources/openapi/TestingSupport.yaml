@@ -1,8 +1,8 @@
 openapi: 3.1.1
 info:
-  title: Opal Fines Service - Interface Jobs
+  title: Opal Fines Service - Testing Support
   version: 1.0.0
-  description: APIs for retrieving processed file summary information.
+  description: APIs for supporting testing.
 paths:
   /testing-support/interface-jobs:
     post:
