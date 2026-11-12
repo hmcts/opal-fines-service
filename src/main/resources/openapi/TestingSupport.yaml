@@ -108,7 +108,7 @@ components:
         completed_datetime:
           type: string
           format: date-time
-          description: DB Mapping - interface_jobs.started_datetime
+          description: DB Mapping - interface_jobs.completed_datetime
 
     InterfaceJobsCreateFileItem:
       type: object
