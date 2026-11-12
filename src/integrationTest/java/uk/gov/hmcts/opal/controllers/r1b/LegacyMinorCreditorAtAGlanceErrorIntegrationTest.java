@@ -44,7 +44,7 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrati
 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/minor-creditor-accounts/{id}/at-a-glance";
-    private static final String LEGACY_OPERATION = "LIBRA.get_minor_creditors_account_at_a_glance";
+    private static final String LEGACY_OPERATION = "getMinorCreditorAccountAtAGlance";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99_000_000_000_802L;
 
     @MockitoBean

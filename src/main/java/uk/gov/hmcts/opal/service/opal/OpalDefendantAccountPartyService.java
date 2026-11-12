@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountPartyServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.AliasRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.AmendmentRepositoryService;
@@ -75,6 +76,10 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
     private final DefendantAccountControlValidator defendantAccountControlValidator;
 
     private final DefendantAccountPartyEntityResponseMapper defendantAccountPartyEntityResponseMapper;
+
+    private final DefendantAccountPartyPdplLoggingService pdplLoggingService;
+
+    private final UserStateService userStateService;
 
     @Override
     @Transactional(readOnly = true)
@@ -266,8 +271,11 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         }
 
         PartyDetailsCommonStrict partyDetails = request.getPartyDetails();
+        final AssociationType originalAssociationType = dap.getAssociationType();
+        final boolean wasOrganisation = party.isOrganisation();
+        List<Long> removedParentGuardianIds = List.of();
         if (isConvertingFromIndividualToOrganisation(party, partyDetails)) {
-            removeParentGuardianParties(account, dapId);
+            removedParentGuardianIds = removeParentGuardianParties(account, dapId);
         }
 
         Optional.ofNullable(request.getDefendantAccountPartyType())
@@ -321,10 +329,14 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             ? Collections.emptyList()
             : aliasRepositoryService.findByPartyId(party.getPartyId());
 
-        return PartyResponseDefendantAccount.builder()
+        PartyResponseDefendantAccount response = PartyResponseDefendantAccount.builder()
             .defendantAccountParty(mapDefendantAccountParty(dap, aliasEntity))
             .version(bumpVersion(account))
             .build();
+
+        pdplLoggingService.logReplacement(party.getPartyId(), originalAssociationType, wasOrganisation,
+            party.isOrganisation(), removedParentGuardianIds, userStateService.getUserStateV1FromSecurityContext());
+        return response;
     }
 
     @Override
@@ -407,7 +419,12 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
         return AssociationType.PARENT_GUARDIAN.equals(dap.getAssociationType());
     }
 
-    private void removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
+    private List<Long> removeParentGuardianParties(DefendantAccountEntity account, Long dapId) {
+        List<Long> partyIds = account.getParties().stream()
+            .filter(p -> AssociationType.PARENT_GUARDIAN.equals(p.getAssociationType()))
+            .filter(p -> !p.getDefendantAccountPartyId().equals(dapId))
+            .map(p -> p.getParty().getPartyId())
+            .toList();
         int deletedRows = defendantAccountPartiesRepository.deleteByAccountIdAndAssociationTypeExcludingDapId(
             account.getDefendantAccountId(),
             AssociationType.PARENT_GUARDIAN,
@@ -417,6 +434,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             log.info("replaceDefendantAccountParty: removed {} parent/guardian parties for accountId={}",
                 deletedRows, account.getDefendantAccountId());
         }
+        return deletedRows > 0 ? partyIds : List.of();
     }
 
     private void replaceAliasesForParty(Long partyId, PartyDetailsCommonStrict partyDetails) {
