@@ -163,10 +163,14 @@ components:
       additionalProperties: false
       required:
         - interface_job_id
+        - interface_file_id
       properties:
         interface_job_id:
           $ref: './types.yaml#/components/schemas/BigInt'
           description: DB Mapping - interface_jobs.interface_job_id
+        interface_file_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_files.interface_file_id
 
     InterfaceJobsFileSource:
       type: string
