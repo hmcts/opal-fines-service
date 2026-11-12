@@ -7,7 +7,7 @@ import java.time.Clock;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PostedDetails;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
@@ -24,7 +24,7 @@ public class DefendantAccountHistoryPdplLoggingService extends AbstractPdplLoggi
         super(loggingService, clock);
     }
 
-    public void logHistoryItems(UserState userState, DefendantAccountHistoryResponse response) {
+    public void logHistoryItems(UserStateV2 userState, DefendantAccountHistoryResponse response) {
         List<ParticipantIdentifier> individuals = getUniquePostedUsers(response);
         if (individuals.isEmpty()) {
             return;

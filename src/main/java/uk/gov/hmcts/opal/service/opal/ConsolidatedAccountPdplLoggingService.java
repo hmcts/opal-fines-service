@@ -6,7 +6,7 @@ import static uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCa
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.DefendantAccountHeaderSummary;
 import uk.gov.hmcts.opal.dto.GetDefendantAccountConsolidatedAccountsResult;
 import uk.gov.hmcts.opal.generated.model.ConsolidatedAccountDefendantAccount;
@@ -29,7 +29,8 @@ public class ConsolidatedAccountPdplLoggingService extends AbstractPdplLoggingSe
         this.defendantAccountServiceProxy = defendantAccountServiceProxy;
     }
 
-    public void logIndividualChildAccounts(UserState userState, GetDefendantAccountConsolidatedAccountsResult result) {
+    public void logIndividualChildAccounts(
+        UserStateV2 userState, GetDefendantAccountConsolidatedAccountsResult result) {
         if (result.getPayload() == null || result.getPayload().isEmpty()) {
             return;
         }

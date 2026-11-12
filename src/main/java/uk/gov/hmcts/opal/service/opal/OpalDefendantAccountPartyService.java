@@ -335,7 +335,7 @@ public class OpalDefendantAccountPartyService implements DefendantAccountPartySe
             .build();
 
         pdplLoggingService.logReplacement(party.getPartyId(), originalAssociationType, wasOrganisation,
-            party.isOrganisation(), removedParentGuardianIds, userStateService.getUserStateV1FromSecurityContext());
+            party.isOrganisation(), removedParentGuardianIds, userStateService.getUserStateFromSecurityContext());
         return response;
     }
 

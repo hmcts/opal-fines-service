@@ -70,7 +70,8 @@ public class CreateTillService {
 
     private void checkPermission(Short businessUnitId) {
         if (!getOpalJwtAuthenticationTokenForCurrentUser()
-            .hasPermissionInBusinessUnit(FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS, businessUnitId)) {
+            .hasPermissionInBusinessUnit(FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS.toCommonPermission(),
+                businessUnitId)) {
             throw new PermissionNotAllowedException(businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         }
     }

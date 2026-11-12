@@ -6,7 +6,7 @@ import static uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCa
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -25,7 +25,7 @@ public class MinorCreditorPdplLoggingService extends AbstractPdplLoggingService 
         super(loggingService, clock);
     }
 
-    public void logIndividualMinorCreditor(UserState userState, MinorCreditorAccountResponse response) {
+    public void logIndividualMinorCreditor(UserStateV2 userState, MinorCreditorAccountResponse response) {
         if (!isIndividualMinorCreditor(response)) {
             return;
         }
@@ -36,7 +36,7 @@ public class MinorCreditorPdplLoggingService extends AbstractPdplLoggingService 
             QUEUE_FAILURE_MESSAGE);
     }
 
-    public void logUpdate(Long creditorAccountId, UserState userState) {
+    public void logUpdate(Long creditorAccountId, UserStateV2 userState) {
         logPdplOrThrow(UPDATE_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ALTERATION,
             List.of(participant(creditorAccountId.toString(), PdplIdentifierType.MINOR_CREDITOR)), null,
             userState, UPDATE_QUEUE_FAILURE_MESSAGE);

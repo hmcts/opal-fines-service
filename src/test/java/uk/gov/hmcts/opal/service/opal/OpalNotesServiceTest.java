@@ -31,8 +31,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -60,7 +59,7 @@ class OpalNotesServiceTest {
     @Mock private CreditorAccountRepository creditorAccountRepository;
     @Mock private AccountNoteContextFactory accountNoteContextFactory;
     @Mock private Clock clock;
-    @Mock private UserState user;
+    @Mock private UserStateV2 user;
 
     @InjectMocks
     private OpalNotesService service;
@@ -79,7 +78,7 @@ class OpalNotesServiceTest {
         saved.setNoteId(999L);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
+        when(user.getName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequestNotes req = buildRequest("77", NoteCommon.RecordTypeEnum.DEFENDANT_ACCOUNTS);
 
@@ -111,7 +110,7 @@ class OpalNotesServiceTest {
         NoteEntity saved = new NoteEntity();
         saved.setNoteId(1001L);
         when(creditorAccountRepository.findByCreditorAccountIdForUpdate(104L)).thenReturn(Optional.of(managed));
-        when(user.getDisplayName()).thenReturn("Creditor User");
+        when(user.getName()).thenReturn("Creditor User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
         AddNoteRequestNotes req = buildRequest("104", NoteCommon.RecordTypeEnum.CREDITOR_ACCOUNTS);
 
@@ -144,7 +143,7 @@ class OpalNotesServiceTest {
         when(accountNoteContextFactory.from(req.getActivityNote())).thenReturn(target);
         when(defendantAccountRepositoryService.getDefendantAccountByIdForUpdate(77L))
             .thenReturn(managed);
-        when(user.getDisplayName()).thenReturn("Test User");
+        when(user.getName()).thenReturn("Test User");
         when(repository.save(any(NoteEntity.class))).thenReturn(saved);
 
         String result = service.addNote(req, "\"12\"", user, (short) 78);
@@ -179,7 +178,7 @@ class OpalNotesServiceTest {
             permissionUtil = mockStatic(PermissionUtil.class);
             securityUtil.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(token);
             permissionUtil.when(() -> PermissionUtil.getRequiredBusinessUnitUser(userState, BUSINESS_UNIT_ID))
-                .thenReturn(BusinessUnitUser.builder().businessUnitUserId(BUSINESS_UNIT_USER_ID).build());
+                .thenReturn(BusinessUnitUserV2.builder().businessUnitUserId(BUSINESS_UNIT_USER_ID).build());
         }
 
         @AfterEach

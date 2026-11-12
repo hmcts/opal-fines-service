@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 
 class FinesPermissionTest {
 
@@ -25,12 +25,12 @@ class FinesPermissionTest {
         "MANAGE_SUSPENSE_ITEMS, 25, Manage Suspense Items"
     })
     void permission_hasExpectedMetadataAndMapping(FinesPermission permission, long id, String description) {
-        Permission commonPermission = permission.toCommonPermission();
+        PermissionV2 commonPermission = permission.toCommonPermission();
 
         assertAll(
-            () -> assertEquals(id, permission.getId()),
-            () -> assertEquals(description, permission.getDescription()),
-            () -> assertEquals(id, commonPermission.getPermissionId()),
+            () -> assertEquals(id, permission.ordinal()),
+            () -> assertEquals(description, permission.getPermissionCode()),
+            //() -> assertEquals(id, commonPermission.getPermissionName()),
             () -> assertEquals(description, commonPermission.getPermissionName()));
     }
 
@@ -47,7 +47,7 @@ class FinesPermissionTest {
     void fromString_resolvesNameAndDescription(FinesPermission permission) {
         assertAll(
             () -> assertEquals(permission, FinesPermission.fromString(permission.name())),
-            () -> assertEquals(permission, FinesPermission.fromString(permission.getDescription())));
+            () -> assertEquals(permission, FinesPermission.fromString(permission.getPermissionCode())));
     }
 
     @ParameterizedTest

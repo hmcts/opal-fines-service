@@ -30,6 +30,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -40,11 +41,14 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.BusinessUnitUserV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.DomainDto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.PermissionV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.client.dto.UserStateV2Dto;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2.UserStateV2Builder;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStatus;
@@ -61,7 +65,7 @@ public class UserStateStub {
     private static final String TEST_JWT_SECRET = "SomeVeryGoodAndVeryLongSecretThatNoOneWillEverGuess";
     public static final ObjectMapper USER_STATE_MAPPER = new ObjectMapper()
         .findAndRegisterModules()
-        .addMixIn(Permission.class, PermissionJsonMixin.class);
+        .addMixIn(PermissionV2.class, PermissionJsonMixin.class);
 
     @JsonIgnoreProperties({"id", "description"})
     private abstract static class PermissionJsonMixin {
@@ -108,6 +112,45 @@ public class UserStateStub {
         }
     }
 
+    public String getUserStateDtoAsJson() {
+        try {
+            return USER_STATE_MAPPER.writeValueAsString(toUserStateDto(getUserState()));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialise user state", e);
+        }
+    }
+
+    private UserStateV2Dto toUserStateDto(UserStateV2 source) {
+        return UserStateV2Dto.builder()
+            .userId(source.getUserId())
+            .username(source.getUsername())
+            .name(source.getName())
+            .status(source.getStatus().name())
+            .version(source.getVersion())
+            .cacheName(source.getCacheName())
+            .domains(source.getDomains().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey,
+                    entry -> toDomainDto(entry.getValue()))))
+            .build();
+    }
+
+    private DomainDto toDomainDto(DomainBusinessUnitUsers source) {
+        return DomainDto.builder().businessUnitUsers(source.getBusinessUnitUsers().stream()
+                .map(this::toBusinessUnitUserDto)
+                .collect(Collectors.toCollection(ArrayList::new)))
+            .build();
+    }
+
+    private BusinessUnitUserV2Dto toBusinessUnitUserDto(BusinessUnitUserV2 source) {
+        return new BusinessUnitUserV2Dto(source.getBusinessUnitUserId(), source.getBusinessUnitId(),
+            source.getPermissions().stream().map(this::toPermissionDto)
+                .collect(Collectors.toCollection(ArrayList::new)));
+    }
+
+    private PermissionV2Dto toPermissionDto(PermissionV2 source) {
+        return new PermissionV2Dto(source.getPermissionCode(), source.getPermissionName());
+    }
+
     public void createAuthentication() {
         stubFor(get("/v2/users/0/state")
             .willReturn(
@@ -138,7 +181,7 @@ public class UserStateStub {
         return SecurityMockMvcRequestPostProcessors.authentication(
             new Authentication() {
                 @Override
-                public Collection<? extends GrantedAuthority> getAuthorities() {
+                public @NonNull Collection<? extends GrantedAuthority> getAuthorities() {
                     return List.of();
                 }
 
@@ -223,7 +266,7 @@ public class UserStateStub {
             (short) 78
         );
 
-        List<BusinessUnitUser> businessUnitUsers = new ArrayList<>();
+        List<BusinessUnitUserV2> businessUnitUsers = new ArrayList<>();
         businessUnits
             .forEach(aShort -> businessUnitUsers.add(
                 createBusinessUnitUser("L0" + aShort + "JG", aShort, createAllPermissions())));
@@ -245,22 +288,19 @@ public class UserStateStub {
             .domains(domains);
     }
 
-    private Set<Permission> createAllPermissions() {
+    private Set<PermissionV2> createAllPermissions() {
         return Arrays.stream(FinesPermission.values())
             .map(this::createPermission)
             .collect(Collectors.toSet());
     }
 
-    private Permission createPermission(PermissionDescriptor permissionDescriptor) {
-        return Permission.builder()
-            .permissionId(permissionDescriptor.getId())
-            .permissionName(permissionDescriptor.getDescription())
-            .build();
+    private PermissionV2 createPermission(FinesPermission permission) {
+        return permission.toCommonPermission();
     }
 
-    private BusinessUnitUser createBusinessUnitUser(String businessUnitUserId, short businessUnitId,
-        Set<Permission> permissions) {
-        return BusinessUnitUser.builder()
+    private BusinessUnitUserV2 createBusinessUnitUser(String businessUnitUserId, short businessUnitId,
+        Set<PermissionV2> permissions) {
+        return BusinessUnitUserV2.builder()
             .businessUnitUserId(businessUnitUserId)
             .businessUnitId(businessUnitId)
             .permissions(new HashSet<>(permissions))
@@ -282,17 +322,17 @@ public class UserStateStub {
 
 
     public void addPermissions(short businessUnitId, FinesPermission... values) {
-        Set<Permission> permissions = Arrays.stream(values)
+        Set<PermissionV2> permissions = Arrays.stream(values)
             .map(this::createPermission)
             .collect(Collectors.toSet());
 
         DomainBusinessUnitUsers businessUnitUsers = getDomainBusinessUnitUsers();
 
-        Optional<BusinessUnitUser> businessUnitUserOpt =
+        Optional<BusinessUnitUserV2> businessUnitUserOpt =
             businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId);
 
         if (businessUnitUserOpt.isEmpty()) {
-            BusinessUnitUser businessUnitUser =
+            BusinessUnitUserV2 businessUnitUser =
                 createBusinessUnitUser("L0" + businessUnitId + "JG", businessUnitId, permissions);
             businessUnitUsers.getBusinessUnitUsers().add(businessUnitUser);
             return;

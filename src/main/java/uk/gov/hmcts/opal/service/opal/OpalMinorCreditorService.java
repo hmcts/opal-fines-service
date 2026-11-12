@@ -286,7 +286,7 @@ public class OpalMinorCreditorService implements MinorCreditorServiceInterface {
         MinorCreditorAccountResponse response = responseMapper.toMinorCreditorAccountResponse(creditorAccount, party);
         response.setVersion(creditorAccount.getVersion());
         if (!party.isOrganisation()) {
-            pdplLoggingService.logUpdate(minorCreditorAccountId, userStateService.getUserStateV1FromSecurityContext());
+            pdplLoggingService.logUpdate(minorCreditorAccountId, userStateService.getUserStateFromSecurityContext());
         }
         return response;
     }

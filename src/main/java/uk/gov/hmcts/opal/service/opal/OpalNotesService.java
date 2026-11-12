@@ -10,8 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -42,7 +42,7 @@ public class OpalNotesService implements NotesServiceInterface {
 
     @Override
     @Transactional
-    public String addNote(AddNoteRequestNotes req, String ifMatch, UserState user, Short businessUnitId) {
+    public String addNote(AddNoteRequestNotes req, String ifMatch, UserStateV2 user, Short businessUnitId) {
         AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
         return addNote(req, ifMatch, user, target);
     }
@@ -55,7 +55,7 @@ public class OpalNotesService implements NotesServiceInterface {
         Short businessUnitId
     ) {
         OpalJwtAuthenticationToken token = SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser();
-        BusinessUnitUser businessUnitUser = PermissionUtil.getRequiredBusinessUnitUser(
+        BusinessUnitUserV2 businessUnitUser = PermissionUtil.getRequiredBusinessUnitUser(
             token.getUserState(),
             businessUnitId
         );
@@ -73,7 +73,7 @@ public class OpalNotesService implements NotesServiceInterface {
     }
 
     @Transactional
-    public String addNote(AddNoteRequestNotes req, String ifMatch, UserState user, AccountNoteContext target) {
+    public String addNote(AddNoteRequestNotes req, String ifMatch, UserStateV2 user, AccountNoteContext target) {
         log.info(":OpalAddNote");
 
         final Versioned account = getAccountAndVerifyVersion(target, ifMatch);
@@ -87,7 +87,7 @@ public class OpalNotesService implements NotesServiceInterface {
         note.setAssociatedRecordType(target.associatedRecordType());
         note.setBusinessUnitUserId(target.businessUnitId().toString());
         note.setPostedDate(LocalDateTime.now(clock));
-        note.setPostedByUsername(user.getDisplayName());
+        note.setPostedByUsername(user.getName());
 
         NoteEntity entity = repository.save(note);
         incrementAccountVersion(target, account);

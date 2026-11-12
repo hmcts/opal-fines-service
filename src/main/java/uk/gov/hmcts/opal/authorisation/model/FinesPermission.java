@@ -2,38 +2,38 @@ package uk.gov.hmcts.opal.authorisation.model;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import uk.gov.hmcts.opal.common.user.authorisation.model.Permission;
-import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptor;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionDescriptorV2;
+import uk.gov.hmcts.opal.common.user.authorisation.model.PermissionV2;
 
 /**
- * Fines-service specific permission catalogue. Each entry mirrors the ids maintained by the user service so that
- * {@link uk.gov.hmcts.opal.common.user.authorisation.model.UserState} can be queried using the shared
- * {@link PermissionDescriptor} contract.
+ * Fines-service specific permission catalogue. Each entry mirrors the codes maintained by the user service so that
+ * {@link uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2} can be queried using the shared
+ * {@link PermissionDescriptorV2} contract.
  */
 @Getter
 @RequiredArgsConstructor
-public enum FinesPermission implements PermissionDescriptor {
-    CREATE_MANAGE_DRAFT_ACCOUNTS(1L, "Create Manage Draft Accounts"),
-    ACCOUNT_ENQUIRY_NOTES(2L, "Account Enquiry - Account Notes"),
-    ACCOUNT_ENQUIRY(3L, "Account Enquiry"),
-    COLLECTION_ORDER(4L, "Collection Order"),
-    CHECK_VALIDATE_DRAFT_ACCOUNTS(5L, "Check and Validate Draft Accounts"),
-    SEARCH_AND_VIEW_ACCOUNTS(6L, "Search and View Accounts"),
-    ACCOUNT_MAINTENANCE(7L, "Account Maintenance"),
-    ADD_ACCOUNT_ACTIVITY_NOTES(8L, "Add account activity notes"),
-    AMEND_PAYMENT_TERMS(9L, "Amend Payment Terms"),
-    ENTER_ENFORCEMENT(10L, "Enter Enforcement"),
-    VIEW_CREDITOR_BACS(11L, "View Creditor BACS"),
-    ADD_AND_REMOVE_PAYMENT_HOLD(12L, "Add and Remove payment hold"),
-    CONSOLIDATE(13L, "Consolidate"),
-    OPERATIONAL_REPORT_BY_ENFORCEMENT(14L, "Operational report by enforcement"),
-    OPERATIONAL_REPORT_BY_PAYMENTS(15L, "Operational report by payments"),
-    PROCESS_AND_ALLOCATE_PAYMENTS(16L, "Process and Allocate Payments"),
-    AUTO_ENFORCEMENT(17L, "Auto Enforcement"),
-    ACCOUNT_MAINTENANCE_MINOR_CREDITOR(20L, "Account Maintenance - Minor Creditor"),
-    MANAGE_ALTERNATE_PAYMENT_REFERENCES(21L, "Manage Alternate Payment References"),
-    VIEW_SUSPENSE_ITEMS(24L, "View Suspense Items"),
-    MANAGE_SUSPENSE_ITEMS(25L, "Manage Suspense Items");
+public enum FinesPermission implements PermissionDescriptorV2 {
+    CREATE_MANAGE_DRAFT_ACCOUNTS("CREATE_MANAGE_DRAFT_ACCOUNTS", "Create Manage Draft Accounts"),
+    ACCOUNT_ENQUIRY_NOTES("ACCOUNT_ENQUIRY_NOTES", "Account Enquiry - Account Notes"),
+    ACCOUNT_ENQUIRY("ACCOUNT_ENQUIRY", "Account Enquiry"),
+    COLLECTION_ORDER("COLLECTION_ORDER", "Collection Order"),
+    CHECK_VALIDATE_DRAFT_ACCOUNTS("CHECK_VALIDATE_DRAFT_ACCOUNTS", "Check and Validate Draft Accounts"),
+    SEARCH_AND_VIEW_ACCOUNTS("SEARCH_AND_VIEW_ACCOUNTS", "Search and View Accounts"),
+    ACCOUNT_MAINTENANCE("ACCOUNT_MAINTENANCE", "Account Maintenance"),
+    ADD_ACCOUNT_ACTIVITY_NOTES("ADD_ACCOUNT_ACTIVITY_NOTES", "Add account activity notes"),
+    AMEND_PAYMENT_TERMS("AMEND_PAYMENT_TERMS", "Amend Payment Terms"),
+    ENTER_ENFORCEMENT("ENTER_ENFORCEMENT", "Enter Enforcement"),
+    VIEW_CREDITOR_BACS("VIEW_CREDITOR_BACS", "View Creditor BACS"),
+    ADD_AND_REMOVE_PAYMENT_HOLD("ADD_AND_REMOVE_PAYMENT_HOLD", "Add and Remove payment hold"),
+    CONSOLIDATE("CONSOLIDATE", "Consolidate"),
+    OPERATIONAL_REPORT_BY_ENFORCEMENT("OPERATIONAL_REPORT_BY_ENFORCEMENT", "Operational report by enforcement"),
+    OPERATIONAL_REPORT_BY_PAYMENTS("OPERATIONAL_REPORT_BY_PAYMENTS", "Operational report by payments"),
+    PROCESS_AND_ALLOCATE_PAYMENTS("PROCESS_AND_ALLOCATE_PAYMENTS", "Process and Allocate Payments"),
+    AUTO_ENFORCEMENT("AUTO_ENFORCEMENT", "Auto Enforcement"),
+    ACCOUNT_MAINTENANCE_MINOR_CREDITOR("ACCOUNT_MAINTENANCE_MINOR_CREDITOR", "Account Maintenance - Minor Creditor"),
+    MANAGE_ALTERNATE_PAYMENT_REFERENCES("MANAGE_ALTERNATE_PAYMENT_REFERENCES", "Manage Alternate Payment References"),
+    VIEW_SUSPENSE_ITEMS("VIEW_SUSPENSE_ITEMS", "View Suspense Items"),
+    MANAGE_SUSPENSE_ITEMS("MANAGE_SUSPENSE_ITEMS", "Manage Suspense Items");
 
     /**
      * Convenience aggregate used by parts of the service that require both draft account permissions.
@@ -41,9 +41,8 @@ public enum FinesPermission implements PermissionDescriptor {
     public static final FinesPermission[] DRAFT_ACCOUNT_PERMISSIONS = {
         CREATE_MANAGE_DRAFT_ACCOUNTS, CHECK_VALIDATE_DRAFT_ACCOUNTS
     };
-    private final long id;
-    private final String description;
-
+    private final String permissionCode;
+    private final String permissionName;
 
     public static FinesPermission fromString(String value) {
         if (value == null || value.isBlank()) {
@@ -53,7 +52,7 @@ public enum FinesPermission implements PermissionDescriptor {
             return FinesPermission.valueOf(value);
         } catch (IllegalArgumentException e) {
             for (FinesPermission permission : values()) {
-                if (permission.description.equals(value)) {
+                if (permission.permissionCode.equals(value)) {
                     return permission;
                 }
             }
@@ -61,10 +60,7 @@ public enum FinesPermission implements PermissionDescriptor {
         }
     }
 
-    public Permission toCommonPermission() {
-        return Permission.builder()
-            .permissionId(id)
-            .permissionName(description)
-            .build();
+    public PermissionV2 toCommonPermission() {
+        return PermissionV2.fromPermissionCode(permissionCode);
     }
 }

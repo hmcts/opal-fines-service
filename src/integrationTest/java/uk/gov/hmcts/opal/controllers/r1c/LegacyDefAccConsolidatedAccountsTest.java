@@ -90,7 +90,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
@@ -203,7 +203,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9411")
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse(legacyResponse());
 
@@ -218,7 +218,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9406")
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext())
+        when(userStateService.getUserStateFromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
         mockLegacyResponse(legacyResponse());
 
@@ -284,7 +284,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-1286")
     @JiraTestKey("PO-9412")
     void getConsolidatedAccounts_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
 
         performGetConsolidatedAccounts(233300L)
             .andExpect(status().isForbidden())
@@ -304,7 +304,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-9407")
     void getConsolidatedAccounts_whenCredentialsMissing_returnsUnauthorized() throws Exception {
         doThrow(new ResponseStatusException(UNAUTHORIZED, "Unauthorized"))
-            .when(userStateService).getUserStateV1FromSecurityContext();
+            .when(userStateService).getUserStateFromSecurityContext();
 
         mockMvc.perform(get(URL_BASE + "/233300/consolidated-accounts"))
             .andExpect(status().isUnauthorized())

@@ -30,6 +30,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -170,8 +171,8 @@ class OpalMinorCreditorServiceUpdateTest {
         }).when(minorCreditorAccountUpdateMapper).updateParty(any(), any(), any());
 
         // Act
-        UserState userState = UserState.builder().userId(42L).build();
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        UserStateV2 userState = UserStateV2.builder().userId(42L).username("username").build();
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         MinorCreditorAccountResponse response;
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             response = service.updateMinorCreditorAccount(
@@ -192,7 +193,7 @@ class OpalMinorCreditorServiceUpdateTest {
         order.verify(amendmentService).auditFinaliseStoredProc(accountId, AssociatedRecordType.CREDITOR_ACCOUNTS,
             businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
         order.verify(minorCreditorAccountResponseMapper).toMinorCreditorAccountResponse(account, party);
-        order.verify(userStateService).getUserStateV1FromSecurityContext();
+        order.verify(userStateService).getUserStateFromSecurityContext();
         order.verify(pdplLoggingService).logUpdate(accountId, userState);
         ArgumentCaptor<CreditorAccountEntity> entityCaptor =
             ArgumentCaptor.forClass(CreditorAccountEntity.class);

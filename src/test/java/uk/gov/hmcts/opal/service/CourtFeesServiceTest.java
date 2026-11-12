@@ -13,7 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -46,7 +46,7 @@ class CourtFeesServiceTest {
     private DomainBusinessUnitUsers domainBusinessUnitUsers;
 
     @Mock
-    private BusinessUnitUser businessUnitUser;
+    private BusinessUnitUserV2 businessUnitUser;
 
     @InjectMocks
     private CourtFeesService courtFeesService;

@@ -21,7 +21,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
@@ -35,7 +35,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 @ExtendWith(MockitoExtension.class)
 class MajorCreditorHistoryPdplLoggingServiceTest {
 
-    private static final UserState USER_STATE = UserState.builder().userId(42L).build();
+    private static final UserStateV2 USER_STATE = UserStateV2.builder().userId(42L).username("username").build();
 
     @Mock
     private LoggingService loggingService;

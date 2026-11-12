@@ -27,6 +27,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -120,7 +121,7 @@ class AbstractPdplLoggingServiceTest {
     private void logPersonalData(TestPdplLoggingService service, boolean useUserState) {
         if (useUserState) {
             service.logPdplOrThrow("View Personal Data", CONSULTATION, List.of(), null,
-                UserState.builder().userId(USER_ID).build(), FAILURE_MESSAGE);
+                UserStateV2.builder().userId(USER_ID).username("username").build(), FAILURE_MESSAGE);
         } else {
             service.logPdplOrThrow("View Personal Data", CONSULTATION, List.of(), null, USER_ID, FAILURE_MESSAGE);
         }

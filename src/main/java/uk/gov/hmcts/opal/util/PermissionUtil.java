@@ -6,6 +6,7 @@ import org.springframework.security.access.AccessDeniedException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
@@ -21,14 +22,14 @@ public class PermissionUtil {
             AccessDeniedException("User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
-    public static BusinessUnitUser getRequiredBusinessUnitUser(UserStateV2 userState, Short businessUnitId) {
+    public static BusinessUnitUserV2 getRequiredBusinessUnitUser(UserStateV2 userState, Short businessUnitId) {
         return userState.getDomainBusinessUnitUsers(Domain.FINES)
             .getBusinessUnitUserForBusinessUnit(businessUnitId)
             .orElseThrow(() -> new AccessDeniedException(
                 "User does not have assigned permissions in business unit: " + businessUnitId));
     }
 
-    public static BusinessUnitUser getRequiredBusinessUnitUser(DomainBusinessUnitUsers businessUnitUsers,
+    public static BusinessUnitUserV2 getRequiredBusinessUnitUser(DomainBusinessUnitUsers businessUnitUsers,
         Short businessUnitId) {
 
         return businessUnitUsers.getBusinessUnitUserForBusinessUnit(businessUnitId).orElseThrow(() ->
@@ -37,27 +38,27 @@ public class PermissionUtil {
 
     public static void checkPermissionInBusinessUnit(FinesPermission finesPermission, Short businessUnitId) {
         OpalJwtAuthenticationToken token = SecurityUtil.getOpalJwtAuthenticationTokenForCurrentUser();
-        if (!token.hasPermissionInBusinessUnit(finesPermission, businessUnitId)) {
+        if (!token.hasPermissionInBusinessUnit(finesPermission.toCommonPermission(), businessUnitId)) {
             throw new AccessDeniedException("User does not have the required permission: "
-                + finesPermission.getDescription() + " in business unit: " + businessUnitId);
+                + finesPermission.getPermissionName() + " in business unit: " + businessUnitId);
         }
     }
 
-    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUser businessUnitUser,
+    public static boolean checkBusinessUnitUserHasPermission(BusinessUnitUserV2 businessUnitUser,
         FinesPermission permission) {
         if (businessUnitUser.doesNotHavePermission(permission)) {
             throw new AccessDeniedException(
                 "User does not have the required permission: "
-                    + permission.getDescription());
+                    + permission.getPermissionName());
         }
         return true;
     }
 
-    public static boolean checkAnyBusinessUnitUserHasPermission(UserState userState, FinesPermission permission) {
+    public static boolean checkAnyBusinessUnitUserHasPermission(UserStateV2 userState, FinesPermission permission) {
         if (userState.noBusinessUnitUserHasPermission(permission)) {
             throw new AccessDeniedException(
                 "User does not have the required permission: "
-                    + permission.getDescription());
+                    + permission.getPermissionName());
         }
         return true;
     }
@@ -69,7 +70,7 @@ public class PermissionUtil {
 
         return optPermission.map(
             permission -> {
-                DomainBusinessUnitUsers.UserBusinessUnits userBusinessUnits = userStateService
+                UserStateV2.UserBusinessUnits userBusinessUnits = userStateService
                     .getUserStateFromSecurityContext()
                     .getDomainBusinessUnitUsers(Domain.FINES)
                     .allBusinessUnitUsersWithPermission(permission);

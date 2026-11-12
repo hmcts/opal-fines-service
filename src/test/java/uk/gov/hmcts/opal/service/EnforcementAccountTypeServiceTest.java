@@ -67,12 +67,12 @@ class EnforcementAccountTypeServiceTest {
     }
 
     private void withPermission() {
-        when(authToken.hasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(true);
+        when(authToken.hasPermission(FinesPermission.AUTO_ENFORCEMENT.toCommonPermission())).thenReturn(true);
         secutityUtilMock.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(authToken);
     }
 
     private void withoutPermission() {
-        when(authToken.hasPermission(FinesPermission.AUTO_ENFORCEMENT)).thenReturn(false);
+        when(authToken.hasPermission(FinesPermission.AUTO_ENFORCEMENT.toCommonPermission())).thenReturn(false);
         secutityUtilMock.when(SecurityUtil::getOpalJwtAuthenticationTokenForCurrentUser).thenReturn(authToken);
     }
 

@@ -23,6 +23,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUserV2;
 import uk.gov.hmcts.opal.common.user.authorisation.model.Domain;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
@@ -106,7 +107,7 @@ public class CourtFeesApiControllerIntegrationTest extends AbstractIntegrationTe
     private void mockAuthenticatedUser(short businessUnitId, boolean authorised) {
         UserStateV2 userState = mock(UserStateV2.class);
         DomainBusinessUnitUsers domainBusinessUnitUsers = mock(DomainBusinessUnitUsers.class);
-        BusinessUnitUser businessUnitUser = mock(BusinessUnitUser.class);
+        BusinessUnitUserV2 businessUnitUser = mock(BusinessUnitUserV2.class);
 
         when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
         when(userState.getDomainBusinessUnitUsers(Domain.FINES)).thenReturn(domainBusinessUnitUsers);

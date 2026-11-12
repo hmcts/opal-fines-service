@@ -17,7 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
@@ -35,7 +35,7 @@ class MinorCreditorSummaryPdplLoggingServiceTest {
 
     private MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
 
-    private UserState userState;
+    private UserStateV2 userState;
 
     @BeforeEach
     void setUp() {

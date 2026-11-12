@@ -6,8 +6,8 @@ import java.time.Clock;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
@@ -39,14 +39,14 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
         super(loggingService, clock);
     }
 
-    public boolean logAddedParentGuardian(String partyId, UserState userState) {
+    public boolean logAddedParentGuardian(String partyId, UserStateV2 userState) {
         ParticipantIdentifier parentGuardian = participant(partyId, PARENT_GUARDIAN);
 
         return logPdpl(ADD_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.COLLECTION,
             List.of(parentGuardian), null, userState);
     }
 
-    public void queuePdpoForViewedParty(PartyResponseDefendantAccount response, UserState userState) {
+    public void queuePdpoForViewedParty(PartyResponseDefendantAccount response, UserStateV2 userState) {
         DefendantAccountParty party = response.getDefendantAccountParty();
         DefendantAccountPartyTypeEnum partyType = party.getDefendantAccountPartyType();
 
@@ -57,17 +57,17 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
         }
     }
 
-    public void logViewedDefendant(String partyId, UserState userState) {
+    public void logViewedDefendant(String partyId, UserStateV2 userState) {
         logViewedParty(VIEW_DEFENDANT_BUSINESS_IDENTIFIER, partyId, PdplIdentifierType.DEFENDANT_ACCOUNT, userState);
     }
 
-    public void logViewedParentGuardian(String partyId, UserState userState) {
+    public void logViewedParentGuardian(String partyId, UserStateV2 userState) {
         logViewedParty(VIEW_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, partyId, PdplIdentifierType.PARENT_GUARDIAN,
             userState);
     }
 
     private void logViewedParty(String businessIdentifier, String partyId, PdplIdentifierType partyType,
-        UserState userState) {
+        UserStateV2 userState) {
         logPdplOrThrow(businessIdentifier, PersonalDataProcessingCategory.CONSULTATION,
             List.of(participant(partyId, partyType)),
             null,
@@ -85,7 +85,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     }
 
     public void logReplacement(Long partyId, AssociationType associationType, boolean wasOrganisation,
-        boolean organisation, List<Long> removedParentGuardianIds, UserState userState) {
+        boolean organisation, List<Long> removedParentGuardianIds, UserStateV2 userState) {
 
         logReplacementOperation(partyId, associationType, wasOrganisation, organisation, userState);
 
@@ -100,7 +100,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     }
 
     private void logReplacementOperation(Long partyId, AssociationType associationType, boolean wasOrganisation,
-        boolean organisation, UserState userState) {
+        boolean organisation, UserStateV2 userState) {
 
         if (associationType == AssociationType.PARENT_GUARDIAN) {
             logParty(UPDATE_PARENT_GUARDIAN_BUSINESS_IDENTIFIER, PersonalDataProcessingCategory.ALTERATION,
@@ -120,7 +120,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     }
 
     private void logParty(String businessIdentifier, PersonalDataProcessingCategory category, String partyId,
-        PdplIdentifierType partyType, UserState userState) {
+        PdplIdentifierType partyType, UserStateV2 userState) {
         logPdplOrThrow(businessIdentifier, category, List.of(participant(partyId, partyType)), null,
             userState, QUEUE_FAILURE_MESSAGE);
     }
@@ -128,7 +128,7 @@ public class DefendantAccountPartyPdplLoggingService extends AbstractPdplLogging
     public void logRemovedParentGuardian(Long defendantAccountPartyId,
         RemoveDefendantAccountPartyRequestDefendantAccount request,
         RemoveDefendantAccountPartyResponseDefendantAccount response,
-        UserState userState) {
+        UserStateV2 userState) {
         if (response.getDefendantAccountPartyId() == null || response.getDefendantAccountPartyId().isBlank()) {
             return;
         }
