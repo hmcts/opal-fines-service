@@ -142,7 +142,7 @@ Feature: Update Draft Accounts
     When I attempt to update the draft account with an invalid token
     Then the request is rejected as unauthorized
 
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for the created draft account and business_identifier "Re-submit Draft Account - Defendant"
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691
   Scenario: Reject updating an unknown draft account id
@@ -154,4 +154,4 @@ Feature: Update Draft Accounts
       | If-Match         | 0                  |
     Then the request is rejected as not acceptable
 
-    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for draft account "00000000-0000-0000-0000-000000000000" and business_identifier "Re-submit Draft Account - Defendant"

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.steps;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
@@ -10,6 +11,7 @@ import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
 import java.util.LinkedHashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,6 +52,7 @@ public class LoggingSteps extends BaseStepDef {
             .orElse(1000);
 
     private JsonNode latestPdpoSearchResponse;
+    private final Map<String, Set<String>> pdpoLogBaselines = new LinkedHashMap<>();
 
     /**
      * Stores an invalid bearer token in the Serenity session for the current scenario.
@@ -170,12 +173,82 @@ public class LoggingSteps extends BaseStepDef {
         ));
     }
 
+    /**
+     * Checks for unwanted draft-account logs regardless of which actor was recorded.
+     *
+     * @param draftAccountId account targeted by the rejected request.
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for draft account {string} and business_identifier {string}")
+    public void noPdpoLogsExistForDraftAccount(String draftAccountId, String businessIdentifier) {
+        assertNoPdpoLogs(Map.of(
+            "business_identifier", businessIdentifier,
+            "individual_identifier", draftAccountId,
+            "individual_type", PdplIdentifierType.DRAFT_ACCOUNT.name()
+        ));
+    }
+
+    /**
+     * Checks for unwanted logs concerning the scenario's newly created draft account.
+     *
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for the created draft account and business_identifier {string}")
+    public void noPdpoLogsExistForCreatedDraftAccount(String businessIdentifier) {
+        noPdpoLogsExistForDraftAccount(scenarioContext().getLastDraftAccountIdOrFail(), businessIdentifier);
+    }
+
+    /**
+     * Captures existing logs before a rejected creation, which has no account identifier to search for.
+     *
+     * @param businessIdentifier operation to observe.
+     */
+    @Given("I record existing PDPO logs for business_identifier {string}")
+    public void recordExistingPdpoLogs(String businessIdentifier) {
+        pdpoLogBaselines.put(businessIdentifier,
+            pdpoLogIds(searchPdpoLogs(Map.of("business_identifier", businessIdentifier))));
+    }
+
+    /**
+     * Observes the recorded operation for new logs after a rejected request.
+     *
+     * @param businessIdentifier operation whose baseline was captured before the request.
+     */
+    @Then("no new PDPO logs exist for business_identifier {string}")
+    public void noNewPdpoLogsExist(String businessIdentifier) {
+        Set<String> baseline = pdpoLogBaselines.get(businessIdentifier);
+        assertNotNull(baseline, "Record a PDPO log baseline before attempting the rejected request");
+        // Rejected creation has no account ID or log correlation filter. Run these scenarios without
+        // concurrent successful creations: another request for this operation would also produce a new log.
+        assertNoNewPdpoLogs(Map.of("business_identifier", businessIdentifier), baseline);
+    }
+
+    private Set<String> pdpoLogIds(JsonNode response) {
+        assertTrue(response.isArray(), "Expected a PDPO search response array but received: " + response);
+        Set<String> ids = new HashSet<>();
+        for (JsonNode log : response) {
+            String id = log.path("pdpo_log_id").asText("");
+            assertFalse(id.isBlank(), "Expected pdpo_log_id on search result: " + log);
+            ids.add(id);
+        }
+        return ids;
+    }
+
+    private void assertNoNewPdpoLogs(Map<String, Object> criteria, Set<String> baseline) {
+        observePdpoLogs(criteria, response -> baseline.containsAll(pdpoLogIds(response)),
+            "Unexpected new PDPO logs matching ");
+    }
+
     private void assertNoPdpoLogs(Map<String, Object> criteria) {
+        observePdpoLogs(criteria, JsonNode::isEmpty, "Unexpected PDPO logs matching ");
+    }
+
+    private void observePdpoLogs(Map<String, Object> criteria, Predicate<JsonNode> acceptable, String failureMessage) {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         while (true) {
             JsonNode response = searchPdpoLogs(criteria);
             assertTrue(response.isArray(), "Expected a PDPO search response array but received: " + response);
-            assertTrue(response.isEmpty(), "Unexpected PDPO logs matching " + criteria + ": " + response);
+            assertTrue(acceptable.test(response), failureMessage + criteria + ": " + response);
             if (System.nanoTime() >= deadline) {
                 return;
             }

@@ -160,4 +160,4 @@ Feature: List Draft Accounts
     Then the request is rejected as unauthorized
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+    Then no PDPO logs exist for the created draft account and business_identifier "Get Draft Account - Defendant"
