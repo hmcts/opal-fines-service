@@ -1,0 +1,12 @@
+BEGIN
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  === Setting up test data ===
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  === Test data setup completed ===
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  === TEST 1: Successful batch and output transformations ===
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  TEST 1 PASSED
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  === TEST 2: No eligible requests and already-processed exclusion ===
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  TEST 2 PASSED
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  === TEST 3: Missing Allpay client-code configuration error ===
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  TEST 3 PASSED
+psql:p_int_payment_card_requests_unit_tests_v2.sql:358: NOTICE:  All p_int_payment_card_requests unit tests passed
+DO
+ROLLBACK
