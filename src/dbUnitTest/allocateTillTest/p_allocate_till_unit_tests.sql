@@ -400,7 +400,7 @@ BEGIN
     ASSERT v_transaction.payment_reference = 'REF-3417', 'Payment reference must come from the payment JSON';
     ASSERT v_transaction.text = 'Third Party', 'Payer name must be stored as transaction text';
     ASSERT v_transaction.source = 'NATWEST', 'Manual source must come from transfer_source';
-    ASSERT v_transaction.status = 'C', 'Defendant transaction must be completed';
+    ASSERT v_transaction.status IS NULL, 'Defendant transaction status must remain NULL after insertion';
     ASSERT v_transaction.associated_record_type = 'payments_in', 'Associated record type must be payments_in';
     ASSERT v_transaction.associated_record_id = '9999003417001', 'Transaction must link to the payment';
     ASSERT v_transaction.posted_date BETWEEN v_before AND v_after, 'posted_date must be generated during allocation';
