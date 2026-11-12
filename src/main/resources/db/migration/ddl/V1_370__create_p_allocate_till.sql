@@ -281,9 +281,7 @@ BEGIN
                             pi_source := v_source,
                             po_defendant_transaction_id := v_defendant_transaction_id
                         );
-                        
-                        UPDATE defendant_transactions SET status = 'C'
-                         WHERE defendant_transaction_id = v_defendant_transaction_id;
+
                         CALL p_update_defendant_accounts(v_defendant_account_id, v_payment_amount);
                         CALL p_allocate_payments(
                             pi_defendant_account_id := v_defendant_account_id,
