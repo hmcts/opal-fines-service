@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -25,6 +27,7 @@ public class TestingSupportInterfaceJobService {
 
     private final InterfaceJobRepository interfaceJobRepository;
     private final BusinessUnitService businessUnitService;
+    private final UserStateService userStateService;
     private final TestingSupportInterfaceJobMapper interfaceJobMapper;
 
     @Transactional
@@ -43,6 +46,8 @@ public class TestingSupportInterfaceJobService {
     }
 
     private InterfaceJobEntity createInterfaceJob(InterfaceJobsCreateItemTestingSupport createJobItem) {
+        checkProcessAndAllocatePaymentsPermission(createJobItem.getBusinessUnitId());
+
         InterfaceJobsCreateFileItemTestingSupport createFileItem = createJobItem.getInterfaceFile();
         InterfaceFileEntity interfaceFile = InterfaceFileEntity.builder()
             .fileName(createFileItem.getFileName())
@@ -68,5 +73,12 @@ public class TestingSupportInterfaceJobService {
             .build();
 
         return interfaceJobRepository.save(interfaceJob);
+    }
+
+    private void checkProcessAndAllocatePaymentsPermission(Short businessUnitId) {
+        if (!userStateService.getPermittedBusinessUnitIds(
+            List.of(businessUnitId), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS).contains(businessUnitId)) {
+            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        }
     }
 }

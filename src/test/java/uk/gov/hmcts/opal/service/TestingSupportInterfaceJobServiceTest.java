@@ -1,15 +1,22 @@
 package uk.gov.hmcts.opal.service;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
@@ -17,6 +24,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -42,6 +51,9 @@ public class TestingSupportInterfaceJobServiceTest {
     @Mock
     private BusinessUnitService businessUnitService;
 
+    @Mock
+    private UserStateService userStateService;
+
     @InjectMocks
     private TestingSupportInterfaceJobService service;
 
@@ -60,6 +72,8 @@ public class TestingSupportInterfaceJobServiceTest {
         final LocalDateTime completed = LocalDateTime.of(2026, Month.APRIL, 3, 9, 0);
         BusinessUnitEntity businessUnit = mock(BusinessUnitEntity.class);
         when(businessUnitService.getBusinessUnit(businessUnitId)).thenReturn(businessUnit);
+        when(userStateService.getPermittedBusinessUnitIds(List.of(businessUnitId),
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of(businessUnitId));
         when(interfaceJobRepository.save(any(InterfaceJobEntity.class))).then(AdditionalAnswers.returnsFirstArg());
 
         InterfaceJobsCreateFileItemTestingSupport fileItem = InterfaceJobsCreateFileItemTestingSupport.builder()
@@ -111,5 +125,29 @@ public class TestingSupportInterfaceJobServiceTest {
         assertThat(interfaceFile.getCreatedDateTime()).isEqualTo(created);
 
         verify(interfaceJobMapper, times(1)).toCreateResponseItem(createdJob);
+    }
+
+    @Test
+    void create_rejectsUserWithoutPermission() {
+        // Arrange
+        short businessUnitId = 200;
+        InterfaceJobsCreateItemTestingSupport requestItem = InterfaceJobsCreateItemTestingSupport.builder()
+            .businessUnitId(businessUnitId)
+            .build();
+        InterfaceJobsCreateRequestTestingSupport request = InterfaceJobsCreateRequestTestingSupport.builder()
+            .interfaceJobs(List.of(requestItem))
+            .build();
+
+        when(userStateService.getPermittedBusinessUnitIds(List.of(businessUnitId),
+            FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(Collections.emptyList());
+
+        // Act + Assert
+        PermissionNotAllowedException exception =
+            assertThrows(PermissionNotAllowedException.class, () -> service.createInterfaceJobs(request));
+
+        String msg = "[PROCESS_AND_ALLOCATE_PAYMENTS] permission(s) are not enabled for the user in business unit: "
+            + businessUnitId;
+        assertThat(exception.getMessage()).isEqualTo(msg);
+        verifyNoInteractions(interfaceJobRepository);
     }
 }
