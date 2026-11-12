@@ -7,7 +7,11 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.test.context.TestConfiguration;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.CacheManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
@@ -16,15 +20,51 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
+import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
+import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
+import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
+import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
-@SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=true")
+@SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=false")
+@Import(LjaMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
+
+    @TestConfiguration
+    static class TestRefDataConfiguration {
+
+        @Bean
+        RefDataHandlerRegistry refDataHandlerRegistry(List<RefDataUpdateHandler<?, ?>> handlers) {
+            return new RefDataHandlerRegistry(handlers);
+        }
+
+        @Bean
+        SchemaValidationService schemaValidationService() {
+            return new SchemaValidationService();
+        }
+
+        @Bean
+        RefDataMessageDecoder refDataMessageDecoder(
+            tools.jackson.databind.ObjectMapper objectMapper,
+            SchemaValidationService schemaValidationService,
+            RefDataHandlerRegistry handlerRegistry) {
+            return new RefDataMessageDecoder(objectMapper, schemaValidationService, handlerRegistry);
+        }
+
+        @Bean
+        RefDataMessageProcessor refDataMessageProcessor(
+            CacheManager cacheManager,
+            RefDataMessageDecoder decoder,
+            RefDataHandlerRegistry handlerRegistry) {
+            return new RefDataRefDataMessageProcessorImpl(cacheManager, decoder, handlerRegistry);
+        }
+    }
 
     private static final String REF_DATA_SCHEMA = "jsonSchemas/ref-data/ref_data_schema.json";
     private static final short TEST_ID_START = 8000;
