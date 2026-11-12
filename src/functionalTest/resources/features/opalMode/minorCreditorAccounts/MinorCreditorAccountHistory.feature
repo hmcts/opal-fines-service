@@ -91,3 +91,17 @@ Feature: Minor Creditor Account History
     When I request minor creditor account history for the created minor creditor account using the remembered dateTo
     Then the minor creditor account history response is returned as documented
     And the minor creditor account history response contains only items on or before the remembered dateTo
+
+  @cleanUpData @JIRA-STORY:PO-11203 @JIRA-EPIC:PO-2621
+  Scenario: Minor creditor history shows the business-unit user ID when Release 1B 1.2 is enabled
+    Given a minor creditor account with representative history exists for submitted by "MCHIST112"
+    When I add a note to the created minor creditor account
+    And I request minor creditor account history for the created minor creditor account
+    Then the new minor creditor history note shows the current business-unit user ID and display name
+
+  @cleanUpData @JIRA-STORY:PO-11203 @JIRA-EPIC:PO-2621
+  Scenario: Minor creditor history shows the numeric business-unit ID when Release 1B 1.2 is disabled
+    Given a minor creditor account with representative history exists for submitted by "MCHIST113"
+    When I add a note to the created minor creditor account
+    And I request minor creditor account history for the created minor creditor account
+    Then the new minor creditor history note shows the numeric business-unit ID and display name
