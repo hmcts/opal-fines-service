@@ -142,8 +142,7 @@ Feature: Update Draft Accounts
     When I attempt to update the draft account with an invalid token
     Then the request is rejected as unauthorized
 
-    #    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-    #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691
   Scenario: Reject updating an unknown draft account id
@@ -155,5 +154,4 @@ Feature: Update Draft Accounts
       | If-Match         | 0                  |
     Then the request is rejected as not acceptable
 
-#    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-#    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"

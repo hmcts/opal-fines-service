@@ -120,9 +120,9 @@ Feature: List Draft Accounts
     Then the request succeeds
 
     # Assert that logging has PDPO entries for each created draft id
-#    Then the logging service contains these PDPO logs:
-#      | created_by_id | created_by_type | business_identifier              | individual_id                         | expected_count |
-#      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier              | individual_id                         | expected_count |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
 
     # Cleanup
 
@@ -139,10 +139,10 @@ Feature: List Draft Accounts
     Then the request succeeds
 
     # Assert that logging has PDPO entries for each created draft id for both Business identifiers
-#    Then the logging service contains these PDPO logs:
-#      | created_by_id | created_by_type | business_identifier                       | individual_id                         | expected_count |
-#      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
-#      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                       | individual_id                         | expected_count |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
 
     # Cleanup
 
@@ -160,4 +160,4 @@ Feature: List Draft Accounts
     Then the request is rejected as unauthorized
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-  # Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"

@@ -25,9 +25,9 @@ Feature: Retrieve Draft Account
       | account_snapshot.business_unit_name | West London  |
       | account.originator_type             | TFO          |
 
-    #    Then the logging service contains these PDPO logs:
-    #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-    #      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5638
   Scenario: A draft account with multiple related parties can be retrieved
@@ -50,10 +50,10 @@ Feature: Retrieve Draft Account
       | account_snapshot.business_unit_name | West London  |
       | account.originator_type             | TFO          |
 
-    #    Then the logging service contains these PDPO logs:
-    #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-    #      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-    #      | 500000000        | OPAL_USER_ID    | Get Draft Account - Parent or Guardian      | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+      | 500000000        | OPAL_USER_ID    | Get Draft Account - Defendant               | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+      | 500000000        | OPAL_USER_ID    | Get Draft Account - Parent or Guardian      | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5639
   Scenario: An invalid token cannot retrieve a created draft account
@@ -69,10 +69,10 @@ Feature: Retrieve Draft Account
     Then the request is rejected as unauthorized
 
   # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-  # Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
 
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5640
   Scenario: An invalid token cannot create a draft account in the retrieval flow
     When I attempt to create a draft account with an invalid token
     Then the request is rejected as unauthorized
-    #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Get Draft Account - Defendant"

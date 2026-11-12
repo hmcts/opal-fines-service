@@ -10,10 +10,12 @@ import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -68,6 +70,48 @@ public class LoggingSteps extends BaseStepDef {
     }
 
     /**
+     * Checks persisted draft-account logs against each row, allowing for asynchronous delivery.
+     *
+     * @param expectedLogs actor, operation, draft-account identifiers and exact count to verify.
+     */
+    @Then("the logging service contains these PDPO logs:")
+    public void loggingServiceContainsThesePdpoLogs(DataTable expectedLogs) {
+        List<Map<String, String>> rows = expectedLogs.asMaps(String.class, String.class);
+        assertFalse(rows.isEmpty(), "At least one expected PDPO log row is required");
+        for (Map<String, String> row : rows) {
+            List<String> individualIds = switch (row.get("individual_id")) {
+                case "<CREATED_DRAFT_ACCOUNT_ID>" -> List.of(scenarioContext().getLastDraftAccountIdOrFail());
+                case "<CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>" -> scenarioContext().getDraftAccountIds();
+                default -> List.of(row.get("individual_id"));
+            };
+            assertFalse(individualIds.isEmpty(), "No created draft-account IDs available for " + row);
+            int expectedCount = Integer.parseInt(row.get("expected_count"));
+            assertTrue(expectedCount > 0, "Expected PDPO log count must be positive: " + row);
+            Map<String, Object> criteria = Map.of(
+                "created_by", Map.of("id", row.get("created_by_id"), "type", row.get("created_by_type")),
+                "business_identifier", row.get("business_identifier"),
+                "individual_identifier", individualIds.getFirst(),
+                "individual_type", PdplIdentifierType.DRAFT_ACCOUNT.name()
+            );
+            latestPdpoSearchResponse = waitForPdpoLogs(criteria, response -> response.isArray()
+                && response.size() == expectedCount
+                && response.valueStream().allMatch(log -> matchesExpectedDraftAccountLog(log, row, individualIds)),
+                "exactly " + expectedCount + " logs containing draft accounts " + individualIds);
+        }
+    }
+
+    private boolean matchesExpectedDraftAccountLog(JsonNode log, Map<String, String> row,
+        List<String> individualIds) {
+        return row.get("created_by_id").equals(log.path("created_by").path("id").asString())
+            && row.get("created_by_type").equals(log.path("created_by").path("type").asString())
+            && row.get("business_identifier").equals(log.path("business_identifier").asString())
+            && log.path("individuals").isArray()
+            && individualIds.stream().allMatch(id -> log.path("individuals").valueStream()
+                .anyMatch(individual -> id.equals(individual.path("id").asString())
+                    && PdplIdentifierType.DRAFT_ACCOUNT.name().equals(individual.path("type").asString())));
+    }
+
+    /**
      * Verifies a party operation reached the logging service with the expected actor and subject.
      *
      * @param businessIdentifier TDIA operation recorded by the party endpoint.
@@ -108,12 +152,35 @@ public class LoggingSteps extends BaseStepDef {
         Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
             scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
             PdplIdentifierType.MINOR_CREDITOR.name());
+        assertNoPdpoLogs(criteria);
+    }
+
+    /**
+     * Checks that no matching logs appear throughout the asynchronous logging observation window.
+     *
+     * @param createdById actor identifier to search for, including invalid-token test identifiers.
+     * @param createdByType actor identifier type used by the logging service.
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
+    public void noPdpoLogsExistForCreatedBy(String createdById, String createdByType, String businessIdentifier) {
+        assertNoPdpoLogs(Map.of(
+            "created_by", Map.of("id", createdById, "type", createdByType),
+            "business_identifier", businessIdentifier
+        ));
+    }
+
+    private void assertNoPdpoLogs(Map<String, Object> criteria) {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
-        do {
+        while (true) {
             JsonNode response = searchPdpoLogs(criteria);
-            assertTrue(response.isArray() && response.isEmpty(), "Unexpected minor-creditor PDPO logs: " + response);
+            assertTrue(response.isArray(), "Expected a PDPO search response array but received: " + response);
+            assertTrue(response.isEmpty(), "Unexpected PDPO logs matching " + criteria + ": " + response);
+            if (System.nanoTime() >= deadline) {
+                return;
+            }
             sleepBeforeRetry();
-        } while (System.nanoTime() < deadline);
+        }
     }
 
     private void assertPdpoOperation(String businessIdentifier, String category, String individualId,
@@ -244,13 +311,19 @@ public class LoggingSteps extends BaseStepDef {
      * @return the first non-empty PDPO log search response.
      */
     private JsonNode waitForPdpoLogs(Map<String, Object> criteria) {
+        return waitForPdpoLogs(criteria, response -> response.isArray() && !response.isEmpty(),
+            "at least one log");
+    }
+
+    private JsonNode waitForPdpoLogs(Map<String, Object> criteria, Predicate<JsonNode> matches,
+        String expectation) {
         long timeoutNanos = TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         long deadline = System.nanoTime() + timeoutNanos;
         JsonNode lastResponse = null;
 
         while (System.nanoTime() < deadline) {
             lastResponse = searchPdpoLogs(criteria);
-            if (lastResponse.isArray() && !lastResponse.isEmpty()) {
+            if (matches.test(lastResponse)) {
                 return lastResponse;
             }
 
@@ -258,7 +331,7 @@ public class LoggingSteps extends BaseStepDef {
         }
 
         String lastBody = lastResponse == null ? "<no response>" : lastResponse.toString();
-        fail("Timed out waiting for PDPO logs matching " + criteria + ". Last response body: " + lastBody);
+        fail("Timed out waiting for " + expectation + " matching " + criteria + ". Last response body: " + lastBody);
         return null;
     }
 

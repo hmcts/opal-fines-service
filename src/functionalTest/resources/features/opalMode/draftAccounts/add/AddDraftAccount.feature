@@ -26,9 +26,9 @@ Feature: Create Draft Accounts
       | account_snapshot.business_unit_name | West London                      |
       | account.originator_type             | TFO                              |
 
-    #    Then the logging service contains these PDPO logs:
-    #      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
-    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5622
   Scenario: Create a parent or guardian draft account
@@ -50,10 +50,10 @@ Feature: Create Draft Accounts
       | account_snapshot.submitted_by      | L077JG                           |
       | account_snapshot.submitted_by_name | opal-test                        |
 
-    #    Then the logging service contains these PDPO logs:
-    #      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
-    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-    #      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+      | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5623
   Scenario: Create a minor creditor draft account
@@ -74,10 +74,10 @@ Feature: Create Draft Accounts
       | account_snapshot.submitted_by      | L077JG                           |
       | account_snapshot.submitted_by_name | opal-test                        |
 
-    #    Then the logging service contains these PDPO logs:
-    #      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
-    #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
-    #      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+    Then the logging service contains these PDPO logs:
+      | created_by_id    | created_by_type | business_identifier                         | individual_id                |expected_count |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
+      | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
   @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-7855
   Scenario: Emitted PDPO logs do not expose personal details
@@ -241,4 +241,4 @@ Feature: Create Draft Accounts
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token
     When I attempt to create a draft account with an invalid token
-    #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
+    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Submit Draft Account - Defendant"
