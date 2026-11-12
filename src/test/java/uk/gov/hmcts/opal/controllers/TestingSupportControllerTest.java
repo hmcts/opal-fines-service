@@ -26,7 +26,10 @@ import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
 import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.TestingSupportInterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -37,6 +40,7 @@ import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
 import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
@@ -103,6 +107,10 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private TestingSupportTillService testingSupportTillService;
+
+    @MockitoBean
+    private TestingSupportInterfaceJobService testingSupportInterfaceJobService;
+
 
     @Test
     void isLegacyMode() {
@@ -289,5 +297,21 @@ class TestingSupportControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(localJusticeAreas, response.getBody());
         verify(localJusticeAreaService).searchLocalJusticeAreas(criteria);
+    }
+
+    @Test
+    void testSupportPostInterfaceJobs_orchestratesCallCorrectly() {
+        // Arrange
+        InterfaceJobsCreateRequestTestingSupport request = mock(InterfaceJobsCreateRequestTestingSupport.class);
+        InterfaceJobsCreateResponseTestingSupport response = mock(InterfaceJobsCreateResponseTestingSupport.class);
+        when(testingSupportInterfaceJobService.createInterfaceJobs(request)).thenReturn(response);
+
+        // Act
+        ResponseEntity<InterfaceJobsCreateResponseTestingSupport> responseEntity = controller
+            .testSupportPostInterfaceJobs(request);
+
+        // Assert
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody()).isSameAs(response);
     }
 }

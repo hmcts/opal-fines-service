@@ -1,18 +1,15 @@
 package uk.gov.hmcts.opal.service;
 
-import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Month;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.AdditionalAnswers;
@@ -20,7 +17,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.stubbing.Answer;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
@@ -36,7 +32,7 @@ import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 @ExtendWith(MockitoExtension.class)
-public class TestingSupportServiceTest {
+public class TestingSupportInterfaceJobServiceTest {
     @Mock
     private TestingSupportInterfaceJobMapper interfaceJobMapper;
 
@@ -47,7 +43,7 @@ public class TestingSupportServiceTest {
     private BusinessUnitService businessUnitService;
 
     @InjectMocks
-    private TestingSupportService service;
+    private TestingSupportInterfaceJobService service;
 
     @Test
     void createInterfaceJobs_shouldCorrectlyCreateJobsFromRequest() {

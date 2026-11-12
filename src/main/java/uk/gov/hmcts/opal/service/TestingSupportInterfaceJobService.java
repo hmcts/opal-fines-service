@@ -15,14 +15,13 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSuppor
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseItemTestingSupport;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
 import uk.gov.hmcts.opal.mapper.testing.TestingSupportInterfaceJobMapper;
-import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 @Service
 @Slf4j(topic = "opal.TestingSupportService")
 @RequiredArgsConstructor
-public class TestingSupportService {
+public class TestingSupportInterfaceJobService {
 
     private final InterfaceJobRepository interfaceJobRepository;
     private final BusinessUnitService businessUnitService;
