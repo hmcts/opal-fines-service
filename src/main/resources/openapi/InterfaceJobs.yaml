@@ -231,6 +231,11 @@ paths:
         Get processed file summary information for the supplied interface job ID.
         Results require the Process and Allocate Payments permission in the business unit
         associated with the supplied interface job ID.
+        For completed interface jobs, a Till Summary is available only while the associated
+        Till has a status other than Allocated. The current Till status is checked on each
+        request; an Allocated Till Summary returns 404 Not Found without summary or
+        interface-message data. An ignored-file File Summary remains available when
+        processing created no Till, subject to the same permission and data-availability checks.
       operationId: get_interface_job_processed_file_summary
       parameters:
         - name: id
@@ -265,7 +270,7 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "404":
-          description: Not found
+          description: Summary not found or unavailable because its associated Till is Allocated
           content:
             application/json+problem:
               schema:
@@ -416,25 +421,25 @@ components:
       properties:
         file_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.file_name
+          description: DB Mapping - interface_files.file_name
         source:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.source
+          description: DB Mapping - interface_files.source
         business_unit_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+          description: DB Mapping - business_units.business_unit_name
         total_amount:
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
-          description: Total payment amount in pence. DB Mapping - v_interface_jobs_processed_file_summary.total_amount
+          description: Total payment amount in pence. DB Mapping - interface_files.total_amount
         total_records:
           type: integer
           format: int16
-          description: DB Mapping - v_interface_jobs_processed_file_summary.total_records
+          description: DB Mapping - interface_files.record_count
         total_errors:
           type: integer
           format: int64
           minimum: 0
-          description: DB Mapping - v_interface_jobs_processed_file_summary.total_errors
+          description: Count of Warning and Exception interface_messages associated with the file.
         interface_messages:
           type: array
           items:
