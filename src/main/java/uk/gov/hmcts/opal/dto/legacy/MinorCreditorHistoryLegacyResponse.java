@@ -141,6 +141,14 @@ public class MinorCreditorHistoryLegacyResponse implements ToXmlString, HasError
         @JsonProperty("defendant_account_id")
         @XmlElement(name = "defendant_account_id")
         private Long defendantAccountId;
+
+        @JsonProperty("creditor_transaction_details")
+        @XmlElement(name = "creditor_transaction_details")
+        private LegacyMinorCreditorHistoryDetails creditorTransactionDetails;
+
+        @JsonProperty("note_details")
+        @XmlElement(name = "note_details")
+        private LegacyMinorCreditorHistoryDetails noteDetails;
     }
 
     @Data
