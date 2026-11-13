@@ -30,7 +30,7 @@ INSERT INTO interface_jobs (
     created_datetime,
     completed_datetime
 ) VALUES (
-    257602, 2576, 'Auto Payments In', 'COMPLETED',
+    257602, 2576, 'Auto Payments In', 'IGNORED',
     '2026-07-01 11:00:00', '2026-07-01 11:30:00'
 );
 
@@ -76,6 +76,7 @@ INSERT INTO tills (
     till_id,
     business_unit_id,
     till_number,
+    status,
     owned_by,
     interface_file_id,
     source,
@@ -85,7 +86,7 @@ INSERT INTO tills (
     auto_payment,
     created_date
 ) VALUES (
-    257621, 2576, 901, 'test-user', 257611,
+    257621, 2576, 901, 'Created'::t_till_status_enum, 'test-user', 257611,
     'NATWEST'::t_interface_file_source_enum, 123.45, 3, 'Test User', true,
     '2026-07-01 10:30:00'
 );

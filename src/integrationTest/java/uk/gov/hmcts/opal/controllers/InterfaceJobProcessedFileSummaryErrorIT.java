@@ -19,13 +19,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
+import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggleAspect;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
 import uk.gov.hmcts.opal.mapper.InterfaceJobProcessedFileSummaryMapper;
 import uk.gov.hmcts.opal.mapper.InterfaceMessageMapper;
-import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
-import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
 import uk.gov.hmcts.opal.repository.InterfaceMessageRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -57,16 +56,13 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractWebMvcIntegrationT
     private static final String URL = "/interface-jobs/" + INTERFACE_JOB_ID + "/processed-file-summary";
 
     @MockitoBean
-    private InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+    private InterfaceJobRepository interfaceJobRepository;
 
     @MockitoBean
     private DynamicConfigService dynamicConfigService;
 
     @MockitoBean
     private InterfaceJobService interfaceJobService;
-
-    @MockitoBean
-    private InterfaceJobRepository interfaceJobRepository;
 
     @MockitoBean
     private InterfaceMessageRepository interfaceMessageRepository;
@@ -88,7 +84,7 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractWebMvcIntegrationT
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsQueryTimeoutToRequestTimeout() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new QueryTimeoutException("timeout", null, null));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
@@ -102,7 +98,7 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractWebMvcIntegrationT
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsDatabaseAvailabilityFailureToServiceUnavailable() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new DataAccessResourceFailureException("database unavailable"));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
@@ -116,7 +112,7 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractWebMvcIntegrationT
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsUnexpectedFailureToInternalServerError() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "unexpected failure"));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
