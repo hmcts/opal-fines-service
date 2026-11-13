@@ -23,6 +23,7 @@ import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon.TransactionTypeEnum;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.mapper.AbstractMapperTest;
@@ -175,6 +176,33 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
 
         assertThrows(IllegalArgumentException.class,
             () -> mapper.mapDetails("Amendment", HistoryDetails.builder().build()));
+    }
+
+    @Test
+    void toTransactionTypeReference_handlesProvidedDisplayName() {
+        TransactionTypeReference ref = TransactionTypeReference.builder()
+            .transactionType("FCUEX")
+            .transactionTypeDisplayName("Amount allocated to Custom and Excise")
+            .build();
+
+        CreditorTransactionTypeReferenceCommon transactionType = mapper.toTransactionTypeReference(ref);
+
+        assertNotNull(transactionType);
+        assertEquals(TransactionTypeEnum.FCUEX, transactionType.getTransactionType());
+        assertEquals("Amount allocated to Custom and Excise", transactionType.getTransactionTypeDisplayName());
+    }
+
+    @Test
+    void toTransactionStatusReference_handlesMissingDisplayName() {
+        TransactionTypeReference ref = TransactionTypeReference.builder()
+            .transactionType("WO611B")
+            .build();
+
+        CreditorTransactionTypeReferenceCommon transactionType = mapper.toTransactionTypeReference(ref);
+
+        assertNotNull(transactionType);
+        assertEquals(TransactionTypeEnum.WO611_B, transactionType.getTransactionType());
+        assertEquals("Amount allocated to Section 611B write-off", transactionType.getTransactionTypeDisplayName());
     }
 
     private HistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
