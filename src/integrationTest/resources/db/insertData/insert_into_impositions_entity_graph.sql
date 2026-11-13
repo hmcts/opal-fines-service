@@ -22,15 +22,21 @@ VALUES
     );
 
 INSERT INTO local_justice_areas_legacy (
-    local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date
+    local_justice_area_id, lja_code, name, address_line_1, address_line_4, address_line_5, end_date, lja_type
     )
 VALUES
     (
-    5501, 'IGL1', 'Graph Test LJA', '3 LJA Street', NULL, NULL, NULL
+    5501, 'IGL1', 'Graph Test LJA', '3 LJA Street', NULL, NULL, NULL, 'LJA'
     );
 
-INSERT INTO local_justice_areas
-SELECT * FROM local_justice_areas_legacy WHERE local_justice_area_id = 5501
+INSERT INTO local_justice_areas (
+    local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
+    postcode, address_line_4, address_line_5, end_date, lja_type
+)
+SELECT
+    local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
+    postcode, address_line_4, address_line_5, end_date, lja_type
+FROM local_justice_areas_legacy WHERE local_justice_area_id = 5501
 ON CONFLICT (local_justice_area_id) DO NOTHING;
 
 INSERT INTO courts_legacy (
