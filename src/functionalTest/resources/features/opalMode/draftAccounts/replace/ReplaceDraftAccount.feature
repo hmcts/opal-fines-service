@@ -108,10 +108,9 @@ Feature: Replace Draft Account
       | If-Match          | 0                                           |
     Then the request succeeds
 
-    #    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-    #    And the logging service contains these PDPO logs:
-    #      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
-    #      | 500000000        | OPAL_USER_ID    | Update Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+    And the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                       | individual_id                | expected_count |
+      | 500000000        | OPAL_USER_ID    | Update Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
   @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5670
   Scenario: Update draft account - Parent + MinorCreditor yields two PDPO logs
@@ -133,11 +132,10 @@ Feature: Replace Draft Account
       | If-Match          | 0                                                   |
     Then the request succeeds
 
-    #    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-    #    And the logging service contains these PDPO logs:
-    #      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
-    #      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
-    #      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+    And the logging service contains these PDPO logs:
+      | created_by_id | created_by_type | business_identifier                          | individual_id                | expected_count |
+      | 500000000     | OPAL_USER_ID    | Update Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
+      | 500000000     | OPAL_USER_ID    | Update Draft Account - Minor Creditor        | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Replace draft account - TFO confiscation originator resolves against a valid CRWCRT
