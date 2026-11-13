@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.Transacti
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.TransactionTypeReference;
 import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.CreditorTransactionType;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorTransactionTypeReferenceCommon;
@@ -56,6 +57,7 @@ public interface LegacyMajorCreditorHistoryMapper {
 
     PostedDetailsCommon toPostedDetails(LegacyPostedDetails postedDetails);
 
+    @Mapping(target = "transactionTypeDisplayName", expression = "java(toTransactionTypeDisplayName(legacy))")
     CreditorTransactionTypeReferenceCommon toTransactionTypeReference(TransactionTypeReference legacy);
 
     CreditorTransactionStatusReferenceCommon toTransactionStatusReference(TransactionStatusReference legacy);
@@ -86,6 +88,20 @@ public interface LegacyMajorCreditorHistoryMapper {
     default CreditorTransactionTypeReferenceCommon.TransactionTypeEnum toTransactionTypeEnum(String transactionType) {
         return transactionType == null ? null
             : CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(transactionType);
+    }
+
+    default String toTransactionTypeDisplayName(TransactionTypeReference legacy) {
+        if (legacy == null) {
+            return null;
+        }
+
+        String displayName = legacy.getTransactionTypeDisplayName();
+        if (displayName != null && !displayName.isBlank()) {
+            return displayName;
+        }
+
+        String transactionType = legacy.getTransactionType();
+        return transactionType == null ? null : CreditorTransactionType.valueOf(transactionType).getDisplayName();
     }
 
     default CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum toTransactionStatusEnum(
