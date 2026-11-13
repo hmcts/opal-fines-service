@@ -20,9 +20,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -48,6 +50,14 @@ import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
  */
 abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegrationTest {
 
+    @MockitoBean
+    protected LoggingService loggingService;
+
+    @BeforeEach
+    void acceptPdpoLogs() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+    }
+
     protected static final String URL_BASE = "/minor-creditor-accounts";
     private static final Long GET_MINOR_CREDITOR_ACCOUNT_ID = 607L;
     private static final Long GET_MINOR_CREDITOR_PARTY_ID = 99008L;
@@ -62,16 +72,16 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
     @MockitoSpyBean
     private JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoSpyBean
-    private LoggingService loggingService;
-
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private CreditorAccountRepository creditorAccountRepository;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private PartyRepository partyRepository;
 
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private AmendmentRepository amendmentRepository;
 
     void postSearchMinorCreditorImpl_Success(Logger log) throws Exception {
@@ -1434,7 +1444,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.retriable").value(false));
     }
 
-    void getMinorCreditorAtAGlanceImpl_Success(Logger log) throws Exception {
+    void getMinorCreditorAtAGlanceImpl_Success(Logger log, String defendantOrganisationName) throws Exception {
         ResultActions resultActions = mockMvc.perform(
             get(URL_BASE + "/{id}/at-a-glance", minorCreditorAccountId())
                 .contentType(MediaType.APPLICATION_JSON)
@@ -1475,7 +1485,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.defendant.forenames").value("Michael James"))
             .andExpect(jsonPath("$.defendant.surname").value("Johnson"))
             .andExpect(jsonPath("$.defendant.organisation").value(true))
-            .andExpect(jsonPath("$.defendant.organisation_name").value("Speed Camera Services Ltd"))
+            .andExpect(jsonPath("$.defendant.organisation_name").value(defendantOrganisationName))
 
             // payment
             .andExpect(jsonPath("$.payment.is_bacs").value(true))

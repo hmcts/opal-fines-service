@@ -213,6 +213,22 @@ class CashListReportAssemblerTest {
             assertThat(entry.getPaymentMethod()).isNull());
     }
 
+    @Test
+    void toReportData_displaysOnlyInterfaceNameForAutoSuspensePayment() {
+        PaymentInEntity payment = payment(
+            2L, DestinationType.S, AssociatedRecordType.SUSPENSE_ITEMS,
+            String.valueOf(SUSPENSE_ITEM_ID), """
+                {"interface_name":"PAYMENTS_IN","additional_information":{"originator_reference":"99000001A"}}
+                """);
+        payment.setAutoPayment(true);
+        when(cashListPaymentLinkService.getSuspenseItem(payment)).thenReturn(suspenseItem());
+
+        CashListReportData data = assembler.toReportData(till, businessUnit, List.of(payment));
+
+        assertThat(data.getEntries()).singleElement().satisfies(entry ->
+            assertThat(entry.getNameAdditionalInformation()).isEqualTo("Auto - PAYMENTS_IN"));
+    }
+
     private PaymentInEntity payment(
         Long paymentInId, DestinationType destinationType, AssociatedRecordType associatedRecordType,
         String associatedRecordId,

@@ -5,6 +5,7 @@ Feature: Defendant Account Impositions API In Legacy Mode
   Scenario: Get impositions for a defendant account created with an offence
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
+      | source                       | MAC                                         |
       | business_unit_id             | 77                                          |
       | account                      | draftAccounts/accountJson/adultAccount.json |
       | account_type                 | Fine                                        |

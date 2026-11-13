@@ -7,6 +7,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-991 @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5684
   Scenario: Reject publishing a submitted draft account
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -24,6 +25,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-10196 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5685
   Scenario: Mark a submitted draft account as rejected
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -53,6 +55,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-745 @JIRA-STORY:PO-1858 @cleanUpData @JIRA-EPIC:PO-2220 @JIRA-TEST-KEY:PO-5686
   Scenario: The submitter cannot mark their own submitted draft account as deleted
     And a replaceable draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -75,6 +78,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5687
   Scenario: Reject publishing a parent or guardian draft account
     And a draft account exists with the following details
+      | source            | MAC                                                    |
       | business_unit_id  | 73                                                     |
       | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
       | account_type      | Fine                                                   |
@@ -92,6 +96,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5688
   Scenario: Reject publishing a minor creditor draft account
     And a draft account exists with the following details
+      | source            | MAC                                                 |
       | business_unit_id  | 73                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
       | account_type      | Fine                                                |
@@ -109,6 +114,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5689
   Scenario: Reject publishing a minor creditor draft account with a defendant
     And a draft account exists with the following details
+      | source            | MAC                                                 |
       | business_unit_id  | 73                                                  |
       | account           | draftAccounts/accountJson/minorCreditorAccount.json |
       | account_type      | Fine                                                |
@@ -126,6 +132,7 @@ Feature: Update Draft Accounts
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5690
   Scenario: Reject updating a draft account with an invalid token
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -135,8 +142,7 @@ Feature: Update Draft Accounts
     When I attempt to update the draft account with an invalid token
     Then the request is rejected as unauthorized
 
-    #    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-    #    Then no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for the created draft account and business_identifier "Re-submit Draft Account - Defendant"
 
   @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691
   Scenario: Reject updating an unknown draft account id
@@ -148,5 +154,4 @@ Feature: Update Draft Accounts
       | If-Match         | 0                  |
     Then the request is rejected as not acceptable
 
-#    NOTE: This is temporarily commented out as the PDPO logging currently causes the log file to grow significantly when running the tests, which is causing issues in CI. Once we have a solution in place to prevent the log file from growing too much, we can uncomment this and verify the PDPO logs are being created as expected.
-#    Then no PDPO logs exist for created_by id "PATCH007", type "OPAL_USER_ID" and business_identifier "Re-submit Draft Account - Defendant"
+    Then no PDPO logs exist for draft account "00000000-0000-0000-0000-000000000000" and business_identifier "Re-submit Draft Account - Defendant"

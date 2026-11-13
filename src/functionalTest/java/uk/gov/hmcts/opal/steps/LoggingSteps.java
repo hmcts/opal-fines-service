@@ -7,11 +7,16 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import net.serenitybdd.rest.SerenityRest;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -60,12 +65,180 @@ public class LoggingSteps extends BaseStepDef {
      */
     @Then("the logging service emits PDPO logs for the created draft account id")
     public void loggingServiceEmitsPdpoLogsForTheCreatedDraftAccountId() {
-        latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
-            "created_by_id", PDPO_CREATED_BY_ID,
-            "created_by_type", PDPO_CREATED_BY_TYPE,
-            "business_identifier", PDPO_BUSINESS_IDENTIFIER,
-            "individual_id", scenarioContext().getLastDraftAccountIdOrFail()
+        latestPdpoSearchResponse = waitForPdpoLogs(pdpoSearchCriteria(PDPO_BUSINESS_IDENTIFIER,
+            scenarioContext().getLastDraftAccountIdOrFail(), PdplIdentifierType.DRAFT_ACCOUNT.name()));
+    }
+
+    /**
+     * Checks persisted draft-account logs against each row, allowing for asynchronous delivery.
+     *
+     * @param expectedLogs actor, operation, draft-account identifiers and exact count to verify.
+     */
+    @Then("the logging service contains these PDPO logs:")
+    public void loggingServiceContainsThesePdpoLogs(DataTable expectedLogs) {
+        List<Map<String, String>> rows = expectedLogs.asMaps(String.class, String.class);
+        assertFalse(rows.isEmpty(), "At least one expected PDPO log row is required");
+        for (Map<String, String> row : rows) {
+            List<String> individualIds = switch (row.get("individual_id")) {
+                case "<CREATED_DRAFT_ACCOUNT_ID>" -> List.of(scenarioContext().getLastDraftAccountIdOrFail());
+                case "<CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>" -> scenarioContext().getDraftAccountIds();
+                default -> List.of(row.get("individual_id"));
+            };
+            assertFalse(individualIds.isEmpty(), "No created draft-account IDs available for " + row);
+            int expectedCount = Integer.parseInt(row.get("expected_count"));
+            assertTrue(expectedCount > 0, "Expected PDPO log count must be positive: " + row);
+            Map<String, Object> criteria = Map.of(
+                "created_by", Map.of("id", row.get("created_by_id"), "type", row.get("created_by_type")),
+                "business_identifier", row.get("business_identifier"),
+                "individual_identifier", individualIds.getFirst(),
+                "individual_type", PdplIdentifierType.DRAFT_ACCOUNT.name()
+            );
+            latestPdpoSearchResponse = waitForPdpoLogs(criteria, response -> response.isArray()
+                && response.size() == expectedCount
+                && response.valueStream().allMatch(log -> matchesExpectedDraftAccountLog(log, row, individualIds)),
+                "exactly " + expectedCount + " logs containing draft accounts " + individualIds);
+        }
+    }
+
+    private boolean matchesExpectedDraftAccountLog(JsonNode log, Map<String, String> row,
+        List<String> individualIds) {
+        return row.get("created_by_id").equals(log.path("created_by").path("id").asString())
+            && row.get("created_by_type").equals(log.path("created_by").path("type").asString())
+            && row.get("business_identifier").equals(log.path("business_identifier").asString())
+            && log.path("individuals").isArray()
+            && individualIds.stream().allMatch(id -> log.path("individuals").valueStream()
+                .anyMatch(individual -> id.equals(individual.path("id").asString())
+                    && PdplIdentifierType.DRAFT_ACCOUNT.name().equals(individual.path("type").asString())));
+    }
+
+    /**
+     * Verifies a party operation reached the logging service with the expected actor and subject.
+     *
+     * @param businessIdentifier TDIA operation recorded by the party endpoint.
+     * @param category processing category, using the logging API's display value.
+     * @param partyType scenario party role whose identifier was retained before replacement or removal.
+     */
+    @Then("the logging service emits {string} with category {string} for the {string} party")
+    public void loggingServiceEmitsPartyOperation(String businessIdentifier, String category, String partyType) {
+        String partyId = scenarioContext().getPartyIdOrFail(partyType);
+        String individualType = switch (partyType) {
+            case "Defendant" -> PdplIdentifierType.DEFENDANT_ACCOUNT.name();
+            case "Parent/Guardian" -> PdplIdentifierType.PARENT_GUARDIAN.name();
+            default -> throw new IllegalArgumentException("Unknown party type: " + partyType);
+        };
+        assertPdpoOperation(businessIdentifier, category, partyId, individualType);
+    }
+
+    /**
+     * Verifies an update log identifies the scenario's minor-creditor account and current OPAL user.
+     *
+     * @param businessIdentifier operation recorded by the minor-creditor endpoint.
+     * @param category processing category using the logging API's display value.
+     */
+    @Then("the logging service emits {string} with category {string} for the created minor creditor account")
+    public void loggingServiceEmitsMinorCreditorOperation(String businessIdentifier, String category) {
+        assertPdpoOperation(businessIdentifier, category,
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+            PdplIdentifierType.MINOR_CREDITOR.name());
+    }
+
+    /**
+     * Checks for unwanted logs throughout the asynchronous logging observation window.
+     *
+     * @param businessIdentifier operation that must not be recorded for the scenario's company account.
+     */
+    @Then("the logging service does not emit {string} for the created minor creditor account")
+    public void loggingServiceDoesNotEmitMinorCreditorOperation(String businessIdentifier) {
+        Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+            PdplIdentifierType.MINOR_CREDITOR.name());
+        assertNoPdpoLogs(criteria);
+    }
+
+    /**
+     * Checks that no matching logs appear throughout the asynchronous logging observation window.
+     *
+     * @param createdById actor identifier to search for, including invalid-token test identifiers.
+     * @param createdByType actor identifier type used by the logging service.
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for created_by id {string}, type {string} and business_identifier {string}")
+    public void noPdpoLogsExistForCreatedBy(String createdById, String createdByType, String businessIdentifier) {
+        assertNoPdpoLogs(Map.of(
+            "created_by", Map.of("id", createdById, "type", createdByType),
+            "business_identifier", businessIdentifier
         ));
+    }
+
+    /**
+     * Checks for unwanted draft-account logs regardless of which actor was recorded.
+     *
+     * @param draftAccountId account targeted by the rejected request.
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for draft account {string} and business_identifier {string}")
+    public void noPdpoLogsExistForDraftAccount(String draftAccountId, String businessIdentifier) {
+        assertNoPdpoLogs(Map.of(
+            "business_identifier", businessIdentifier,
+            "individual_identifier", draftAccountId,
+            "individual_type", PdplIdentifierType.DRAFT_ACCOUNT.name()
+        ));
+    }
+
+    /**
+     * Checks for unwanted logs concerning the scenario's newly created draft account.
+     *
+     * @param businessIdentifier operation that must not have been logged.
+     */
+    @Then("no PDPO logs exist for the created draft account and business_identifier {string}")
+    public void noPdpoLogsExistForCreatedDraftAccount(String businessIdentifier) {
+        noPdpoLogsExistForDraftAccount(scenarioContext().getLastDraftAccountIdOrFail(), businessIdentifier);
+    }
+
+    private void assertNoPdpoLogs(Map<String, Object> criteria) {
+        observePdpoLogs(criteria, JsonNode::isEmpty, "Unexpected PDPO logs matching ");
+    }
+
+    private void observePdpoLogs(Map<String, Object> criteria, Predicate<JsonNode> acceptable, String failureMessage) {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
+        while (true) {
+            JsonNode response = searchPdpoLogs(criteria);
+            assertTrue(response.isArray(), "Expected a PDPO search response array but received: " + response);
+            assertTrue(acceptable.test(response), failureMessage + criteria + ": " + response);
+            if (System.nanoTime() >= deadline) {
+                return;
+            }
+            sleepBeforeRetry();
+        }
+    }
+
+    private void assertPdpoOperation(String businessIdentifier, String category, String individualId,
+        String individualType) {
+        Map<String, Object> criteria = new LinkedHashMap<>(pdpoSearchCriteria(businessIdentifier,
+            individualId, individualType));
+        criteria.put("category", category);
+        latestPdpoSearchResponse = waitForPdpoLogs(criteria);
+
+        for (JsonNode log : requireLatestPdpoSearchResponse()) {
+            assertEquals(businessIdentifier, log.path("business_identifier").asString());
+            assertEquals(category, log.path("category").asString());
+            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asString());
+            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asString());
+            assertTrue(StreamSupport.stream(log.path("individuals").spliterator(), false)
+                .anyMatch(individual -> individualId.equals(individual.path("id").asString())
+                    && individualType.equals(individual.path("type").asString())),
+                "Expected the log to identify " + individualType + " " + individualId);
+        }
+    }
+
+    private Map<String, Object> pdpoSearchCriteria(String businessIdentifier, String individualId,
+        String individualType) {
+        return Map.of(
+            "created_by", Map.of("id", PDPO_CREATED_BY_ID, "type", PDPO_CREATED_BY_TYPE),
+            "business_identifier", businessIdentifier,
+            "individual_identifier", individualId,
+            "individual_type", individualType
+        );
     }
 
     /**
@@ -167,34 +340,39 @@ public class LoggingSteps extends BaseStepDef {
      * @return the first non-empty PDPO log search response.
      */
     private JsonNode waitForPdpoLogs(Map<String, Object> criteria) {
+        return waitForPdpoLogs(criteria, response -> response.isArray() && !response.isEmpty(),
+            "at least one log");
+    }
+
+    private JsonNode waitForPdpoLogs(Map<String, Object> criteria, Predicate<JsonNode> matches,
+        String expectation) {
         long timeoutNanos = TimeUnit.SECONDS.toNanos(DEFAULT_TIMEOUT_SECONDS);
         long deadline = System.nanoTime() + timeoutNanos;
-        Response lastResponse = null;
+        JsonNode lastResponse = null;
 
         while (System.nanoTime() < deadline) {
-            lastResponse = SerenityRest.given()
-                .accept("*/*")
-                .contentType("application/json")
-                .body(writeJson(criteria))
-                .when()
-                .post(getLoggingTestUrl() + SEARCH_PATH);
-
-            if (lastResponse.statusCode() != 200) {
-                fail("Expected PDPO log search to return 200 but was " + lastResponse.statusCode()
-                    + " with body: " + lastResponse.asString());
-            }
-
-            JsonNode responseBody = readJson(lastResponse.asString());
-            if (responseBody.isArray() && !responseBody.isEmpty()) {
-                return responseBody;
+            lastResponse = searchPdpoLogs(criteria);
+            if (matches.test(lastResponse)) {
+                return lastResponse;
             }
 
             sleepBeforeRetry();
         }
 
-        String lastBody = lastResponse == null ? "<no response>" : lastResponse.asString();
-        fail("Timed out waiting for PDPO logs matching " + criteria + ". Last response body: " + lastBody);
+        String lastBody = lastResponse == null ? "<no response>" : lastResponse.toString();
+        fail("Timed out waiting for " + expectation + " matching " + criteria + ". Last response body: " + lastBody);
         return null;
+    }
+
+    private JsonNode searchPdpoLogs(Map<String, Object> criteria) {
+        Response response = SerenityRest.given()
+            .accept("*/*")
+            .contentType("application/json")
+            .body(writeJson(criteria))
+            .when()
+            .post(getLoggingTestUrl() + SEARCH_PATH);
+        assertEquals(200, response.statusCode(), "PDPO log search failed: " + response.asString());
+        return readJson(response.asString());
     }
 
     /**

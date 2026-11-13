@@ -5,6 +5,7 @@ Feature: Get Draft Account Authorisation
   Scenario: Get Draft Account - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -22,6 +23,7 @@ Feature: Get Draft Account Authorisation
   Scenario: Get Draft Account - No Permission in same BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -35,6 +37,7 @@ Feature: Get Draft Account Authorisation
   Scenario: Get Draft Account - Permission in different BU
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

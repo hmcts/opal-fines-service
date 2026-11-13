@@ -9,6 +9,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
@@ -33,13 +34,13 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String BUSINESS_UNIT_ID = "77";
     private static final String LEGACY_SAFE_COURT_ID = "770000000001";
-    private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
     private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
     private static final String LEGACY_ENFORCEMENT_OVERRIDE_RESULT_ID = "ABDC";
     private static final String LEGACY_ENFORCER_ID = "770000000001";
     private static final String REPLACED_FORENAMES = "Audit Party Replace";
+    private static final String CONVERTED_COMPANY_NAME = "PDPO Converted Company";
 
     private final DefendantAccountEnforcementWorkflow enforcementWorkflow = new DefendantAccountEnforcementWorkflow();
     private final DefendantAccountEnforcementsActions enforcementActions = new DefendantAccountEnforcementsActions();
@@ -129,6 +130,20 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      */
     @When("I replace the defendant party for the created defendant account")
     public void replaceDefendantPartyForCreatedDefendantAccount() throws Exception {
+        replaceDefendantParty(false);
+    }
+
+    /**
+     * Converts the scenario's individual defendant to a company using the current party contract.
+     *
+     * @throws Exception if the current party response cannot be parsed.
+     */
+    @When("I convert the defendant party for the created defendant account to a company")
+    public void convertDefendantPartyForCreatedDefendantAccountToCompany() throws Exception {
+        replaceDefendantParty(true);
+    }
+
+    private void replaceDefendantParty(boolean organisation) throws Exception {
         Response headerSummary = authorisedJsonRequest()
             .when()
             .get(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountId() + "/header-summary");
@@ -150,9 +165,18 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         ObjectNode requestParty = replacementPartyRequest((ObjectNode) defendantAccountParty);
         ensureOptionalPartySectionsPresent(requestParty);
 
-        JsonNode individualDetails = requestParty.path("party_details").path("individual_details");
-        assertTrue(individualDetails.isObject(), "Expected individual_details object on defendant party");
-        ((ObjectNode) individualDetails).put("forenames", REPLACED_FORENAMES);
+        ObjectNode partyDetails = (ObjectNode) requestParty.path("party_details");
+        if (organisation) {
+            partyDetails.put("organisation_flag", true);
+            partyDetails.remove("individual_details");
+            ObjectNode organisationDetails = partyDetails.putObject("organisation_details");
+            organisationDetails.put("organisation_name", CONVERTED_COMPANY_NAME);
+            organisationDetails.putNull("organisation_aliases");
+        } else {
+            JsonNode individualDetails = partyDetails.path("individual_details");
+            assertTrue(individualDetails.isObject(), "Expected individual_details object on defendant party");
+            ((ObjectNode) individualDetails).put("forenames", REPLACED_FORENAMES);
+        }
         String ifMatch = headerSummary.getHeader("ETag");
 
         authorisedJsonRequest()
@@ -206,8 +230,9 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         assertTrue(postedDetails.isObject(), "Expected payment_terms.posted_details object");
         // Legacy returns the posting business user ID as the username too.
         boolean legacyMode = isLegacyMode();
-        assertEquals(EXPECTED_BUSINESS_USER_ID, postedDetails.path("posted_by").asText(), "Unexpected posted_by");
-        assertEquals(legacyMode ? EXPECTED_BUSINESS_USER_ID : TEST_USER,
+        String expectedBusinessUserId = expectedBusinessUserId();
+        assertEquals(expectedBusinessUserId, postedDetails.path("posted_by").asText(), "Unexpected posted_by");
+        assertEquals(legacyMode ? expectedBusinessUserId : TEST_USER,
             postedDetails.path("posted_by_name").asText(), "Unexpected posted_by_name");
     }
 
@@ -218,6 +243,28 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      */
     @Then("the replace defendant account party response matches the documented contract")
     public void replaceDefendantAccountPartyResponseMatchesTheDocumentedContract() throws Exception {
+        JsonNode defendantAccountParty = successfulPartyReplacement();
+        assertEquals(
+            REPLACED_FORENAMES,
+            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asString(),
+            "Unexpected forenames after replace"
+        );
+    }
+
+    /**
+     * Checks the conversion response and remembers the defendant identifier for PDPO assertions.
+     *
+     * @throws Exception if the conversion response cannot be parsed.
+     */
+    @Then("the converted defendant party response identifies a company")
+    public void convertedDefendantPartyResponseIdentifiesCompany() throws Exception {
+        JsonNode partyDetails = successfulPartyReplacement().path("party_details");
+        assertTrue(partyDetails.path("organisation_flag").asBoolean(), "Expected a company defendant");
+        assertEquals(CONVERTED_COMPANY_NAME,
+            partyDetails.path("organisation_details").path("organisation_name").asString());
+    }
+
+    private JsonNode successfulPartyReplacement() throws Exception {
         Response response = SerenityRest.lastResponse();
         assertEquals(200, response.statusCode(), "Unexpected replace-party status: " + response.getBody().asString());
         assertFalse(blank(response.getHeader("ETag")), "Expected replace-party response ETag");
@@ -230,29 +277,23 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             defendantAccountParty.path("defendant_account_party_type").asText(),
             "Unexpected defendant_account_party_type"
         );
-        assertEquals(
-            REPLACED_FORENAMES,
-            defendantAccountParty.path("party_details").path("individual_details").path("forenames").asText(),
-            "Unexpected forenames after replace"
-        );
+        scenarioContext().rememberPartyId("Defendant",
+            defendantAccountParty.path("party_details").path("party_id").asString());
+        return defendantAccountParty;
     }
 
     /**
      * Asserts all amendment history rows generated for the created account carry the expected
      * audit identity.
      *
-     * @param expectedBusinessUserId expected posted_by value.
-     * @param expectedUserName expected Opal posted_by_name value; Legacy uses the business user ID.
      * @throws Exception if the history response body cannot be parsed.
      */
-    @Then("the created defendant account amendment history is recorded for business user {string} "
-        + "and username {string}")
-    public void createdDefendantAccountAmendmentHistoryIsRecordedForBusinessUserAndUsername(
-        String expectedBusinessUserId,
-        String expectedUserName
-    ) throws Exception {
+    @Then("the created defendant account amendment history is recorded for the audit test user")
+    public void createdDefendantAccountAmendmentHistoryIsRecordedForAuditTestUser() throws Exception {
         // Legacy history exposes the business user ID in both audit identity fields.
-        String expectedPostedByName = isLegacyMode() ? expectedBusinessUserId : expectedUserName;
+        boolean legacyMode = isLegacyMode();
+        String expectedBusinessUserId = expectedBusinessUserId();
+        String expectedPostedByName = legacyMode ? expectedBusinessUserId : TEST_USER;
         List<JsonNode> items = amendmentHistoryItems();
         if (!items.isEmpty()) {
             for (JsonNode item : items) {
@@ -329,6 +370,7 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
 
     private Map<String, String> auditableAccountData(String submittedBy, String accountFixture) {
         Map<String, String> accountData = new LinkedHashMap<>();
+        accountData.put("source", "MAC");
         accountData.put("business_unit_id", BUSINESS_UNIT_ID);
         accountData.put("account", accountFixture);
         accountData.put("account_type", "Fine");
@@ -337,6 +379,10 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
         }
         return accountData;
+    }
+
+    private String expectedBusinessUserId() {
+        return new CommonResponseAssertions().getCurrentUserBusinessUnitUserId(BUSINESS_UNIT_ID);
     }
 
     private boolean isLegacyMode() {
