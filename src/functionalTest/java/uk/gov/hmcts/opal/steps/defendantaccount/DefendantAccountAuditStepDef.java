@@ -9,6 +9,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.actions.defendantaccount.DefendantAccountEnforcementsActions;
+import uk.gov.hmcts.opal.assertions.CommonResponseAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 import uk.gov.hmcts.opal.steps.BearerTokenStepDef;
 import uk.gov.hmcts.opal.workflows.defendantaccount.DefendantAccountEnforcementWorkflow;
@@ -33,7 +34,6 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
     private static final String TEST_USER = "opal-test@dev.platform.hmcts.net";
     private static final String BUSINESS_UNIT_ID = "77";
     private static final String LEGACY_SAFE_COURT_ID = "770000000001";
-    private static final String EXPECTED_BUSINESS_USER_ID = "L077JG";
     private static final String ACCOUNT_FIXTURE = "draftAccounts/accountJson/auditableAccount.json";
     private static final String POSITIVE_BALANCE_ACCOUNT_FIXTURE = "draftAccounts/accountJson/adultAccount.json";
     private static final String ENFORCEMENT_OVERRIDE_RESULT_ID = "FWEC";
@@ -230,8 +230,9 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
         assertTrue(postedDetails.isObject(), "Expected payment_terms.posted_details object");
         // Legacy returns the posting business user ID as the username too.
         boolean legacyMode = isLegacyMode();
-        assertEquals(EXPECTED_BUSINESS_USER_ID, postedDetails.path("posted_by").asText(), "Unexpected posted_by");
-        assertEquals(legacyMode ? EXPECTED_BUSINESS_USER_ID : TEST_USER,
+        String expectedBusinessUserId = expectedBusinessUserId();
+        assertEquals(expectedBusinessUserId, postedDetails.path("posted_by").asText(), "Unexpected posted_by");
+        assertEquals(legacyMode ? expectedBusinessUserId : TEST_USER,
             postedDetails.path("posted_by_name").asText(), "Unexpected posted_by_name");
     }
 
@@ -285,18 +286,14 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
      * Asserts all amendment history rows generated for the created account carry the expected
      * audit identity.
      *
-     * @param expectedBusinessUserId expected posted_by value.
-     * @param expectedUserName expected Opal posted_by_name value; Legacy uses the business user ID.
      * @throws Exception if the history response body cannot be parsed.
      */
-    @Then("the created defendant account amendment history is recorded for business user {string} "
-        + "and username {string}")
-    public void createdDefendantAccountAmendmentHistoryIsRecordedForBusinessUserAndUsername(
-        String expectedBusinessUserId,
-        String expectedUserName
-    ) throws Exception {
+    @Then("the created defendant account amendment history is recorded for the audit test user")
+    public void createdDefendantAccountAmendmentHistoryIsRecordedForAuditTestUser() throws Exception {
         // Legacy history exposes the business user ID in both audit identity fields.
-        String expectedPostedByName = isLegacyMode() ? expectedBusinessUserId : expectedUserName;
+        boolean legacyMode = isLegacyMode();
+        String expectedBusinessUserId = expectedBusinessUserId();
+        String expectedPostedByName = legacyMode ? expectedBusinessUserId : TEST_USER;
         List<JsonNode> items = amendmentHistoryItems();
         if (!items.isEmpty()) {
             for (JsonNode item : items) {
@@ -382,6 +379,10 @@ public class DefendantAccountAuditStepDef extends BaseStepDef {
             accountData.put("account_enforcement_court_id", LEGACY_SAFE_COURT_ID);
         }
         return accountData;
+    }
+
+    private String expectedBusinessUserId() {
+        return new CommonResponseAssertions().getCurrentUserBusinessUnitUserId(BUSINESS_UNIT_ID);
     }
 
     private boolean isLegacyMode() {
