@@ -2,8 +2,6 @@ package uk.gov.hmcts.opal.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -12,7 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
+import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessage;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageGroup;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageType;
@@ -29,12 +27,12 @@ class InterfaceJobProcessedFileSummaryMapperTest {
     @CsvSource({"0, 0.00", "1, 0.01", "1000, 10.00", "12345, 123.45"})
     void toResponseConvertsPenceAndPreservesMessages(BigDecimal pence, BigDecimal pounds) {
         // Arrange
-        InterfaceJobProcessedFileSummaryEntity summary = mock(InterfaceJobProcessedFileSummaryEntity.class);
-        when(summary.getInterfaceFileName()).thenReturn("payments.dat");
-        when(summary.getSource()).thenReturn("NATWEST");
-        when(summary.getTotalAmount()).thenReturn(pence);
-        when(summary.getTotalRecords()).thenReturn((short) 2);
-        when(summary.getTotalErrors()).thenReturn(1L);
+        InterfaceFileEntity file = InterfaceFileEntity.builder()
+            .fileName("payments.dat")
+            .source("NATWEST")
+            .totalAmount(pence)
+            .recordCount((short) 2)
+            .build();
 
         InterfaceJobsMessage message = new InterfaceJobsMessage()
             .interfaceMessagesId(INTERFACE_MESSAGE_ID)
@@ -48,14 +46,14 @@ class InterfaceJobProcessedFileSummaryMapperTest {
 
         // Act
         InterfaceJobsProcessedFileSummaryResponse response = mapper.toResponse(
-            summary, "Luton", List.of(messageGroup));
+            file, "Luton", 1L, List.of(messageGroup));
 
         // Assert
         assertEquals("payments.dat", response.getFileName());
         assertEquals("NATWEST", response.getSource());
         assertEquals("Luton", response.getBusinessUnitName());
         assertEquals(0, pounds.compareTo(response.getTotalAmount()));
-        assertEquals(pence, summary.getTotalAmount());
+        assertEquals(pence, file.getTotalAmount());
         assertEquals((short) 2, response.getTotalRecords());
         assertEquals(1L, response.getTotalErrors());
         assertEquals(List.of(messageGroup), response.getInterfaceMessages());
@@ -66,9 +64,9 @@ class InterfaceJobProcessedFileSummaryMapperTest {
 
     @Test
     void toResponsePreservesNullTotal() {
-        InterfaceJobProcessedFileSummaryEntity summary = mock(InterfaceJobProcessedFileSummaryEntity.class);
+        InterfaceFileEntity file = InterfaceFileEntity.builder().build();
 
-        InterfaceJobsProcessedFileSummaryResponse response = mapper.toResponse(summary, "Luton", List.of());
+        InterfaceJobsProcessedFileSummaryResponse response = mapper.toResponse(file, "Luton", 0L, List.of());
 
         assertNull(response.getTotalAmount());
     }
