@@ -41,8 +41,8 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateFileItemTestingSuppo
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItemTestingSupport;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSupport;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSourceTestingSupport;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatusTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
@@ -285,7 +285,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .fileName("file-name.dat")
             .overrideInhibits(true)
             .recordCount((short)4)
-            .source(InterfaceJobsFileSourceTestingSupport.CDER)
+            .source(InterfaceJobsFileSource.CDER)
             .totalAmount(BigDecimal.valueOf(200L))
             .build();
 
@@ -293,7 +293,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .businessUnitId((short)77)
             .interfaceFile(fileItem)
             .interfaceName("an interface")
-            .status(InterfaceJobsJobStatusTestingSupport.CREATED)
+            .status(InterfaceJobsJobStatus.CREATED)
             .createdDatetime(LocalDateTime.now())
             .build();
 
@@ -332,7 +332,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .fileName("file-name.dat")
             .overrideInhibits(true)
             .recordCount((short)4)
-            .source(InterfaceJobsFileSourceTestingSupport.CDER)
+            .source(InterfaceJobsFileSource.CDER)
             .totalAmount(BigDecimal.valueOf(200L))
             .build();
 
@@ -340,7 +340,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
             .businessUnitId((short)77)
             .interfaceFile(fileItem)
             .interfaceName("an interface")
-            .status(InterfaceJobsJobStatusTestingSupport.CREATED)
+            .status(InterfaceJobsJobStatus.CREATED)
             .createdDatetime(LocalDateTime.now())
             .build();
 

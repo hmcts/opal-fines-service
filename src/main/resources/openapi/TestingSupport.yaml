@@ -92,7 +92,7 @@ components:
           minLength: 1
           description: DB Mapping - interface_jobs.interface_name
         status:
-          $ref: '#/components/schemas/InterfaceJobsJobStatus'
+          $ref: './InterfaceJobs.yaml#/components/schemas/InterfaceJobsJobStatus'
           description: DB Mapping - interface_jobs.status
         interface_file:
           $ref: '#/components/schemas/InterfaceJobsCreateFileItem'
@@ -125,7 +125,7 @@ components:
           minLength: 1
           description: DB Mapping - interface_files.file_name
         source:
-          $ref: '#/components/schemas/InterfaceJobsFileSource'
+          $ref: './InterfaceJobs.yaml#/components/schemas/InterfaceJobsFileSource'
           description: DB Mapping - interface_files.source
         override_inhibits:
           type: boolean
@@ -171,26 +171,3 @@ components:
         interface_file_id:
           $ref: './types.yaml#/components/schemas/BigInt'
           description: DB Mapping - interface_files.interface_file_id
-
-    InterfaceJobsFileSource:
-      type: string
-      enum:
-        - NATWEST
-        - ALLPAY
-        - ALLPAY_DD
-        - BARCLAYCARD
-        - BTECKOH
-        - DWP
-        - CDER
-        - JACOBS
-        - MARSTON
-        - OTHER
-
-    InterfaceJobsJobStatus:
-      type: string
-      enum:
-        - CREATED
-        - PROCESSING
-        - IGNORED
-        - FAILED
-        - COMPLETED

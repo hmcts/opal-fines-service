@@ -31,8 +31,8 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateFileItemTestingSuppo
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItemTestingSupport;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSupport;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSourceTestingSupport;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatusTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
 import uk.gov.hmcts.opal.mapper.testing.TestingSupportInterfaceJobMapper;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
@@ -78,7 +78,7 @@ public class TestingSupportInterfaceJobServiceTest {
             .fileName(fileName)
             .overrideInhibits(true)
             .recordCount(recordCount)
-            .source(InterfaceJobsFileSourceTestingSupport.CDER)
+            .source(InterfaceJobsFileSource.CDER)
             .totalAmount(totalAmount)
             .sourceJsonId(sourceJsonId)
             .transformedJsonId(transformedJsonId)
@@ -88,7 +88,7 @@ public class TestingSupportInterfaceJobServiceTest {
             .businessUnitId(businessUnitId)
             .interfaceFile(fileItem)
             .interfaceName(interfaceName)
-            .status(InterfaceJobsJobStatusTestingSupport.COMPLETED)
+            .status(InterfaceJobsJobStatus.COMPLETED)
             .createdDatetime(created)
             .startedDatetime(started)
             .completedDatetime(completed)
