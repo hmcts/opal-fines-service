@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.service.opal.SuspenseItemDeletionService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
 import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 
@@ -103,6 +104,9 @@ class TestingSupportControllerTest {
 
     @MockitoBean
     private TestingSupportTillService testingSupportTillService;
+
+    @MockitoBean
+    private SuspenseItemDeletionService suspenseItemDeletionService;
 
     @Test
     void isLegacyMode() {
@@ -289,5 +293,13 @@ class TestingSupportControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(localJusticeAreas, response.getBody());
         verify(localJusticeAreaService).searchLocalJusticeAreas(criteria);
+    }
+
+    @Test
+    void deleteSuspenseItem() {
+        ResponseEntity<Void> response = controller.deleteSuspenseItem(123L);
+
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(suspenseItemDeletionService).deleteSuspenseItem(123L);
     }
 }
