@@ -36,7 +36,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -144,7 +144,7 @@ class OpalDefendantAccountUpdateTest {
             .enforcerId(22L)
             .build());
 
-        LocalJusticeAreaLegacyEntity lja = mock(LocalJusticeAreaLegacyEntity.class);
+        LocalJusticeAreaEntity lja = mock(LocalJusticeAreaEntity.class);
         when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
         when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
         when(noteRepository.save(any())).thenReturn(null);

@@ -22,10 +22,6 @@
           "format": "int16",
           "description": "Unique ID for the Local Justice Area"
         },
-        "lja_code": {
-          "type": "string",
-          "description": "The code for the LJA"
-        },
         "lja_type": {
           "type": "string",
           "description": "The type of the LJA"
