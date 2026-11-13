@@ -325,11 +325,19 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         private static final long REFERENCE_ID = 10877001L;
         private static final String UPDATED_TEXT = "UPDATED-REFERENCE";
 
-        @Test
+        @ParameterizedTest
+        @CsvSource({
+            "APR, APR",
+            "APR, CONSOLIDATED",
+            "APR, AMALGAMATED",
+            "ACC, APR"
+        })
         @JiraStory("PO-10879")
         @JiraEpic("PO-7465")
         @DisplayName("Updates APR text and version, returns the new ETag, and adds an activity note")
-        void updatesReferenceVersionAndAddsActivityNote() throws Exception {
+        void updatesReferenceVersionAndAddsActivityNote(Category category, Relationship relationship) throws Exception {
+            final long versionBeforeUpdate = setReferenceClassification(REFERENCE_ID, category, relationship)
+                .getVersionNumber();
             LocalDateTime beforeRequest = LocalDateTime.now(ZoneOffset.UTC);
 
             updateReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, UPDATED_TEXT, "\"7\"")
@@ -340,17 +348,17 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                 .andExpect(jsonPath("$.defendant_account_id").value(ACCOUNT_WITH_REFERENCES))
                 .andExpect(jsonPath("$.business_unit_id").value((int) BUSINESS_UNIT_ID))
                 .andExpect(jsonPath("$.apr_text").value(UPDATED_TEXT))
-                .andExpect(jsonPath("$.relationship").value("APR"))
-                .andExpect(jsonPath("$.category").value("APR"))
+                .andExpect(jsonPath("$.relationship").value(relationship.name()))
+                .andExpect(jsonPath("$.category").value(category.name()))
                 .andExpect(jsonPath("$.version").doesNotExist());
 
             LocalDateTime afterRequest = LocalDateTime.now(ZoneOffset.UTC);
             AlternatePaymentReferenceEntity saved = alternatePaymentReferenceRepository.findById(REFERENCE_ID)
                 .orElseThrow();
             assertThat(saved.getAprText()).isEqualTo(UPDATED_TEXT);
-            assertThat(saved.getVersionNumber()).isEqualTo(3L);
-            assertThat(saved.getRelationship()).isEqualTo(Relationship.APR);
-            assertThat(saved.getCategory()).isEqualTo(Category.APR);
+            assertThat(saved.getVersionNumber()).isEqualTo(versionBeforeUpdate + 1);
+            assertThat(saved.getRelationship()).isEqualTo(relationship);
+            assertThat(saved.getCategory()).isEqualTo(category);
             assertThat(saved.getCreatedDatetime()).isEqualTo(LocalDateTime.of(2026, 10, 20, 9, 15, 30));
             assertThat(findReferencesInBusinessUnit()).hasSize(3);
             assertThat(alternatePaymentReferenceRepository.findById(10877002L).orElseThrow().getAprText())
@@ -436,19 +444,24 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
         }
 
         @ParameterizedTest
-        @CsvSource({"1087701, 10877002, CONSOLIDATED, 4", "1087703, 10877003, AMALGAMATED, 1"})
+        @CsvSource({
+            "1087701, 10877002, CONSOLIDATED, 7",
+            "1087701, 10877002, CONSOLIDATED, 4",
+            "1087703, 10877003, AMALGAMATED, 0",
+            "1087703, 10877003, AMALGAMATED, 1"
+        })
         @JiraStory("PO-10879")
         @JiraEpic("PO-7465")
-        @DisplayName("Rejects references with a consolidated or amalgamated relationship")
-        void rejectsNonAprRelationships(long accountId, long referenceId, Relationship relationship, long version)
+        @DisplayName("Rejects read-only ACC references regardless of account version")
+        void rejectsReadOnlyAccountReferences(long accountId, long referenceId, Relationship relationship, long version)
             throws Exception {
             updateReference(accountId, referenceId, UPDATED_TEXT, "\"" + version + "\"")
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.title")
-                    .value("Alternate Payment Reference relationship does not have a relationship of APR"))
+                    .value("Alternate Payment Reference is read-only"))
                 .andExpect(jsonPath("$.detail").value("Alternate Payment Reference with relationship: " + relationship
-                    + " cannot be updated for defendant account: " + accountId));
+                    + " and category: ACC cannot be modified or deleted for defendant account: " + accountId));
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
 
@@ -474,19 +487,20 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
 
         private static final long REFERENCE_ID = 10877001L;
 
-        @ParameterizedTest(name = "Delete a reference with relationship {2}")
+        @ParameterizedTest(name = "Delete a reference with category {0} and relationship {1}")
         @CsvSource({
-            "1087701, 10877001, APR",
-            "1087701, 10877002, CONSOLIDATED",
-            "1087703, 10877003, AMALGAMATED"
+            "APR, APR",
+            "APR, CONSOLIDATED",
+            "APR, AMALGAMATED",
+            "ACC, APR"
         })
         @JiraStory("PO-10880")
         @JiraEpic("PO-7465")
-        @DisplayName("Deletes each APR relationship type, returns its details, and adds an activity note")
-        void deletesReferenceAndAddsActivityNote(long accountId, long referenceId, Relationship relationship)
-            throws Exception {
-            AlternatePaymentReferenceEntity reference = alternatePaymentReferenceRepository.findById(referenceId)
-                .orElseThrow();
+        @DisplayName("Deletes editable references, returns their details, and adds an activity note")
+        void deletesReferenceAndAddsActivityNote(Category category, Relationship relationship) throws Exception {
+            final long accountId = ACCOUNT_WITH_REFERENCES;
+            final long referenceId = REFERENCE_ID;
+            AlternatePaymentReferenceEntity reference = setReferenceClassification(referenceId, category, relationship);
             List<AlternatePaymentReferenceEntity> existingReferences = findReferencesInBusinessUnit();
             Map<Long, Long> accountVersions = defendantAccountRepository
                 .findAllByBusinessUnit_BusinessUnitId(BUSINESS_UNIT_ID).stream()
@@ -540,6 +554,25 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
                     .isEqualTo(accountVersions.get(account.getDefendantAccountId())));
         }
 
+        @ParameterizedTest
+        @CsvSource({
+            "1087701, 10877002, CONSOLIDATED, 7",
+            "1087703, 10877003, AMALGAMATED, 0"})
+        @JiraStory("PO-10880")
+        @JiraEpic("PO-7465")
+        @DisplayName("Rejects deletion of read-only ACC references without persistence changes")
+        void rejectsReadOnlyAccountReferences(long accountId, long referenceId, Relationship relationship, long version)
+            throws Exception {
+            deleteReference(accountId, referenceId, "\"" + version + "\"")
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+                .andExpect(jsonPath("$.title").value("Alternate Payment Reference is read-only"))
+                .andExpect(jsonPath("$.detail").value("Alternate Payment Reference with relationship: " + relationship
+                    + " and category: ACC cannot be modified or deleted for defendant account: " + accountId));
+            assertRejectedRequestHasNoPersistenceSideEffects();
+        }
+
         @Test
         @JiraStory("PO-10880")
         @JiraEpic("PO-7465")
@@ -590,17 +623,31 @@ class AlternatePaymentReferenceControllerIntegrationTest extends AbstractIntegra
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
 
-        @Test
+        @ParameterizedTest
+        @CsvSource({
+            "1087701, 10877001, 2",
+            "1087701, 10877002, 4",
+            "1087703, 10877003, 1"
+        })
         @JiraStory("PO-10880")
         @JiraEpic("PO-7465")
         @DisplayName("Rejects an account version mismatch even when If-Match matches the APR version")
-        void rejectsAccountVersionMismatch() throws Exception {
-            deleteReference(ACCOUNT_WITH_REFERENCES, REFERENCE_ID, "\"2\"")
+        void rejectsAccountVersionMismatch(long accountId, long referenceId, long version) throws Exception {
+            deleteReference(accountId, referenceId, "\"" + version + "\"")
                 .andExpect(status().isConflict())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"));
             assertRejectedRequestHasNoPersistenceSideEffects();
         }
+    }
+
+    private AlternatePaymentReferenceEntity setReferenceClassification(long referenceId, Category category,
+        Relationship relationship) {
+        AlternatePaymentReferenceEntity reference = alternatePaymentReferenceRepository.findById(referenceId)
+            .orElseThrow();
+        reference.setCategory(category);
+        reference.setRelationship(relationship);
+        return alternatePaymentReferenceRepository.saveAndFlush(reference);
     }
 
     private ResultActions deleteReference(long accountId, long referenceId, String ifMatch) throws Exception {
