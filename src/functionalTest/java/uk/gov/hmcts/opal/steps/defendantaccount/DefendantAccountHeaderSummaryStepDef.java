@@ -179,6 +179,17 @@ public class DefendantAccountHeaderSummaryStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts the expected organisation name in the header-summary party details.
+     *
+     * @param expectedOrganisationName expected company name.
+     */
+    @Then("the defendant account header summary contains party details organisation name {string}")
+    public void defendantAccountHeaderSummaryContainsPartyDetailsOrganisationName(String expectedOrganisationName) {
+        assertEquals(expectedOrganisationName,
+            lastResponse().jsonPath().getString("party_details.organisation_details.organisation_name"));
+    }
+
+    /**
      * Asserts the expected individual forenames and surname in the header-summary party details.
      *
      * @param expectedForenames expected party forenames.
