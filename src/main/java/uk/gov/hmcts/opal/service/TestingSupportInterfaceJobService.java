@@ -63,7 +63,7 @@ public class TestingSupportInterfaceJobService {
         InterfaceFileEntity interfaceFile = InterfaceFileEntity.builder()
             .fileName(createFileItem.getFileName())
             .interfaceJob(interfaceJob)
-            .source(createFileItem.getSource().getValue()) // TODO ask about OTHER vs new known values
+            .source(createFileItem.getSource().getValue())
             .overrideInhibits(createFileItem.getOverrideInhibits())
             .recordCount(createFileItem.getRecordCount())
             .totalAmount(createFileItem.getTotalAmount())
