@@ -133,7 +133,7 @@ class MinorCreditorApiControllerTest {
         when(minorCreditorService.updateMinorCreditorAccount(101L, request, BigInteger.ONE, "77")).thenReturn(response);
 
         ResponseEntity<MinorCreditorAccountResponseMinorCreditor> result =
-            minorCreditorApiController.patchMinorCreditorAccount(101L, "77", "\"1\"", request);
+            minorCreditorApiController.patchMinorCreditorAccount(101L, "\"1\"", "77", request);
 
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("\"2\"", result.getHeaders().getETag());

@@ -138,6 +138,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '406':
+          description: Invalid query parameter or unsupported response media type
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         '500':
           description: Internal server error
           content:
