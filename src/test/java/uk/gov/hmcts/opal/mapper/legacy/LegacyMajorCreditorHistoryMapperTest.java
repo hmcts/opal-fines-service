@@ -205,6 +205,26 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
         assertEquals("Amount allocated to Section 611B write-off", transactionType.getTransactionTypeDisplayName());
     }
 
+    @Test
+    void toTransactionTypeReference_handlesBlankDisplayName() {
+        TransactionTypeReference ref = TransactionTypeReference.builder()
+            .transactionType("RIBACS")
+            .transactionTypeDisplayName("    ")
+            .build();
+
+        CreditorTransactionTypeReferenceCommon transactionType = mapper.toTransactionTypeReference(ref);
+
+        assertNotNull(transactionType);
+        assertEquals(TransactionTypeEnum.RIBACS, transactionType.getTransactionType());
+        assertEquals("Reissued BACS", transactionType.getTransactionTypeDisplayName());
+    }
+
+    @Test
+    void toTransactionStatusReference_handlesNullTransactionTypeReference() {
+        CreditorTransactionTypeReferenceCommon transactionType = mapper.toTransactionTypeReference(null);
+        assertNull(transactionType);
+    }
+
     private HistoryItem historyItem(String paymentReference, LocalDateTime postedDate) {
         return HistoryItem.builder()
             .postedDetails(new LegacyPostedDetails(postedDate, "MJUSR", "Major User"))
