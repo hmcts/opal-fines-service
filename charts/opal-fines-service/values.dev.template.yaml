@@ -75,6 +75,9 @@ java:
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
     SERVICEBUS_FULLY_QUALIFIED_NAMESPACE: opal-sb-dev.servicebus.windows.net
+    REF_DATA_CONSUMER_ENABLED: true
+    SERVICEBUS_REFDATA_TOPIC_NAME: "{{ .Release.Name }}-servicebus-refdata"
+    SERVICEBUS_REFDATA_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-refdata"
   postgresql:
     enabled: true
     primary:
@@ -196,6 +199,10 @@ servicebus:
       - name: "report"
       - name: "banking-interfaces-preprocess-interface-file-fines"
       - name: "auto-payments-process-interface-files"
+    topics:
+      - name: "refdata"
+        subscriptionNeeded: true
+        requiresSession: true
 hmcts-redis:
   enabled: true
   master:
