@@ -1,15 +1,13 @@
 package uk.gov.hmcts.opal.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
+import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessage;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageGroup;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageType;
@@ -25,12 +23,12 @@ class InterfaceJobProcessedFileSummaryMapperTest {
     @Test
     void toResponseMapsSummaryAndMessages() {
         // Arrange
-        InterfaceJobProcessedFileSummaryEntity summary = mock(InterfaceJobProcessedFileSummaryEntity.class);
-        when(summary.getInterfaceFileName()).thenReturn("payments.dat");
-        when(summary.getSource()).thenReturn("NATWEST");
-        when(summary.getTotalAmount()).thenReturn(new BigDecimal("10.00"));
-        when(summary.getTotalRecords()).thenReturn((short) 2);
-        when(summary.getTotalErrors()).thenReturn(1L);
+        InterfaceFileEntity file = InterfaceFileEntity.builder()
+            .fileName("payments.dat")
+            .source("NATWEST")
+            .totalAmount(new BigDecimal("10.00"))
+            .recordCount((short) 2)
+            .build();
 
         InterfaceJobsMessage message = new InterfaceJobsMessage()
             .interfaceMessagesId(INTERFACE_MESSAGE_ID)
@@ -43,7 +41,7 @@ class InterfaceJobProcessedFileSummaryMapperTest {
 
         // Act
         InterfaceJobsProcessedFileSummaryResponse response = mapper.toResponse(
-            summary, "Luton", List.of(messageGroup));
+            file, "Luton", 1L, List.of(messageGroup));
 
         // Assert
         assertEquals("payments.dat", response.getFileName());

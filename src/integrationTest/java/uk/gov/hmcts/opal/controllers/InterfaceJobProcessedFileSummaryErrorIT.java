@@ -17,7 +17,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
+import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -31,14 +31,14 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractIntegrationTest {
     private static final String URL = "/interface-jobs/" + INTERFACE_JOB_ID + "/processed-file-summary";
 
     @MockitoBean
-    private InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+    private InterfaceJobRepository interfaceJobRepository;
 
     @Test
     @DisplayName("PO-2576 INT.10 - maps a query timeout to 408")
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsQueryTimeoutToRequestTimeout() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new QueryTimeoutException("timeout", null, null));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
@@ -53,7 +53,7 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractIntegrationTest {
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsDatabaseAvailabilityFailureToServiceUnavailable() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new DataAccessResourceFailureException("database unavailable"));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
@@ -68,7 +68,7 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractIntegrationTest {
     @JiraStory("PO-2576")
     @JiraEpic("PO-2468")
     void mapsUnexpectedFailureToInternalServerError() throws Exception {
-        when(summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID))
+        when(interfaceJobRepository.findById(INTERFACE_JOB_ID))
             .thenThrow(new ResponseStatusException(INTERNAL_SERVER_ERROR, "unexpected failure"));
 
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))

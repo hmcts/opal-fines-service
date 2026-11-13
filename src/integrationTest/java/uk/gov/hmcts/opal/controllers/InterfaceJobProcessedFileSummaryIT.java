@@ -24,9 +24,12 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MvcResult;
@@ -38,8 +41,13 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
+import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
+import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -58,6 +66,8 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     private static final Long INTERFACE_JOB_ID = 257601L;
     private static final Long IGNORED_INTERFACE_JOB_ID = 257602L;
     private static final Long SUMMARY_MISSING_INTERFACE_JOB_ID = 257603L;
+    private static final Long TILL_ID = 257621L;
+    private static final Long IGNORED_INTERFACE_FILE_ID = 257612L;
     private static final long UNKNOWN_INTERFACE_JOB_ID = 257699L;
     private static final Short BUSINESS_UNIT_ID = 2576;
     private static final String URL = "/interface-jobs/" + INTERFACE_JOB_ID + "/processed-file-summary";
@@ -77,6 +87,12 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
     @MockitoBean
     private Clock clock;
+
+    @Autowired
+    private TillRepository tillRepository;
+
+    @Autowired
+    private InterfaceJobRepository interfaceJobRepository;
 
     @BeforeEach
     void setUpTestDoubles() {
@@ -116,6 +132,85 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.interface_messages[0].messages[1].message_data.count").value(4))
             .andExpect(jsonPath("$.interface_messages[1].message_text").value("records_rejected"))
             .andExpect(jsonPath("$.interface_messages[1].messages", hasSize(1)));
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = TillStatusEnum.class, names = {"Created", "Processing", "Failed"})
+    @DisplayName("PO-11406 - returns the summary before till allocation completes without changing the till")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void returnsSummaryBeforeAllocationWithoutChangingTill(TillStatusEnum tillStatus) throws Exception {
+        stubPermittedOpalUser();
+        TillEntity before = setTillStatus(tillStatus);
+
+        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.file_name").value("processed-summary.dat"))
+            .andExpect(jsonPath("$.interface_messages", hasSize(2)));
+
+        TillEntity after = tillRepository.findById(TILL_ID).orElseThrow();
+        assertEquals(before.getStatus(), after.getStatus());
+        assertEquals(before.getTotalAmount(), after.getTotalAmount());
+        assertEquals(before.getPaymentsCount(), after.getPaymentsCount());
+        assertEquals(before.getCreatedDate(), after.getCreatedDate());
+        assertEquals(InterfaceJobStatus.COMPLETED,
+            interfaceJobRepository.findById(INTERFACE_JOB_ID).orElseThrow().getStatus());
+        verify(loggingService).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-11406 - makes a previously available summary unavailable once the till is allocated")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void hidesSummaryAfterTillIsAllocated() throws Exception {
+        stubPermittedOpalUser();
+
+        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.file_name").value("processed-summary.dat"));
+
+        setTillStatus(TillStatusEnum.Allocated);
+
+        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(header().exists("operation_id"))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.file_name").doesNotExist())
+            .andExpect(jsonPath("$.total_amount").doesNotExist())
+            .andExpect(jsonPath("$.interface_messages").doesNotExist());
+
+        assertEquals(TillStatusEnum.Allocated, tillRepository.findById(TILL_ID).orElseThrow().getStatus());
+        verify(loggingService, times(1)).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-11406 - rejects an allocated till summary without logging a consultation")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void rejectsAllocatedTillWithoutLoggingConsultation() throws Exception {
+        stubPermittedOpalUser();
+        setTillStatus(TillStatusEnum.Allocated);
+
+        assertNotFound(URL);
+    }
+
+    @Test
+    @DisplayName("PO-11406 - checks business-unit permission before allocated till eligibility")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void rejectsAllocatedTillWithoutPermission() throws Exception {
+        setTillStatus(TillStatusEnum.Allocated);
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of(BUSINESS_UNIT_ID), FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of());
+
+        mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test
@@ -171,6 +266,19 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     void returnsNotFoundForUnknownInterfaceJob() throws Exception {
 
         assertNotFound("/interface-jobs/" + UNKNOWN_INTERFACE_JOB_ID + "/processed-file-summary");
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = InterfaceJobStatus.class, names = {"CREATED", "PROCESSING", "FAILED"})
+    @DisplayName("PO-11406 - keeps unprocessed and failed interface jobs unavailable")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void rejectsJobsWithoutProcessedSummary(InterfaceJobStatus jobStatus) throws Exception {
+        var job = interfaceJobRepository.findById(INTERFACE_JOB_ID).orElseThrow();
+        job.setStatus(jobStatus);
+        interfaceJobRepository.saveAndFlush(job);
+
+        assertNotFound(URL);
     }
 
     @Test
@@ -238,12 +346,16 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2576 INT.01 - returns a permitted ignored file summary without a till")
-    @JiraStory("PO-2576")
+    @DisplayName("PO-11406 - returns a permitted ignored file summary without a till")
+    @JiraStory("PO-11406")
     @JiraEpic("PO-2468")
     void returnsPermittedIgnoredFileSummaryWithoutTill() throws Exception {
 
         stubPermittedOpalUser();
+        assertEquals(InterfaceJobStatus.IGNORED,
+            interfaceJobRepository.findById(IGNORED_INTERFACE_JOB_ID).orElseThrow().getStatus());
+        assertEquals(0L, tillRepository.countByInterfaceFile_InterfaceFileIdIn(
+            List.of(IGNORED_INTERFACE_FILE_ID)));
 
         mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
@@ -254,7 +366,13 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.total_errors").value(1))
             .andExpect(jsonPath("$.interface_messages[0].message_text").value("records_ignored"));
 
-        verify(loggingService, times(1)).personalDataAccessLogAsync(any());
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertEquals("View File Processing Summary", captor.getValue().getBusinessIdentifier());
+        assertEquals("257634", captor.getValue().getIndividuals().getFirst().getIdentifier());
+        assertEquals(InterfaceJobStatus.IGNORED,
+            interfaceJobRepository.findById(IGNORED_INTERFACE_JOB_ID).orElseThrow().getStatus());
     }
 
     @Test
@@ -282,6 +400,12 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             .username("test-user")
             .name("Test User")
             .build());
+    }
+
+    private TillEntity setTillStatus(TillStatusEnum status) {
+        TillEntity till = tillRepository.findById(TILL_ID).orElseThrow();
+        till.setStatus(status);
+        return tillRepository.saveAndFlush(till);
     }
 
     private void assertNotFound(String url) throws Exception {
