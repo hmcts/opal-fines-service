@@ -48,9 +48,21 @@ public class TestingSupportInterfaceJobService {
     private InterfaceJobEntity createInterfaceJob(InterfaceJobsCreateItemTestingSupport createJobItem) {
         checkProcessAndAllocatePaymentsPermission(createJobItem.getBusinessUnitId());
 
+        BusinessUnitEntity businessUnit = businessUnitService.getBusinessUnit(createJobItem.getBusinessUnitId());
+        InterfaceJobStatus status = InterfaceJobStatus.valueOf(createJobItem.getStatus().getValue());
+        InterfaceJobEntity interfaceJob = InterfaceJobEntity.builder()
+            .businessUnit(businessUnit)
+            .interfaceName(createJobItem.getInterfaceName())
+            .status(status)
+            .createdDateTime(createJobItem.getCreatedDatetime())
+            .startedDateTime(createJobItem.getStartedDatetime())
+            .completedDateTime(createJobItem.getCompletedDatetime())
+            .build();
+
         InterfaceJobsCreateFileItemTestingSupport createFileItem = createJobItem.getInterfaceFile();
         InterfaceFileEntity interfaceFile = InterfaceFileEntity.builder()
             .fileName(createFileItem.getFileName())
+            .interfaceJob(interfaceJob)
             .source(createFileItem.getSource().getValue()) // TODO ask about OTHER vs new known values
             .overrideInhibits(createFileItem.getOverrideInhibits())
             .recordCount(createFileItem.getRecordCount())
@@ -60,17 +72,7 @@ public class TestingSupportInterfaceJobService {
             .transformedJsonId(createFileItem.getTransformedJsonId())
             .build();
 
-        BusinessUnitEntity businessUnit = businessUnitService.getBusinessUnit(createJobItem.getBusinessUnitId());
-        InterfaceJobStatus status = InterfaceJobStatus.valueOf(createJobItem.getStatus().getValue());
-        InterfaceJobEntity interfaceJob = InterfaceJobEntity.builder()
-            .businessUnit(businessUnit)
-            .interfaceName(createJobItem.getInterfaceName())
-            .status(status)
-            .interfaceFiles(List.of(interfaceFile))
-            .createdDateTime(createJobItem.getCreatedDatetime())
-            .startedDateTime(createJobItem.getStartedDatetime())
-            .completedDateTime(createJobItem.getCompletedDatetime())
-            .build();
+        interfaceJob.getInterfaceFiles().add(interfaceFile);
 
         return interfaceJobRepository.save(interfaceJob);
     }

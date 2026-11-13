@@ -1,9 +1,9 @@
 package uk.gov.hmcts.opal.controllers.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.SHORT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -17,9 +17,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -51,6 +52,8 @@ import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
 import uk.gov.hmcts.opal.repository.DocumentInstanceRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
+import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.PaymentTermsRepository;
 import uk.gov.hmcts.opal.repository.ReportEntryRepository;
@@ -100,6 +103,12 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private ReportRepository reportRepository;
+
+    @Autowired
+    private InterfaceJobRepository interfaceJobRepository;
+
+    @Autowired
+    private InterfaceFileRepository interfaceFileRepository;
 
     @MockitoBean
     private DynamicConfigService dynamicConfigService;
@@ -267,6 +276,7 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-11124")
     @JiraEpic("PO-3497")
+    @DisplayName("PO-11124 - TESTING SUPPORT - Should successfully return IDS after adding interface job and file")
     void shouldCorrectlyReturnIdsWhenCreatingInterfaceJobs() throws Exception {
         // Arrange
         userStateStub.setupWithNoPermissions();
@@ -294,8 +304,10 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
 
         // Act
         ResultActions result = mockMvc.perform(post("/testing-support/interface-jobs")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)));
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)));
 
         // Assert
         result.andExpect(status().isOk())
@@ -303,7 +315,48 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
         String body = result.andReturn().getResponse().getContentAsString();
         InterfaceJobsCreateResponseTestingSupport response = objectMapper.readValue(body, new TypeReference<>() {});
         assertThat(response.getInterfaceJobs()).singleElement();
-        assertThat(response.getInterfaceJobs().getFirst().getInterfaceFileId()).isGreaterThan(0);
-        assertThat(response.getInterfaceJobs().getFirst().getInterfaceJobId()).isGreaterThan(0);
+        assertThat(response.getInterfaceJobs().getFirst().getInterfaceJobId()).isNotNull();
+        assertThat(response.getInterfaceJobs().getFirst().getInterfaceFileId()).isNotNull();
+        assertThat(interfaceJobRepository.existsById(response.getInterfaceJobs().getFirst().getInterfaceJobId()));
+        assertThat(interfaceFileRepository.existsById(response.getInterfaceJobs().getFirst().getInterfaceFileId()));
+    }
+
+    @Test
+    @JiraStory("PO-11124")
+    @JiraEpic("PO-3497")
+    @DisplayName("PO-11124 - TESTING SUPPORT - Should return 403 when allocate payments permission is missing")
+    void shouldReturnForbiddenWhenProcessAndAllocatePaymentsPermissionDoesNotExist_403() throws Exception {
+        // Arrange
+        userStateStub.setupWithNoPermissions();
+
+        InterfaceJobsCreateFileItemTestingSupport fileItem = InterfaceJobsCreateFileItemTestingSupport.builder()
+            .fileName("file-name.dat")
+            .overrideInhibits(true)
+            .recordCount((short)4)
+            .source(InterfaceJobsFileSourceTestingSupport.CDER)
+            .totalAmount(BigDecimal.valueOf(200L))
+            .build();
+
+        InterfaceJobsCreateItemTestingSupport jobItem = InterfaceJobsCreateItemTestingSupport.builder()
+            .businessUnitId((short)77)
+            .interfaceFile(fileItem)
+            .interfaceName("an interface")
+            .status(InterfaceJobsJobStatusTestingSupport.CREATED)
+            .createdDatetime(LocalDateTime.now())
+            .build();
+
+        InterfaceJobsCreateRequestTestingSupport request = InterfaceJobsCreateRequestTestingSupport.builder()
+            .interfaceJobs(List.of(jobItem))
+            .build();
+
+        // Act
+        ResultActions result = mockMvc.perform(post("/testing-support/interface-jobs")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(request)));
+
+        // Assert
+        result.andExpect(status().isForbidden());
     }
 }
