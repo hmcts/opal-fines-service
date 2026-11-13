@@ -1,0 +1,25 @@
+/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql --host=localhost --port=5432 --username=opal-db-user --echo-errors opal-fines-db
+Task 'PostgreSQL script' started at Tue Nov 03 13:32:49 GMT 2026
+BEGIN
+
+NOTICE:  TEST 1 PASSED: procedure exists
+
+NOTICE:  TEST 2 PASSED: row inserted with correct values and returned ID 99000000009028
+
+NOTICE:  TEST 3 PASSED: second insert generated distinct ID 99000000009029
+
+NOTICE:  Error in p_insert_report_entries_common: 23502 - null value in column "report_id" of relation "report_entries" violates not-null constraint
+
+NOTICE:  TEST 4 PASSED: NOT NULL error propagated (23502)
+
+NOTICE:  Error in p_insert_report_entries_common: 23503 - insert or update on table "report_entries" violates foreign key constraint "re_report_id_fk"
+
+NOTICE:  TEST 5 PASSED: FK violation propagated (23503)
+
+NOTICE:  ALL PO-10348 TESTS PASSED
+
+DO
+
+ROLLBACK
+
+Task 'PostgreSQL script' finished at Tue Nov 03 13:32:49 GMT 2026
