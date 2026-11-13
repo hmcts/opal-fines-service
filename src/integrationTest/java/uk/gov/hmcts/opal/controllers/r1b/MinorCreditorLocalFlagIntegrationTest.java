@@ -59,7 +59,7 @@ class MinorCreditorLocalFlagIntegrationTest extends AbstractIntegrationTest {
     private LoggingService loggingService;
 
     @BeforeEach
-    void setUpLoggingService() {
+    void allowPdpoQueueing() {
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 

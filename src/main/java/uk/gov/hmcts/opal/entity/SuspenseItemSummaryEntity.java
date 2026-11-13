@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -26,7 +27,7 @@ public class SuspenseItemSummaryEntity {
     private Short suspenseItemNumber;
 
     @Column(name = "business_unit_id")
-    private Long businessUnitId;
+    private Short businessUnitId;
 
     @Column(name = "business_unit_name")
     private String businessUnitName;

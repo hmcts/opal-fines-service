@@ -28,7 +28,7 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
 
     @FeatureToggle(feature = RELEASE_1C_SUSPENSE, defaultValueProperty = RELEASE_1C_SUSPENSE_ENABLED_PROPERTY)
     @Override
-    public ResponseEntity<SuspenseItemSummaryCommonStrict> getSuspenseItemSummary(Integer businessUnitId,
+    public ResponseEntity<SuspenseItemSummaryCommonStrict> getSuspenseItemSummary(Short businessUnitId,
         Long suspenseItemNumber) {
 
         log.debug("GET: getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",

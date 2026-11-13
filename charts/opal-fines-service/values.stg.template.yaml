@@ -2,6 +2,7 @@
 java:
   image: ${IMAGE_NAME}
   ingressHost: ${SERVICE_FQDN}
+  devmemoryLimits: "2Gi"
   environment:
     OPAL_REDIS_ENABLED: true
     OPAL_FRONTEND_URL: https://opal-frontend-staging.staging.apps.hmcts.net

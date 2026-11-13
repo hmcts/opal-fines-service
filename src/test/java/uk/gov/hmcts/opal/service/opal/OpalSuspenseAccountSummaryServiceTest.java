@@ -1,8 +1,12 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -41,6 +45,8 @@ public class OpalSuspenseAccountSummaryServiceTest {
             .businessUnitName("Business Unit Name")
             .createdDate("2026-11-03T10:15:30")
             .balance(BigDecimal.valueOf(10000L))
+            .suspenseItemNumber(12345L)
+            .businessUnitId((short) 123)
             .build();
 
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict
@@ -53,7 +59,6 @@ public class OpalSuspenseAccountSummaryServiceTest {
                 .businessUnitName("Business Unit Name").build())
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
             .balance("10000")
-            .build();
 
         doReturn(returnedEntity).when(suspenseItemSummaryRepository)
             .findByBusinessUnitIdAndSuspenseItemNumber(any(), any());
@@ -78,6 +83,40 @@ public class OpalSuspenseAccountSummaryServiceTest {
         assertEquals("2026/11/03",
             returnedCommonStrict.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
         assertEquals("10000", returnedCommonStrict.getBalance().get());
+    }
+
+    @Test
+    void getSummary_returnsMappedItem() {
+        SuspenseItemSummaryEntity entity = SuspenseItemSummaryEntity.builder()
+            .id(1L)
+            .suspenseItemNumber(12345L)
+            .businessUnitId((short) 123)
+            .build();
+        SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict.builder()
+            .suspenseItemId(1L)
+            .suspenseItemNumber(12345L)
+            .balance("100.0")
+            .build();
+        when(suspenseItemSummaryRepository.findByBusinessUnitIdAndSuspenseItemNumber((short) 123, 12345L))
+            .thenReturn(entity);
+        when(suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(entity)).thenReturn(expected);
+
+        SuspenseItemSummaryCommonStrict result =
+            opalSuspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, 12345L);
+
+        assertSame(expected, result);
+        verify(suspenseItemSummaryRepository).findByBusinessUnitIdAndSuspenseItemNumber((short) 123, 12345L);
+        verify(suspenseItemSummaryMapper).toSuspenseItemSummaryCommonStrict(entity);
+    }
+
+    @Test
+    void getSummary_returnsNullForMissingItem() {
+        when(suspenseItemSummaryRepository.findByBusinessUnitIdAndSuspenseItemNumber((short) 123, 12345L))
+            .thenReturn(null);
+
+        assertNull(opalSuspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, 12345L));
+        verify(suspenseItemSummaryRepository).findByBusinessUnitIdAndSuspenseItemNumber((short) 123, 12345L);
+        verify(suspenseItemSummaryMapper).toSuspenseItemSummaryCommonStrict(null);
     }
 
 }

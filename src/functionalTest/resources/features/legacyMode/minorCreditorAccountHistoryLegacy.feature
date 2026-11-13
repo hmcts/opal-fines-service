@@ -1,15 +1,23 @@
 @Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History API In Legacy Mode
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
   Scenario: Legacy minor creditor account history - E2E.01 Happy path history retrieval
-    Given a minor creditor account with representative history exists for submitted by "MCHIST101"
-    When I request minor creditor account history for the created minor creditor account
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request minor creditor account history for the seeded legacy minor creditor account
     Then the minor creditor account history response is returned as documented
     And the minor creditor account history contains at least the following item counts
       | Amendment | 3 |
       | Financial | 3 |
       | Note      | 3 |
+    And the minor creditor account history is ordered newest first
+
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  Scenario: Legacy minor creditor account history - E2E.01a Happy path history retrieval with filters
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    # Reproduces the nested legacy history detail mapping defect tracked in PO-11461.
+    When I request minor creditor account history for the seeded legacy minor creditor account with query "dateFrom=2025-01-01&dateTo=2026-11-30&itemTypes=amendment,financial,note"
+    Then the minor creditor account history response is returned as documented
     And the minor creditor account history is ordered newest first
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653

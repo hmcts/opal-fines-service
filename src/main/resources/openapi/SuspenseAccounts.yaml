@@ -26,6 +26,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int16
         - name: suspense_item_number
           in: path
           required: true

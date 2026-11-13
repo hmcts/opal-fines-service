@@ -61,7 +61,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final String HISTORY_URL = "/minor-creditor-accounts/{accountId}/history";
-    private static final String LEGACY_ACTION = "LIBRA.get_minor_creditor_account_history";
+    private static final String LEGACY_ACTION = "getMinorCreditorAccountHistory";
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99264500000001L;
     private static final short BUSINESS_UNIT_ID = 32645;
