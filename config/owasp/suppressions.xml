@@ -76,14 +76,15 @@
   </suppress>
   <suppress until="2027-05-31Z">
     <notes><![CDATA[
-    Reviewed 2026-11-12 against Jenkins Dependency-Check findings for PR-2551.
+    Reviewed 2026-11-13 against Jenkins Dependency-Check findings for PR-2551 and PR-2558.
     CVE-2026-33117 affects the Azure Key Vault Keys library before 4.10.6, but this
     service does not use com.azure:azure-security-keyvault-keys. Dependency-Check is
-    incorrectly mapping com.azure:azure-core-amqp:2.12.0 and com.azure:azure-identity:1.17.0
-    to the generic microsoft:azure_sdk_for_java CPE. Keep this suppression scoped to the
-    exact resolved artifacts until the scanner CPE data is corrected.
+    incorrectly mapping com.azure:azure-core-amqp:2.12.0, com.azure:azure-core-amqp:2.13.0,
+    and com.azure:azure-identity:1.17.0 to the generic microsoft:azure_sdk_for_java CPE.
+    Keep this suppression scoped to the exact resolved artifacts until the scanner CPE
+    data is corrected.
     ]]></notes>
-    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core\-amqp@2\.12\.0|azure\-identity@1\.17\.0)$</packageUrl>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core\-amqp@2\.12\.0|azure\-core\-amqp@2\.13\.0|azure\-identity@1\.17\.0)$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
   <suppress until="2027-05-31Z">
