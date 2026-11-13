@@ -135,7 +135,7 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
         // Pull down the message
         puller.pullSessionMessages();
 
-        // Wait the message LJA to be created
+        // Wait the message LJA record to be created in the database
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
             LocalJusticeAreaEntity inserted = localJusticeAreaRepository.findById(LJA_ID).orElseThrow();
             assertThat(inserted.getName()).isEqualTo("Messaging test LJA");
@@ -145,7 +145,7 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
         mockMvc.perform(delete(URL_BASE + "/LJA/9982"))
             .andExpect(status().isNoContent());
 
-        // Check the new LJA has gone from the database
+        // Check the new LJA record has gone from the database
         assertThat(localJusticeAreaRepository.findById(LJA_ID)).isEmpty();
     }
 }
