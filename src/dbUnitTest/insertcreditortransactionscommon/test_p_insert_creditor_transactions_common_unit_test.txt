@@ -1,0 +1,21 @@
+/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql --host=localhost --port=5432 --username=opal-db-user --echo-errors opal-fines-db
+Task 'PostgreSQL script' started at Tue Nov 03 13:30:41 GMT 2026
+BEGIN
+
+NOTICE:  TEST 1 PASSED: Procedure exists
+
+NOTICE:  TEST 2 PASSED: All input values inserted and generated ID returned: 99000000006044
+
+NOTICE:  TEST 3 PASSED: Two unique IDs created
+
+DO
+
+NOTICE:  Error in p_insert_creditor_transactions_common: 23502 - null value in column "creditor_account_id" of relation "creditor_transactions" violates not-null constraint
+
+NOTICE:  Error details: Failing row contains (99000000006046, null, 2026-05-11 11:37:55.196682, L080JG, opal-test, PAYMNT, 10.00, ABDC, t, PMT000001, C, 2026-05-11 11:37:55.196682, null, null).
+
+NOTICE:  TEST 4 PASSED: NOT NULL error propagated (SQLSTATE 23502)
+
+ROLLBACK
+
+Task 'PostgreSQL script' finished at Tue Nov 03 13:30:41 GMT 2026
