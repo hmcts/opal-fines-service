@@ -1,6 +1,24 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+
+import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,61 +32,52 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.jpa.domain.Specification;
-import jakarta.persistence.EntityNotFoundException;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
+import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
+import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorEntity;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.TypeEnum;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchDefendant;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
-import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.DisplayNameEnum;
-import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReference.TypeEnum;
-import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.mapper.MinorCreditorAccountResponseMapper;
-import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorAccountAtAGlanceEntity;
 import uk.gov.hmcts.opal.mapper.MinorCreditorMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountAtAGlanceRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
-
-import java.math.BigDecimal;
-import java.util.Collections;
-import java.util.List;
 import uk.gov.hmcts.opal.repository.PartyRepository;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class OpalMinorCreditorServiceTest {
 
     @Mock
     private MinorCreditorRepository minorCreditorRepository;
+
+    @Mock
+    private DefendantAccountRepository defendantAccountRepository;
 
     @Mock
     private MinorCreditorAccountHeaderRepository minorCreditorAccountHeaderRepository;
@@ -101,7 +110,7 @@ class OpalMinorCreditorServiceTest {
     private ArgumentCaptor<Specification<MinorCreditorEntity>> specCaptor;
 
     private MinorCreditorEntity entityOrgFalseWithDefendant;
-    private MinorCreditorEntity entityOrgTrueNoDefendant;
+    private MinorCreditorEntity entityOrgTrueWithDefendant;
 
     @BeforeEach
     void setUp() {
@@ -116,14 +125,14 @@ class OpalMinorCreditorServiceTest {
             .postCode("MA4 1AL")
             .forenames(null)
             .surname(null)
-            .defendantAccountId(0L)
+            .defendantAccountId(201L)
             .defendantOrganisationName(null)
             .defendantFornames("Anna")
             .defendantSurname("Graham")
             .creditorAccountBalance(150)
             .build();
 
-        entityOrgTrueNoDefendant = MinorCreditorEntity.builder()
+        entityOrgTrueWithDefendant = MinorCreditorEntity.builder()
             .creditorId(105L)
             .accountNumber("12345678")
             .businessUnitId((short) 10)
@@ -134,7 +143,7 @@ class OpalMinorCreditorServiceTest {
             .postCode("MA4 1AL")
             .forenames("")
             .surname("")
-            .defendantAccountId(0L)
+            .defendantAccountId(202L)
             .defendantOrganisationName(null)
             .defendantFornames(null)
             .defendantSurname(null)
@@ -151,7 +160,9 @@ class OpalMinorCreditorServiceTest {
             .build();
 
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
-            .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgTrueNoDefendant));
+            .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgTrueWithDefendant));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(201L, 202L)))
+            .thenReturn(List.of(defendantAccount(201L, false), defendantAccount(202L, true)));
 
         MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
@@ -178,7 +189,7 @@ class OpalMinorCreditorServiceTest {
 
         MinorCreditorAccountSearchDefendant d0 = a0.getDefendant();
         assertNotNull(d0);
-        assertEquals("0", d0.getDefendantAccountId());
+        assertEquals("201", d0.getDefendantAccountId());
         assertFalse(d0.getOrganisation());
         assertNull(d0.getOrganisationName());
         assertEquals("Anna", d0.getFirstnames());
@@ -199,13 +210,13 @@ class OpalMinorCreditorServiceTest {
 
         MinorCreditorAccountSearchDefendant d1 = a1.getDefendant();
         assertNotNull(d1);
-        assertEquals("0", d1.getDefendantAccountId());
+        assertEquals("202", d1.getDefendantAccountId());
         assertTrue(d1.getOrganisation());
         assertNull(d1.getOrganisationName());
         assertNull(d1.getFirstnames());
         assertNull(d1.getSurname());
 
-        verify(minorCreditorMapper, times(2)).toCreditorAccountDto(any(MinorCreditorEntity.class));
+        verify(minorCreditorMapper, times(2)).toCreditorAccountDto(any(MinorCreditorEntity.class), anyMap());
     }
 
     @Test
@@ -223,6 +234,7 @@ class OpalMinorCreditorServiceTest {
             .findAll(Mockito.<Specification<MinorCreditorEntity>>any());
         assertEquals(0, response.getCount());
         assertNull(response.getCreditorAccounts());
+        verifyNoInteractions(defendantAccountRepository);
 
         verify(minorCreditorMapper, times(0)).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
@@ -253,6 +265,8 @@ class OpalMinorCreditorServiceTest {
 
         when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
             .thenReturn(List.of(entityOrgFalseWithDefendant));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(201L)))
+            .thenReturn(List.of(defendantAccount(201L, false)));
 
         MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(criteria);
 
@@ -263,7 +277,65 @@ class OpalMinorCreditorServiceTest {
         assertEquals(1, response.getCount());
         assertEquals("104", response.getCreditorAccounts().getFirst().getCreditorAccountId());
 
-        verify(minorCreditorMapper, times(1)).toCreditorAccountDto(any(MinorCreditorEntity.class));
+        verify(minorCreditorMapper, times(1)).toCreditorAccountDto(any(MinorCreditorEntity.class), anyMap());
+    }
+
+    @Test
+    void searchLoadsRepeatedDefendantsOnce() {
+        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+            .thenReturn(List.of(entityOrgFalseWithDefendant, entityOrgFalseWithDefendant));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(201L)))
+            .thenReturn(List.of(defendantAccount(201L, false)));
+
+        MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(
+            MinorCreditorSearchRequest.builder().businessUnitIds(List.of((short) 10)).build());
+
+        assertEquals(2, response.getCount());
+        assertFalse(response.getCreditorAccounts().getFirst().getDefendant().getOrganisation());
+        assertFalse(response.getCreditorAccounts().get(1).getDefendant().getOrganisation());
+        verify(defendantAccountRepository).findAllByDefendantAccountIdIn(List.of(201L));
+    }
+
+    @Test
+    void searchWithoutDefendantsSkipsLookup() {
+        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+            .thenReturn(List.of(MinorCreditorEntity.builder().creditorId(104L).build()));
+
+        MinorCreditorAccountsSearchResponse response = service.searchMinorCreditors(
+            MinorCreditorSearchRequest.builder().businessUnitIds(List.of((short) 10)).build());
+
+        assertEquals(1, response.getCount());
+        assertNull(response.getCreditorAccounts().getFirst().getDefendant().getDefendantAccountId());
+        verifyNoInteractions(defendantAccountRepository);
+    }
+
+    @Test
+    void searchWithoutDefendantPartyPreventsSuccess() {
+        when(minorCreditorRepository.findAll(Mockito.<Specification<MinorCreditorEntity>>any()))
+            .thenReturn(List.of(entityOrgFalseWithDefendant));
+        when(defendantAccountRepository.findAllByDefendantAccountIdIn(List.of(201L)))
+            .thenReturn(List.of(DefendantAccountEntity.builder()
+                .defendantAccountId(201L)
+                .parties(List.of(DefendantAccountPartiesEntity.builder()
+                    .associationType(AssociationType.PARENT_GUARDIAN)
+                    .party(PartyEntity.builder().organisation(false).build()).build()))
+                .build()));
+
+        assertThrows(PdplLoggingException.class, () -> service.searchMinorCreditors(
+            MinorCreditorSearchRequest.builder().businessUnitIds(List.of((short) 10)).build()));
+    }
+
+    private static DefendantAccountEntity defendantAccount(long accountId, boolean organisation) {
+        return DefendantAccountEntity.builder()
+            .defendantAccountId(accountId)
+            .parties(List.of(
+                DefendantAccountPartiesEntity.builder()
+                    .associationType(AssociationType.PARENT_GUARDIAN)
+                    .party(PartyEntity.builder().organisation(!organisation).build()).build(),
+                DefendantAccountPartiesEntity.builder()
+                    .associationType(AssociationType.DEFENDANT)
+                    .party(PartyEntity.builder().organisation(organisation).build()).build()))
+            .build();
     }
 
     @Test
