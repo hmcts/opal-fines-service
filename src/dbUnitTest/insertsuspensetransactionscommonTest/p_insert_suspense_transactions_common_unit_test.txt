@@ -1,0 +1,33 @@
+/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql --host=localhost --port=5432 --username=opal-db-user --echo-errors opal-fines-db
+Task 'PostgreSQL script' started at Wed Oct 28 10:35:24 GMT 2026
+Timing is on.
+
+BEGIN
+
+Time: 1.643 ms
+
+NOTICE:  TEST 1: Procedure existence
+
+DO
+
+Time: 86.629 ms
+
+NOTICE:  TEST 1 PASSED
+
+NOTICE:  TEST 2: Insert suspense transaction
+
+NOTICE:  TEST 2 PASSED: Created transaction ID 60000000000000
+
+NOTICE:  TEST 3: Validate inserted values
+
+NOTICE:  TEST 3 PASSED
+
+NOTICE:  TEST 4: Exception propagation
+
+NOTICE:  TEST 4 PASSED: Original database exception propagated
+
+NOTICE:  ALL PO-10346 UNIT TESTS PASSED
+/opt/homebrew/Cellar/postgresql@17/17.11/bin/psql --host=localhost --port=5432 --username=opal-db-user --echo-errors opal-fines-db
+Task 'PostgreSQL script' started at Wed Oct 28 10:35:24 GMT 2026
+Timing is on.
+

@@ -1,4 +1,4 @@
-@Opal @JIRA-LABEL:account-enquiry @R1BDrop2
+@Opal @JIRA-LABEL:account-enquiry @R1BDrop2 @ExcludeFromDemoNightlyAsNotLegacy
 Feature: Major Creditor Account History
 
   @JIRA-STORY:PO-2654 @JIRA-EPIC:PO-2655 @JIRA-TEST-KEY:PO-9542
