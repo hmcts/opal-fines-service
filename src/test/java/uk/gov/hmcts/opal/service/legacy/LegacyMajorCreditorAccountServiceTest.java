@@ -1,11 +1,15 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +44,7 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @ExtendWith(MockitoExtension.class)
 class LegacyMajorCreditorAccountServiceTest {
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY =
         "getMajorCreditorAccountHeaderSummary";
     private static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE = "getMajorCreditorAccountAtAGlance";
@@ -226,6 +231,25 @@ class LegacyMajorCreditorAccountServiceTest {
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatusCode());
         assertEquals("Account not found", exception.getStatusText());
         verifyNoInteractions(headerSummaryResponseMapper);
+    }
+
+    @Test
+    void shouldSerializeCreditorAccountIdUsingSnakeCase() throws Exception {
+        GetMajorCreditorAccountHeaderSummaryLegacyRequest legacyRequest = legacyRequest();
+
+        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(legacyRequest));
+
+        assertEquals("123", json.path("creditor_account_id").asText());
+        assertFalse(json.has("creditorAccountId"));
+    }
+
+    @Test
+    void shouldDeserializeCreditorAccountIdFromSnakeCase() throws JsonProcessingException {
+        String json = "{\"creditor_account_id\": \"123\"}";
+
+        var request = objectMapper.readValue(json, GetMajorCreditorAccountHeaderSummaryLegacyRequest.class);
+
+        assertEquals("123", request.getCreditorAccountId());
     }
 
     @Test
