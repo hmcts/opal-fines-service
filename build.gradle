@@ -453,6 +453,7 @@ tasks.register('integration', Test) {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
   exclude '**/ReportQueueConnectivityIntegrationTest.class'
+  systemProperty 'logging.level.org.springframework.test.context.cache', 'DEBUG'
   doFirst {
     pullLatestLegacyStubImageIfLocal()
   }
@@ -486,6 +487,7 @@ def registerReleaseIntegrationTask = { String release ->
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
     include "uk/gov/hmcts/opal/controllers/${releaseName}/**"
+    systemProperty 'logging.level.org.springframework.test.context.cache', 'DEBUG'
     systemProperty 'zephyr.report.location', "${rootDir}/target/zephyr-reports/${reportFileName}"
     doFirst {
       pullLatestLegacyStubImageIfLocal()
@@ -892,13 +894,50 @@ tasks.register('copyIntegrationJunit5Report', Copy) {
   into("${rootDir}/integration-output/zephyr")
   outputs.upToDateWhen { false }
 }
+
+def registerSpringContextCacheReportTask = { String integrationTaskName, String outputDirectory ->
+  tasks.register("report${integrationTaskName.capitalize()}ContextCache", Exec) {
+    description = "Reports Spring Test Context cache statistics for ${integrationTaskName}"
+    group = "Verification"
+    mustRunAfter integrationTaskName
+    commandLine 'bash', "${rootDir}/bin/ci/report-spring-test-context-cache.sh",
+      '--task', integrationTaskName,
+      '--html-directory', layout.buildDirectory.dir("reports/tests/${integrationTaskName}").get().asFile.absolutePath,
+      '--xml-directory', layout.buildDirectory.dir("test-results/${integrationTaskName}").get().asFile.absolutePath,
+      '--output-file', "${rootDir}/${outputDirectory}/spring-test-context-cache.json"
+  }
+}
+
+['R1A', 'R1B', 'R1C'].each { release ->
+  def reportTask = registerSpringContextCacheReportTask(
+    "integration${release}",
+    "integration-output-${release.toLowerCase()}"
+  )
+  tasks.named("package${release}IntegrationOutput") {
+    dependsOn reportTask
+  }
+}
+
+def integrationContextCacheReportTask = registerSpringContextCacheReportTask('integration', 'integration-output')
+
+tasks.register('testSpringContextCacheReport', Exec) {
+  description = "Tests Spring Test Context cache report extraction"
+  group = "Verification"
+  commandLine 'bash', "${rootDir}/bin/ci/test-report-spring-test-context-cache.sh"
+}
+
+tasks.named('check') {
+  dependsOn 'testSpringContextCacheReport'
+}
+
 tasks.register('packageIntegrationOutput', Copy) {
-  dependsOn 'copyIntegrationJunit5Report'
+  dependsOn 'copyIntegrationJunit5Report', integrationContextCacheReportTask
   into("${rootDir}/integration-output")
   from(layout.buildDirectory.dir("reports/tests/integration")) {
     into("report")
   }
 }
+
 tasks.register('mergeFunctionalResults', Copy) {
   from layout.buildDirectory.dir("test-results/functional/opal")
   into layout.buildDirectory.dir("test-results/functional")

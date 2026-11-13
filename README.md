@@ -335,7 +335,7 @@ This repo-local Jenkinsfile does not declare its own job parameters.
 
 CNP outputs:
 
-- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes the JUnit HTML `Integration Tests Report` from `integration-output/report`.
+- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*` (including `spring-test-context-cache.json`), and publishes the JUnit HTML `Integration Tests Report` from `integration-output/report`.
 - Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report` from `functional-output/report`.
 - Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report` from `smoke-output/report`.
 
@@ -343,6 +343,48 @@ CNP failure handling:
 
 - JUnit-reported failures for integration, functional, and smoke are promoted from `UNSTABLE` to `FAILURE`.
 - Functional and smoke publication rebuild `functional-output/report` and `smoke-output/report` from the raw Serenity output if the packaged report directory is missing.
+
+### Spring Test Context cache report
+
+The integration tasks enable DEBUG logging for `org.springframework.test.context.cache`. Spring writes a cache snapshot
+many times during a suite, in this format:
+
+```text
+Spring test ApplicationContext cache statistics: [DefaultContextCache@... size = 4, maxSize = 4, ... hitCount = 920, missCount = 41, failureCount = 0]
+```
+
+After `integration`, `integrationR1A`, `integrationR1B`, or `integrationR1C`, Gradle runs the matching context-cache
+report task. The parser scans the Gradle HTML test output and selects the valid snapshot with the greatest combined
+`hitCount + missCount + failureCount`, so an early snapshot is not reported as the suite result. It reports:
+
+- cache `missCount`, `hitCount`, `failureCount`, `maxSize`, and final observed `size`;
+- valid and malformed snapshot counts;
+- tests found, executed, failed, and skipped from the JUnit XML;
+- summed JUnit suite runtime, Gradle task name, build identifier, and commit identifier.
+
+The human-readable summary appears near the end of the Gradle/Jenkins log. The machine-readable report is archived
+with the existing Jenkins integration artifact at `integration-output/spring-test-context-cache.json`. Release-family
+runs use the corresponding `integration-output-r1a`, `integration-output-r1b`, or `integration-output-r1c` directory,
+and each report identifies its source task.
+
+Run the full suite and generate the report locally with:
+
+```bash
+./gradlew integration
+```
+
+To regenerate a report from existing Gradle test output without rerunning the suite:
+
+```bash
+./gradlew reportIntegrationContextCache
+```
+
+Use the JSON fields to compare two downloaded Jenkins artifacts, especially `cache.missCount`, `cache.hitCount`, and
+`cache.failureCount`; compare like-for-like task names and test counts. The report is informational only and does not
+enforce a regression threshold. Missing or malformed cache output produces a warning and a JSON report with
+`status: "missing"`, without failing the build. The reported runtime is the sum of JUnit suite durations rather than
+the complete Gradle task wall-clock time, and the selected cache snapshot represents the greatest observed activity
+rather than relying on filesystem ordering of HTML report pages.
 
 ### Zephyr tasks
 
