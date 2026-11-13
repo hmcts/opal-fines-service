@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 @ConfigurationParameter(
     key = FILTER_TAGS_PROPERTY_NAME,
     value = "@Opal and not @Smoke and not @Ignore and not "
-        + "(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or "
+        + "(@R1AOff or @R1BOff or @R1COff or @R1CWriteOffOff or @R1B12Off or "
         + "@R1CEnforcementOperationalReportingOff or @R1CAdministrationOff or @R1CFinancialMovementsOff or "
         + "@R1CAutoEnforcementOff or @R1CDataRetentionOff or @R1CAutoEnforcementConfigOff or "
         + "@R1CRmFinancialMovementsOff or @R1CRmFinancialChecksOff or @R1CRmSuspenseOff or "
