@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
+import uk.gov.hmcts.opal.generated.model.SuspenseItemTypeCommonStrict;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
 
 @ExtendWith(MockitoExtension.class)
@@ -36,8 +37,12 @@ public class SuspenseAccountsApiControllerTest {
             .suspenseItemId(123)
             .suspenseItemNumber(123)
             .createdDate(LocalDateTime.of(2026, 11, 3, 0, 0))
-            .suspenseItemType("Test Suspense Item Type")
-            .balance("100.0")
+            .suspenseItemType(SuspenseItemTypeCommonStrict
+                .builder()
+                .itemType("CC")
+                .itemTypeDisplayName("Cancelled cheque (Fines)")
+                .build())
+            .balance("1000ß0")
             .build();
 
         //  Mock the service

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import org.junit.jupiter.api.Test;
@@ -39,7 +40,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
             .businessUnitId(1L)
             .businessUnitName("Business Unit Name")
             .createdDate("2026-11-03T10:15:30")
-            .balance(100.0)
+            .balance(BigDecimal.valueOf(10000L))
             .build();
 
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict
@@ -51,7 +52,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
                 .businessUnitId((short) 1)
                 .businessUnitName("Business Unit Name").build())
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
-            .balance("100.0")
+            .balance("10000")
             .build();
 
         doReturn(returnedEntity).when(suspenseItemSummaryRepository)
@@ -76,7 +77,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
             returnedCommonStrict.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("2026/11/03",
             returnedCommonStrict.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
-        assertEquals("100.0", returnedCommonStrict.getBalance().get());
+        assertEquals("10000", returnedCommonStrict.getBalance().get());
     }
 
 }

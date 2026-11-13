@@ -29,7 +29,8 @@ public class SuspenseAccountsSummaryService implements SuspenseAccountsSummarySe
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasAnyPermission(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS)) {
+        if (userState.hasBusinessUnitUserWithAnyPermission(
+            businessUnitId, VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS)) {
             return suspenseAccountSummaryServiceProxy.getSuspenseAccountsSummary(businessUnitId, suspenseItemNumber);
         } else {
             throw new PermissionNotAllowedException(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS);

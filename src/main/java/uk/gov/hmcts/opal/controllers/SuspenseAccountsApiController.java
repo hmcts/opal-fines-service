@@ -2,6 +2,9 @@ package uk.gov.hmcts.opal.controllers;
 
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENABLED_PROPERTY;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE_ENABLED_PROPERTY;
+import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -15,8 +18,6 @@ import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.SuspenseAccountsHistoryService;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
 
-import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
-
 @RestController
 @Slf4j(topic = "opal.SuspenseAccountsApiController")
 @RequiredArgsConstructor
@@ -25,7 +26,7 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
     private final SuspenseAccountsSummaryService suspenseAccountsSummaryService;
     private final SuspenseAccountsHistoryService suspenseAccountsHistoryService;
 
-    @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
+    @FeatureToggle(feature = RELEASE_1C_SUSPENSE, defaultValueProperty = RELEASE_1C_SUSPENSE_ENABLED_PROPERTY)
     @Override
     public ResponseEntity<SuspenseItemSummaryCommonStrict> getSuspenseItemSummary(Integer businessUnitId,
         Long suspenseItemNumber) {

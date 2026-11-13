@@ -66,6 +66,12 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '408':
+          description: Request Timeout
+          content:
+            appliction/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         '500':
           description: Internal server error
           content:

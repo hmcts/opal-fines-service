@@ -721,13 +721,28 @@ components:
           type: string
           format: date-time
         suspense_item_type:
-          type:
-            - string
-            - 'null'
+          $ref: '#/components/schemas/suspenseItemType'
         balance:
           type:
             - string
             - 'null'
+
+    suspenseItemType:
+      title: Suspense Item Type Reference
+      type: object
+      additionalProperties: false
+      required:
+        - item_type
+        - item_type_display_name
+      properties:
+        item_type:
+          type: string
+        item_type_display_name:
+          type: string
+          description: >
+            Display name derived by the backend from the suspense
+            item type code using the Suspense Item Type enumeration.
+          example: Court Fee
 
     suspenseItemHistory:
       title: Suspense Item History
