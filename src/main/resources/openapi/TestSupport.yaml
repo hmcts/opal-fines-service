@@ -61,25 +61,3 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
-components:
-  schemas:
-    deleteInterfaceFilesResult:
-      title: Delete Interface Files Response (TESTING ONLY)
-      additionalProperties: false
-      type: object
-      required:
-        - successfullyDeletedIds
-        - failedIds
-      properties:
-        successfully_deleted_ids:
-          type: array
-          description: List of SOURCE interface ids that were successfully deleted
-          items:
-            type: integer
-            format: int64
-        failed_ids:
-          type: array
-          description: List of SOURCE interface ids where an error occurred
-          items:
-            type: integer
-            format: int64
