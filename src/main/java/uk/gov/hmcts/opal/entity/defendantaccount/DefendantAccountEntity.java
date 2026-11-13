@@ -39,7 +39,7 @@ import uk.gov.hmcts.opal.entity.converter.ConsolidatedAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountStatusConverter;
 import uk.gov.hmcts.opal.entity.converter.DefendantAccountTypeConverter;
 import uk.gov.hmcts.opal.entity.converter.OriginatorTypeConverter;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.util.HasAssociatedRecordType;
 import uk.gov.hmcts.opal.util.LocalDateAdapter;
 import uk.gov.hmcts.opal.util.Versioned;
@@ -96,11 +96,11 @@ public class DefendantAccountEntity implements Versioned, HasAssociatedRecordTyp
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcing_court_id", referencedColumnName = "court_id")
-    private CourtEntity enforcingCourt;
+    private CourtLegacyEntity enforcingCourt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "last_hearing_court_id", referencedColumnName = "court_id")
-    private CourtEntity lastHearingCourt;
+    private CourtLegacyEntity lastHearingCourt;
 
     @Column(name = "last_hearing_date")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)

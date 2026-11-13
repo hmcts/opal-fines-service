@@ -5,23 +5,23 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 @Repository
-public interface CourtLiteRepository extends JpaRepository<CourtEntity, Long>,
-    JpaSpecificationExecutor<CourtEntity> {
+public interface CourtLiteRepository extends JpaRepository<CourtLegacyEntity, Long>,
+    JpaSpecificationExecutor<CourtLegacyEntity> {
 
     @Override
-    @EntityGraph(value = CourtEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
-    Optional<CourtEntity> findById(Long courtId);
+    @EntityGraph(value = CourtLegacyEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<CourtLegacyEntity> findById(Long courtId);
 
     @Override
-    @EntityGraph(value = CourtEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
-    <S extends CourtEntity, R> R findBy(
-        Specification<CourtEntity> spec,
+    @EntityGraph(value = CourtLegacyEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    <S extends CourtLegacyEntity, R> R findBy(
+        Specification<CourtLegacyEntity> spec,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction
     );
 }

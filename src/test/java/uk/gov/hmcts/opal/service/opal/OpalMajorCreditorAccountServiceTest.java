@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountAtAGlanceEntity;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
@@ -49,7 +49,7 @@ class OpalMajorCreditorAccountServiceTest {
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.MJ)
                 .versionNumber(4L)
-                .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
+                .majorCreditor(MajorCreditorLegacyEntity.builder().majorCreditorCode("TFL2").build())
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
@@ -112,7 +112,7 @@ class OpalMajorCreditorAccountServiceTest {
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.MJ)
                 .versionNumber(1L)
-                .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
+                .majorCreditor(MajorCreditorLegacyEntity.builder().majorCreditorCode("TFL2").build())
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()
@@ -134,7 +134,7 @@ class OpalMajorCreditorAccountServiceTest {
                 .creditorAccountId(creditorAccountId)
                 .creditorAccountType(CreditorAccountType.MJ)
                 .versionNumber(2L)
-                .majorCreditor(MajorCreditorEntity.builder().majorCreditorCode("TFL2").build())
+                .majorCreditor(MajorCreditorLegacyEntity.builder().majorCreditorCode("TFL2").build())
                 .build()));
         when(majorCreditorAccountAtAGlanceRepository.findById(creditorAccountId))
             .thenReturn(Optional.of(MajorCreditorAccountAtAGlanceEntity.builder()

@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @Data
 @Entity
 @EqualsAndHashCode(callSuper = true)
-@Table(name = "enforcers")
+@Table(name = "enforcers_legacy")
 @SuperBuilder
 @ToString(callSuper = true)
 @NoArgsConstructor
@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "enforcerId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class EnforcerEntity extends AddressCyEntity {
+public class EnforcerLegacyEntity extends AddressCyEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

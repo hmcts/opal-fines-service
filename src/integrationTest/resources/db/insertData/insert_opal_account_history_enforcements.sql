@@ -1,4 +1,4 @@
-INSERT INTO results (
+INSERT INTO results_legacy (
     result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
     enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow,
     enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order,
@@ -10,6 +10,10 @@ INSERT INTO results (
     TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
     FALSE, FALSE, FALSE, FALSE, FALSE
 ) ON CONFLICT (result_id) DO NOTHING;
+
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'HST02'
+ON CONFLICT (result_id) DO NOTHING;
 
 INSERT INTO enforcements (
     enforcement_id, defendant_account_id, posted_date, posted_by, result_id, reason, jail_days,

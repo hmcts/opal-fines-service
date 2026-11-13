@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
@@ -143,7 +143,7 @@ public class OpalDefendantAccountEnforcementService
                         case JAIL_DAYS, DAYS_IN_DEFAULT -> jailDays = Integer.valueOf(result.getResponse());
                         case ENFORCER_ID -> enforcerId = Long.valueOf(result.getResponse());
                         case ENFORCER -> {
-                            Optional<EnforcerEntity> enforcer = enforcerRepository
+                            Optional<EnforcerLegacyEntity> enforcer = enforcerRepository
                                 .findByEnforcerCodeAndBusinessUnit_businessUnitId(Short.valueOf(
                                     result.getResponse()), businessUnitId);
                             if (enforcer.isPresent()) {
@@ -156,7 +156,7 @@ public class OpalDefendantAccountEnforcementService
                         case EARLIEST_RELEASE_DATE, EARLIESTRELEASEDATE ->
                             earliestReleaseDate = LocalDateTime.parse(result.getResponse());
                         case COURT_CODE -> {
-                            Optional<CourtEntity> court = courtRepository
+                            Optional<CourtLegacyEntity> court = courtRepository
                                 .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
                             if (court.isPresent()) {
                                 hearingCourtId = court.get().getCourtId();
@@ -182,7 +182,7 @@ public class OpalDefendantAccountEnforcementService
                     earliestReleaseDate = LocalDateTime.parse(result.getResponse());
                 }
                 if (Objects.equals(result.getParameterName(), COURT_CODE)) {
-                    Optional<CourtEntity> court = courtRepository
+                    Optional<CourtLegacyEntity> court = courtRepository
                         .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
                     if (court.isPresent()) {
                         hearingCourtId = court.get().getCourtId();

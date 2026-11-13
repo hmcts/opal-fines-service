@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.EnforcerDefendantAccount;
 
 class EnforcerDefendantAccountMapperTest {
@@ -15,7 +15,7 @@ class EnforcerDefendantAccountMapperTest {
 
     @Test
     void toDto_shouldMapEnforcerId() {
-        EnforcerEntity entity = EnforcerEntity.builder()
+        EnforcerLegacyEntity entity = EnforcerLegacyEntity.builder()
             .enforcerId(22L)
             .build();
 

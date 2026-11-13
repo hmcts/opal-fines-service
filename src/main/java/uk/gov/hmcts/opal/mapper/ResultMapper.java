@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
@@ -16,9 +16,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ResultMapper {
 
-    ResultReferenceData toRefData(ResultEntity entity);
+    ResultReferenceData toRefData(ResultLegacyEntity entity);
 
-    default ResultsRefDataResponse toReferenceDataResponse(List<ResultEntity> entities) {
+    default ResultsRefDataResponse toReferenceDataResponse(List<ResultLegacyEntity> entities) {
         List<ResultsRefData> dtoList = entities.stream()
             .map(this::toResultReferenceData)
             .toList();
@@ -30,10 +30,10 @@ public interface ResultMapper {
     }
 
     @Mapping(target = "impositionAllocationOrder", source = "impositionAllocationPriority")
-    ResultsRefData toResultReferenceData(ResultEntity entity);
+    ResultsRefData toResultReferenceData(ResultLegacyEntity entity);
 
     @Mapping(target = "impositionCategory", source = "impositionCategory.impositionCategory")
-    GetResultByIdResponseResults toDto(ResultEntity entity);
+    GetResultByIdResponseResults toDto(ResultLegacyEntity entity);
 
     default String map(ResultType resultType) {
         return resultType == null ? null : resultType.getLabel();

@@ -12,7 +12,7 @@
 * 05/06/2025    R DODD      1.0         PO-1047 Insert rows of data into OFFENCES table for the Integration Tests
 *
 **/
-INSERT INTO offences
+INSERT INTO offences_legacy
 (
 offence_id, cjs_code
 , offence_title, offence_title_cy
@@ -26,3 +26,7 @@ VALUES
 , 'Contrary to regulations 32(a) & 34(3) of the Animals and Animal Products (Import and Export) (England) Regulations 2006.', NULL
 , to_date('2006-10-30','yyyy-mm-dd'), to_date('2024-11-24','yyyy-mm-dd')
 );
+
+INSERT INTO offences
+SELECT * FROM offences_legacy WHERE offence_id = 1
+ON CONFLICT (offence_id) DO NOTHING;

@@ -1,4 +1,4 @@
-INSERT INTO results (
+INSERT INTO results_legacy (
     result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
     enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow,
     enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order,
@@ -11,6 +11,10 @@ INSERT INTO results (
     FALSE, FALSE, FALSE, FALSE, FALSE
 ) ON CONFLICT (result_id) DO NOTHING;
 
+INSERT INTO results
+SELECT * FROM results_legacy WHERE result_id = 'HST01'
+ON CONFLICT (result_id) DO NOTHING;
+
 INSERT INTO defendant_accounts (
     defendant_account_id, version_number, business_unit_id, account_number, amount_paid,
     account_balance, amount_imposed, account_status, allow_writeoffs, allow_cheques, account_type,
@@ -20,8 +24,12 @@ INSERT INTO defendant_accounts (
     'History Sending Court'
 ) ON CONFLICT (defendant_account_id) DO NOTHING;
 
-INSERT INTO courts (court_id, business_unit_id, court_code, name)
+INSERT INTO courts_legacy (court_id, business_unit_id, court_code, name)
 VALUES (262200, 78, 2200, 'History Magistrates Court')
+ON CONFLICT (court_id) DO NOTHING;
+
+INSERT INTO courts
+SELECT * FROM courts_legacy WHERE court_id = 262200
 ON CONFLICT (court_id) DO NOTHING;
 
 INSERT INTO amendments (

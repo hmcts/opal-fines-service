@@ -16,13 +16,17 @@ VALUES
   (32643, 'Major Creditor History Business Unit', 'M643', 'Area',
    'M6', NULL, 'Fines', false, 'H');
 
-INSERT INTO public.major_creditors (
+INSERT INTO public.major_creditors_legacy (
   major_creditor_id, business_unit_id, major_creditor_code, name,
   address_line_1, address_line_2, address_line_3, postcode
 )
 VALUES
   (99264300000101, 32643, 'MJH', 'Major Creditor History',
    '1 Major Street', 'History Quarter', 'Test City', 'MJ1 1AA');
+
+INSERT INTO public.major_creditors
+SELECT * FROM public.major_creditors_legacy WHERE major_creditor_id = 99264300000101
+ON CONFLICT (major_creditor_id) DO NOTHING;
 
 INSERT INTO public.creditor_accounts (
   creditor_account_id, business_unit_id, account_number, creditor_account_type,

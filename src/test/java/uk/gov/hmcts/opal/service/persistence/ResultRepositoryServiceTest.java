@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,12 +28,12 @@ class ResultRepositoryServiceTest {
     void shouldReturnResultWhenIdIsProvidedAndResultExists() {
         // given
         String resultId = "RESULT_123";
-        ResultEntity lite = mock(ResultEntity.class);
+        ResultLegacyEntity lite = mock(ResultLegacyEntity.class);
 
         when(resultRepository.findById(resultId)).thenReturn(Optional.of(lite));
 
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isPresent();
@@ -49,7 +49,7 @@ class ResultRepositoryServiceTest {
         when(resultRepository.findById(resultId)).thenReturn(Optional.empty());
 
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isEmpty();
@@ -59,7 +59,7 @@ class ResultRepositoryServiceTest {
     @Test
     void shouldReturnEmptyAndNotCallRepositoryWhenIdIsNull() {
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(null);
+        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(null);
 
         // then
         assertThat(result).isEmpty();
