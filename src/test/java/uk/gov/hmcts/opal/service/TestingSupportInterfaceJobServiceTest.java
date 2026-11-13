@@ -1,12 +1,9 @@
 package uk.gov.hmcts.opal.service;
 
-import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -75,6 +72,7 @@ public class TestingSupportInterfaceJobServiceTest {
         when(userStateService.getPermittedBusinessUnitIds(List.of(businessUnitId),
             FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of(businessUnitId));
         when(interfaceJobRepository.save(any(InterfaceJobEntity.class))).then(AdditionalAnswers.returnsFirstArg());
+
 
         InterfaceJobsCreateFileItemTestingSupport fileItem = InterfaceJobsCreateFileItemTestingSupport.builder()
             .fileName(fileName)
