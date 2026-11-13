@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.service.report.CashListReportData;
 import uk.gov.hmcts.opal.service.report.CashListReportData.CashListEntry;
 
@@ -20,6 +21,7 @@ class CashListReportCSVMapperTest {
         "Entry,Type,Susp.,Account no,Name,Name (Additional Information),Payment,Amount";
 
     private final CashListReportCSVMapper mapper = new CashListReportCSVMapper();
+    private static final ReportInstanceEntity REPORT_INSTANCE = new ReportInstanceEntity();
 
     @Test
     void getReportDataType_returnsCashListReportDataClass() {
@@ -35,7 +37,7 @@ class CashListReportCSVMapperTest {
             .total(money("20.30"))
             .build();
 
-        String csv = mapper.reportToCSVString(reportData);
+        String csv = mapper.reportToCSVString(REPORT_INSTANCE, reportData);
 
         assertThat(csv).isEqualTo(String.join("\n",
             HEADER,
@@ -53,14 +55,14 @@ class CashListReportCSVMapperTest {
             .total(money("0.00"))
             .build();
 
-        String csv = mapper.reportToCSVString(reportData);
+        String csv = mapper.reportToCSVString(REPORT_INSTANCE, reportData);
 
         assertThat(csv).isEqualTo(String.join("\n", HEADER, "Total", "0.00", ""));
     }
 
     @Test
     void reportToCSVString_whenReportDataIsNull_throwsMeaningfulException() {
-        assertThatThrownBy(() -> mapper.reportToCSVString(null))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cash List report data is required");
     }
@@ -69,7 +71,7 @@ class CashListReportCSVMapperTest {
     void reportToCSVString_whenEntriesAreNull_throwsMeaningfulException() {
         CashListReportData reportData = CashListReportData.builder().total(money("0.00")).build();
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(reportData))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, reportData))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cash List report entries are required");
     }
@@ -83,7 +85,7 @@ class CashListReportCSVMapperTest {
             .total(money("0.00"))
             .build();
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(reportData))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, reportData))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cash List report entry 1 is required");
     }
@@ -92,7 +94,7 @@ class CashListReportCSVMapperTest {
     void reportToCSVString_whenTotalIsNull_throwsMeaningfulException() {
         CashListReportData reportData = CashListReportData.builder().entries(List.of()).build();
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(reportData))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, reportData))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Cash List report total is required");
     }
@@ -102,7 +104,7 @@ class CashListReportCSVMapperTest {
     void reportToCSVString_whenMoneyScaleExceedsTwoDecimalPlaces_throwsMeaningfulException(
         String description, CashListReportData reportData, String expectedMessage) {
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(reportData))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, reportData))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage(expectedMessage);
     }

@@ -11,6 +11,7 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 
 class EnforcementDetailedCSVMapperTest {
@@ -69,12 +70,13 @@ class EnforcementDetailedCSVMapperTest {
     private static final BigDecimal TXN_AMOUNT_2 = new BigDecimal("56.78");
 
     private final EnforcementDetailedCSVMapper mapper = new EnforcementDetailedCSVMapper();
+    private static final ReportInstanceEntity REPORT_INSTANCE = new ReportInstanceEntity();
 
     @Test
     void reportToCSVString_withNoAccounts_returnsOnlyHeaders() {
         OperationDetailedReport report = reportWithAccounts(List.of());
 
-        String csv = mapper.reportToCSVString(report);
+        String csv = mapper.reportToCSVString(REPORT_INSTANCE, report);
 
         assertEquals(
             csvRow(
@@ -136,7 +138,7 @@ class EnforcementDetailedCSVMapperTest {
             )
         ));
 
-        String csv = mapper.reportToCSVString(report);
+        String csv = mapper.reportToCSVString(REPORT_INSTANCE, report);
 
         assertEquals(
             csvRow(
@@ -244,7 +246,7 @@ class EnforcementDetailedCSVMapperTest {
             )
         ));
 
-        String csv = mapper.reportToCSVString(report);
+        String csv = mapper.reportToCSVString(REPORT_INSTANCE, report);
 
         assertEquals(
             csvRow(

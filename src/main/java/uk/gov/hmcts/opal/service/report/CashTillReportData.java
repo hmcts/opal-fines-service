@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.report;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.math.BigDecimal;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import lombok.NoArgsConstructor;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
 import lombok.extern.jackson.Jacksonized;
+import uk.gov.hmcts.opal.entity.InterfaceFileSourceEnum;
 
 @Data
 @Builder
@@ -26,6 +28,12 @@ public class CashTillReportData implements ReportDataInterface {
 
     @Builder.Default
     private ReportMetaData reportMetaData = new ReportMetaData(List.of());
+
+    private String businessUnit;
+    private String cashTillNumber;
+    private String cashier;
+    private InterfaceFileSourceEnum source;
+    private BigDecimal totalAmount;
 
     @Override
     @JsonIgnore
