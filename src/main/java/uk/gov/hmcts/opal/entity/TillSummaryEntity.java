@@ -39,6 +39,9 @@ public class TillSummaryEntity {
     @Column(name = "interface_file_id")
     private Long interfaceFileId;
 
+    @Column(name = "interface_job_id")
+    private Long interfaceJobId;
+
     @Column(name = "file_name")
     private String fileName;
 
