@@ -4,9 +4,9 @@ servers:
   - url: http://localhost:4550/
 
 info:
-  description: Opal File Handler Service - Test Support Endpints
+  description: Opal Fines Service - Test Support Endpints
   version: v0.0.1
-  title: Opal File Handler Service
+  title: Opal Fines Service
 
 paths:
   /testing-support/automated-jobs/{name}:
