@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -36,9 +35,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
-import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
-import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Creditor;
@@ -49,7 +45,6 @@ import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountImpositionsLegacyResponse.Result;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetImpositionsRequest;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
-import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyImpositionService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -64,28 +59,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
-    private static final String AUTH_HEADER = "Bearer test-token";
     private static final String CREDITOR_ACCOUNT_TYPE =
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_type";
     private static final String CREDITOR_ACCOUNT_DISPLAY_NAME =
         "$.impositions[0].creditor.creditor_account_type_reference.creditor_account_display_name";
 
     @MockitoBean
-    private UserStateService userStateService;
-
-    @MockitoBean
-    private AccessTokenService accessTokenService;
-
-    @MockitoBean
-    private UserStateClientService userStateClientService;
-
-    @MockitoBean
     private GatewayService gatewayService;
-
-    @BeforeEach
-    void setupUserState() {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
-    }
 
     @Test
     @DisplayName("LEGACY: Get Defendant Account Impositions returns schema-valid imposition response")
@@ -153,7 +133,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
     @JiraEpic("PO-979")
     @JiraTestKey("PO-8266")
     void getImpositions_whenUserLacksPermission_returnsForbidden() throws Exception {
-        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.noPermissionsUser());
+        userStateStub.setupWithNoPermissions();
 
         performGetImpositions(12345L)
             .andExpect(status().isForbidden())
@@ -214,7 +194,7 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {
         return mockMvc.perform(get(URL_BASE + "/" + defendantAccountId + "/impositions")
-                                   .header("Authorization", AUTH_HEADER)
+                                   .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                                    .accept(MediaType.APPLICATION_JSON));
     }
 
