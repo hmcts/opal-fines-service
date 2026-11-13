@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -27,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.test.web.servlet.MvcResult;
@@ -40,6 +42,7 @@ import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -57,6 +60,8 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
     private static final Long INTERFACE_JOB_ID = 257601L;
     private static final Long IGNORED_INTERFACE_JOB_ID = 257602L;
+    private static final Long INTERFACE_FILE_ID = 257611L;
+    private static final Long IGNORED_INTERFACE_FILE_ID = 257612L;
     private static final Long SUMMARY_MISSING_INTERFACE_JOB_ID = 257603L;
     private static final long UNKNOWN_INTERFACE_JOB_ID = 257699L;
     private static final Short BUSINESS_UNIT_ID = 2576;
@@ -77,6 +82,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
     @MockitoBean
     private Clock clock;
+
+    @Autowired
+    private InterfaceFileRepository interfaceFileRepository;
 
     @BeforeEach
     void setUpTestDoubles() {
@@ -112,10 +120,16 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.interface_messages[0].messages[0]", aMapWithSize(MESSAGE_RESPONSE_FIELD_COUNT)))
             .andExpect(jsonPath("$.interface_messages[0].messages[0].interface_messages_id").value(257631))
             .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.count").value(3))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data", aMapWithSize(3)))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.value").value(123.45))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.court_amount").value(12.34))
             .andExpect(jsonPath("$.interface_messages[0].messages[1].interface_messages_id").value(257633))
             .andExpect(jsonPath("$.interface_messages[0].messages[1].message_data.count").value(4))
             .andExpect(jsonPath("$.interface_messages[1].message_text").value("records_rejected"))
             .andExpect(jsonPath("$.interface_messages[1].messages", hasSize(1)));
+
+        assertEquals(0, new BigDecimal("12345").compareTo(
+            interfaceFileRepository.findById(INTERFACE_FILE_ID).orElseThrow().getTotalAmount()));
     }
 
     @Test
@@ -247,12 +261,27 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
         mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", aMapWithSize(SUMMARY_RESPONSE_FIELD_COUNT)))
             .andExpect(jsonPath("$.file_name").value("ignored-summary.dat"))
             .andExpect(jsonPath("$.business_unit_name").value("Processed Summary BU"))
             .andExpect(jsonPath("$.total_amount").value(50.00))
             .andExpect(jsonPath("$.total_records").value(2))
             .andExpect(jsonPath("$.total_errors").value(1))
-            .andExpect(jsonPath("$.interface_messages[0].message_text").value("records_ignored"));
+            .andExpect(jsonPath("$.interface_messages", hasSize(1)))
+            .andExpect(jsonPath("$.interface_messages[0]", aMapWithSize(MESSAGE_GROUP_RESPONSE_FIELD_COUNT)))
+            .andExpect(jsonPath("$.interface_messages[0].message_text").value("records_ignored"))
+            .andExpect(jsonPath("$.interface_messages[0].messages", hasSize(1)))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0]", aMapWithSize(MESSAGE_RESPONSE_FIELD_COUNT)))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].interface_messages_id").value(257634))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_type").value("Exception"))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data", aMapWithSize(3)))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.count").value(2))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.value").value(50.00))
+            .andExpect(jsonPath("$.interface_messages[0].messages[0].message_data.court_amount").value(5.67));
+
+        assertEquals(0, new BigDecimal("5000").compareTo(
+            interfaceFileRepository.findById(IGNORED_INTERFACE_FILE_ID).orElseThrow().getTotalAmount()));
 
         verify(loggingService, times(1)).personalDataAccessLogAsync(any());
     }

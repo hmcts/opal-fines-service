@@ -425,7 +425,10 @@ components:
           description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
         total_amount:
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
-          description: Total payment amount in pence. DB Mapping - v_interface_jobs_processed_file_summary.total_amount
+          description: >
+            Total payment amount in pounds sterling, converted from the interface-file total stored in pence.
+            DB Mapping - v_interface_jobs_processed_file_summary.total_amount
+          example: 123.45
         total_records:
           type: integer
           format: int16
@@ -469,7 +472,9 @@ components:
         message_data:
           type: object
           additionalProperties: true
-          description: DB Mapping - interface_messages.message_data
+          description: >
+            DB Mapping - interface_messages.message_data. Monetary value and court_amount properties,
+            when present, are expressed in pounds sterling and returned without further conversion.
         message_type:
           $ref: '#/components/schemas/InterfaceJobsMessageType'
           description: DB Mapping - interface_messages.message_type
