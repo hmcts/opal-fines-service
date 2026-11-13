@@ -24,7 +24,7 @@ Feature: Replace Draft Account Authorisation
 
     Then the request is rejected as unauthorized
 
-    #    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
+    And no PDPO logs exist for the created draft account and business_identifier "Update Draft Account - Defendant"
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5672
   Scenario: Replace draft account - user with no permissions
