@@ -39,7 +39,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @ActiveProfiles({"integration", "opal"})
 @TestPropertySource(properties = {
     "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b-1-2=true"
+    "launchdarkly.default-flag-values.release-1-b-1-2=true"
 })
 @Slf4j(topic = "opal.OpalNotesR1B12IntegrationTest")
 @DisplayName("Opal Notes R1B12 Integration Test")
