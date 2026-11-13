@@ -185,6 +185,10 @@ opal:
     service-bus:
       queue-name: ${SERVICEBUS_ALLOCATE_TILLS_QUEUE_NAME:allocate-tills}
 
+  acknowledgements:
+    service-bus:
+      queue-name: ${ACKNOWLEDGEMENTS_QUEUE_NAME:VPFPO-acknowledgements-queue}
+
   interface-jobs:
     service-bus:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
