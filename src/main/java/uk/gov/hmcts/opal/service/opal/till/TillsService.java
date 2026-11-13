@@ -2,7 +2,10 @@ package uk.gov.hmcts.opal.service.opal.till;
 
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 import static uk.gov.hmcts.opal.entity.AssociatedRecordType.DEFENDANT_ACCOUNTS;
+import static uk.gov.hmcts.opal.entity.AssociatedRecordType.MISCELLANEOUS_ACCOUNTS;
+import static uk.gov.hmcts.opal.entity.DestinationType.C;
 import static uk.gov.hmcts.opal.entity.DestinationType.F;
+import static uk.gov.hmcts.opal.entity.DestinationType.S;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
@@ -13,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -20,6 +24,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsGetResponse;
 import uk.gov.hmcts.opal.mapper.till.GetTillMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
@@ -31,6 +36,7 @@ public class TillsService {
     private final TillRepository tillRepository;
     private final PaymentInRepository paymentInRepository;
     private final DefendantAccountRepository defendantAccountRepository;
+    private final MiscellaneousAccountRepository miscellaneousAccountRepository;
     private final UserStateService userStateService;
     private final GetTillMapper getTillMapper;
 
@@ -41,7 +47,9 @@ public class TillsService {
         List<PaymentInEntity> payments = findPayments(tillId);
         Map<Long, DefendantAccountEntity> defendantAccounts = loadDefendantAccounts(payments);
 
-        return getTillMapper.toResponse(till, payments, defendantAccounts);
+        Map<Long, MiscellaneousAccountEntity> miscellaneousAccounts = loadMiscellaneousAccounts(payments);
+
+        return getTillMapper.toResponse(till, payments, defendantAccounts, miscellaneousAccounts);
     }
 
     private TillEntity findTill(Long tillId) {
@@ -78,6 +86,41 @@ public class TillsService {
 
         return defendantAccountRepository.findAllByDefendantAccountIdIn(defendantAccountIds).stream()
             .collect(Collectors.toMap(DefendantAccountEntity::getDefendantAccountId, Function.identity()));
+    }
+
+    private Map<Long, MiscellaneousAccountEntity> loadMiscellaneousAccounts(List<PaymentInEntity> payments) {
+        List<Long> accountIds = payments.stream()
+            .filter(payment -> payment.getDestinationType() == C || payment.getDestinationType() == S)
+            .filter(payment -> payment.getAssociatedRecordType() == MISCELLANEOUS_ACCOUNTS)
+            .map(TillsService::getMiscellaneousAccountId)
+            .distinct()
+            .toList();
+        if (accountIds.isEmpty()) {
+            return Map.of();
+        }
+        Map<Long, MiscellaneousAccountEntity> accounts = miscellaneousAccountRepository
+            .findAllByMiscellaneousAccountIdIn(accountIds).stream()
+            .collect(Collectors.toMap(MiscellaneousAccountEntity::getMiscellaneousAccountId, Function.identity()));
+        for (Long accountId : accountIds) {
+            MiscellaneousAccountEntity account = accounts.get(accountId);
+            if (account == null) {
+                throw new EntityNotFoundException("Miscellaneous account not found for associated_record_id: "
+                    + accountId);
+            }
+            if (account.getParty() == null) {
+                throw new EntityNotFoundException("Party not found for miscellaneous_account_id: " + accountId);
+            }
+        }
+        return accounts;
+    }
+
+    private static Long getMiscellaneousAccountId(PaymentInEntity payment) {
+        try {
+            return Long.valueOf(payment.getAssociatedRecordId());
+        } catch (NumberFormatException exception) {
+            throw new IllegalStateException("Payment " + payment.getPaymentInId()
+                + " has an invalid miscellaneous account associated_record_id", exception);
+        }
     }
 
     private static Short getBusinessUnitId(TillEntity till) {
