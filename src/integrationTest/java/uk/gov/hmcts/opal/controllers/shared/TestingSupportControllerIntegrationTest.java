@@ -324,8 +324,8 @@ class TestingSupportControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-11124")
     @JiraEpic("PO-3497")
-    @DisplayName("PO-11124 - TESTING SUPPORT - Should return 403 when allocate payments permission is missing")
-    void shouldReturnForbiddenWhenProcessAndAllocatePaymentsPermissionDoesNotExist_403() throws Exception {
+    @DisplayName("PO-11124 - TESTING SUPPORT - Should return 403 without allocate and process payments permission")
+    void shouldReturnForbiddenWithoutProcessAndAllocatePaymentsPermission_403() throws Exception {
         // Arrange
         userStateStub.setupWithNoPermissions();
 
