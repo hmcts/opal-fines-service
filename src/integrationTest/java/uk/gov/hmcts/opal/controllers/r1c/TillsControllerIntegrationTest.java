@@ -77,6 +77,8 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.tills[0].file_name").value("luton-allocated.dat"))
             .andExpect(jsonPath("$.tills[0].source").value("NATWEST"))
             .andExpect(jsonPath("$.tills[0].amount").value(1234.56))
+            .andExpect(jsonPath("$.tills[0].business_unit_id").value(25750))
+            .andExpect(jsonPath("$.tills[0].interface_job_id").value(257501))
             .andExpect(jsonPath("$.tills[0].business_unit_name").value("Luton"))
             .andExpect(jsonPath("$.tills[0].processed_by").value("Luton User"))
             .andExpect(jsonPath("$.tills[0].date_processed").value("2026-08-27"));
@@ -97,6 +99,8 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.tills[0].errors").value(1))
             .andExpect(jsonPath("$.tills[0].file_name").value("luton-created.dat"))
             .andExpect(jsonPath("$.tills[0].source").value("ALLPAY"))
+            .andExpect(jsonPath("$.tills[0].business_unit_id").value(25750))
+            .andExpect(jsonPath("$.tills[0].interface_job_id").doesNotExist())
             .andExpect(jsonPath("$.tills[0].amount").value(2345.67));
     }
 
@@ -176,6 +180,8 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
             "file_name",
             "source",
             "amount",
+            "business_unit_id",
+            "interface_job_id",
             "business_unit_name",
             "processed_by",
             "date_processed"
