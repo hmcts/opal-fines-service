@@ -215,17 +215,6 @@ opal:
       scope: ${OPAL_HMRC_AUTH_SCOPE:}
       grant-type: ${OPAL_HMRC_AUTH_GRANT_TYPE:client_credentials}
 
-  ref-data:
-    service-bus:
-      topic-name: ${SERVICEBUS_REFDATA_TOPIC_NAME:opal-reference-data-topic}
-      subscription-name: ${SERVICEBUS_REFDATA_SUBSCRIPTION_NAME:opal-fines-reference-data-subscription}
-      consumer-enabled: ${REF_DATA_CONSUMER_ENABLED:false}
-      max-messages-per-session: ${REF_DATA_MAX_MESSAGES_PER_SESSION:50}
-      initial-delay-seconds: ${REF_DATA_INITIAL_DELAY_SECONDS:10}
-      fixed-delay-seconds: ${REF_DATA_FIXED_DELAY_SECONDS:5}
-      receive-timeout-seconds: ${REF_DATA_RECEIVE_TIMEOUT_SECONDS:3}
-      try-timeout-seconds: ${REF_DATA_TRY_TIMEOUT_SECONDS:10}
-
 be-developer-config:
   user-role-permissions: ${BE_DEV_ROLE_PERMISSIONS:}
 
