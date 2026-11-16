@@ -1,0 +1,41 @@
+=== Cleanup test data ===
+=== Cleanup data before tests ===
+Cleanup completed
+=== Setting up test data ===
+Test data setup completed
+=== TEST 1: Check existence of Composite data type ===
+TEST 1 PASSED
+=== TEST 2: Adjust control totals for CT ===
+Control Total Type: CT
+Item Number: 208
+Amount: 100.00
+TEST 2 PASSED
+=== TEST 3: Adjust control totals for WOT ===
+Control Total Type: WOT
+Item Number: 1602
+Amount: 100.00
+TEST 3 PASSED
+=== TEST 4: Adjust control totals for both CT and WOT ===
+Control Total Type: CT
+Item Number: 1603
+Amount: 200.00
+Control Total Type: CT
+Item Number: 1012
+Amount: 100.00
+TEST 4 PASSED
+=== TEST 5: Update associated record type and record id ===
+Control Total Type: CT
+Item Number: 1603
+Amount: 50.00
+TEST 5 PASSED
+=== TEST 6: Update existing associated record type and record id with null value ===
+Control Total Type: CT
+Item Number: 1603
+Amount: 20.00
+TEST 6 PASSED
+=== TEST 7: Apply counter_item_number and account_count ===
+Control Total Type: WOT
+Item Number: 1012
+Amount: 70.00
+TEST 7 PASSED
+Test data cleanup completed
