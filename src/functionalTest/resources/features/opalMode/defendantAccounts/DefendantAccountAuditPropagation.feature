@@ -10,7 +10,7 @@ Feature: Defendant Account Audit Propagation
     And the created defendant account has no amendment history yet
     When I patch the created defendant account with an enforcement override
     Then the defendant account patch response matches the documented contract
-    And the created defendant account amendment history is recorded for business user "L077JG" and username "opal-test@dev.platform.hmcts.net"
+    And the created defendant account amendment history is recorded for the audit test user
     And the created defendant account amendment history contains the patched enforcement override result
 
   @cleanUpData @JIRA-STORY:PO-2623 @JIRA-EPIC:PO-2621 @JIRA-TEST-KEY:PO-9533
@@ -26,5 +26,5 @@ Feature: Defendant Account Audit Propagation
     And the created defendant account has no amendment history yet
     When I replace the defendant party for the created defendant account
     Then the replace defendant account party response matches the documented contract
-    And the created defendant account amendment history is recorded for business user "L077JG" and username "opal-test@dev.platform.hmcts.net"
+    And the created defendant account amendment history is recorded for the audit test user
     And the created defendant account amendment history contains new value "Audit Party Replace"
