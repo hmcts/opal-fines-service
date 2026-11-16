@@ -4,10 +4,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
-import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.SuspenseItemSummaryEntity;
+import uk.gov.hmcts.opal.entity.SuspenseItemType;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
+import uk.gov.hmcts.opal.generated.model.SuspenseItemTypeCommonStrict;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface SuspenseItemSummaryMapper {
@@ -18,18 +19,19 @@ public interface SuspenseItemSummaryMapper {
         @Mapping(target = "suspenseItemType", expression =
             "java(SuspenseItemSummaryMapper.toSuspenseItemType(entity.getSuspenseItemType()))"),
         @Mapping(target = "createdDate", source = "entity.createdDate"),
-        @Mapping(target = "balance", expression = "java(SuspenseItemSummaryMapper.toBalance(entity.getBalance()))"),
+        @Mapping(target = "balance", source = "entity.balance"),
         @Mapping(target = "businessUnitDetails", expression =
             "java(SuspenseItemSummaryMapper.toBusinessUnitSummaryCommon(entity))"),
     })
     SuspenseItemSummaryCommonStrict toSuspenseItemSummaryCommonStrict(SuspenseItemSummaryEntity entity);
 
-    static JsonNullable<String> toSuspenseItemType(String suspenseItemType) {
-        return JsonNullable.of(suspenseItemType);
-    }
-
-    static JsonNullable<String> toBalance(Double balance) {
-        return JsonNullable.of(String.valueOf(balance));
+    static SuspenseItemTypeCommonStrict toSuspenseItemType(String suspenseItemTypeString) {
+        SuspenseItemType suspenseItemType = SuspenseItemType.valueOf(suspenseItemTypeString);
+        return SuspenseItemTypeCommonStrict
+            .builder()
+            .itemType(suspenseItemType.name())
+            .itemTypeDisplayName(suspenseItemType.getDescription())
+            .build();
     }
 
     static BusinessUnitSummaryLiteCommon toBusinessUnitSummaryCommon(SuspenseItemSummaryEntity entity) {

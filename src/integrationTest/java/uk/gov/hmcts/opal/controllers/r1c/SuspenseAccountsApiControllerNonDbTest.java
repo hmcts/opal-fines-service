@@ -6,24 +6,30 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
-public class SuspenseAccountsApiControllerTest extends AbstractIntegrationTest {
+@DisplayName("Suspense item summary service integration tests")
+@TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-suspense=true")
+public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationTest {
 
-    private static final String SUMMARY_URL
-        = "/suspense-accounts/{business_unit_id}/suspense-items/{suspense_item_number}/summary";
+    private static final String SUMMARY_URL =
+        "/suspense-accounts/{business_unit_id}/suspense-items/{suspense_item_number}/summary";
+
     private static final String AUTH_HEADER = "Bearer some_value";
 
     @MockitoBean
@@ -39,14 +45,14 @@ public class SuspenseAccountsApiControllerTest extends AbstractIntegrationTest {
 
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict
             .builder()
-            .suspenseItemId(1)
-            .suspenseItemNumber(12345)
+            .suspenseItemId(1L)
+            .suspenseItemNumber(12345L)
             .businessUnitDetails(BusinessUnitSummaryLiteCommon
                 .builder()
                 .businessUnitId((short) 1)
                 .businessUnitName("Business Unit Name").build())
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
-            .balance("100.0")
+            .balance(new BigDecimal("100.00"))
             .build();
 
         doReturn(expected).when(suspenseAccountsSummaryService).getSuspenseAccountsSummary(any(), any());

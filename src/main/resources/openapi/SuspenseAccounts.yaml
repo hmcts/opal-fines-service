@@ -26,6 +26,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int16
         - name: suspense_item_number
           in: path
           required: true
@@ -64,6 +65,12 @@ paths:
           description: Not found
           content:
             application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '408':
+          description: Request Timeout
+          content:
+            appliction/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         '500':

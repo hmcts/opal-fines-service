@@ -714,20 +714,37 @@ components:
         suspense_item_id:
           type:
             - integer
+          format: int64
         suspense_item_number:
           type:
             - integer
+          format: int64
         created_date:
           type: string
           format: date-time
         suspense_item_type:
-          type:
-            - string
-            - 'null'
+          $ref: '#/components/schemas/suspenseItemType'
         balance:
-          type:
-            - string
-            - 'null'
+          type: number
+          description: Current suspense item balance.
+          example: 75.25
+
+    suspenseItemType:
+      title: Suspense Item Type Reference
+      type: object
+      additionalProperties: false
+      required:
+        - item_type
+        - item_type_display_name
+      properties:
+        item_type:
+          type: string
+        item_type_display_name:
+          type: string
+          description: >
+            Display name derived by the backend from the suspense
+            item type code using the Suspense Item Type enumeration.
+          example: Court Fee
 
     suspenseItemHistory:
       title: Suspense Item History
@@ -789,7 +806,7 @@ components:
             - $ref: '#/components/schemas/reversalDetails'
             - $ref: '#/components/schemas/adjustmentDetails'
             - $ref: '#/components/schemas/creditor_details'
-              
+
     transactionType:
       title: Transaction Type
       type: object

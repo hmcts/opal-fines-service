@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,10 +19,11 @@ public class OpalSuspenseAccountsSummaryService implements SuspenseAccountsSumma
     private final SuspenseItemSummaryMapper suspenseItemSummaryMapper;
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId,
+        BigInteger suspenseItemNumber) {
 
         SuspenseItemSummaryEntity suspenseItemSummary = suspenseItemSummaryRepository
-            .findByBusinessUnitIdAndSuspenseItemNumber(suspenseItemNumber, businessUnitId);
+            .findByBusinessUnitIdAndSuspenseItemNumber(businessUnitId, suspenseItemNumber);
 
         return suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(suspenseItemSummary);
     }
