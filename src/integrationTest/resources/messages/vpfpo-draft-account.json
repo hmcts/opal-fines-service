@@ -1,0 +1,38 @@
+{
+  "business_unit_id": 30001,
+  "account_type": "Fixed Penalty",
+  "source": "VPFPO",
+  "source_reference": 10322001,
+  "account": {
+    "account_type": "Fixed Penalty",
+    "defendant_type": "adultOrYouthOnly",
+    "originator_name": "Draft Account Validation Prosecutor",
+    "originator_id": 32010,
+    "originator_type": "FP",
+    "prosecutor_case_reference": "VPFPO-IT-10322",
+    "payment_card_request": false,
+    "account_sentence_date": "2026-11-12",
+    "defendant": {
+      "company_flag": false,
+      "forenames": "Alex",
+      "surname": "Example",
+      "dob": "1990-01-01",
+      "address_line_1": "1 Example Street",
+      "post_code": "AB1 2CD"
+    },
+    "offences": [],
+    "fp_ticket_detail": {
+      "notice_number": "VPFPO-IT-10322",
+      "date_of_issue": "2026-10-01",
+      "time_of_issue": "14:30",
+      "place_of_offence": "Example Road"
+    },
+    "payment_terms": {
+      "payment_terms_type_code": "B"
+    }
+  },
+  "account_snapshot": {
+    "defendant_name": "Example, Alex",
+    "account_type": "Fixed Penalty"
+  }
+}

@@ -20,7 +20,6 @@ public record VpfpoDraftAccountMessage(
     @JsonProperty("validated_at")
     OffsetDateTime validatedDate,
 
-    // The producer supplies the PSA/LJA code in business_unit_id.
     @JsonProperty("business_unit_id")
     Short ljaCode,
 
