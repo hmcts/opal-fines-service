@@ -54,6 +54,7 @@ import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSearchPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.OpalMinorCreditorService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
@@ -109,6 +110,9 @@ class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractWebMvcInt
 
     @MockitoBean
     private MinorCreditorSummaryPdplLoggingService summaryPdplLoggingService;
+
+    @MockitoBean
+    private MinorCreditorSearchPdplLoggingService minorCreditorSearchLoggingService;
 
     @MockitoBean
     private MinorCreditorAccountAtAGlanceResponseMapper atAGlanceResponseMapper;
