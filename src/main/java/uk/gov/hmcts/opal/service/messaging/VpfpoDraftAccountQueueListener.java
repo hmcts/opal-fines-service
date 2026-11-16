@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Slf4j(topic = "opal.VpfpoDraftAccountQueueListener")
 @RequiredArgsConstructor
 @ConditionalOnExpression(
-    "${opal.draft-accounts.create.service-bus.consumer-enabled:false} and '${opal.automated-task:}' == ''")
+    "${opal.draft-accounts.create.service-bus.consumer-enabled} == true and '${opal.automated-task:}' == ''")
 public class VpfpoDraftAccountQueueListener {
 
     private final VpfpoDraftAccountConsumerService consumer;
