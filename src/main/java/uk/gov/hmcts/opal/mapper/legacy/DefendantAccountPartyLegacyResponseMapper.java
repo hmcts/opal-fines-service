@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
+import java.util.Arrays;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -11,17 +13,19 @@ import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
 import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.IndividualAliasCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferencesCommonStrict;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.OrganisationAliasCommon;
 import uk.gov.hmcts.opal.generated.model.PartyContactDetailsDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
@@ -42,7 +46,7 @@ public interface DefendantAccountPartyLegacyResponseMapper {
         qualifiedByName = "toDefendantAccountPartyType")
     DefendantAccountParty toGeneratedResponse(DefendantAccountPartyLegacy legacy);
 
-    PartyDetailsCommonStrict toGeneratedResponse(PartyDetailsLegacy legacy);
+    PartyDetailsCommonStrict toGeneratedResponse(LegacyPartyDetails legacy);
 
     AddressDetailsCommonStrict toGeneratedResponse(AddressDetailsLegacy legacy);
 
@@ -53,9 +57,13 @@ public interface DefendantAccountPartyLegacyResponseMapper {
     @Mapping(target = "employerAddress", source = "employerAddress", qualifiedByName = "toEmployerAddress")
     PartyEmployerDetailsDefendantAccount toGeneratedResponse(EmployerDetailsLegacy legacy);
 
-    OrganisationDetailsCommonStrict toGeneratedResponse(OrganisationDetailsLegacy legacy);
+    OrganisationDetailsCommonStrict toGeneratedResponse(OrganisationDetails legacy);
 
-    IndividualDetailsCommonStrict toGeneratedResponse(IndividualDetailsLegacy legacy);
+    IndividualDetailsCommonStrict toGeneratedResponse(IndividualDetails legacy);
+
+    OrganisationAliasCommon toGeneratedResponse(OrganisationDetails.OrganisationAlias legacy);
+
+    IndividualAliasCommonStrict toGeneratedResponse(IndividualDetails.IndividualAlias legacy);
 
     LanguagePreferencesCommonStrict toGeneratedResponse(LanguagePreferencesLegacy legacy);
 
@@ -96,12 +104,24 @@ public interface DefendantAccountPartyLegacyResponseMapper {
         return JsonNullable.of(toGeneratedResponse(legacy));
     }
 
-    default JsonNullable<OrganisationDetailsCommonStrict> toJsonNullable(OrganisationDetailsLegacy legacy) {
+    default JsonNullable<OrganisationDetailsCommonStrict> toJsonNullable(OrganisationDetails legacy) {
         return JsonNullable.of(toGeneratedResponse(legacy));
     }
 
-    default JsonNullable<IndividualDetailsCommonStrict> toJsonNullable(IndividualDetailsLegacy legacy) {
+    default JsonNullable<IndividualDetailsCommonStrict> toJsonNullable(IndividualDetails legacy) {
         return JsonNullable.of(toGeneratedResponse(legacy));
+    }
+
+    default JsonNullable<List<OrganisationAliasCommon>> toJsonNullable(
+        OrganisationDetails.OrganisationAlias[] aliases) {
+        return JsonNullable.of(aliases == null ? null
+            : Arrays.stream(aliases).map(this::toGeneratedResponse).toList());
+    }
+
+    default JsonNullable<List<IndividualAliasCommonStrict>> toJsonNullable(
+        IndividualDetails.IndividualAlias[] aliases) {
+        return JsonNullable.of(aliases == null ? null
+            : Arrays.stream(aliases).map(this::toGeneratedResponse).toList());
     }
 
     default JsonNullable<LanguagePreferenceCommonStrict> toJsonNullable(

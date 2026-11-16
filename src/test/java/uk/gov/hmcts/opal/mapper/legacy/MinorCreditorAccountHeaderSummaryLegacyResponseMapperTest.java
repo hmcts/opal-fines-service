@@ -11,8 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.CreditorHeaderLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetMinorCreditorAccountHeaderSummaryLegacyResponse.FinancialsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponseFinancials;
@@ -39,7 +39,7 @@ class MinorCreditorAccountHeaderSummaryLegacyResponseMapperTest {
     @Test
     void givenFullLegacyResponse_MapsExpectedFieldsAndCallsSubmappers() {
         // Arrange
-        PartyDetailsLegacy partyDetails = PartyDetailsLegacy.builder().build();
+        LegacyPartyDetails partyDetails = LegacyPartyDetails.builder().build();
         BusinessUnitSummary businessUnitSummary = BusinessUnitSummary.builder().build();
         CreditorHeaderLegacy creditorHeader = CreditorHeaderLegacy.builder().build();
         FinancialsLegacy financials = FinancialsLegacy.builder().build();

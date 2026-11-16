@@ -2,7 +2,7 @@ package uk.gov.hmcts.opal.mapper.legacy;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 
 @Mapper(
@@ -11,5 +11,5 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 )
 public interface LegacyPartyDetailsMapper {
 
-    PartyDetailsCommon toPartyDetailsCommon(PartyDetailsLegacy legacy);
+    PartyDetailsCommon toPartyDetailsCommon(LegacyPartyDetails legacy);
 }
