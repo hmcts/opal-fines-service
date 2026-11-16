@@ -9,6 +9,8 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.MANAGE_SUSPENSE_ITEMS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,13 +43,14 @@ class SuspenseAccountsSummaryServiceTest {
     void getSummary_allowsEitherPermission(FinesPermission permission) {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWith(permission));
         SuspenseItemSummaryCommonStrict expected =
-            SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance("100.0").build();
-        when(proxy.getSuspenseAccountsSummary((short) 123, 12345L)).thenReturn(expected);
+            SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance(BigDecimal.valueOf(100.0)).build();
+        when(proxy.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345))).thenReturn(expected);
 
-        SuspenseItemSummaryCommonStrict result = service.getSuspenseAccountsSummary((short) 123, 12345L);
+        SuspenseItemSummaryCommonStrict result = service.getSuspenseAccountsSummary((short) 123,
+            BigInteger.valueOf(12345));
 
         assertEquals(expected, result);
-        verify(proxy).getSuspenseAccountsSummary((short) 123, 12345L);
+        verify(proxy).getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345));
     }
 
     @ParameterizedTest
@@ -69,7 +72,7 @@ class SuspenseAccountsSummaryServiceTest {
 
     private void assertAccessDenied() {
         PermissionNotAllowedException exception = assertThrows(PermissionNotAllowedException.class,
-            () -> service.getSuspenseAccountsSummary((short) 123, 12345L));
+            () -> service.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345)));
 
         assertArrayEquals(new FinesPermission[] { VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS },
             exception.getPermission());

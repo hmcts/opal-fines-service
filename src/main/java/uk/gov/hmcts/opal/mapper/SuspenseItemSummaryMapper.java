@@ -1,11 +1,9 @@
 package uk.gov.hmcts.opal.mapper;
 
-import java.math.BigDecimal;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
 import org.mapstruct.ReportingPolicy;
-import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.SuspenseItemSummaryEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemType;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
@@ -21,7 +19,7 @@ public interface SuspenseItemSummaryMapper {
         @Mapping(target = "suspenseItemType", expression =
             "java(SuspenseItemSummaryMapper.toSuspenseItemType(entity.getSuspenseItemType()))"),
         @Mapping(target = "createdDate", source = "entity.createdDate"),
-        @Mapping(target = "balance", expression = "java(SuspenseItemSummaryMapper.toBalance(entity.getBalance()))"),
+        @Mapping(target = "balance", source = "entity.balance"),
         @Mapping(target = "businessUnitDetails", expression =
             "java(SuspenseItemSummaryMapper.toBusinessUnitSummaryCommon(entity))"),
     })
@@ -34,10 +32,6 @@ public interface SuspenseItemSummaryMapper {
             .itemType(suspenseItemType.name())
             .itemTypeDisplayName(suspenseItemType.getDescription())
             .build();
-    }
-
-    static JsonNullable<String> toBalance(BigDecimal balance) {
-        return JsonNullable.of(String.valueOf(balance));
     }
 
     static BusinessUnitSummaryLiteCommon toBusinessUnitSummaryCommon(SuspenseItemSummaryEntity entity) {

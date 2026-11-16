@@ -8,8 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDateTime;
-import java.time.Month;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -45,15 +46,15 @@ public class SuspenseAccountsApiControllerTest {
                 .businessUnitId((short) 123)
                 .businessUnitName("Test Business Unit")
                 .build())
-            .suspenseItemId(123)
-            .suspenseItemNumber(123)
+            .suspenseItemId(123L)
+            .suspenseItemNumber(123L)
             .createdDate(LocalDateTime.of(2026, 11, 3, 0, 0))
             .suspenseItemType(SuspenseItemTypeCommonStrict
                 .builder()
                 .itemType("CC")
                 .itemTypeDisplayName("Cancelled cheque (Fines)")
                 .build())
-            .balance("1000ß0")
+            .balance(BigDecimal.valueOf(100.0))
             .build();
 
         //  Mock the service
@@ -66,7 +67,7 @@ public class SuspenseAccountsApiControllerTest {
         //  Assert the result
         assertEquals(itemSummary, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        verify(suspenseAccountsSummaryService).getSuspenseAccountsSummary((short) 122, 123L);
+        verify(suspenseAccountsSummaryService).getSuspenseAccountsSummary((short) 122, BigInteger.valueOf(123));
 
         assert response.getBody() != null;
         assert response.getBody().getSuspenseItemId() != null;
@@ -97,7 +98,8 @@ public class SuspenseAccountsApiControllerTest {
 
     @Test
     void getSummary_rejectsMissingItem() {
-        when(suspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, 12345L)).thenReturn(null);
+        when(suspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345)))
+            .thenReturn(null);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
             () -> suspenseAccountsApiController.getSuspenseItemSummary((short) 123, 12345L));

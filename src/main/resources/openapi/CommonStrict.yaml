@@ -725,9 +725,9 @@ components:
         suspense_item_type:
           $ref: '#/components/schemas/suspenseItemType'
         balance:
-          type:
-            - string
-            - 'null'
+          type: number
+          description: Current suspense item balance.
+          example: 75.25
 
     suspenseItemType:
       title: Suspense Item Type Reference

@@ -7,6 +7,7 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE_ENABLED_PR
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -35,7 +36,7 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
             businessUnitId, suspenseItemNumber);
 
         SuspenseItemSummaryCommonStrict response = suspenseAccountsSummaryService
-            .getSuspenseAccountsSummary(businessUnitId.shortValue(), suspenseItemNumber);
+            .getSuspenseAccountsSummary(businessUnitId, BigInteger.valueOf(suspenseItemNumber));
 
         if (response == null) {
             throw new EntityNotFoundException("Suspense item summary not found");

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.MANAGE_SUSPENSE_ITEMS;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
 
+import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,8 @@ public class SuspenseAccountsSummaryService implements SuspenseAccountsSummarySe
     private final UserStateService userStateService;
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId, Long suspenseItemNumber) {
+    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId,
+        BigInteger suspenseItemNumber) {
 
         log.debug("getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",
             businessUnitId, suspenseItemNumber);
