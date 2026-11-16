@@ -18,17 +18,16 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 /**
- * Verifies rejected draft-list requests never reach the PDPO publisher. Functional scenario
- * PO-5661 checks the deployed API returns 401; its former absence check could pick up valid
- * list consultations containing the same draft ID from other requests on a shared environment.
- * The logging search API does not provide a request-correlation filter.
+ * Verifies rejected draft-account reads never reach the PDPO publisher.
+ * The functional tests check the deployed API returns 401. Valid list requests in shared staging
+ * can produce audit records containing a draft ID from another scenario.
  */
 @TestPropertySource(properties = {
     "launchdarkly.default-flag-values.release-1a=true",
     "launchdarkly.default-flag-values.is-legacy-mode=false"
 })
-@DisplayName("Draft account listing security and PDPO logging")
-class DraftAccountListSecurityIT extends AbstractIntegrationWithSecurityTest {
+@DisplayName("Draft account read security and PDPO logging")
+class DraftAccountReadSecurityIT extends AbstractIntegrationWithSecurityTest {
 
     @MockitoBean
     private LoggingService loggingService;
@@ -38,7 +37,7 @@ class DraftAccountListSecurityIT extends AbstractIntegrationWithSecurityTest {
     @JiraEpic("PO-2355")
     @DisplayName("PO-5661 - Invalid token rejects draft listing without publishing PDPO logs")
     void invalidTokenDoesNotPublishPdpoLogs() throws Exception {
-        assertRejectedWithoutPdpoLogs("invalidToken");
+        assertRejectedWithoutPdpoLogs("/draft-accounts", "invalidToken");
     }
 
     @Test
@@ -46,11 +45,19 @@ class DraftAccountListSecurityIT extends AbstractIntegrationWithSecurityTest {
     @JiraEpic("PO-2355")
     @DisplayName("Expired token rejects draft listing without publishing PDPO logs")
     void expiredTokenDoesNotPublishPdpoLogs() throws Exception {
-        assertRejectedWithoutPdpoLogs(expiredToken);
+        assertRejectedWithoutPdpoLogs("/draft-accounts", expiredToken);
     }
 
-    private void assertRejectedWithoutPdpoLogs(String token) throws Exception {
-        mockMvc.perform(get("/draft-accounts")
+    @Test
+    @JiraStory("PO-2360")
+    @JiraEpic("PO-2355")
+    @DisplayName("PO-5639 - Invalid token rejects draft retrieval without publishing PDPO logs")
+    void invalidTokenOnGetByIdDoesNotPublishPdpoLogs() throws Exception {
+        assertRejectedWithoutPdpoLogs("/draft-accounts/1", "invalidToken");
+    }
+
+    private void assertRejectedWithoutPdpoLogs(String path, String token) throws Exception {
+        mockMvc.perform(get(path)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized())
