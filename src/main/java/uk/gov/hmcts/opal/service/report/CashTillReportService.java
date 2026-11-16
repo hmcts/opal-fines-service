@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.service.report;
 
-import static uk.gov.hmcts.opal.service.report.FileType.CSV;
 import static uk.gov.hmcts.opal.service.report.ReportId.CASH_TILL;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -13,6 +12,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.PropertyNamingStrategies;
 import tools.jackson.databind.annotation.JsonNaming;
+import uk.gov.hmcts.opal.common.docmosis.PDFGenerationService;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity_;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
@@ -32,6 +32,7 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     private final TillRepository tillRepository;
     private final PaymentInRepository paymentInRepository;
     private final CashTillReportDataMapper reportDataMapper;
+    private final PDFGenerationService pdfGenerationService;
 
     @Override
     public ReportId getReportId() {
@@ -58,10 +59,16 @@ public class CashTillReportService implements ReportInterface<CashTillReportData
     @Override
     public byte[] convertReportDataToFileType(ReportInstanceEntity reportInstance, CashTillReportData reportData,
         FileType fileType) {
-        if (fileType != CSV) {
-            throw new IllegalArgumentException("Cash Till report only supports CSV conversion");
-        }
-        throw new UnsupportedOperationException("CSV conversion is handled by ReportCSVService");
+        return switch (fileType) {
+            case CSV -> throw new UnsupportedOperationException("CSV conversion is handled by ReportCSVService");
+            case PDF -> convertReportDataToPdf(reportInstance, reportData);
+            default -> throw new IllegalArgumentException("Cash Till report only supports CSV or PDF conversion");
+        };
+    }
+
+    private byte[] convertReportDataToPdf(ReportInstanceEntity reportInstance, CashTillReportData reportData) {
+        return pdfGenerationService.generatePdf(
+            reportInstance.getTemplateName(), PdfReportData.from(reportInstance, reportData));
     }
 
     private static Specification<PaymentInEntity> paymentSearch(CashTillReportParameters parameters, long tillId) {

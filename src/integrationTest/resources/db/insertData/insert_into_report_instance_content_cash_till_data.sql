@@ -299,3 +299,10 @@ INSERT INTO report_instances (
     CAST('READY' AS ri_generation_status_enum),
     'opal-test'
 );
+
+UPDATE report_instances
+SET template_name = 'cash-till.docx',
+    created_timestamp = '2026-05-27 09:15:30',
+    requested_by_name = 'Some Body',
+    no_of_records = 1
+WHERE report_instance_id = 99000000353000;
