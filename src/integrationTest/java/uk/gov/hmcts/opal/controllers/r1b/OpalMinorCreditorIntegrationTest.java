@@ -43,8 +43,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -311,6 +309,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     private record UpdateSnapshot(Map<String, Object> party, Map<String, Object> account,
                                   List<Map<String, Object>> amendments) {
+
     }
 
     @MockitoSpyBean
@@ -859,16 +858,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Act
         ResultActions actions = mockMvc.perform(delete(URL_BASE + "/" + creditorAccountId)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("If-Match", "0")
-                            .param("ignore_missing", "false"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("If-Match", "0")
+            .param("ignore_missing", "false"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":deleteMinorCreditorAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.message")
-                           .value("Creditor Account '" + creditorAccountId + "' deleted"));
+                .value("Creditor Account '" + creditorAccountId + "' deleted"));
 
         // Assert
         assertEquals(0, impositionRepository.findAll(impositionSpec).size());
