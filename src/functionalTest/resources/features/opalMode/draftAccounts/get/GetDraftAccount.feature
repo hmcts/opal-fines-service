@@ -68,8 +68,11 @@ Feature: Retrieve Draft Account
     When I attempt to retrieve the created draft account with an invalid token
     Then the request is rejected as unauthorized
 
-  # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-    Then no PDPO logs exist for the created draft account and business_identifier "Get Draft Account - Defendant"
+  # WARNING: PDPO check suspended after fines master #2558 (16 November 2026).
+  # A later shared-staging list audit contained this new draft ID after the 401.
+  # The audit search cannot tie that record to this rejected request.
+  # Restore when the check can correlate a log to its request or run in isolation.
+  # Then no PDPO logs exist for the created draft account and business_identifier "Get Draft Account - Defendant"
 
   @JIRA-STORY:PO-2360 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5640
   Scenario: An invalid token cannot create a draft account in the retrieval flow
