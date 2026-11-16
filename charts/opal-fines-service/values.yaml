@@ -63,6 +63,8 @@ java:
           alias: DOCMOSIS_API_KEY
         - name: docmosis-endpoint
           alias: DOCMOSIS_ENDPOINT
+        - name: servicebus-create-draft-account-queue-name
+          alias: SERVICE_BUS_CREATE_DRAFT_ACCOUNT_QUEUE_NAME
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net

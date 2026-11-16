@@ -196,6 +196,12 @@ opal:
       queue-name: ${SERVICEBUS_INTERFACE_FILE_QUEUE_NAME:banking-interfaces-preprocess-interface-file-fines}
       consumer-enabled: ${INTERFACE_FILE_CONSUMER_ENABLED:false}
 
+  draft-accounts:
+    create:
+      service-bus:
+        queue-name: ${SERVICE_BUS_CREATE_DRAFT_ACCOUNT_QUEUE_NAME:create-draft-account-queue}
+        consumer-enabled: ${CREATE_DRAFT_ACCOUNT_CONSUMER_ENABLED:false}
+
   hmrc:
     url: ${OPAL_HMRC_URL:http://localhost:4455}
     auth:
