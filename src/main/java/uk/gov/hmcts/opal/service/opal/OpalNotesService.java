@@ -11,6 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
+import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
+import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
@@ -27,6 +30,7 @@ import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.util.HasAssociatedRecordType;
 import uk.gov.hmcts.opal.util.PermissionUtil;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.gov.hmcts.opal.util.Versioned;
 
 @Service
@@ -39,6 +43,7 @@ public class OpalNotesService implements NotesServiceInterface {
     private final CreditorAccountRepository creditorAccountRepository;
     private final AccountNoteContextFactory accountNoteContextFactory;
     private final Clock clock;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     @Transactional
@@ -80,12 +85,16 @@ public class OpalNotesService implements NotesServiceInterface {
 
         NoteCommon requestNote = req.getActivityNote();
 
+        String businessUnitUserId = isPostingUserIdEnabled()
+            ? getBusinessUnitUserId(user, target.businessUnitId())
+            : target.businessUnitId().toString();
+
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
         note.setNoteType(NoteType.valueOf(requestNote.getNoteType().getValue()));
         note.setAssociatedRecordId(requestNote.getRecordId());
         note.setAssociatedRecordType(target.associatedRecordType());
-        note.setBusinessUnitUserId(target.businessUnitId().toString());
+        note.setBusinessUnitUserId(businessUnitUserId);
         note.setPostedDate(LocalDateTime.now(clock));
         note.setPostedByUsername(user.getDisplayName());
 
@@ -118,5 +127,23 @@ public class OpalNotesService implements NotesServiceInterface {
 
     private EntityNotFoundException accountNotFound(Long accountId) {
         return new EntityNotFoundException("Account %s not found".formatted(accountId));
+    }
+
+    private String getBusinessUnitUserId(UserState user, Short businessUnitId) {
+        return user.getBusinessUnitUserForBusinessUnit(businessUnitId)
+            .map(BusinessUnitUser::getBusinessUnitUserId)
+            .filter(id -> !id.isBlank())
+            .orElseThrow(() ->
+                new PermissionNotAllowedException(businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES));
+    }
+
+    private boolean isPostingUserIdEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_2,
+            FeatureFlags.RELEASE_1B_1_2_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isPostingUserIdEnabled: posting User ID disabled because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_2);
+        }
+        return enabled;
     }
 }
