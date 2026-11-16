@@ -44,7 +44,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -68,7 +67,6 @@ import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
-import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CreditorTransactionRepository;
 import uk.gov.hmcts.opal.repository.ImpositionRepository;
@@ -93,10 +91,8 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     private static final long COMPANY_MINOR_CREDITOR_ACCOUNT_ID = 608L;
     private static final short MINOR_CREDITOR_BUSINESS_UNIT_ID = 10;
 
-    @MockitoBean
-    private LoggingService loggingService;
-
     @Autowired
+    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     private PlatformTransactionManager transactionManager;
 
     @Nested
@@ -330,11 +326,6 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     @MockitoSpyBean
     private CreditorAccountRepository creditorAccountRepository;
-
-    @BeforeEach
-    void configurePdplQueue() {
-        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
-    }
 
     @Test
     @JiraStory("PO-713")
@@ -817,7 +808,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
     @JiraEpic("PO-812")
     @JiraTestKey("PO-6175")
     void getAtAGlance_Success() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_Success(log);
+        super.getMinorCreditorAtAGlanceImpl_Success(log, "Speed Camera Services Ltd");
     }
 
     @Test
