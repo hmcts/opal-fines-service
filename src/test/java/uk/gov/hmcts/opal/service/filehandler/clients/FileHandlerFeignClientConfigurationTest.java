@@ -121,7 +121,7 @@ class FileHandlerFeignClientConfigurationTest {
                           "domain": "FINES",
                           "payment_type": "CASH",
                           "file_name": "transformed.json",
-                          "business_unit_code": "BC12"
+                          "business_unit_id": 6460
                         }
                         """)))
                 .withAnyRequestBodyPart(aMultipart()
