@@ -101,7 +101,7 @@ class FileHandlerFeignClientConfigurationTest {
                 .domain(DomainEnum.FINES)
                 .paymentType(PaymentTypeEnum.CASH)
                 .fileName("transformed.json")
-                .businessUnitCode("BC12")
+                .businessUnitId((short) 6460)
                 .build();
 
             client.addInterfaceFile(new TransformedJsonMultipartFile(
