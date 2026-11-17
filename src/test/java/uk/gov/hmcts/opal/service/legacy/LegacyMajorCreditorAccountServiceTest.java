@@ -253,6 +253,18 @@ class LegacyMajorCreditorAccountServiceTest {
     }
 
     @Test
+    void shouldSerializeCreditorAccountIdUsingLegacyFieldName() throws JsonProcessingException {
+        GetMajorCreditorAccountAtAGlanceLegacyRequest request = GetMajorCreditorAccountAtAGlanceLegacyRequest.builder()
+            .creditorAccountId("123")
+            .build();
+
+        JsonNode json = objectMapper.readTree(objectMapper.writeValueAsString(request));
+
+        assertEquals("123", json.path("creditor_account_id").asText());
+        assertFalse(json.has("creditorAccountId"));
+    }
+
+    @Test
     void getHistory_postsLegacyRequestMapsResponseAndForcesFinancialItemTypeInR1BMode() {
         LocalDate dateFrom = LocalDate.of(2026, 1, 1);
         LocalDate dateTo = LocalDate.of(2026, 1, 31);
