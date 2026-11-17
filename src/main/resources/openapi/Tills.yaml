@@ -278,9 +278,7 @@ components:
     TillsCreateRequest:
       type: object
       additionalProperties: false
-      required:
-        - business_unit_id
-        - payments_in
+      required: [business_unit_id, payments_in]
       properties:
         business_unit_id:
           $ref: './types.yaml#/components/schemas/BusinessUnitId'
@@ -289,27 +287,103 @@ components:
           minItems: 1
           items:
             $ref: '#/components/schemas/TillsCreatePaymentIn'
-        additional_information:
-          $ref: '#/components/schemas/TillsCreateAdditionalInformation'
     TillsCreatePaymentIn:
       type: object
       additionalProperties: false
-      required:
-        - payment_details
+      required: [payment_details, additional_information]
       properties:
         defendant_account_id:
           $ref: './types.yaml#/components/schemas/BigInt'
         payment_details:
           $ref: '#/components/schemas/TillsCreatePaymentDetails'
+        additional_information:
+          $ref: '#/components/schemas/TillsCreateAdditionalInformation'
+      allOf:
+        - if:
+            properties:
+              payment_details:
+                properties:
+                  destination_type:
+                    const: F
+          then:
+            required: [defendant_account_id]
+            properties:
+              additional_information:
+                properties:
+                  payment_received_from:
+                    enum: [D, T]
+                not:
+                  anyOf:
+                    - required: [payer_type]
+                    - required: [payer_details]
+                    - required: [court_fee_code]
+                    - required: [number_of_items]
+                    - required: [suspense_reason_code]
+                    - required: [suspense_reason_detail]
+                    - required: [suspense_note]
+                if:
+                  properties:
+                    payment_received_from:
+                      const: T
+                then:
+                  required: [third_party_payer_name]
+        - if:
+            properties:
+              payment_details:
+                properties:
+                  destination_type:
+                    const: C
+          then:
+            not:
+              required: [defendant_account_id]
+            properties:
+              additional_information:
+                required: [court_fee_code, number_of_items, suspense_note, payer_type, payer_details]
+                properties:
+                  payment_received_from:
+                    enum: [A, T]
+                not:
+                  anyOf:
+                    - required: [suspense_reason_code]
+                    - required: [suspense_reason_detail]
+        - if:
+            properties:
+              payment_details:
+                properties:
+                  destination_type:
+                    const: S
+          then:
+            not:
+              required: [defendant_account_id]
+            properties:
+              additional_information:
+                required: [suspense_reason_code, suspense_note]
+                not:
+                  anyOf:
+                    - required: [court_fee_code]
+                    - required: [number_of_items]
+                if:
+                  properties:
+                    suspense_reason_code:
+                      enum: [OF, FA, MS]
+                then:
+                  required: [payer_type, payer_details]
+                  not:
+                    required: [suspense_reason_detail]
+        - if:
+            properties:
+              payment_details:
+                properties:
+                  method:
+                    const: CT
+          then:
+            properties:
+              additional_information:
+                required: [transfer_source]
     TillsCreatePaymentDetails:
       type: object
       additionalProperties: false
-      required:
-        - amount
-        - method
-        - destination_type
-        - allocation_type
-        - additional_information
+      required: [amount, method, destination_type, allocation_type]
       properties:
         amount:
           type: number
@@ -317,86 +391,48 @@ components:
           description: DB Mapping - payments_in.payment_amount
         method:
           type: string
-          enum:
-            - Notes & Coins
-            - Cheque
-            - Creditor Transfer
-            - Postal Order
-          description: |-
-            Accepted real-world values are mapped by the backend for storage in payments_in.payment_method:
-            - Notes & Coins to NC
-            - Cheque to CQ
-            - Creditor Transfer to CT
-            - Postal Order to PO
+          enum: [NC, CQ, CT, PO]
+          description: Coded payment method returned by Get Mappings.
         destination_type:
           type: string
-          enum:
-            - Fines
-            - Suspense
-            - Court Fee
-          description: |-
-            Accepted real-world values are mapped by the backend for storage in payments_in.destination_type:
-            - Fines to F
-            - Suspense to S
-            - Court Fee to C
+          enum: [F, S, C]
+          description: Fines (F), Suspense (S) or Court Fee (C).
         allocation_type:
           type: string
-          description: Describes the allocation category when an initial payment amount is split.
-        additional_information:
-          type: string
-          enum:
-            - Defendant
-            - Applicant
-            - Third Party
-          description: |-
-            Payment received from. Accepted real-world values are mapped by the backend for storage in payments_in.additional_information:
-            - Defendant to D
-            - Applicant to A
-            - Third Party to T
-        third_party_payer_name:
-          type: string
-          description: DB Mapping - payments_in.third_party_payer_name
+          description: Coded allocation category returned by Get Mappings.
     TillsCreateAdditionalInformation:
       type: object
       additionalProperties: false
-      required:
-        - payer_type
+      required: [payment_received_from]
       properties:
+        payment_received_from:
+          type: string
+          enum: [D, A, T]
+        third_party_payer_name:
+          type: string
+          minLength: 1
+          maxLength: 30
         court_fee_code:
           type: string
+          minLength: 1
+          maxLength: 10
         number_of_items:
           type: integer
+          format: int16
+          minimum: 1
         payment_reference:
           type: string
         transfer_source:
           type: string
-          enum:
-            - NatWest
-            - allpay
-            - Barclaycard
-            - British Telecom
-            - Other
-            - DWP
-            - CDER
-            - JACOBS
-            - MARSTONS
+          enum: [NATWEST, ALLPAY, BARCLAYCARD, BTECKOH, OTHER, DWP, CDER, JACOBS, MARSTON]
         suspense_reason_code:
           type: string
-          enum:
-            - Fines Overpayment
-            - Fine paid in advance
-            - Miscellaneous payment
-            - Unidentified amount
-          description: |-
-            Accepted real-world values are mapped by the backend for storage:
-            - Fines Overpayment to OF
-            - Fine paid in advance to FA
-            - Miscellaneous payment to MS
-            - Unidentified amount to UN
+          enum: [OF, FA, MS, UN]
         suspense_reason_detail:
           type: string
         suspense_note:
           type: string
+          minLength: 1
         payer_type:
           $ref: '#/components/schemas/TillsCreatePayerType'
         payer_details:
@@ -405,41 +441,43 @@ components:
         - if:
             properties:
               payer_type:
-                enum:
-                  - Individual
-            required:
-              - payer_type
-              - payer_details
+                const: Individual
+            required: [payer_type]
           then:
+            required: [payer_details]
             properties:
               payer_details:
-                required:
-                  - individual
+                required: [individual]
         - if:
             properties:
               payer_type:
-                enum:
-                  - Organisation
-            required:
-              - payer_type
-              - payer_details
+                const: Organisation
+            required: [payer_type]
           then:
+            required: [payer_details]
             properties:
               payer_details:
-                required:
-                  - organisation
+                required: [organisation]
+        - if:
+            required: [payer_details]
+          then:
+            required: [payer_type]
     TillsCreatePayerDetails:
       type: object
       additionalProperties: false
       properties:
         address_line_1:
           type: string
+          maxLength: 35
         address_line_2:
           type: string
+          maxLength: 35
         address_line_3:
           type: string
+          maxLength: 35
         postcode:
           type: string
+          maxLength: 10
         individual:
           $ref: '#/components/schemas/TillsCreateIndividualPayer'
         organisation:
@@ -455,16 +493,20 @@ components:
       properties:
         title:
           type: string
+          maxLength: 20
         forenames:
           type: string
+          maxLength: 50
         surname:
           type: string
+          maxLength: 50
     TillsCreateOrganisationPayer:
       type: object
       additionalProperties: false
       properties:
         organisation_name:
           type: string
+          maxLength: 80
     TillsCreatePayerType:
       type: string
       enum:

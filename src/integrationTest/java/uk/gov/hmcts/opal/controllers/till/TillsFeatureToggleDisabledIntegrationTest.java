@@ -21,6 +21,20 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 class TillsFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest {
 
     @Test
+    @JiraStory("PO-11365")
+    void rejectsCreationWhenDisabled() throws Exception {
+        mockMvc.perform(post("/tills").with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON).content("""
+                    {"business_unit_id":78,"payments_in":[{"defendant_account_id":123,
+                     "payment_details":{"amount":12.34,"method":"NC","destination_type":"F",
+                      "allocation_type":"FULL"},"additional_information":{"payment_received_from":"D"}}]}
+                    """))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"));
+    }
+
+    @Test
     @JiraStory("PO-3423")
     @JiraEpic("PO-2116")
     void rejectsAllocationWhenDisabled() throws Exception {

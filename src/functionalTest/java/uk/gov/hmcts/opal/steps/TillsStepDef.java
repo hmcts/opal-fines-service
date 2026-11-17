@@ -757,11 +757,11 @@ public class TillsStepDef extends BaseStepDef {
                   "defendant_account_id": 123,
                   "payment_details": {
                     "amount": 12.34,
-                    "method": "Notes & Coins",
-                    "destination_type": "Fines",
-                    "allocation_type": "FULL",
-                    "additional_information": "Defendant"
-                  }
+                    "method": "NC",
+                    "destination_type": "F",
+                    "allocation_type": "FULL"
+                  },
+                  "additional_information": { "payment_received_from": "D" }
                 }
               ]
             }
@@ -770,7 +770,7 @@ public class TillsStepDef extends BaseStepDef {
 
     private void submitUniqueTillCreateRequest(int paymentCount) throws Exception {
         createdDefendantAccountId = createDefendantAccount();
-        uniquePayerName = "PO-3630-" + UUID.randomUUID();
+        uniquePayerName = "PO-3630-" + UUID.randomUUID().toString().substring(0, 16);
         authorisedJsonRequest()
             .body(uniqueTillCreateRequest(paymentCount, createdDefendantAccountId))
             .when()
@@ -807,10 +807,12 @@ public class TillsStepDef extends BaseStepDef {
               "defendant_account_id": %d,
               "payment_details": {
                 "amount": %s,
-                "method": "Notes & Coins",
-                "destination_type": "Fines",
-                "allocation_type": "FULL",
-                "additional_information": "Third Party",
+                "method": "NC",
+                "destination_type": "F",
+                "allocation_type": "FULL"
+              },
+              "additional_information": {
+                "payment_received_from": "T",
                 "third_party_payer_name": "%s"
               }
             }

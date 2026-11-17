@@ -10,317 +10,354 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertJsonRequestMatchesBundledSpec;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.context.TestPropertySource;
-import tools.jackson.databind.JsonNode;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import uk.gov.hmcts.opal.AbstractIntegrationWithSecurityTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.DestinationType;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
-import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.TillEntity;
-import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
+import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=true")
-@DisplayName("POST /tills integration tests")
+@Sql(scripts = "classpath:db/insertData/insert_into_create_till.sql",
+    executionPhase = Sql.ExecutionPhase.BEFORE_TEST_CLASS)
+@DisplayName("POST /tills - PO-11365")
 @Tag("ExtendedTest")
-class CreateTillIntegrationTest extends AbstractIntegrationTest {
+class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
-    @MockitoBean
-    private PreAllocatedCashTillService preAllocatedCashTillService;
+    private static final ObjectMapper JSON = new ObjectMapper();
+    @MockitoBean private PreAllocatedCashTillService reportService;
+    @Autowired private TillRepository tillRepository;
+    @Autowired private PaymentInRepository paymentInRepository;
+    @Autowired private MiscellaneousAccountRepository accountRepository;
+    @Autowired private PartyRepository partyRepository;
+    @Autowired private PlatformTransactionManager transactionManager;
 
-    @Autowired
-    private TillRepository tillRepository;
-
-    @Autowired
-    private PaymentInRepository paymentInRepository;
-
-    private static final String URL = "/tills";
-    private static final short BUSINESS_UNIT_ID = 10;
-    private static final String SCHEMA_VALIDATION_ERROR_DETAIL =
-        "The request does not conform to the required JSON schema";
-    private static final String UNREADABLE_REQUEST_ERROR_DETAIL =
-        "The request body could not be read. It may be missing or invalid JSON.";
-    private static final String VALID_PAYMENT_DETAILS = """
-        {
-          "amount": 12.34,
-          "method": "Notes & Coins",
-          "destination_type": "Fines",
-          "allocation_type": "FULL",
-          "additional_information": "Third Party",
-          "third_party_payer_name": "Test third-party payer"
-        }
-        """;
-    private static final String VALID_REQUEST = """
-        {
-          "business_unit_id": 10,
-          "additional_information": {
-            "payer_type": "Individual",
-            "transfer_source": "NatWest"
-          },
-          "payments_in": [
-            {
-              "defendant_account_id": 123,
-              "payment_details": %s
-            }
-          ]
-        }
-        """.formatted(VALID_PAYMENT_DETAILS);
-
-    @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsRequestWithoutToken() throws Exception {
-        mockMvc.perform(post(URL)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST))
-            .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsRequestWithoutBusinessUnitId() throws Exception {
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-            .content(VALID_REQUEST.replace("\"business_unit_id\": 10,", "")))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
-    }
-
-    @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsEmptyPayments() throws Exception {
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"business_unit_id\":3630,\"payments_in\":[]}"))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
+    @BeforeEach
+    void permitPayments() {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 10, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
     }
 
     @ParameterizedTest
-    @MethodSource("invalidRequestBodies")
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsInvalidRequest(String request) throws Exception {
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value(SCHEMA_VALIDATION_ERROR_DETAIL));
-    }
+    @MethodSource("scenarios")
+    void persistsScenarioWithoutDuplicatedPayer(String destination, String receivedFrom, String reason, String payer)
+        throws Exception {
+        ObjectNode request = request(destination, receivedFrom, reason, payer);
+        assertJsonRequestMatchesBundledSpec(request, "/tills", "POST", "application/json");
+        final long partiesBefore = partyRepository.count();
+        final long accountsBefore = accountRepository.count();
 
-    @ParameterizedTest
-    @MethodSource("unreadableRequestBodies")
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsUnreadableRequest(String request) throws Exception {
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(request))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value(UNREADABLE_REQUEST_ERROR_DETAIL))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/message-not-readable"));
-    }
+        postRequest(request).andExpect(status().isCreated());
 
-    @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsCallerWithoutBusinessUnitPermission() throws Exception {
-        userStateStub.setupWithNoPermissions();
-
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST))
-            .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_createsTillForAuthorisedFinesPayment() throws Exception {
-        // Arrange
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-
-        // Act
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST))
-            .andExpect(status().isCreated());
-
-        // Assert
-        ArgumentCaptor<Long> tillIdCaptor = ArgumentCaptor.forClass(Long.class);
-        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(
-            tillIdCaptor.capture(), anyLong(), anyString());
-
-        Long tillId = tillIdCaptor.getValue();
-        TillEntity till = tillRepository.findById(tillId).orElseThrow();
-        List<PaymentInEntity> payments =
-            paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(tillId);
-
-        assertThat(tillRepository.count()).isEqualTo(tillsBefore + 1);
-        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 1);
-        assertThat(till.getBusinessUnit().getBusinessUnitId()).isEqualTo(BUSINESS_UNIT_ID);
-        assertThat(till.getStatus()).isEqualTo(TillStatusEnum.Created);
-        assertThat(till.getTotalAmount()).isEqualByComparingTo("12.34");
+        PaymentInEntity payment = storedPayments().getFirst();
+        TillEntity till = tillRepository.findById(payment.getTillEntity().getTillId()).orElseThrow();
+        assertThat(till.getTotalAmount()).isEqualByComparingTo("12.50");
         assertThat(till.getPaymentsCount()).isEqualTo((short) 1);
-        assertThat(till.isAutoPayment()).isFalse();
-
-        assertThat(payments).singleElement().satisfies(payment -> {
-            assertThat(payment.getTillEntity().getTillId()).isEqualTo(tillId);
-            assertThat(payment.getPaymentAmount()).isEqualByComparingTo("12.34");
-            assertThat(payment.getPaymentMethod()).isEqualTo(PaymentMethod.NC);
-            assertThat(payment.getDestinationType()).isEqualTo(DestinationType.F);
-            assertThat(payment.getAllocationType()).isEqualTo("FULL");
+        assertThat(payment.getDestinationType().name()).isEqualTo(destination);
+        ObjectNode metadata = information(request).deepCopy();
+        metadata.remove(List.of("payer_type", "payer_details", "third_party_payer_name"));
+        assertThat(objectMapper.readTree(payment.getAdditionalInformation())).isEqualTo(metadata);
+        assertThat(payment.getAdditionalInformation())
+            .doesNotContain("payer_type", "payer_details", "Smith", "Company");
+        if (destination.equals("F")) {
             assertThat(payment.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.DEFENDANT_ACCOUNTS);
-            assertThat(payment.getAssociatedRecordId()).isEqualTo("123");
-            assertThat(payment.getThirdPartyPayerName()).isEqualTo("Test third-party payer");
-            JsonNode additionalInformation = objectMapper.readTree(payment.getAdditionalInformation());
-            assertThat(additionalInformation.isObject()).isTrue();
-            assertThat(additionalInformation.path("payment_received_from").asString()).isEqualTo("T");
-            assertThat(additionalInformation.path("additional_information").path("transfer_source").asString())
-                .isEqualTo("NATWEST");
+            assertThat(payment.getAssociatedRecordId()).isEqualTo("11365001");
+            assertThat(payment.getThirdPartyPayerName()).isEqualTo(receivedFrom.equals("T") ? "Third party" : null);
+        } else if (payer == null) {
+            assertThat(payment.getAssociatedRecordType()).isNull();
+            assertThat(payment.getAssociatedRecordId()).isNull();
+        } else {
+            assertThat(payment.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS);
+            assertParty(payment, payer);
+        }
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore + (payer == null ? 0 : 1));
+        assertThat(accountRepository.count()).isEqualTo(accountsBefore + (payer == null ? 0 : 1));
+    }
+
+    static Stream<Arguments> scenarios() {
+        return Stream.of(
+            Arguments.of("F", "D", null, null), Arguments.of("F", "T", null, null),
+            Arguments.of("C", "A", null, "Individual"), Arguments.of("C", "T", null, "Organisation"),
+            Arguments.of("S", "D", "OF", "Individual"), Arguments.of("S", "A", "FA", "Organisation"),
+            Arguments.of("S", "T", "MS", "Individual"), Arguments.of("S", "D", "UN", null),
+            Arguments.of("S", "A", "UN", "Individual"), Arguments.of("S", "T", "UN", "Organisation"));
+    }
+
+    @Test
+    void acceptsCreditTransferAndOptionalAddress() throws Exception {
+        ObjectNode request = request("C", "A", null, "Individual");
+        ((ObjectNode) request.path("payments_in").get(0).path("payment_details")).put("method", "CT");
+        ((ObjectNode) information(request).path("payer_details")).put("address_line_1", "1 Street")
+            .put("address_line_2", "Town").put("address_line_3", "County").put("postcode", "AB1 2CD");
+        postRequest(request).andExpect(status().isCreated());
+        PaymentInEntity payment = storedPayments().getFirst();
+        assertThat(payment.getPaymentMethod().name()).isEqualTo("CT");
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            PartyEntity party = accountRepository.findById(Long.valueOf(payment.getAssociatedRecordId()))
+                .orElseThrow().getParty();
+            assertThat(party.getAddressLine1()).isEqualTo("1 Street");
+            assertThat(party.getAddressLine2()).isEqualTo("Town");
+            assertThat(party.getAddressLine3()).isEqualTo("County");
+            assertThat(party.getPostcode()).isEqualTo("AB1 2CD");
         });
     }
 
     @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rollsBackTillAndPaymentsWhenPreAllocatedReportCreationFails() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-        when(preAllocatedCashTillService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
-            .thenThrow(new ReportGenerationException("Report creation failed", new RuntimeException()));
-
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST))
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Report Generation Failed"))
-            .andExpect(jsonPath("$.detail").value("Unable to generate the requested report"))
-            .andExpect(jsonPath("$.retriable").value(true));
-
-        assertThat(tillRepository.count()).isEqualTo(tillsBefore);
-        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
+    void preservesDistinctPerPaymentMetadata() throws Exception {
+        ObjectNode request = request("F", "D", null, null);
+        ObjectNode second = (ObjectNode) request("S", "A", "UN", null).path("payments_in").get(0);
+        ((ObjectNode) second.path("additional_information")).put("payment_reference", "second");
+        request.withArray("payments_in").add(second);
+        postRequest(request).andExpect(status().isCreated());
+        List<PaymentInEntity> payments = storedPayments();
+        assertThat(payments).hasSize(2);
+        assertThat(payments.get(0).getAdditionalInformation()).contains("reference-123").doesNotContain("second");
+        assertThat(payments.get(1).getAdditionalInformation()).contains("second").doesNotContain("reference-123");
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"Suspense", "Court Fee"})
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsOutOfScopePaymentDestination(String destinationType) throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST.replace("\"Fines\"", "\"" + destinationType + "\"")))
-            .andExpect(status().isBadRequest())
+    @MethodSource("invalidRequests")
+    void rejectsInvalidRequestWithoutPartialData(ObjectNode request) throws Exception {
+        long[] before = counts();
+        postRequest(request).andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Only fines payments are supported when creating a till"));
+            .andExpect(jsonPath("$.detail").isNotEmpty());
+        assertThat(counts()).containsExactly(before);
+        verifyNoInteractions(reportService);
+    }
 
-        assertThat(tillRepository.count()).isEqualTo(tillsBefore);
-        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
-        verifyNoInteractions(preAllocatedCashTillService);
+    static Stream<ObjectNode> invalidRequests() {
+        return Stream.of(
+            changed("F", "D", null, null, r -> payment(r).remove("defendant_account_id")),
+            changed("F", "D", null, null, r -> payment(r).put("defendant_account_id", 999999999)),
+            changed("F", "D", null, null, r -> payment(r).put("defendant_account_id", 11365002)),
+            changed("C", "A", null, "Individual", r -> payment(r).put("defendant_account_id", 11365001)),
+            changed("S", "D", "UN", null, r -> payment(r).put("defendant_account_id", 11365001)),
+            changed("F", "A", null, null, r -> { }), changed("C", "D", null, "Individual", r -> { }),
+            changed("F", "T", null, null, r -> information(r).remove("third_party_payer_name")),
+            changed("F", "T", null, null, r -> information(r).put("third_party_payer_name", " ")),
+            changed("F", "D", null, "Individual", r -> { }),
+            changed("C", "A", null, null, r -> { }),
+            changed("S", "D", "OF", null, r -> { }), changed("S", "D", "FA", null, r -> { }),
+            changed("S", "D", "MS", null, r -> { }),
+            changed("F", "D", null, null, r -> {
+                ((ObjectNode) payment(r).path("payment_details")).put("method", "CT");
+                information(r).remove("transfer_source");
+            }),
+            changed("S", "D", "UN", null, r -> information(r).remove("suspense_note")),
+            changed("C", "A", null, "Individual", r -> information(r).remove("court_fee_code")),
+            changed("C", "A", null, "Individual", r -> information(r).remove("number_of_items")),
+            changed("C", "A", null, "Individual", r -> information(r).put("number_of_items", 0)),
+            changed("S", "D", "OF", "Individual", r -> information(r).put("suspense_reason_detail", "bad")),
+            changed("F", "D", null, null, r -> information(r).put("court_fee_code", "FEE")),
+            changed("F", "D", null, null, r -> information(r).put("suspense_note", "note")),
+            changed("F", "D", null, null, r -> information(r).remove("payment_received_from")),
+            changed("F", "D", null, null, r -> payment(r).remove("additional_information")),
+            changed("F", "D", null, null, r -> r.set("additional_information", information(r).deepCopy())),
+            changed("C", "A", null, "Individual", r -> information(r).put("payer_type", "Organisation")),
+            changed("C", "A", null, "Individual", r -> information(r).remove("payer_details")),
+            changed("C", "A", null, "Individual", r -> information(r).remove("payer_type")),
+            changed("C", "A", null, "Individual", r -> ((ObjectNode) information(r).path("payer_details"))
+                .putObject("organisation").put("organisation_name", "Mixed")),
+            changed("F", "D", null, null, r -> ((ObjectNode) payment(r).path("payment_details"))
+                .put("method", "Notes & Coins")),
+            changed("F", "D", null, null, r -> ((ObjectNode) payment(r).path("payment_details"))
+                .put("destination_type", "Fines")),
+            changed("F", "D", null, null, r -> information(r).put("payment_received_from", "Defendant")),
+            changed("F", "D", null, null, r -> information(r).put("transfer_source", "NatWest")),
+            changed("S", "D", "UN", null, r -> information(r).put("suspense_reason_code", "Unidentified amount")),
+            changed("F", "D", null, null, r -> {
+                ObjectNode invalid = (ObjectNode) payment(r).deepCopy();
+                invalid.remove("defendant_account_id");
+                r.withArray("payments_in").add(invalid);
+            }));
     }
 
     @Test
-    @JiraStory("PO-3630")
-    @JiraEpic("PO-2439")
-    void postTills_rejectsFinesPaymentWithoutDefendantAccount() throws Exception {
+    void rollsBackDurablePayerWhenReportCreationFails() throws Exception {
+        long[] before = counts();
+        when(reportService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
+            .thenThrow(new ReportGenerationException("Report failed", new RuntimeException()));
+        postRequest(request("C", "A", null, "Individual")).andExpect(status().isInternalServerError());
+        assertThat(counts()).containsExactly(before);
+    }
+
+    @Test
+    void requiresTokenAndBusinessUnitPermission() throws Exception {
+        mockMvc.perform(post("/tills").contentType(MediaType.APPLICATION_JSON)
+                .content(request("F", "D", null, null).toString())).andExpect(status().isUnauthorized());
         userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST.replace("\"defendant_account_id\": 123,", "")))
-            .andExpect(status().isBadRequest())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("defendant_account_id is required for fines payments"));
-
-        assertThat(tillRepository.count()).isEqualTo(tillsBefore);
-        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
-        verifyNoInteractions(preAllocatedCashTillService);
+        postRequest(request("F", "D", null, null)).andExpect(status().isForbidden());
     }
 
-    static Stream<String> invalidRequestBodies() {
-        return Stream.of(
-            "{\"business_unit_id\":3630}",
-            "{\"business_unit_id\":3630,\"payments_in\":[{}]}",
-            requestWithPaymentDetails("""
-                {"method":"Notes & Coins","destination_type":"Fines","allocation_type":"FULL",
-                 "additional_information":"Third Party"}
-                """),
-            requestWithPaymentDetails("""
-                {"amount":12.34,"destination_type":"Fines","allocation_type":"FULL",
-                 "additional_information":"Third Party"}
-                """),
-            requestWithPaymentDetails("""
-                {"amount":12.34,"method":"Notes & Coins","allocation_type":"FULL",
-                 "additional_information":"Third Party"}
-                """),
-            requestWithPaymentDetails("""
-                {"amount":12.34,"method":"Notes & Coins","destination_type":"Fines",
-                 "additional_information":"Third Party"}
-                """),
-            requestWithPaymentDetails("""
-                {"amount":12.34,"method":"Notes & Coins","destination_type":"Fines","allocation_type":"FULL"}
-                """)
-        );
+    @ParameterizedTest
+    @MethodSource("allocationScenarios")
+    void allocationRetainsMetadataAfterPaymentDeletion(String destination, String receivedFrom, String reason,
+                                                       String payer, String amount, int transactions)
+        throws Exception {
+        ObjectNode request = request(destination, receivedFrom, reason, payer);
+        ((ObjectNode) payment(request).path("payment_details")).put("amount", new BigDecimal(amount));
+        postRequest(request).andExpect(status().isCreated());
+        PaymentInEntity payment = storedPayments().getFirst();
+        // This test exercises the database procedure itself, including metadata and Court Fee split handling.
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> jdbcTemplate.update(
+            "CALL p_allocate_till(?, ?, ?, ?::smallint)",
+            payment.getTillEntity().getTillId(), "11365", "Test User", 10));
+        List<SuspenseMetadata> metadata = suspenseMetadata(payment);
+        assertThat(metadata).hasSize(transactions).allSatisfy(stored -> {
+            String json = stored.information();
+            assertThat(stored.legacyText()).isNull();
+            assertThat(json).doesNotContain("payer_type", "payer_details", "Smith", "Company");
+            assertThat(objectMapper.readTree(json).path("payment_received_from").asString()).isEqualTo(receivedFrom);
+            assertThat(objectMapper.readTree(json).path("payment_reference").asString()).isEqualTo("reference-123");
+            assertThat(objectMapper.readTree(json).path("transfer_source").asString()).isEqualTo("NATWEST");
+            if (destination.equals("F")) {
+                assertThat(objectMapper.readTree(json).path("third_party_payer_name").asString())
+                    .isEqualTo("Third party");
+            } else if (destination.equals("S")) {
+                assertThat(objectMapper.readTree(json).path("suspense_reason_code").asString()).isEqualTo(reason);
+            }
+        });
+        paymentInRepository.deleteById(payment.getPaymentInId());
+        assertThat(suspenseMetadata(payment)).containsExactlyElementsOf(metadata);
+        if (payer != null) {
+            assertParty(payment, payer);
+        }
     }
 
-    static Stream<String> unreadableRequestBodies() {
-        return Stream.of(
-            requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Notes & Coins", "XX")),
-            requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Fines", "X")),
-            requestWithPaymentDetails(VALID_PAYMENT_DETAILS.replace("Third Party", "X"))
-        );
+    static Stream<Arguments> allocationScenarios() {
+        return Stream.of(Arguments.of("C", "A", null, "Individual", "10.00", 1),
+            Arguments.of("C", "A", null, "Individual", "12.50", 2),
+            Arguments.of("S", "D", "OF", "Individual", "12.50", 1),
+            Arguments.of("S", "A", "FA", "Organisation", "12.50", 1),
+            Arguments.of("S", "T", "MS", "Individual", "12.50", 1),
+            Arguments.of("S", "D", "UN", null, "12.50", 1),
+            Arguments.of("F", "T", null, null, "12.50", 1));
     }
 
-    private static String requestWithPaymentDetails(String paymentDetails) {
-        return VALID_REQUEST.replace(VALID_PAYMENT_DETAILS, paymentDetails);
+    private List<SuspenseMetadata> suspenseMetadata(PaymentInEntity payment) {
+        return jdbcTemplate.query("""
+            SELECT additional_information::text, text FROM suspense_transactions
+             WHERE associated_record_type::text IS NOT DISTINCT FROM ? AND associated_record_id = ?
+             ORDER BY suspense_transaction_id
+            """, (row, index) -> new SuspenseMetadata(row.getString(1), row.getString(2)),
+            payment.getAssociatedRecordType() == null ? null : payment.getAssociatedRecordType().getLabel(),
+            payment.getAssociatedRecordId() == null ? payment.getPaymentInId().toString()
+                : payment.getAssociatedRecordId());
+    }
+
+    private record SuspenseMetadata(String information, String legacyText) {
+    }
+
+    private void assertParty(PaymentInEntity payment, String payer) {
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            MiscellaneousAccountEntity account = accountRepository
+                .findById(Long.valueOf(payment.getAssociatedRecordId())).orElseThrow();
+            assertThat(account.getBusinessUnit().getBusinessUnitId()).isEqualTo((short) 10);
+            assertThat(account.getAccountNumber()).isNotBlank();
+            PartyEntity party = account.getParty();
+            assertThat(party.isOrganisation()).isEqualTo(payer.equals("Organisation"));
+            assertThat(party.getSurname()).isEqualTo(payer.equals("Individual") ? "Smith" : null);
+            assertThat(party.getOrganisationName()).isEqualTo(payer.equals("Organisation") ? "Company" : null);
+            assertThat(party.getAddressLine1()).isNull();
+        });
+    }
+
+    private List<PaymentInEntity> storedPayments() {
+        ArgumentCaptor<Long> id = ArgumentCaptor.forClass(Long.class);
+        verify(reportService).createPreAllocatedReportInstance(id.capture(), anyLong(), anyString());
+        return paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(id.getValue());
+    }
+
+    private long[] counts() {
+        return new long[] {tillRepository.count(), paymentInRepository.count(), accountRepository.count(),
+            partyRepository.count()};
+    }
+
+    private ResultActions postRequest(ObjectNode request) throws Exception {
+        return mockMvc.perform(post("/tills").with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .contentType(MediaType.APPLICATION_JSON).content(request.toString()));
+    }
+
+    private static ObjectNode changed(String destination, String receivedFrom, String reason, String payer,
+                                      Consumer<ObjectNode> change) {
+        ObjectNode request = request(destination, receivedFrom, reason, payer);
+        change.accept(request);
+        return request;
+    }
+
+    static ObjectNode request(String destination, String receivedFrom, String reason, String payer) {
+        ObjectNode request = JSON.createObjectNode().put("business_unit_id", 10);
+        ObjectNode payment = request.putArray("payments_in").addObject();
+        if (destination.equals("F")) {
+            payment.put("defendant_account_id", 11365001);
+        }
+        payment.putObject("payment_details").put("amount", 12.50).put("method", "NC")
+            .put("destination_type", destination).put("allocation_type", destination.equals("S") ? reason : "FULL");
+        ObjectNode information = payment.putObject("additional_information").put("payment_received_from", receivedFrom)
+            .put("payment_reference", "reference-123").put("transfer_source", "NATWEST");
+        if (destination.equals("F") && receivedFrom.equals("T")) {
+            information.put("third_party_payer_name", "Third party");
+        }
+        if (!destination.equals("F")) {
+            information.put("suspense_note", "Payment note");
+        }
+        if (destination.equals("C")) {
+            information.put("court_fee_code", "FEE").put("number_of_items", 2);
+        } else if (destination.equals("S")) {
+            information.put("suspense_reason_code", reason);
+            if ("UN".equals(reason)) {
+                information.put("suspense_reason_detail", "Unidentified receipt");
+            }
+        }
+        if (payer != null) {
+            information.put("payer_type", payer);
+            ObjectNode details = information.putObject("payer_details");
+            if (payer.equals("Individual")) {
+                details.putObject("individual").put("surname", "Smith");
+            } else {
+                details.putObject("organisation").put("organisation_name", "Company");
+            }
+        }
+        return request;
+    }
+
+    private static ObjectNode payment(ObjectNode request) {
+        return (ObjectNode) request.path("payments_in").get(0);
+    }
+
+    static ObjectNode information(ObjectNode request) {
+        return (ObjectNode) payment(request).path("additional_information");
     }
 }

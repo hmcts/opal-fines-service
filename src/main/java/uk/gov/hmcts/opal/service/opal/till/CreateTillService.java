@@ -9,32 +9,37 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
-import uk.gov.hmcts.opal.entity.PaymentReceivedFrom;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsCreateAdditionalInformation;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
 import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
 import uk.gov.hmcts.opal.mapper.till.CreateTillMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
-import tools.jackson.core.JacksonException;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -48,10 +53,8 @@ public class CreateTillService {
     private final CreateTillMapper createTillMapper;
     private final ObjectMapper objectMapper;
     private final Clock clock;
-
-    private static final String PAYMENT_RECEIVED_FROM = "payment_received_from";
-    private static final String ADDITIONAL_INFORMATION = "additional_information";
-    private static final String TRANSFER_SOURCE = "transfer_source";
+    private final DefendantAccountRepository defendantAccountRepository;
+    private final CreateTillPayerService createTillPayerService;
 
     @Transactional
     public void createTill(TillsCreateRequest request) {
@@ -59,12 +62,13 @@ public class CreateTillService {
         checkPermission(businessUnitId);
         List<TillsCreatePaymentIn> requestPayments = request.getPaymentsIn();
         Short paymentsCount = validatePaymentCount(requestPayments);
-        validatePaymentScope(requestPayments);
+        CreateTillValidator.validate(request);
+        validateDefendantAccounts(requestPayments, businessUnitId);
 
         TillCreationContext context = resolveCreationContext(businessUnitId);
         TillEntity till = saveTill(requestPayments, paymentsCount, context);
 
-        savePayments(requestPayments, till, context.createdDate(), request.getAdditionalInformation());
+        savePayments(requestPayments, till, context.createdDate());
         createPreAllocatedReport(till, context.userState());
     }
 
@@ -96,9 +100,9 @@ public class CreateTillService {
     }
 
     private void savePayments(List<TillsCreatePaymentIn> requestPayments, TillEntity till,
-                              LocalDateTime paymentDate, TillsCreateAdditionalInformation additionalInformation) {
+                              LocalDateTime paymentDate) {
         paymentInRepository.saveAll(requestPayments.stream()
-            .map(payment -> toPaymentIn(payment, till, paymentDate, additionalInformation))
+            .map(payment -> toPaymentIn(payment, till, paymentDate))
             .toList());
     }
 
@@ -123,22 +127,41 @@ public class CreateTillService {
     }
 
     private PaymentInEntity toPaymentIn(TillsCreatePaymentIn requestPayment, TillEntity till,
-        LocalDateTime dateTimeNow, TillsCreateAdditionalInformation additionalInformation) {
-        TillsCreatePaymentDetails details = requestPayment.getPaymentDetails();
-
-        return createTillMapper.toPaymentIn(
-            requestPayment,
-            till,
-            dateTimeNow,
-            serializeAdditionalInformation(
-                createTillMapper.toPaymentReceivedFrom(details.getAdditionalInformation()),
-                additionalInformation),
-            AssociatedRecordType.DEFENDANT_ACCOUNTS,
-            requireDefendantAccountId(requestPayment).toString());
+                                        LocalDateTime paymentDate) {
+        AssociatedRecordType type = null;
+        String id = null;
+        if (requestPayment.getPaymentDetails().getDestinationType()
+            == TillsCreatePaymentDetails.DestinationTypeEnum.F) {
+            type = AssociatedRecordType.DEFENDANT_ACCOUNTS;
+            id = requestPayment.getDefendantAccountId().toString();
+        } else {
+            MiscellaneousAccountEntity account = createTillPayerService.createPayerAccount(
+                requestPayment.getAdditionalInformation(), till.getBusinessUnit());
+            if (account != null) {
+                type = AssociatedRecordType.MISCELLANEOUS_ACCOUNTS;
+                id = account.getMiscellaneousAccountId().toString();
+            }
+        }
+        return createTillMapper.toPaymentIn(requestPayment, till, paymentDate,
+            serializeAdditionalInformation(requestPayment.getAdditionalInformation()), type, id);
     }
 
-    private static void validatePaymentScope(List<TillsCreatePaymentIn> requestPayments) {
-        requestPayments.forEach(CreateTillService::validateFinesPayment);
+    private void validateDefendantAccounts(List<TillsCreatePaymentIn> payments, Short businessUnitId) {
+        Set<Long> ids = payments.stream().map(TillsCreatePaymentIn::getDefendantAccountId)
+            .filter(Objects::nonNull).collect(Collectors.toSet());
+        if (ids.isEmpty()) {
+            return;
+        }
+        Map<Long, DefendantAccountEntity> accounts = defendantAccountRepository.findAllById(ids).stream()
+            .collect(Collectors.toMap(DefendantAccountEntity::getDefendantAccountId, Function.identity()));
+        for (Long id : ids) {
+            DefendantAccountEntity account = accounts.get(id);
+            if (account == null || !businessUnitId.equals(account.getBusinessUnit().getBusinessUnitId())) {
+                throw badRequest("defendant_account_id " + id
+                    + " must identify an existing account in business_unit_id "
+                    + businessUnitId);
+            }
+        }
     }
 
     private static Short validatePaymentCount(List<TillsCreatePaymentIn> requestPayments) {
@@ -150,55 +173,33 @@ public class CreateTillService {
         return (short) paymentsCount;
     }
 
-    private static void validateFinesPayment(TillsCreatePaymentIn requestPayment) {
-        if (requestPayment.getPaymentDetails().getDestinationType()
-            != TillsCreatePaymentDetails.DestinationTypeEnum.FINES) {
-            throw badRequest("Only fines payments are supported when creating a till");
-        }
-        requireDefendantAccountId(requestPayment);
-    }
-
-    private static Long requireDefendantAccountId(TillsCreatePaymentIn requestPayment) {
-        Long defendantAccountId = requestPayment.getDefendantAccountId();
-
-        if (defendantAccountId == null) {
-            throw badRequest("defendant_account_id is required for fines payments");
-        }
-        return defendantAccountId;
-    }
-
     private static ResponseStatusException badRequest(String reason) {
         return new ResponseStatusException(HttpStatus.BAD_REQUEST, reason);
     }
 
-    private String serializeAdditionalInformation(PaymentReceivedFrom paymentReceivedFrom,
-                                                  TillsCreateAdditionalInformation additionalInformation) {
-        Map<String, Object> storedInformation = new LinkedHashMap<>();
-        storedInformation.put(PAYMENT_RECEIVED_FROM, paymentReceivedFrom.getCode());
-
-        if (additionalInformation != null) {
-            storedInformation.put(ADDITIONAL_INFORMATION, toStoredAdditionalInformation(additionalInformation));
-        }
-
+    private String serializeAdditionalInformation(TillsCreateAdditionalInformation information) {
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("payment_received_from", information.getPaymentReceivedFrom().getValue());
+        putIfSupplied(metadata, "payment_reference", information.getPaymentReference());
+        putIfSupplied(metadata, "transfer_source",
+            information.getTransferSource() == null ? null : information.getTransferSource().getValue());
+        putIfSupplied(metadata, "court_fee_code", information.getCourtFeeCode());
+        putIfSupplied(metadata, "number_of_items", information.getNumberOfItems());
+        putIfSupplied(metadata, "suspense_reason_code",
+            information.getSuspenseReasonCode() == null ? null : information.getSuspenseReasonCode().getValue());
+        putIfSupplied(metadata, "suspense_reason_detail", information.getSuspenseReasonDetail());
+        putIfSupplied(metadata, "suspense_note", information.getSuspenseNote());
         try {
-            return objectMapper.writeValueAsString(storedInformation);
+            return objectMapper.writeValueAsString(metadata);
         } catch (JacksonException e) {
             throw new IllegalArgumentException("Unable to store payment additional information", e);
         }
     }
 
-    private Map<String, Object> toStoredAdditionalInformation(
-        TillsCreateAdditionalInformation additionalInformation) {
-        Map<String, Object> storedAdditionalInformation = objectMapper.convertValue(
-            additionalInformation, new TypeReference<>() {});
-
-        if (additionalInformation.getTransferSource() != null) {
-            storedAdditionalInformation.put(TRANSFER_SOURCE,
-                createTillMapper.toTransferSource(additionalInformation.getTransferSource()).getCode());
-        } else {
-            storedAdditionalInformation.remove(TRANSFER_SOURCE);
+    private static void putIfSupplied(Map<String, Object> metadata, String field, Object value) {
+        if (value != null) {
+            metadata.put(field, value);
         }
-        return storedAdditionalInformation;
     }
 
     private record TillCreationContext(BusinessUnitEntity businessUnit, UserStateV2 userState,

@@ -231,6 +231,7 @@ sourceSets {
   }
 
   main {
+    resources.srcDir layout.buildDirectory.dir('generated/request-schemas')
     java {
       srcDir "$buildDir/generated/openapi/src/main/java"
     }
@@ -342,6 +343,21 @@ openApiGenerate {
     useLombokAnnotations                : "true",
     generateBuilders                    : "true"
   ]
+}
+
+tasks.register('generateTillCreateSchema', JavaExec) {
+  dependsOn 'bundleOpenApi'
+  classpath = sourceSets.openapi.runtimeClasspath
+  mainClass = 'uk.gov.hmcts.opal.openapi.OpenApiRequestSchemaExtractor'
+  def bundle = layout.buildDirectory.file('openapi-bundled.yaml')
+  def schema = layout.buildDirectory.file('generated/request-schemas/jsonSchemas/tills/createTillRequest.json')
+  inputs.file(bundle)
+  outputs.file(schema)
+  args = [bundle.get().asFile.absolutePath, '/tills', 'post', schema.get().asFile.absolutePath]
+}
+
+tasks.named('processResources') {
+  dependsOn 'generateTillCreateSchema'
 }
 
 def feignClients = []
