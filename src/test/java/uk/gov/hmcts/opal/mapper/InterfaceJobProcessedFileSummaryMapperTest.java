@@ -33,6 +33,7 @@ class InterfaceJobProcessedFileSummaryMapperTest {
         when(summary.getInterfaceFileName()).thenReturn("payments.dat");
         when(summary.getSource()).thenReturn("NATWEST");
         when(summary.getTotalAmount()).thenReturn(pence);
+        when(summary.getTillNumber()).thenReturn((short) 901);
         when(summary.getTotalRecords()).thenReturn((short) 2);
         when(summary.getTotalErrors()).thenReturn(1L);
 

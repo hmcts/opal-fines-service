@@ -48,7 +48,7 @@ class InterfaceJobsProcessedFileSummaryResponseTest {
 
         // Assert
         assertEquals(Set.of("file_name", "source", "business_unit_name", "total_amount", "total_records",
-            "total_errors", "interface_messages"), fieldNames(json));
+            "total_errors", "interface_messages", "till_number"), fieldNames(json));
         assertEquals(Set.of("message_text", "messages"), fieldNames(json.get("interface_messages").get(0)));
         assertEquals(Set.of("interface_messages_id", "message_data", "message_type"),
             fieldNames(json.get("interface_messages").get(0).get("messages").get(0)));
