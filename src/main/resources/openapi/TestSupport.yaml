@@ -1,0 +1,63 @@
+openapi: 3.1.1
+
+servers:
+  - url: http://localhost:4550/
+
+info:
+  description: Opal Fines Service - Test Support Endpints
+  version: v0.0.1
+  title: Opal Fines Service
+
+paths:
+  /testing-support/automated-jobs/{name}:
+    post:
+      tags:
+        - Test Support
+      summary: Run automated Job
+      description: Runs an automated job with the provided name
+      parameters:
+        - in: path
+          name: name
+          description: The name of the job to run
+          schema:
+            type: string
+          required: true
+      responses:
+        '202':
+          description: Job triggered successfully
+        400:
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        401:
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        403:
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        404:
+          description: Not Found
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        500:
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        503:
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'

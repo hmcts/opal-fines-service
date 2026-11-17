@@ -22,7 +22,7 @@ public class MinorCreditorAccountAtAGlanceStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String AT_A_GLANCE_PATH = "/minor-creditor-accounts/%d/at-a-glance";
-    private static final long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 99_000_000_000_802L;
+    private static final long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 20730000000836L; //JCDE
 
     /**
      * Requests the account seeded in the legacy API stub.

@@ -1,6 +1,10 @@
 @Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorAtAGlance
 Feature: Minor Creditor Account At A Glance API In Legacy Mode
 
+  # The seeded legacy minor creditor steps use JCDE account 20730000000836.
+  # TODO: Confirm a preprod account and expected defendant details, then share the fixture
+  # or split the requests and assertions by environment. Preprod support is pending.
+
   @JIRA-STORY:PO-10678 @JIRA-EPIC:PO-2982
   Scenario: E2E.01 Legacy minor creditor account at a glance returns organisation defendant details
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user

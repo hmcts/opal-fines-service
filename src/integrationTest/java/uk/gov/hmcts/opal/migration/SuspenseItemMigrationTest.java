@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.migration;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,32 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @DisplayName("Suspense item migration integration tests")
 class SuspenseItemMigrationTest extends AbstractIntegrationTest {
+
+    @Test
+    @JiraStory("PO-10344")
+    @JiraEpic("PO-9048")
+    @DisplayName("PO-10344: summary view exposes suspense item version_number as BIGINT")
+    void shouldExposeVersionNumberInSuspenseItemSummaryView() {
+        var columns = jdbcTemplate.queryForList("""
+            SELECT data_type
+            FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'v_suspense_item_summary'
+              AND column_name = 'version_number'
+            """);
+
+        assertEquals(1, columns.size(), "public.v_suspense_item_summary.version_number must exist");
+        assertEquals("bigint", columns.getFirst().get("data_type"), "version_number must be BIGINT");
+
+        var viewDefinition = jdbcTemplate.queryForObject(
+            "SELECT pg_get_viewdef('public.v_suspense_item_summary'::regclass, true)",
+            String.class
+        );
+        assertTrue(
+            viewDefinition != null && viewDefinition.contains("si.version_number"),
+            "The summary view must fetch version_number from suspense_items"
+        );
+    }
 
     @Test
     @JiraStory("PO-10343")
