@@ -39,9 +39,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @WebMvcTest(
     controllers = InterfaceJobsApiController.class,
     excludeFilters = @Filter(
