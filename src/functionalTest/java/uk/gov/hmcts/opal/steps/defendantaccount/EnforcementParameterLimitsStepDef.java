@@ -34,16 +34,6 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
 
     @Given("a maximum-length enforcement fixture for {string} in {string}")
     public void prepareFixture(String resultId, String language) throws IOException, JSONException {
-        buildFixture(resultId, language, true);
-    }
-
-    @Given("an ordinary-length enforcement fixture for {string} in {string}")
-    public void prepareOrdinaryFixture(String resultId, String language) throws IOException, JSONException {
-        buildFixture(resultId, language, false);
-    }
-
-    private void buildFixture(String resultId, String language, boolean maximumLength)
-        throws IOException, JSONException {
         assertTrue(List.of("English", "Welsh").contains(language), "Unknown fixture language");
         Response mode = authorisedJsonRequest().get(getTestUrl() + "/testing-support/is-legacy-mode");
         mode.then().statusCode(200);
@@ -65,16 +55,13 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
                 int limit = parameter.getInt("max");
                 // Different start/end markers catch truncation, padding and replacement of equal-length values.
                 String sample = name.startsWith("cy_") ? "Taliad ŵ â ê î ô û ŷ " : name + " payment ";
-                int length = maximumLength ? limit : Math.min(limit, sample.strip().length());
-                String text = sample.repeat(length / sample.length() + 1).substring(0, length - 1) + "!";
+                String text = sample.repeat(limit / sample.length() + 1).substring(0, limit - 1) + "!";
                 if (name.equals("timeofrelease")) {
-                    text = maximumLength ? "14.30 GMT." : "14.30";
+                    text = "14.30 GMT.";
                 }
                 assertTrue(text.length() >= parameter.optInt("min", 0) && text.length() <= limit,
                     name + " fixture must respect the configured length range");
-                if (maximumLength) {
-                    assertEquals(limit, text.length(), name + " fixture length");
-                }
+                assertEquals(limit, text.length(), name + " fixture length");
                 expectedTextLengths.put(name, text.length());
                 submittedResponses.put(name, text);
             } else if (values.has(baseName)) {

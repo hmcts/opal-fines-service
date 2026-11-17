@@ -49,32 +49,7 @@ Feature: Defendant Account Enforcements
     When I request defendant account history for the created defendant account with query "itemTypes=enforcement"
     Then the defendant account history contains enforcement action "NAWT" with hearing court id 770000000001 and hearing date "2026-10-02"
 
-  # These examples use a shorter reason to check whether the action can be added.
-  # If they also fail, the failure is not caused by the reason being too long.
-  # We have not yet confirmed whether these actions need a different account setup in Legacy mode.
-  @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
-  Scenario Outline: Ordinary-length text is accepted for enforcement result <result>
-    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-    And an enforceable defendant account exists with the following details
-      | source            | MAC                                               |
-      | business_unit_id  | 77                                                |
-      | account           | draftAccounts/accountJson/enforcementAccount.json |
-      | account_type      | Fine                                              |
-      | account_status    | Submitted                                         |
-      | submitted_by      | CTLENF001                                         |
-      | submitted_by_name | Laura Clerk                                       |
-    And an ordinary-length enforcement fixture for "<result>" in "English"
-    When I submit the enforcement parameter fixture for business unit "77"
-    Then the exposed enforcement parameters match the submitted content and lengths
-
-    Examples:
-      | result | notes |
-      | BWTD   | Legacy currently rejects this result (-20004), including the ordinary-length control. |
-      | CWN    | Legacy currently rejects this result (-20004), including the ordinary-length control. |
-      | NAWT   | Legacy currently rejects this result (-20004), including the ordinary-length control. |
-      | REW    | Legacy currently rejects this result (-20004), including the ordinary-length control. |
-      | SUMM   | Legacy currently rejects this result (-20004), including the ordinary-length control. |
-
+  # These examples cover the actions supported by Capita LLD section 3.19.1.
   # CW uses business unit 78 because it has the prison details needed for the test.
   # Each text value uses the maximum length allowed for the selected action.
   # After adding the action, we check that the values returned match those submitted.

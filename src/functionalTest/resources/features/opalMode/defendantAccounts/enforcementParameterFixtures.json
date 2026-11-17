@@ -11,14 +11,6 @@
     "payperiod": "Weekly"
   },
   "AEOC": {},
-  "BWTD": {
-    "hearingdate": "2030-06-15",
-    "courtcode": "777",
-    "enforcer": {
-      "opal": "1",
-      "legacy": "770000000001"
-    }
-  },
   "BWTU": {
     "enforcer": {
       "opal": "1",
@@ -45,10 +37,6 @@
     },
     "prisonid": "780000000001"
   },
-  "CWN": {
-    "hearingdate": "2030-06-15",
-    "courtcode": "777"
-  },
   "DW": {
     "enforcer": {
       "opal": "1",
@@ -63,10 +51,6 @@
     "prisondetention": "Prison"
   },
   "NAP": {},
-  "NAWT": {
-    "hearingdate": "2030-06-15",
-    "courtcode": "777"
-  },
   "NBWT": {
     "enforcer": {
       "opal": "1",
@@ -82,10 +66,6 @@
   },
   "REGF": {},
   "REM": {},
-  "REW": {
-    "hearingdate": "2030-06-15",
-    "courtcode": "777"
-  },
   "S136": {
     "enforcer": {
       "opal": "1",
@@ -95,11 +75,6 @@
   "SC": {
     "daysindefault": "14",
     "totalamount": "100.00"
-  },
-  "SUMM": {
-    "hearingdate": "2030-06-15",
-    "courtcode": "777",
-    "prisondetention": "Prison"
   },
   "UPWO": {
     "noofhours": "14",
