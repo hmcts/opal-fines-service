@@ -111,6 +111,24 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
     }
 
     /**
+     * Removes the current enforcement hold using the version captured by the status request.
+     *
+     * @param businessUnitId business unit owning the created account.
+     * @param reason reason to record in the account's activity notes.
+     * @return response from the remove-enforcement-hold endpoint.
+     * @throws JSONException if the request body cannot be assembled.
+     */
+    public Response removeCreatedDefendantAccountEnforcementHold(String businessUnitId, String reason)
+        throws JSONException {
+        return authorisedJsonRequest()
+            .header("Business-Unit-Id", businessUnitId)
+            .header("If-Match", scenarioContext().getDefendantAccountEtag())
+            .body(new JSONObject().put("reason", reason).toString())
+            .when()
+            .patch(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail() + "/remove-enf-hold");
+    }
+
+    /**
      * Returns the created defendant-account ID stored for the current scenario, failing when it
      * has not yet been captured.
      *
