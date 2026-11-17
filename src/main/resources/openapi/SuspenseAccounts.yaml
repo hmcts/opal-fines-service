@@ -70,7 +70,7 @@ paths:
         '408':
           description: Request Timeout
           content:
-            appliction/problem+json:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         '500':

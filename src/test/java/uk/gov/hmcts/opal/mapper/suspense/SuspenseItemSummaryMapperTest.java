@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.mapper.suspense;
 
 import java.math.BigDecimal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.math.BigInteger;
@@ -27,24 +28,24 @@ class SuspenseItemSummaryMapperTest {
             .businessUnitId((short) 1)
             .businessUnitName("Business Unit Name")
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
-            .balance(BigDecimal.valueOf(10000L))
+            .balance(BigDecimal.valueOf(100.0))
             .build();
 
         SuspenseItemSummaryCommonStrict result = mapper.toSuspenseItemSummaryCommonStrict(entity);
 
-        assert result.getSuspenseItemId() != null;
-        assert result.getBusinessUnitDetails() != null;
-        assert result.getCreatedDate() != null;
-        assert result.getSuspenseItemType() != null;
+        assertNotNull(result.getSuspenseItemId());
+        assertNotNull(result.getBusinessUnitDetails());
+        assertNotNull(result.getCreatedDate());
+        assertNotNull(result.getSuspenseItemType());
 
         assertEquals(1L, result.getSuspenseItemId().intValue());
-        assertEquals((short) 12345, result.getSuspenseItemNumber());
+        assertEquals("12345", result.getSuspenseItemNumber());
         assertEquals("CC", result.getSuspenseItemType().getItemType());
         assertEquals("Cancelled cheque (Fines)",  result.getSuspenseItemType().getItemTypeDisplayName());
         assertEquals(1L, result.getBusinessUnitDetails().getBusinessUnitId().intValue());
         assertEquals("Business Unit Name", result.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("2026/11/03", result.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
-        assertEquals(BigDecimal.valueOf(10000L), result.getBalance());
+        assertEquals("100.0", result.getBalance());
         assertEquals("CC", result.getSuspenseItemType().getItemType());
         assertEquals("Cancelled cheque (Fines)",   result.getSuspenseItemType().getItemTypeDisplayName());
     }

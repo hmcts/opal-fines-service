@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,14 +54,14 @@ public class OpalSuspenseAccountSummaryServiceTest {
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict
             .builder()
             .suspenseItemId(1L)
-            .suspenseItemNumber(12345L)
+            .suspenseItemNumber("12345")
             .businessUnitDetails(BusinessUnitSummaryLiteCommon
                 .builder()
                 .businessUnitId((short) 1)
                 .businessUnitName("Business Unit Name")
                 .build())
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
-            .balance(BigDecimal.valueOf(100.0))
+            .balance("100.0")
             .build();
 
         doReturn(returnedEntity).when(suspenseItemSummaryRepository)
@@ -74,18 +75,18 @@ public class OpalSuspenseAccountSummaryServiceTest {
             opalSuspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(123L));
 
         //  Verify.
-        assert returnedCommonStrict.getSuspenseItemId() != null;
-        assert returnedCommonStrict.getBusinessUnitDetails() != null;
-        assert returnedCommonStrict.getCreatedDate() != null;
+        assertNotNull(returnedCommonStrict.getSuspenseItemId());
+        assertNotNull(returnedCommonStrict.getBusinessUnitDetails());
+        assertNotNull(returnedCommonStrict.getCreatedDate());
 
         assertEquals(1L, returnedCommonStrict.getSuspenseItemId().intValue());
-        assertEquals((short) 12345, returnedCommonStrict.getSuspenseItemNumber());
+        assertEquals("12345", returnedCommonStrict.getSuspenseItemNumber());
         assertEquals(1L, returnedCommonStrict.getBusinessUnitDetails().getBusinessUnitId().intValue());
         assertEquals("Business Unit Name",
             returnedCommonStrict.getBusinessUnitDetails().getBusinessUnitName());
         assertEquals("2026/11/03",
             returnedCommonStrict.getCreatedDate().format(DateTimeFormatter.ofPattern("yyyy/MM/dd")));
-        assertEquals(BigDecimal.valueOf(100.00), returnedCommonStrict.getBalance());
+        assertEquals("100.0", returnedCommonStrict.getBalance());
     }
 
     @Test
@@ -97,8 +98,8 @@ public class OpalSuspenseAccountSummaryServiceTest {
             .build();
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict.builder()
             .suspenseItemId(1L)
-            .suspenseItemNumber(12345L)
-            .balance(BigDecimal.valueOf(100.0))
+            .suspenseItemNumber("12345")
+            .balance("100.0")
             .build();
         when(suspenseItemSummaryRepository.findByBusinessUnitIdAndSuspenseItemNumber((short) 123,
             BigInteger.valueOf(12345)))

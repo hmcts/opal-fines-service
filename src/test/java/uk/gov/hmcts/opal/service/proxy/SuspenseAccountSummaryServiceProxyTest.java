@@ -5,7 +5,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,7 +46,7 @@ class SuspenseAccountSummaryServiceProxyTest extends ProxyTestsBase {
         SuspenseAccountsSummaryServiceInterface other) {
 
         SuspenseItemSummaryCommonStrict expected =
-            SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance(BigDecimal.valueOf(100.0)).build();
+            SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance("100.0").build();
         when(selected.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345))).thenReturn(expected);
 
         SuspenseItemSummaryCommonStrict result = proxy.getSuspenseAccountsSummary((short) 123,

@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -59,14 +58,14 @@ public class SuspenseAccountsApiControllerTest {
                 .businessUnitName("Test Business Unit")
                 .build())
             .suspenseItemId(123L)
-            .suspenseItemNumber(123L)
+            .suspenseItemNumber("123")
             .createdDate(LocalDateTime.of(2026, 11, 3, 0, 0))
             .suspenseItemType(SuspenseItemTypeCommonStrict
                 .builder()
                 .itemType("CC")
                 .itemTypeDisplayName("Cancelled cheque (Fines)")
                 .build())
-            .balance(BigDecimal.valueOf(100.0))
+            .balance("100.0")
             .build();
 
         //  Mock the service
@@ -81,19 +80,12 @@ public class SuspenseAccountsApiControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(suspenseAccountsSummaryService).getSuspenseAccountsSummary((short) 122, BigInteger.valueOf(123));
 
-        assert response.getBody() != null;
-        assert response.getBody().getSuspenseItemId() != null;
-        assert response.getBody().getBusinessUnitDetails() != null;
-        assert itemSummary.getBusinessUnitDetails() != null;
-        assert itemSummary.getBusinessUnitDetails().getBusinessUnitId() != null;
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getSuspenseItemId());
         assertNotNull(response.getBody().getBusinessUnitDetails());
         assertNotNull(itemSummary.getBusinessUnitDetails());
         assertNotNull(itemSummary.getBusinessUnitDetails().getBusinessUnitId());
 
-        assert response.getBody().getBusinessUnitDetails().getBusinessUnitName() != null;
-        assert itemSummary.getBusinessUnitDetails().getBusinessUnitName() != null;
         assertNotNull(response.getBody().getBusinessUnitDetails().getBusinessUnitName());
         assertNotNull(itemSummary.getBusinessUnitDetails().getBusinessUnitName());
 

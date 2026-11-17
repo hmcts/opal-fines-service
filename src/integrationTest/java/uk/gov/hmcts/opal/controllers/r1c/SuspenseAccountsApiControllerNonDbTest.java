@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,13 +45,13 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
         SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict
             .builder()
             .suspenseItemId(1L)
-            .suspenseItemNumber(12345L)
+            .suspenseItemNumber("12345")
             .businessUnitDetails(BusinessUnitSummaryLiteCommon
                 .builder()
                 .businessUnitId((short) 1)
                 .businessUnitName("Business Unit Name").build())
             .createdDate(LocalDateTime.parse("2026-11-03T10:15:30"))
-            .balance(new BigDecimal("100.00"))
+            .balance("100.00")
             .build();
 
         doReturn(expected).when(suspenseAccountsSummaryService).getSuspenseAccountsSummary(any(), any());
@@ -68,7 +67,7 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
             .andExpect(jsonPath("$.suspense_item_id").value(1))
             .andExpect(jsonPath("$.suspense_item_number").value(12345))
             .andExpect(jsonPath("$.created_date").value("2026-11-03T10:15:30"))
-            .andExpect(jsonPath("$.balance").value("100.0"));
+            .andExpect(jsonPath("$.balance").value("100.00"));
     }
 
     @Test
