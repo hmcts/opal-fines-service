@@ -1144,7 +1144,7 @@ dependencyManagement {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.4'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.2"
     mavenBom "io.netty:netty-bom:4.2.20.Final"
-    mavenBom "com.fasterxml.jackson:jackson-bom:2.22.4"
+    mavenBom "com.fasterxml.jackson:jackson-bom:2.23.0"
   }
 
   dependencies {
@@ -1178,7 +1178,7 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.38'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.40'
 
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.2'
@@ -1238,7 +1238,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.48'
   annotationProcessor 'org.projectlombok:lombok:1.18.48'
-  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.14.Final'
+  annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.16.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.3') {
     exclude group: 'com.microsoft.azure', module: 'applicationinsights-spring-boot-starter'
