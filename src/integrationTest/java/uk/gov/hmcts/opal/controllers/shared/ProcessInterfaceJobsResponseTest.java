@@ -15,7 +15,6 @@ import jakarta.persistence.QueryTimeoutException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessRequest;
@@ -25,10 +24,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @DisplayName("Interface Jobs Process Common Response Integration Tests")
 class ProcessInterfaceJobsResponseTest extends AbstractIntegrationTest {
 

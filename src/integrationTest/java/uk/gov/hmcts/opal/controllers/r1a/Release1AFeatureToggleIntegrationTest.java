@@ -14,9 +14,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
-import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1aDisabledIntegrationTest;
 import uk.gov.hmcts.opal.controllers.shared.util.DraftAccountTestData;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -30,11 +29,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.Release1AFeatureToggleIntegrationTest")
 @DisplayName("Release 1A - returns 404 when release-1a flag is disabled")
 @Tag("ExtendedTest")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1a=false"
-})
-class Release1AFeatureToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
+class Release1AFeatureToggleIntegrationTest extends AbstractRelease1aDisabledIntegrationTest {
 
     private static final String DRAFT_ACCOUNT_ID = "/draft-accounts/100000";
 
