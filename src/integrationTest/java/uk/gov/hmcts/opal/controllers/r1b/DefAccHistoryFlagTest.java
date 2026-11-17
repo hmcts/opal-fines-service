@@ -10,21 +10,16 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.ResultActions;
-import uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1bDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=false"
-})
 @DisplayName("Defendant Account History Feature Flag Integration Test")
 @Tag("ExtendedTest")
-class DefAccHistoryFlagTest extends AbstractFeatureToggleIntegrationTest {
+class DefAccHistoryFlagTest extends AbstractRelease1bDisabledIntegrationTest {
 
     @Test
     @DisplayName("PO-2622: GET defendant account history returns 404 when release-1b is disabled")
