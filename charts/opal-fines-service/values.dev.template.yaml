@@ -63,6 +63,7 @@ java:
     FLYWAY_LOCATIONS: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
     RELEASE_1A_ENABLED: true
     RELEASE_1B_ENABLED: true
+    RELEASE_1B_1_2_ENABLED: true
     RELEASE_1C_ENABLED: true
     RELEASE_1C_PAYMENT_ENABLED: true
     RELEASE_1C_BANKING_INTERFACES_ENABLED: true
@@ -74,6 +75,8 @@ java:
     SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME: "{{ .Release.Name}}-servicebus-auto-payments-process-interface-files"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
+    INTERFACE_FILE_CONSUMER_ENABLED: true
+    REPORT_CONSUMER_ENABLED: true
   postgresql:
     enabled: true
     primary:

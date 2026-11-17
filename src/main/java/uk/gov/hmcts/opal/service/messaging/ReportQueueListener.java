@@ -20,7 +20,7 @@ public class ReportQueueListener {
 
     @JmsListener(
         destination = "${opal.report.service-bus.queue-name}",
-        containerFactory = "reportListenerContainerFactory"
+        containerFactory = "opalFinesConsumerConnectionFactory"
     )
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {

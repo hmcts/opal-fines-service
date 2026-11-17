@@ -21,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
@@ -35,16 +34,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration", "legacy"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @DisplayName("Minor Creditor Account At A Glance Legacy Error Integration Tests")
 class LegacyMinorCreditorAtAGlanceErrorIntegrationTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/minor-creditor-accounts/{id}/at-a-glance";
-    private static final String LEGACY_OPERATION = "LIBRA.get_minor_creditors_account_at_a_glance";
+    private static final String LEGACY_OPERATION = "getMinorCreditorAccountAtAGlance";
     private static final long MINOR_CREDITOR_ACCOUNT_ID = 99_000_000_000_802L;
 
     @MockitoBean

@@ -75,6 +75,12 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @ExtendWith(MockitoExtension.class)
 class LegacyMinorCreditorServiceTest {
 
+    private static final String SEARCH_MINOR_CREDITOR_ACCOUNTS = "searchMinorCreditorAccounts";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT = "getMinorCreditorAccount";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY = "getMinorCreditorAccountHeaderSummary";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_AT_A_GLANCE = "getMinorCreditorAccountAtAGlance";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_HISTORY = "getMinorCreditorAccountHistory";
+
     @Mock
     private GatewayService gatewayService;
 
@@ -136,7 +142,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -152,7 +158,7 @@ class LegacyMinorCreditorServiceTest {
         assertSame(mappedResponse, result);
         verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
         verify(gatewayService).postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -188,7 +194,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, true)).thenReturn(request);
         when(gatewayService.postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -204,7 +210,7 @@ class LegacyMinorCreditorServiceTest {
         assertSame(mappedResponse, result);
         verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, true);
         verify(gatewayService).postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -233,7 +239,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -274,7 +280,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -308,7 +314,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
-            "LIBRA.get_minor_creditor_account_history",
+            GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
@@ -365,7 +371,8 @@ class LegacyMinorCreditorServiceTest {
         GatewayService.Response<LegacyMinorCreditorSearchResultsResponse> response =
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
-        when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
+        when(gatewayService.postToGateway(eq(SEARCH_MINOR_CREDITOR_ACCOUNTS),
+            eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
         MinorCreditorAccountsSearchResponse result = legacyMinorCreditorService.searchMinorCreditors(search);
@@ -475,7 +482,7 @@ class LegacyMinorCreditorServiceTest {
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
         when(gatewayService.postToGateway(
-            any(),
+            eq(SEARCH_MINOR_CREDITOR_ACCOUNTS),
             eq(LegacyMinorCreditorSearchResultsResponse.class),
             any(),
             any())
@@ -572,7 +579,7 @@ class LegacyMinorCreditorServiceTest {
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
         when(gatewayService.postToGateway(
-            any(),
+            eq(GET_MINOR_CREDITOR_ACCOUNT_AT_A_GLANCE),
             eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
             eq(LegacyGetMinorCreditorAccountAtAGlanceRequest.builder().creditorAccountId("101").build()),
             any())
@@ -678,7 +685,7 @@ class LegacyMinorCreditorServiceTest {
         mappedResponse.setCreditorAccountId(101L);
 
         when(gatewayService.postToGateway(
-            eq("GET_MINOR_CREDITOR_ACCOUNT_PARTY"),
+            eq(GET_MINOR_CREDITOR_ACCOUNT),
             eq(LegacyGetMinorCreditorAccountResponse.class),
             eq(LegacyGetMinorCreditorAccountRequest.builder().accountId("101").build()),
             any()
@@ -707,7 +714,7 @@ class LegacyMinorCreditorServiceTest {
             new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null);
 
         when(gatewayService.postToGateway(
-            any(),
+            eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
             eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             eq(GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder().creditorAccountId("101").build()),
             any())
@@ -851,7 +858,7 @@ class LegacyMinorCreditorServiceTest {
         mappedResponse.setCreditorAccountId(1L);
 
         when(gatewayService.postToGateway(
-            eq("GET_MINOR_CREDITOR_ACCOUNT_PARTY"),
+            eq(GET_MINOR_CREDITOR_ACCOUNT),
             eq(LegacyGetMinorCreditorAccountResponse.class),
             eq(LegacyGetMinorCreditorAccountRequest.builder().accountId("1").build()),
             any()
