@@ -92,6 +92,8 @@ class OpalLjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
     @JiraTestKey("PO-10709")
     void processesValidLjaMessage() {
         short localJusticeAreaId = 8102;
