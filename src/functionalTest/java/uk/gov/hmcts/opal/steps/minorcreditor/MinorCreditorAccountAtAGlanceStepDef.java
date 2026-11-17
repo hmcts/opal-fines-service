@@ -22,10 +22,11 @@ public class MinorCreditorAccountAtAGlanceStepDef extends BaseStepDef {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String AT_A_GLANCE_PATH = "/minor-creditor-accounts/%d/at-a-glance";
-    private static final long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 20730000000836L; //JCDE
+    // JCDE creditor Small Fish Big Ocean, linked to Company A Chocolate Limited (24000050E).
+    private static final long LEGACY_MINOR_CREDITOR_ACCOUNT_ID = 20730000000579L;
 
     /**
-     * Requests the account seeded in the legacy API stub.
+     * Requests the known JCDE minor creditor account.
      */
     @When("I request minor creditor account at a glance for the seeded legacy minor creditor account")
     public void requestSeededLegacyMinorCreditorAccountAtAGlance() {
