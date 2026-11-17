@@ -10,6 +10,7 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
@@ -53,8 +54,10 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
         log.debug("GET: getSuspenseItemHistory: businessUnitId: {}, suspenseItemId: {}",
             businessUnitId, suspenseItemId);
 
-        return buildResponse(suspenseAccountsHistoryService
-            .getSuspenseItemHistory(businessUnitId, suspenseItemId));
+        SuspenseItemHistoryCommonStrict suspenseItemHistoryCommonStrict =
+            suspenseAccountsHistoryService.getSuspenseItemHistory(businessUnitId, suspenseItemId);
+
+        return buildResponse(suspenseItemHistoryCommonStrict, suspenseItemHistoryCommonStrict);
     }
 
 }

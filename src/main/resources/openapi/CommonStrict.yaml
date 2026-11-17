@@ -716,18 +716,14 @@ components:
             - integer
           format: int64
         suspense_item_number:
-          type:
-            - integer
-          format: int64
+          type: string
         created_date:
           type: string
           format: date-time
         suspense_item_type:
           $ref: '#/components/schemas/suspenseItemType'
         balance:
-          type: number
-          description: Current suspense item balance.
-          example: 75.25
+          type: string
 
     suspenseItemType:
       title: Suspense Item Type Reference
@@ -750,11 +746,13 @@ components:
       title: Suspense Item History
       type: object
       additionalProperties: false
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
       properties:
         business_unit_id:
           type:
             - integer
-          format: int64
         suspense_item_id:
           type:
             - integer
@@ -764,13 +762,7 @@ components:
             - array
             - 'null'
           items:
-            $ref: '#/components/schemas/suspense_note'
-        suspense_transactions:
-          type:
-            - array
-            - 'null'
-          items:
-            $ref: '#/components/schemas/suspenseTransaction'
+            $ref: '#/components/schemas/suspenseNote'
 
     suspense_note:
       title: Suspense Note
