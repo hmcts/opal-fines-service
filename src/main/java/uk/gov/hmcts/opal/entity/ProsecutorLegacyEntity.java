@@ -11,6 +11,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,11 +19,9 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
-
 @Data
 @Entity
-@EqualsAndHashCode()
+@EqualsAndHashCode
 @Table(name = "prosecutors_legacy")
 @SuperBuilder
 @ToString(callSuper = true)
@@ -37,7 +36,7 @@ public class ProsecutorLegacyEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "prosecutor_id", nullable = false)
     @JsonProperty("prosecutor_id")
-    private Long prosecutorId;
+    private Short prosecutorId;
 
     @Column(name = "prosecutor_code", length = 4)
     @JsonProperty("prosecutor_code")

@@ -143,21 +143,20 @@ components:
       additionalProperties: false
       x-json-include: NON_NULL
       required:
-        - prosecutor_id
         - name
       properties:
         prosecutor_id:
           type: integer
           format: int16
-          description: DB Mapping - prosecutors.prosecutor_id
+          description: Legacy prosecutor identifier. DB Mapping - prosecutors_legacy.prosecutor_id
         name:
           type: string
           maxLength: 200
           description: DB Mapping - prosecutors.name
         prosecutor_code:
-          type: string
-          maxLength: 4
-          description: DB Mapping - prosecutors.prosecutor_code
+          type: integer
+          format: int16
+          description: Opal prosecutor code. DB Mapping - prosecutors.prosecutor_code
         address_line_1:
           type: string
           maxLength: 60
