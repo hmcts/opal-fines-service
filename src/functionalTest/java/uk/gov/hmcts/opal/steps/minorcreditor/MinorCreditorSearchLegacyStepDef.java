@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.steps.minorcreditor;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.security.SecureRandom;
 import net.serenitybdd.rest.SerenityRest;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +30,7 @@ public class MinorCreditorSearchLegacyStepDef extends BaseStepDef {
         "draftAccounts/accountJson/minorCreditorAccount.json";
     private static final String LEGACY_SAFE_COURT_ID = "770000000001";
     private static final String SEARCH_URL = "/minor-creditor-accounts/search";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final DefendantAccountEnforcementWorkflow accountWorkflow =
         new DefendantAccountEnforcementWorkflow();
@@ -119,7 +121,7 @@ public class MinorCreditorSearchLegacyStepDef extends BaseStepDef {
     private String uniqueAlphabeticSuffix() {
         StringBuilder suffix = new StringBuilder(12);
         for (int index = 0; index < 12; index++) {
-            suffix.append((char) ('A' + ThreadLocalRandom.current().nextInt(26)));
+            suffix.append((char) ('A' + SECURE_RANDOM.nextInt(26)));
         }
         return suffix.toString();
     }
