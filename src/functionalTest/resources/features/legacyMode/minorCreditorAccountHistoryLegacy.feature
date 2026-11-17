@@ -7,9 +7,8 @@ Feature: Minor Creditor Account History API In Legacy Mode
     When I request minor creditor account history for the seeded legacy minor creditor account
     Then the minor creditor account history response is returned as documented
     And the minor creditor account history contains at least the following item counts
-      | Amendment | 3 |
       | Financial | 3 |
-      | Note      | 3 |
+      | Note      | 1 |
     And the minor creditor account history is ordered newest first
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653

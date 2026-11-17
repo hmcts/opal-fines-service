@@ -103,6 +103,8 @@ public class LegacyMinorCreditorHistoryMapper {
             return null;
         }
 
+        details = unwrapDetails(sourceType, details);
+
         return switch (sourceType) {
             case AMENDMENT -> new AmendmentTypeCommon()
                 .attributeName(details.getAttributeName())
@@ -128,6 +130,16 @@ public class LegacyMinorCreditorHistoryMapper {
         };
     }
 
+    private LegacyMinorCreditorHistoryDetails unwrapDetails(MinorCreditorHistoryItemType minorCreditorHistoryItemType,
+        LegacyMinorCreditorHistoryDetails details) {
+        return switch (minorCreditorHistoryItemType) {
+            case FINANCIAL -> Optional.ofNullable(details.getCreditorTransactionDetails())
+                .orElse(details);
+            case NOTE -> Optional.ofNullable(details.getNoteDetails()).orElse(details);
+            case AMENDMENT -> details;
+        };
+    }
+
     private CreditorTransactionTypeReferenceCommon toCreditorTransactionType(
         LegacyCreditorTransactionTypeReference transactionType) {
 
@@ -138,7 +150,7 @@ public class LegacyMinorCreditorHistoryMapper {
         return new CreditorTransactionTypeReferenceCommon()
             .transactionType(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(
                 transactionType.getTransactionType()))
-            .transactionTypeDisplayName(transactionType.getTransactionType());
+            .transactionTypeDisplayName(transactionType.getTransactionTypeDisplayName());
     }
 
     private CreditorTransactionStatusReferenceCommon toCreditorTransactionStatus(
@@ -152,7 +164,7 @@ public class LegacyMinorCreditorHistoryMapper {
             .creditorTransactionStatus(
                 CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.fromValue(
                     status.getCreditorTransactionStatus()))
-            .creditorTransactionStatusDisplayName(status.getCreditorTransactionStatus());
+            .creditorTransactionStatusDisplayName(status.getCreditorTransactionStatusDisplayName());
     }
 
     private MinorCreditorHistoryItemType toHistoryItemType(String legacyType) {
