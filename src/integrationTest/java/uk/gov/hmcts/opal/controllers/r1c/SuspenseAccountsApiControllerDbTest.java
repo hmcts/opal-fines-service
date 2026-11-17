@@ -32,6 +32,8 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     private static final String SUMMARY_URL =
         "/suspense-accounts/{business_unit_id}/suspense-items/{suspense_item_number}/summary";
 
+    private static final String HISTORY_URL = "/suspense-items/{suspenseItemId}/history";
+
     private static final String AUTH_HEADER = "Bearer some_value";
 
     @ParameterizedTest
@@ -101,14 +103,52 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("A user with a suspense permission can retrieve summary history")
+    void getHistory_getWithPermissions() throws Exception {
+        getHistoryAndTransactions((short) 29101, 99000000979601L, VIEW_SUSPENSE_ITEMS)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.business_unit_id").value(29101))
+            .andExpect(jsonPath("$.suspense_item_id").value(99000000979601L))
+            .andExpect(jsonPath("$.suspense_notes").isArray())
+            .andExpect(jsonPath("$.suspense_notes.length()").value(0))
+            .andExpect(jsonPath("$.suspense_transactions").isArray())
+            .andExpect(jsonPath("$.suspense_transactions.length()").value(2));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("A user without a suspense permission cannot retrieve an existing item")
+    void getHistoryAndTransactions_rejectsMissingPermission() throws Exception {
+        getHistoryAndTransactions((short) 29101, 100000L)
+            .andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
     private ResultActions getSummary(short businessUnitId, long itemNumber, FinesPermission... permissions)
         throws Exception {
-
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(businessUnitId, permissions);
+
         return mockMvc.perform(get(SUMMARY_URL, businessUnitId, itemNumber)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .accept(MediaType.APPLICATION_JSON)
+            .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
+    }
+
+    private ResultActions getHistoryAndTransactions(short businessUnitId, long itemId,
+        FinesPermission... permissions) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(businessUnitId, permissions);
+
+        return mockMvc.perform(get(HISTORY_URL, itemId)
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .accept(MediaType.APPLICATION_JSON)
+            .header("BusinessUnitId", businessUnitId)
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
     }
 

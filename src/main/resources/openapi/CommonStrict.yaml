@@ -754,9 +754,11 @@ components:
         business_unit_id:
           type:
             - integer
+          format: int64
         suspense_item_id:
           type:
             - integer
+          format: int64
         suspense_notes:
           type:
             - array
@@ -793,8 +795,9 @@ components:
         posted_details:
           $ref: './common.yaml#/components/schemas/postedDetails'
         amount:
-          type:
-            - integer
+          type: number
+          description: Current transaction amount
+          example: 25.75
         details:
           oneOf:
             - $ref: '#/components/schemas/manualPaymentPayerDetails'
@@ -813,13 +816,33 @@ components:
       additionalProperties: false
       properties:
         transaction_type_code:
+          $ref: '#/components/schemas/transactionTypeCode'
+        transaction_type_display_name:
           type: string
-          enum:
-            - SUSPENDED
-            - UNSUSPENDED
-            - REVERSED
-        transaction_type_display_namew:
-          type: string
+
+    transactionTypeCode:
+      title: Transaction Type Code
+      type: string
+      enum:
+        - CC
+        - CF
+        - DQ
+        - FA
+        - FB
+        - IN
+        - LA
+        - MA
+        - MB
+        - MC
+        - MS
+        - OM
+        - OC
+        - OF
+        - RP
+        - RV
+        - UN
+        - XF
+        - XP
 
     manualPaymentPayerDetails:
       title: Manual Payment Payer Details

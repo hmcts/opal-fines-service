@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,7 +35,6 @@ import uk.gov.hmcts.opal.generated.model.SuspenseItemTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseNoteCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseTransactionCommonStrict;
 import uk.gov.hmcts.opal.generated.model.TransactionTypeCommonStrict;
-import uk.gov.hmcts.opal.service.SuspenseAccountsHistoryService;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
 
 @ExtendWith(MockitoExtension.class)
@@ -124,8 +122,8 @@ public class SuspenseAccountsApiControllerTest {
     @Test
     void getHistory_returnsServiceResponse() {
         SuspenseItemHistoryCommonStrict history = new SuspenseItemHistoryCommonStrict()
-            .businessUnitId(123)
-            .suspenseItemId(1);
+            .businessUnitId(123L)
+            .suspenseItemId(1L);
         when(suspenseAccountsHistoryService.getSuspenseItemHistory(123L, 12345L)).thenReturn(history);
 
         ResponseEntity<SuspenseItemHistoryCommonStrict> response =
@@ -140,8 +138,8 @@ public class SuspenseAccountsApiControllerTest {
     public void testGetSuspenseAccountItemHistoryAndTransactions() throws Exception {
         SuspenseItemHistoryCommonStrict itemHistory = SuspenseItemHistoryCommonStrict
             .builder()
-            .businessUnitId(1)
-            .suspenseItemId(1)
+            .businessUnitId(1L)
+            .suspenseItemId(1L)
             .suspenseNotes(Collections.singletonList(
                 SuspenseNoteCommonStrict
                     .builder()
@@ -157,7 +155,7 @@ public class SuspenseAccountsApiControllerTest {
                     .builder()
                     .transactionId(1L)
                     .transactionType(TransactionTypeCommonStrict.builder().build())
-                    .amount(100)
+                    .amount(BigDecimal.valueOf(100))
                     .details(AdjustmentDetailsCommonStrict
                         .builder()
                         .creditorAddress(AddressDetailsCommon

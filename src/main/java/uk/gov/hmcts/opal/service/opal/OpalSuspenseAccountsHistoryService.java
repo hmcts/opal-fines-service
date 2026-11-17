@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.entity.projection.SuspenseTransactionHistoryProjection;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseNoteCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseTransactionCommonStrict;
@@ -42,15 +43,19 @@ public class OpalSuspenseAccountsHistoryService implements SuspenseAccountsHisto
                 .map(historyMapper::toSuspenseNote)
                 .toList();
 
+        //  TEMP:
+        List<SuspenseTransactionHistoryProjection> transactionProjections =
+            suspenseTransactionRepository.findHistory(itemId, businessUnitId);
+
         List<SuspenseTransactionCommonStrict> transactions =
-            suspenseTransactionRepository.findHistory(itemId, businessUnitId)
+            transactionProjections
                 .stream()
                 .map(historyMapper::toSuspenseTransaction)
                 .toList();
 
         return new SuspenseItemHistoryCommonStrict()
-            .businessUnitId(Math.toIntExact(businessUnitId))
-            .suspenseItemId(Math.toIntExact(itemId))
+            .businessUnitId(businessUnitId)
+            .suspenseItemId(itemId)
             .suspenseNotes(notes)
             .suspenseTransactions(transactions);
     }

@@ -2,11 +2,14 @@ package uk.gov.hmcts.opal.mapper;
 
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.NoteEntity;
+import uk.gov.hmcts.opal.entity.SuspenseItemType;
 import uk.gov.hmcts.opal.entity.projection.SuspenseTransactionHistoryProjection;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseNoteCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseTransactionCommonStrict;
+import uk.gov.hmcts.opal.generated.model.TransactionTypeCodeCommonStrict;
+import uk.gov.hmcts.opal.generated.model.TransactionTypeCommonStrict;
 
 @Component
 public class SuspenseItemHistoryMapper {
@@ -38,7 +41,14 @@ public class SuspenseItemHistoryMapper {
 
         return new SuspenseTransactionCommonStrict()
             .transactionId(row.getTransactionId())
-            .postedDetails(postedDetails);
+            .transactionType(
+                TransactionTypeCommonStrict
+                    .builder()
+                    .transactionTypeCode(TransactionTypeCodeCommonStrict.valueOf(row.getTransactionType()))
+                    .transactionTypeDisplayName(SuspenseItemType.valueOf(row.getTransactionType()).getDescription())
+                    .build())
+            .postedDetails(postedDetails)
+            .amount(row.getAmount());
     }
 
 }

@@ -41,7 +41,7 @@ class SuspenseAccountsHistoryServiceTest {
     void getHistory_allowsEitherPermission(FinesPermission permission) {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWith(permission));
         SuspenseItemHistoryCommonStrict expected =
-            new SuspenseItemHistoryCommonStrict().businessUnitId(123).suspenseItemId(1);
+            new SuspenseItemHistoryCommonStrict().businessUnitId(123L).suspenseItemId(1L);
         when(proxy.getSuspenseItemHistory(123L, 12345L)).thenReturn(expected);
 
         SuspenseItemHistoryCommonStrict result = service.getSuspenseItemHistory(123L, 12345L);
