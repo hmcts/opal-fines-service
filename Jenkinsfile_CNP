@@ -49,7 +49,7 @@ def determineDevEnvironmentDeployment() {
     //Portal
     if (label ==~ /enable_opal_front_end.*/) {
       env.DEV_ENABLE_OPAL_FRONT_END = true
-      env.OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.apps.hmcts.net"
+      env.OPAL_FRONT_END_URL = "https://opal-fines-service-pr-${env.CHANGE_ID}-frontend.dev.platform.hmcts.net"
 
       if (label ==~ /enable_opal_front_end:pr-.*/) {
         env.OPAL_FRONT_END_IMAGE_SUFFIX = label.replace("enable_opal_front_end:", "")
