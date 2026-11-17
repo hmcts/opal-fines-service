@@ -5,7 +5,6 @@ import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsJobStatus;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryItem;
