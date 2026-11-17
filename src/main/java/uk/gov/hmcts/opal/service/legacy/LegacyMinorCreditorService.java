@@ -303,6 +303,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
                 throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
             }
+            log.error(":{}: Generic Legacy gateway error occurred", method);
             throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
