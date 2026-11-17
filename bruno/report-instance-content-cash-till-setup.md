@@ -1,21 +1,12 @@
 # Cash Till Report Instance Content Setup
 
-This page documents the minimum local setup to exercise `GET /report-instances/{id}/content` for the `cash_till`
-report while testing through Bruno.
-
-It matches the current integration-test setup for:
-
-- report id: `cash_till`
-- report instance id: `99000000353000`
-- blob location: `stored-cash-till-report-location`
-- business unit id: `77`
+Use this guide to set up local data for the cash till report instance content requests in Bruno.
 
 ## Preconditions
 
-- the service is running locally
-- local Postgres is available
-- Azurite blob storage is running
-- Bruno is using your local fines-service environment
+- the service and local Postgres are running
+- Azurite is running with a `reports` container
+- Bruno is using the local fines-service environment
 - `opal-shared-infrastructure/docker-files/.env.shared` contains:
 
 ```text
@@ -23,113 +14,14 @@ AZURE_STORAGE_CONNECTION_STRING=DefaultEndpointsProtocol=http;AccountName=devsto
 REPORT_AZURE_STORAGE_CONTAINER=reports
 ```
 
-- use business unit id `77` for this local cash till content setup
+## 1. Set up the report and report instance
 
-The Bruno request already exists at:
-
-- [Get Report Instance Content.bru](/Users/krishna.sapkota/hmcts/opal-fines-service/bruno/collections/Release%201C%20-%20Fines%20Service/Report%20Instance%20Content/Get%20Report%20Instance%20Content.bru)
-
-## 1. Update the `cash_till` report row
-
-Run this SQL first:
+The retention period is already configured. Copy and run the following SQL to update the supported file types for the `cash_till` report and insert the report instance:
 
 ```sql
 UPDATE reports
-SET retention_period = 'P14D',
-    permission = 'SEARCH_AND_VIEW_ACCOUNTS'
+SET supported_file_types = ARRAY['CSV', 'PDF', 'JSON']::r_supported_file_type_enum[]
 WHERE report_id = 'cash_till';
-```
-
-This matters because the content path reads the `reports` row through JPA, and the local baseline `cash_till` data may
-still have:
-
-- `retention_period = '14'`
-- `permission = NULL`
-
-## 2. Seed cash till report instance data
-
-Run the following SQL:
-
-```sql
-INSERT INTO business_units (
-    business_unit_id,
-    business_unit_name,
-    business_unit_code,
-    business_unit_type,
-    welsh_language
-) VALUES (
-    77,
-    'Cash Till Business Unit',
-    'CTIL',
-    CAST('Area' AS t_business_unit_type_enum),
-    false
-);
-
-INSERT INTO tills (
-    till_id,
-    business_unit_id,
-    till_number,
-    owned_by
-) VALUES (
-    99000000353100,
-    77,
-    9011,
-    'L080JG'
-);
-
-INSERT INTO defendant_accounts (
-    defendant_account_id,
-    business_unit_id,
-    account_number,
-    amount_imposed,
-    amount_paid,
-    account_balance,
-    account_status,
-    account_type,
-    version_number
-) VALUES (
-    99000000353200,
-    77,
-    'ACC456',
-    250.00,
-    125.50,
-    124.50,
-    CAST('L' AS t_da_account_status_enum),
-    CAST('Fine' AS t_da_account_type_enum),
-    1
-);
-
-INSERT INTO payments_in (
-    payment_in_id,
-    till_id,
-    payment_amount,
-    payment_date,
-    payment_method,
-    destination_type,
-    allocation_type,
-    associated_record_type,
-    associated_record_id,
-    third_party_payer_name,
-    additional_information,
-    receipt,
-    allocated,
-    auto_payment
-) VALUES (
-    99000000353300,
-    99000000353100,
-    125.50,
-    '2026-05-26 14:30:00',
-    'NC',
-    'F',
-    'FULL',
-    'defendant_accounts',
-    '99000000353200',
-    'A Payer',
-    'Account payment',
-    true,
-    false,
-    false
-);
 
 INSERT INTO report_instances (
     report_instance_id,
@@ -149,21 +41,22 @@ INSERT INTO report_instances (
     1,
     12345678,
     '{"till_id":99000000353100,"allocated_report":false}'::json,
-    'stored-cash-till-report-location',
+    '00000000-0000-0000-0000-000000353000',
     '2026-05-27 09:00:00',
     CAST('READY' AS ri_generation_status_enum),
     'opal-test'
 );
 ```
 
-## 3. Upload stored report content to Azurite
+## 2. Upload the report content to Azurite
 
-The application will read blob content from:
+Upload a blob to the `reports` container with this name:
 
-- container: `reports`
-- blob name: `stored-cash-till-report-location`
+```text
+00000000-0000-0000-0000-000000353000
+```
 
-Use this JSON as the blob body:
+Use the following content as the blob body:
 
 ```json
 {
@@ -186,78 +79,49 @@ Use this JSON as the blob body:
     ],
     "allocated_report": false,
     "report_meta_data": {
-      "pdpo_party_ids": []
+      "pdpo_party_ids": [
+        {
+          "id": "99000000353000",
+          "type": "DEFENDANT_ACCOUNT"
+        }
+      ]
     }
   }
 }
 ```
 
-### Option A: Azure CLI
-
-If your local app is using the default emulator connection string, this works:
-
-```bash
-az storage container create \
-  --name reports \
-  --connection-string "UseDevelopmentStorage=true"
-```
-
-Save the JSON above to a local file, then upload it:
+For example, save the content to `cash-till-report.json` and upload it with Azure CLI:
 
 ```bash
 az storage blob upload \
   --container-name reports \
-  --name stored-cash-till-report-location \
-  --file /absolute/path/to/cash-till-stored-report.json \
+  --name 00000000-0000-0000-0000-000000353000 \
+  --file cash-till-report.json \
   --overwrite true \
   --connection-string "UseDevelopmentStorage=true"
 ```
 
-### Option B: Azure Storage Explorer
+## 3. Run the Bruno requests
 
-Create the `reports` container if it does not exist, then upload a blob named
-`stored-cash-till-report-location` with the JSON body above.
+The requests use report instance ID `99000000353000`:
 
-## 4. Run the Bruno request
+- [Get Report Instance Content - JSON](collections/Release%201C/Release%201C%20-%20Enforcement%20Operational%20Reporting/Report%20Instance%20Content/Get%20Report%20Instance%20Content%20-%20JSON.bru)
+- [Get Report Instance Content - CSV](collections/Release%201C/Release%201C%20-%20Enforcement%20Operational%20Reporting/Report%20Instance%20Content/Get%20Report%20Instance%20Content%20-%20CSV.bru)
 
-Use the existing request and set the path id to:
+## 4. Clean up
 
-```text
-99000000353000
-```
-
-Examples:
-
-- `Accept: application/json`
-- `Accept: application/csv`
-
-Expected results:
-
-- `application/json` returns the stored JSON body
-- `application/csv` returns CSV generated from the stored JSON through `CashTillReportService`
-
-## 5. Cleanup
-
-If you want to remove the seeded data afterwards:
+Remove the seeded report instance:
 
 ```sql
-DELETE FROM payments_in
-WHERE payment_in_id = 99000000353300;
-
 DELETE FROM report_instances
 WHERE report_instance_id = 99000000353000;
+```
 
-DELETE FROM defendant_accounts
-WHERE defendant_account_id = 99000000353200;
+Remove the blob from Azurite:
 
-DELETE FROM tills
-WHERE till_id = 99000000353100;
-
-DELETE FROM business_units
-WHERE business_unit_id = 77;
-
-UPDATE reports
-SET retention_period = '14',
-    permission = NULL
-WHERE report_id = 'cash_till';
+```bash
+az storage blob delete \
+  --container-name reports \
+  --name 00000000-0000-0000-0000-000000353000 \
+  --connection-string "UseDevelopmentStorage=true"
 ```

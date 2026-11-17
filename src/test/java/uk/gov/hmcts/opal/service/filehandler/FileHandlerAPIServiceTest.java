@@ -55,10 +55,11 @@ class FileHandlerAPIServiceTest {
     void getInterfaceFiles_returnsResponseBodyUsingSelectedSystemUser() {
         GetInterfaceFiles200Response expected = new GetInterfaceFiles200Response();
 
-        when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenAnswer(invocation -> {
-            assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
-            return ResponseEntity.ok(expected);
-        });
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null))
+            .thenAnswer(invocation -> {
+                assertThat(systemUserContext.getCurrentSystemUser()).contains(SystemUserEnum.OPAL_SYSTEM_USER);
+                return ResponseEntity.ok(expected);
+            });
 
         GetInterfaceFiles200Response actual = service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params);
 
@@ -111,7 +112,7 @@ class FileHandlerAPIServiceTest {
     @Test
     void getInterfaceFiles_notFoundPropagatesFeignNotFoundAndClearsSelectedSystemUser() {
         FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
-        when(client.getInterfaceFiles(null, null, null, null, null, null, null)).thenThrow(notFound);
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null)).thenThrow(notFound);
 
         assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
             .isSameAs(notFound);

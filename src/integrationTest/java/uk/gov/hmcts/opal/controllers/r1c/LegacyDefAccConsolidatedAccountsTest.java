@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -43,9 +44,14 @@ import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authentication.service.AccessTokenService;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.dto.legacy.LegacyConsolidatedAccount;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountConsolidatedAccountsResponse;
+import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountRequest;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.ConsolidatedAccountRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService;
@@ -77,11 +83,27 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     private GatewayService gatewayService;
 
     @MockitoBean
+    private LoggingService loggingService;
+
+    @MockitoBean
     private ConsolidatedAccountRepository consolidatedAccountRepository;
 
     @BeforeEach
     void setupUserState() {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allPermissionsUser());
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
+        when(gatewayService.postToGateway(
+            eq(LegacyDefendantAccountService.GET_HEADER_SUMMARY),
+            eq(LegacyGetDefendantAccountHeaderSummaryResponse.class), any(), isNull()
+        )).thenAnswer(invocation -> {
+            LegacyGetDefendantAccountRequest request = invocation.getArgument(2);
+            boolean organisation = "233302".equals(request.getDefendantAccountId());
+            LegacyGetDefendantAccountHeaderSummaryResponse header =
+                LegacyGetDefendantAccountHeaderSummaryResponse.builder()
+                    .partyDetails(LegacyPartyDetails.builder().organisationFlag(organisation).build())
+                    .build();
+            return new GatewayService.Response<>(HttpStatus.OK, header, null, null);
+        });
     }
 
     @Test
@@ -124,6 +146,58 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @DisplayName("PO-10750: Duplicate individual children are logged once and organisation children are excluded")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenLegacyReturnsMixedChildren_logsIndividualOnly() throws Exception {
+        mockLegacyResponse(legacyResponse(List.of(
+            legacyAccount(233302L, "233302C"),
+            legacyAccount(233301L, "233301C"),
+            legacyAccount(233301L, "233301C"))));
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(3)));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> logCaptor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(logCaptor.capture());
+        assertEquals("View Consolidated Accounts - Individual", logCaptor.getValue().getBusinessIdentifier());
+        assertEquals(1, logCaptor.getValue().getIndividuals().size());
+        assertEquals("233301", logCaptor.getValue().getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DEFENDANT, logCaptor.getValue().getIndividuals().getFirst().getType());
+    }
+
+    @Test
+    @DisplayName("PO-10750: Organisation only children do not queue an individual PDPO log")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenOnlyOrganisationChildren_returnsWithoutLogging() throws Exception {
+        mockLegacyResponse(legacyResponse(List.of(legacyAccount(233302L, "233302C"))));
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("$[0].account_id").value(233302));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
+    }
+
+    @Test
+    @DisplayName("PO-10750: Queue rejection prevents Legacy consolidated accounts from being returned")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenQueueRejects_returnsServiceUnavailable() throws Exception {
+        mockLegacyResponse(legacyResponse());
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        performGetConsolidatedAccounts(233300L)
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
     @DisplayName("PO-2335 Legacy: INT.05 permits user with Search and View Accounts in the same business unit")
     @JiraStory("PO-2335")
     @JiraEpic("PO-1286")
@@ -131,7 +205,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     void getConsolidatedAccounts_whenPermissionInSameBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 78, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        mockLegacyResponse();
+        mockLegacyResponse(legacyResponse());
 
         performGetConsolidatedAccounts(233300L)
             .andExpect(status().isOk())
@@ -146,7 +220,7 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
     void getConsolidatedAccounts_whenPermissionInDifferentBusinessUnit_returnsOk() throws Exception {
         when(userStateService.getUserStateV1FromSecurityContext())
             .thenReturn(UserStateUtil.permissionUser((short) 77, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
-        mockLegacyResponse();
+        mockLegacyResponse(legacyResponse());
 
         performGetConsolidatedAccounts(233300L)
             .andExpect(status().isOk())
@@ -277,22 +351,26 @@ class LegacyDefAccConsolidatedAccountsTest extends AbstractIntegrationTest {
                                    .accept(MediaType.APPLICATION_JSON));
     }
 
-    private void mockLegacyResponse() {
+    private void mockLegacyResponse(LegacyGetDefendantAccountConsolidatedAccountsResponse response) {
         when(gatewayService.postToGateway(
             eq(LegacyDefendantAccountService.GET_CONSOLIDATED_ACCOUNTS),
             eq(LegacyGetDefendantAccountConsolidatedAccountsResponse.class),
             any(),
             isNull()
-        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse(), null, null));
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, response, null, null));
     }
 
     private LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse() {
+        return legacyResponse(List.of(
+            legacyAccount(233302L, "233302C"),
+            legacyAccount(233301L, "233301C")));
+    }
+
+    private LegacyGetDefendantAccountConsolidatedAccountsResponse legacyResponse(
+        List<LegacyConsolidatedAccount> accounts) {
         return LegacyGetDefendantAccountConsolidatedAccountsResponse.builder()
             .version(BigInteger.valueOf(9L))
-            .consolidatedAccounts(List.of(
-                legacyAccount(233302L, "233302C"),
-                legacyAccount(233301L, "233301C")
-            ))
+            .consolidatedAccounts(accounts)
             .build();
     }
 

@@ -1,12 +1,15 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
-import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
-
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -21,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -32,7 +36,12 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.server.ResponseStatusException;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.controllers.r1b.AbstractOpalDefendantsIntegrationTest;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
+import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -69,10 +78,14 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
     @MockitoBean
     private UserStateService userStateService;
 
+    @MockitoBean
+    private LoggingService loggingService;
+
     @BeforeEach
     void setupConsolidatedAccountsData() {
         authorise(BUSINESS_UNIT_ID, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         mockUserWithPermission(BUSINESS_UNIT_ID);
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     @Test
@@ -95,6 +108,64 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
             .andExpect(jsonPath("$[0].date_imposed").value("2026-01-21"))
             .andExpect(jsonPath("$[0].imposed_by").value("Child Court"))
             .andExpect(jsonPath("$[0].reference").value("CHILD-REF"));
+    }
+
+    @Test
+    @DisplayName("PO-10750: Individual child access queues a consultation PDPO log")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenIndividualChildReturned_queuesPdpoLog() throws Exception {
+        mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken())
+                .header("X-User-IP", "192.0.2.1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(1)));
+
+        ArgumentCaptor<PersonalDataProcessingLogDetails> captor =
+            ArgumentCaptor.forClass(PersonalDataProcessingLogDetails.class);
+        verify(loggingService).personalDataAccessLogAsync(captor.capture());
+        assertEquals("View Consolidated Accounts - Individual", captor.getValue().getBusinessIdentifier());
+        assertEquals(PersonalDataProcessingCategory.CONSULTATION, captor.getValue().getCategory());
+        assertEquals("1", captor.getValue().getCreatedBy().getIdentifier());
+        assertEquals(PdplIdentifierType.OPAL_USER_ID, captor.getValue().getCreatedBy().getType());
+        assertEquals("192.0.2.1", captor.getValue().getIpAddress());
+        assertNotNull(captor.getValue().getCreatedAt());
+        assertEquals("233301", captor.getValue().getIndividuals().getFirst().getIdentifier());
+        assertEquals(PdplIdentifierType.DEFENDANT, captor.getValue().getIndividuals().getFirst().getType());
+    }
+
+    @Test
+    @DisplayName("PO-10750: Queue rejection prevents consolidated accounts from being returned")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenQueueRejects_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+
+        mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("PO-10750: Queue error prevents consolidated accounts from being returned")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenQueueThrows_returnsServiceUnavailable() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any()))
+            .thenThrow(new RuntimeException("logging unavailable"));
+
+        mockMvc.perform(get(URL.formatted(MASTER_ACCOUNT_ID))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$").isMap())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/pdpl-logging-unavailable"))
+            .andExpect(jsonPath("$.detail").value("The personal data logging queue is currently unavailable"))
+            .andExpect(jsonPath("$.retriable").value(true));
     }
 
     @Test
@@ -147,6 +218,20 @@ class ConsolidatedAccountsIntegrationTest extends AbstractOpalDefendantsIntegrat
             .andExpect(status().isOk())
             .andExpect(header().string(HttpHeaders.ETAG, "\"6\""))
             .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @DisplayName("PO-10750: Empty consolidated accounts do not queue a PDPO log")
+    @JiraStory("PO-10750")
+    @JiraEpic("PO-10729")
+    void getConsolidatedAccounts_whenNoChildren_doesNotQueuePdpoLog() throws Exception {
+        mockMvc.perform(get(URL.formatted(EMPTY_MASTER_ACCOUNT_ID))
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(0)));
+
+        verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
 
     @Test

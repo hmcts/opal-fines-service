@@ -71,4 +71,7 @@ public class SuspenseItemEntity {
 
     @Column(name = "court_fee_id")
     private Long courtFeeId;
+
+    @Column(name = "version_number")
+    private Long versionNumber;
 }

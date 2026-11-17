@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountSummaryDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.service.DraftAccountService;
@@ -76,8 +77,15 @@ class DraftAccountControllerTest {
             .summaries(List.of(toSummaryDto(entity)))
             .build();
 
-        when(draftAccountService.getDraftAccounts(any(), any(), any(), any(), any(), any()))
-            .thenReturn(responseDto);
+        when(draftAccountService.getDraftAccounts(
+            Optional.of(List.of(BU_ID)),
+            Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+            Optional.of(List.of()),
+            Optional.of(List.of()),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        )).thenReturn(responseDto);
 
         // Act
         ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
@@ -86,6 +94,7 @@ class DraftAccountControllerTest {
                 Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
                 Optional.of(List.of()),
                 Optional.of(List.of()),
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty()
@@ -97,7 +106,65 @@ class DraftAccountControllerTest {
         assertEquals(1, dto.getCount());
         assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
         verify(draftAccountService, times(1))
-            .getDraftAccounts(any(), any(), any(), any(), any(), any());
+            .getDraftAccounts(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+            );
+    }
+
+    @Test
+    void testGetDraftAccounts_withSourceFilter_Success() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
+            .build();
+        DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.builder()
+            .summaries(List.of(toSummaryDto(entity)))
+            .build();
+
+        when(draftAccountService.getDraftAccounts(
+            Optional.of(List.of(BU_ID)),
+            Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+            Optional.of(List.of()),
+            Optional.of(List.of()),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(DraftAccountSource.VPFPO)
+        )).thenReturn(responseDto);
+
+        // Act
+        ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
+            .getDraftAccountSummaries(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(DraftAccountSource.VPFPO)
+            );
+        DraftAccountsResponseDto dto = response.getBody();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, dto.getCount());
+        assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
+        verify(draftAccountService, times(1))
+            .getDraftAccounts(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(DraftAccountSource.VPFPO)
+            );
     }
 
     @Test
@@ -106,7 +173,13 @@ class DraftAccountControllerTest {
         DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.countOnly(3);
 
         when(draftAccountService.countDraftAccounts(
-            any(), any(), any(), any(), any(), any()
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
         )).thenReturn(responseDto);
 
         // Act
@@ -118,7 +191,8 @@ class DraftAccountControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of("counts")
+                Optional.of("counts"),
+                Optional.empty()
             );
 
         // Assert
@@ -126,11 +200,67 @@ class DraftAccountControllerTest {
         assertEquals(3, response.getBody().getCount());
 
         verify(draftAccountService).countDraftAccounts(
-            any(), any(), any(), any(), any(), any()
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
         );
         verify(draftAccountService, never()).getDraftAccounts(
-            any(), any(), any(), any(), any(), any()
+            any(), any(), any(), any(), any(), any(), any()
         );
+    }
+
+    @Test
+    void testGetDraftAccounts_counts_withSourceFilter_Success() {
+        // Arrange
+        DraftAccountEntity entity = DraftAccountEntity.builder()
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId(BU_ID).build())
+            .build();
+        DraftAccountsResponseDto responseDto = DraftAccountsResponseDto.builder()
+            .summaries(List.of(toSummaryDto(entity)))
+            .build();
+
+        when(draftAccountService.countDraftAccounts(
+            Optional.of(List.of(BU_ID)),
+            Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+            Optional.of(List.of()),
+            Optional.of(List.of()),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.of(DraftAccountSource.VPFPO)
+        )).thenReturn(responseDto);
+
+        // Act
+        ResponseEntity<DraftAccountsResponseDto> response = draftAccountController
+            .getDraftAccountSummaries(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of("counts"),
+                Optional.of(DraftAccountSource.VPFPO)
+            );
+        DraftAccountsResponseDto dto = response.getBody();
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, dto.getCount());
+        assertEquals(toSummaryDto(entity), dto.getSummaries().get(0));
+        verify(draftAccountService, times(1))
+            .countDraftAccounts(
+                Optional.of(List.of(BU_ID)),
+                Optional.of(List.of(DraftAccountStatus.PUBLISHING_PENDING)),
+                Optional.of(List.of()),
+                Optional.of(List.of()),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(DraftAccountSource.VPFPO)
+            );
     }
 
     @Test
@@ -145,15 +275,16 @@ class DraftAccountControllerTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                Optional.of("invalid")
+                Optional.of("invalid"),
+                Optional.empty()
             )
         );
 
         verify(draftAccountService, never()).countDraftAccounts(
-            any(), any(), any(), any(), any(), any()
+            any(), any(), any(), any(), any(), any(), any()
         );
         verify(draftAccountService, never()).getDraftAccounts(
-            any(), any(), any(), any(), any(), any()
+            any(), any(), any(), any(), any(), any(), any()
         );
     }
 

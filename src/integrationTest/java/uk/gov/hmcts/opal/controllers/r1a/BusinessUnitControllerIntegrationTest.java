@@ -89,6 +89,7 @@ class BusinessUnitControllerIntegrationTest extends AbstractIntegrationTest {
         scripts = "classpath:db/deleteData/delete_from_business_units_configuration_items.sql",
         executionPhase = AFTER_TEST_METHOD
     )
+    @JiraTestKey("PO-11243")
     void testGetBusinessUnitById_configurationItemsExcludeRecursiveBusinessUnitReference() throws Exception {
         mockMvc.perform(get(URL_BASE + "/9092"))
             .andExpect(status().isOk())

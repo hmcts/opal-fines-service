@@ -166,31 +166,49 @@ paths:
         "400":
           description: Bad request
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "401":
           description: Unauthorized
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "403":
           description: Forbidden
           content:
-            application/json+problem:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "408":
+          description: Request timeout
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "409":
+          description: Conflict
+          content:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
           description: Internal server error
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "503":
           description: Service unavailable
           content:
-            application/json+problem:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
 
@@ -726,3 +744,24 @@ components:
             - string
             - 'null'
           description: Derived from payments_in.additional_information.payer_details.organisation.organisation_name
+
+    InterfacePaymentAdditionalInformation:
+      type: object
+      additionalProperties: false
+      description: JSON stored in payments_in.additional_information by p_int_payments_in.
+      required:
+        - interface_name
+        - additional_information
+      properties:
+        interface_name:
+          type: string
+          description: Name of the interface job that produced the payment.
+        additional_information:
+          type: object
+          additionalProperties: false
+          required:
+            - originator_reference
+          properties:
+            originator_reference:
+              type: [ string, 'null' ]
+              description: Incoming payment record reference; null when no reference was supplied.

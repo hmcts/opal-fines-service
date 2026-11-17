@@ -18,12 +18,15 @@ import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
@@ -80,14 +83,14 @@ class AbstractPdplLoggingServiceTest {
     @Nested
     class LogPdplOrThrow {
 
-        @Test
-        void whenQueueReturnsFalse_throwsPdplLoggingException_sadPath() {
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void whenQueueReturnsFalse_throwsPdplLoggingException_sadPath(boolean useUserState) {
             when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
             TestPdplLoggingService service = service();
 
             PdplLoggingException exception = assertThrows(PdplLoggingException.class,
-                () -> service.logPdplOrThrow(
-                    "View Personal Data", CONSULTATION, List.of(), null, USER_ID, FAILURE_MESSAGE));
+                () -> logPersonalData(service, useUserState));
 
             assertAll(
                 () -> assertEquals(FAILURE_MESSAGE, exception.getMessage()),
@@ -96,21 +99,30 @@ class AbstractPdplLoggingServiceTest {
             );
         }
 
-        @Test
-        void whenQueueRaisesError_wrapsAsPdplLoggingException_sadPath() {
+        @ParameterizedTest
+        @ValueSource(booleans = {false, true})
+        void whenQueueRaisesError_wrapsAsPdplLoggingException_sadPath(boolean useUserState) {
             RuntimeException queueFailure = new RuntimeException("logging unavailable");
             when(loggingService.personalDataAccessLogAsync(any())).thenThrow(queueFailure);
             TestPdplLoggingService service = service();
 
             PdplLoggingException exception = assertThrows(PdplLoggingException.class,
-                () -> service.logPdplOrThrow(
-                    "View Personal Data", CONSULTATION, List.of(), null, USER_ID, FAILURE_MESSAGE));
+                () -> logPersonalData(service, useUserState));
 
             assertAll(
                 () -> assertEquals(FAILURE_MESSAGE, exception.getMessage()),
                 () -> assertSame(queueFailure, exception.getCause()),
                 () -> verify(loggingService).personalDataAccessLogAsync(any())
             );
+        }
+    }
+
+    private void logPersonalData(TestPdplLoggingService service, boolean useUserState) {
+        if (useUserState) {
+            service.logPdplOrThrow("View Personal Data", CONSULTATION, List.of(), null,
+                UserState.builder().userId(USER_ID).build(), FAILURE_MESSAGE);
+        } else {
+            service.logPdplOrThrow("View Personal Data", CONSULTATION, List.of(), null, USER_ID, FAILURE_MESSAGE);
         }
     }
 

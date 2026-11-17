@@ -47,7 +47,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5956")
     void testGetMinorCreditorAtAGlanceSuccess() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_Success(log);
+        super.getMinorCreditorAtAGlanceImpl_Success(log, "Parking Enforcement Corp");
     }
 
     @Test
@@ -68,11 +68,11 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
 
     @Test
     @Sql(
-        statements = "UPDATE public.creditor_accounts SET repayment = true WHERE creditor_account_id = 99000000000802",
+        scripts = "classpath:db/insertData/set_legacy_minor_creditor_repayment.sql",
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        statements = "UPDATE public.creditor_accounts SET repayment = false WHERE creditor_account_id = 99000000000802",
+        scripts = "classpath:db/deleteData/reset_legacy_minor_creditor_repayment.sql",
         executionPhase = AFTER_TEST_METHOD
     )
     @JiraStory("PO-9786")
@@ -108,11 +108,11 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
 
     @Test
     @Sql(
-        statements = "UPDATE public.creditor_accounts SET repayment = true WHERE creditor_account_id = 99000000000802",
+        scripts = "classpath:db/insertData/set_legacy_minor_creditor_repayment.sql",
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        statements = "UPDATE public.creditor_accounts SET repayment = false WHERE creditor_account_id = 99000000000802",
+        scripts = "classpath:db/deleteData/reset_legacy_minor_creditor_repayment.sql",
         executionPhase = AFTER_TEST_METHOD
     )
     @JiraStory("PO-9786")

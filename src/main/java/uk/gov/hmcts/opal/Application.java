@@ -7,11 +7,15 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.openfeign.EnableFeignClients;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import uk.gov.hmcts.common.exceptions.StandardExceptionHandler;
+import uk.gov.hmcts.opal.common.controllers.advice.OpalGlobalExceptionHandler;
 import uk.gov.hmcts.opal.config.FeignConfiguration;
 
 @SpringBootApplication(
     scanBasePackages = {
+        "uk.gov.hmcts.common",
         "uk.gov.hmcts.opal.logging",
         "uk.gov.hmcts.opal",
     }
@@ -20,6 +24,7 @@ import uk.gov.hmcts.opal.config.FeignConfiguration;
 @EnableFeignClients(basePackages = "uk.gov.hmcts.opal.*", defaultConfiguration = FeignConfiguration.class)
 @EntityScan("uk.gov.hmcts.opal.*")
 @EnableCaching
+@Import({StandardExceptionHandler.class, OpalGlobalExceptionHandler.class})
 @Slf4j
 @ConfigurationPropertiesScan
 @SuppressWarnings("HideUtilityClassConstructor") // Spring needs a constructor, its not a utility class

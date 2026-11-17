@@ -5,6 +5,7 @@ Feature: Get Draft Accounts Authorisation
   Scenario: Get Draft Accounts - No Permission
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 78                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -19,12 +20,13 @@ Feature: Get Draft Accounts Authorisation
   Scenario: Get Draft Accounts - account created in BU requesting user doesn't have permission to
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And the following draft accounts exist
-      | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
-      | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
-      | 80               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | source | business_unit_id | account                                     | account_type | account_status | submitted_by | submitted_by_name
+      | MAC    | 73               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
+      | MAC    | 80               | draftAccounts/accountJson/adultAccount.json | Fine         | Submitted      | BUUID        | Laura Clerk
 
     When I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

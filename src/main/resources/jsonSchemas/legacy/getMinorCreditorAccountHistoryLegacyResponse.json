@@ -26,7 +26,7 @@
           "enum": ["Amendment", "Financial", "Note"]
         },
         "details": {
-          "oneOf": [
+          "anyOf": [
             {
               "$ref": "./common-objects/amendmentTypeLegacy.json"
             },
@@ -35,6 +35,24 @@
             },
             {
               "$ref": "#/$defs/creditorTransactionDetails"
+            },
+            {
+              "type": "object",
+              "required": ["note_details"],
+              "properties": {
+                "note_details": {
+                  "$ref": "#/$defs/noteDetails"
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": ["creditor_transaction_details"],
+              "properties": {
+                "creditor_transaction_details": {
+                  "$ref": "#/$defs/creditorTransactionDetails"
+                }
+              }
             }
           ],
           "description": "History item details"

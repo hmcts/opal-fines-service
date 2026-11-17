@@ -125,6 +125,9 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Update draft account - Should allow additional top-level fields during frontend compatibility period")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
+    @JiraTestKey(value = "PO-11247", name = "[1] propertyName = \"validated_by\"")
+    @JiraTestKey(value = "PO-11248", name = "[2] propertyName = \"validated_by_name\"")
+    @JiraTestKey(value = "PO-11249", name = "[3] propertyName = \"version\"")
     void testUpdateDraftAccount_additionalTopLevelFieldIsSupplied(String propertyName) {
         String request = validUpdateRequestBody("65", "Publishing Pending", "A")
             .replace(
@@ -305,6 +308,7 @@ class DraftAccountControllerPatchIntegrationTest extends CommonDraftAccountContr
     @DisplayName("Patch draft account - authorised different user can delete a submitted draft account")
     @JiraStory("PO-2461")
     @JiraEpic("PO-2220")
+    @JiraTestKey("PO-11246")
     void testPatchDraftAccount_differentAuthorisedUserCanDelete_returns200() throws Exception {
         Long draftAccountId = 7L; // submitted_by = user_003 in seed data
 

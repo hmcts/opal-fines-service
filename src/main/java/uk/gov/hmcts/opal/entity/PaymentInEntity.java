@@ -82,7 +82,8 @@ public class PaymentInEntity {
     @Column(name = "third_party_payer_name", length = 30)
     private String thirdPartyPayerName;
 
-    @Column(name = "additional_information", length = 500)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "additional_information", columnDefinition = "json")
     private String additionalInformation;
 
     @Column(name = "receipt", nullable = false)

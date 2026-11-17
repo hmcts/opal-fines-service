@@ -131,7 +131,7 @@ public class CashListReportAssembler {
 
     private static String toAdditionalInformation(PaymentInEntity payment) {
         String creationMethod = payment.isAutoPayment() ? "Auto" : "Manual";
-        String paymentInformation = payment.getAdditionalInformation();
+        String paymentInformation = PaymentReportAdditionalInformation.displayText(payment);
         if (paymentInformation == null || paymentInformation.isBlank()) {
             return creationMethod;
         }

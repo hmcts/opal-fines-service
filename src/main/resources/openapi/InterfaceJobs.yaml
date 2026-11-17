@@ -335,7 +335,7 @@ components:
           description: Number of payment records in the file. DB Mapping - interface_files.record_count
         total_amount:
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
-          description: Total payment amount in pounds. DB Mapping - interface_files.total_amount
+          description: Total payment amount in pence. DB Mapping - interface_files.total_amount
         business_unit_id:
           type: integer
           format: int16
@@ -425,7 +425,7 @@ components:
           description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
         total_amount:
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
-          description: DB Mapping - v_interface_jobs_processed_file_summary.total_amount
+          description: Total payment amount in pence. DB Mapping - v_interface_jobs_processed_file_summary.total_amount
         total_records:
           type: integer
           format: int16
