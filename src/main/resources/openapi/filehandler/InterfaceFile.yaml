@@ -86,8 +86,7 @@ paths:
                       maxLength: 200
                       description: DB Mapping - interface_files.file_name
                     business_unit_id:
-                      business_unit_id:
-                        $ref: '../types.yaml#/components/schemas/BusinessUnitId'
+                      $ref: '../types.yaml#/components/schemas/BusinessUnitId'
                       description: DB Mapping - interface_files.business_unit_id. Must be null or omitted unless type = 'TRANSFORMED_JSON'
       responses:
         '201':
