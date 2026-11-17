@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
@@ -40,6 +42,25 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.DraftAccountControllerGetIntegrationTest")
 @DisplayName("DraftAccountControllerGetIntegrationTest")
 class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    @JiraStory("PO-2361")
+    @JiraEpic("PO-2355")
+    void listAuditQueueFailureReturnsServiceUnavailable(boolean raisesError) throws Exception {
+        if (raisesError) {
+            when(loggingService.personalDataAccessLogAsync(any())).thenThrow(new IllegalStateException("Unavailable"));
+        } else {
+            when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+        }
+
+        mockMvc.perform(get(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isServiceUnavailable())
+            .andExpect(jsonPath("$.status").value(503));
+    }
 
     @Test
     @DisplayName("Get Draft Account by ID [@PO-973, @PO-559]")

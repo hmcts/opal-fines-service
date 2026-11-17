@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
@@ -75,9 +76,10 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     protected DraftAccountRepository draftAccountRepository;
 
     @BeforeEach
-    void setupClock() {
+    void setupDefaults() {
         lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
         lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+        lenient().when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     protected static String validUpdateRequestBody(String businessUnit, String status, String delta) {
