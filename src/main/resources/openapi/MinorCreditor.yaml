@@ -585,8 +585,7 @@ components:
           nullable: true
           minItems: 1
           items:
-            type: integer
-            format: int16
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
         account_number:
           type: string
           nullable: true
@@ -679,7 +678,7 @@ components:
         business_unit_name:
           type: string
         business_unit_id:
-          type: string
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
         account_balance:
           $ref: './types.yaml#/components/schemas/monetaryNegativeOrPositive'
         organisation_name:
