@@ -6,8 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
@@ -15,24 +13,19 @@ import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 
 @Data
 @Entity
-@EqualsAndHashCode(callSuper = true)
 @Table(name = "prisons")
 @SuperBuilder
-@ToString(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class PrisonEntity extends AddressEntity {
+public class PrisonEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "prison_id_seq_generator")
@@ -40,11 +33,25 @@ public class PrisonEntity extends AddressEntity {
     @Column(name = "prison_id", nullable = false)
     private Long prisonId;
 
-    @ManyToOne
-    @JoinColumn(name = "business_unit_id", referencedColumnName = "business_unit_id", nullable = false)
-    private BusinessUnitEntity businessUnit;
+    @Column(name = "name", length = 200, nullable = false)
+    private String name;
 
-    @Column(name = "prison_code", length = 4, nullable = false)
-    private String prisonCode;
+    @Column(name = "address_line_1", length = 35)
+    private String addressLine1;
+
+    @Column(name = "address_line_2", length = 35)
+    private String addressLine2;
+
+    @Column(name = "address_line_3", length = 35)
+    private String addressLine3;
+
+    @Column(name = "address_line_4", length = 35)
+    private String addressLine4;
+
+    @Column(name = "address_line_5", length = 35)
+    private String addressLine5;
+
+    @Column(name = "postcode", length = 8)
+    private String postcode;
 
 }
