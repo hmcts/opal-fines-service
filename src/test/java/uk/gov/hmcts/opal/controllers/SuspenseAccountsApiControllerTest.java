@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
+import uk.gov.hmcts.opal.generated.model.TransactionTypeCodeCommonStrict;
 import uk.gov.hmcts.opal.service.SuspenseAccountsHistoryService;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseNoteCommonStrict;
@@ -114,7 +116,7 @@ public class SuspenseAccountsApiControllerTest {
     @Test
     void getHistory_returnsServiceResponse() {
         SuspenseItemHistoryCommonStrict history = new SuspenseItemHistoryCommonStrict()
-            .businessUnitId(123L)
+            .businessUnitId(123)
             .suspenseItemId(1L);
         when(suspenseAccountsHistoryService.getSuspenseItemHistory(123L, 12345L)).thenReturn(history);
 
@@ -130,7 +132,7 @@ public class SuspenseAccountsApiControllerTest {
     public void testGetSuspenseAccountItemHistoryAndTransactions() throws Exception {
         SuspenseItemHistoryCommonStrict itemHistory = SuspenseItemHistoryCommonStrict
             .builder()
-            .businessUnitId(1L)
+            .businessUnitId(1)
             .suspenseItemId(1L)
             .suspenseNotes(Collections.singletonList(
                 SuspenseNoteCommonStrict
@@ -146,7 +148,11 @@ public class SuspenseAccountsApiControllerTest {
                 SuspenseTransactionCommonStrict
                     .builder()
                     .transactionId(1L)
-                    .transactionType(TransactionTypeCommonStrict.builder().build())
+                    .transactionType(TransactionTypeCommonStrict
+                        .builder()
+                        .transactionTypeCode(TransactionTypeCodeCommonStrict.CC)
+                        .transactionTypeDisplayName("Cheque")
+                        .build())
                     .amount(BigDecimal.valueOf(100))
                     .details(AdjustmentDetailsCommonStrict
                         .builder()
@@ -186,6 +192,8 @@ public class SuspenseAccountsApiControllerTest {
         assertEquals(NoteTypeEnum.AA, Objects.requireNonNull(
             response.getBody().getSuspenseNotes().get().getFirst().getNote()).getNoteType());
         assertEquals(1, response.getBody().getSuspenseTransactions().get().size());
+
+        //TEMP: Test transaction type
     }
 
 }

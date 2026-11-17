@@ -763,8 +763,14 @@ components:
             - 'null'
           items:
             $ref: '#/components/schemas/suspenseNote'
+        suspense_transactions:
+          type:
+            - array
+            - 'null'
+          items:
+            $ref: '#/components/schemas/suspenseTransaction'
 
-    suspense_note:
+    suspenseNote:
       title: Suspense Note
       type: object
       additionalProperties: false
@@ -772,7 +778,20 @@ components:
         note:
           $ref: './common.yaml#/components/schemas/note'
         posted_details:
-          $ref: './common.yaml#/components/schemas/postedDetails'
+          ref: '#/components/schemas/postedDetails'
+
+    postedDetails:
+      title: Posted Details
+      additionalProperties: false
+      type: object
+      properties:
+        posted_date:
+          type: string
+          format: date-time
+        posted_by:
+          type: string
+        posted_by_name:
+          type: string
 
     suspenseTransaction:
       title: Suspense Transaction
@@ -787,9 +806,8 @@ components:
         posted_details:
           $ref: './common.yaml#/components/schemas/postedDetails'
         amount:
-          type: number
-          description: Current transaction amount
-          example: 25.75
+          type:
+            - number
         details:
           oneOf:
             - $ref: '#/components/schemas/manualPaymentPayerDetails'

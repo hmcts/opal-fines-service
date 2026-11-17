@@ -52,7 +52,7 @@ public class SuspenseItemEntity {
     private SuspenseAccountEntity suspenseAccount;
 
     @Column(name = "suspense_item_number", nullable = false)
-    private Short suspenseItemNumber;
+    private Long suspenseItemNumber;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

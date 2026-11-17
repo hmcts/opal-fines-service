@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigInteger;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,8 @@ public class OpalSuspenseAccountsHistoryService implements SuspenseAccountsHisto
             .orElseThrow(() -> new EntityNotFoundException(
                 "Suspense item not found in the requested business unit"));
 
+        var item = suspenseItemRepository.findById(itemId).orElseThrow();
+
         List<SuspenseNoteCommonStrict> notes =
             noteRepository.findSuspenseItemNotes(businessUnitId, suspenseItemId)
                 .stream()
@@ -53,11 +56,16 @@ public class OpalSuspenseAccountsHistoryService implements SuspenseAccountsHisto
                 .map(historyMapper::toSuspenseTransaction)
                 .toList();
 
-        return new SuspenseItemHistoryCommonStrict()
-            .businessUnitId(businessUnitId)
+        Long versionNumber = item.getVersionNumber();
+
+        return SuspenseItemHistoryCommonStrict
+            .builder()
+            .version(BigInteger.valueOf(versionNumber == null ? 0 : versionNumber))
+            .businessUnitId(Math.toIntExact(businessUnitId))
             .suspenseItemId(itemId)
             .suspenseNotes(notes)
-            .suspenseTransactions(transactions);
+            .suspenseTransactions(transactions)
+            .build();
     }
 
 }

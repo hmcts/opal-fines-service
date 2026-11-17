@@ -304,7 +304,7 @@ class CashListReportAssemblerTest {
         return SuspenseItemEntity.builder()
             .suspenseItemId(SUSPENSE_ITEM_ID)
             .suspenseAccount(suspenseAccount)
-            .suspenseItemNumber((short) 1)
+            .suspenseItemNumber(1L)
             .suspenseItemType(SuspenseItemType.FA)
             .createdDate(LocalDateTime.of(2026, 5, 26, 15, 0))
             .paymentMethod(PaymentMethod.CQ)

@@ -1,7 +1,5 @@
 package uk.gov.hmcts.opal.controllers;
 
-import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C;
-import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
@@ -10,7 +8,6 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
@@ -47,7 +44,7 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
     }
 
     @Override
-    @FeatureToggle(feature = RELEASE_1C, defaultValueProperty = RELEASE_1C_ENABLED_PROPERTY)
+    @FeatureToggle(feature = RELEASE_1C_SUSPENSE, defaultValueProperty = RELEASE_1C_SUSPENSE_ENABLED_PROPERTY)
     public ResponseEntity<SuspenseItemHistoryCommonStrict> getSuspenseItemHistory(Long businessUnitId,
         Long suspenseItemId) {
 
