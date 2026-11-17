@@ -64,7 +64,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Suspense Summary B"))
             .andExpect(jsonPath("$.suspense_item_id").value(99000000979602L))
             .andExpect(jsonPath("$.suspense_item_number").value(100000))
-            .andExpect(jsonPath("$.balance").value("0.0"));
+            .andExpect(jsonPath("$.balance").value("0.00"));
     }
 
     @Test
@@ -77,7 +77,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.suspense_item_id").value(99000000979603L))
             .andExpect(jsonPath("$.suspense_item_number").value(3000000000L))
-            .andExpect(jsonPath("$.balance").value("0.0"));
+            .andExpect(jsonPath("$.balance").value("0.00"));
     }
 
     @ParameterizedTest

@@ -716,18 +716,14 @@ components:
             - integer
           format: int64
         suspense_item_number:
-          type:
-            - integer
-          format: int64
+          type: string
         created_date:
           type: string
           format: date-time
         suspense_item_type:
           $ref: '#/components/schemas/suspenseItemType'
         balance:
-          type: number
-          description: Current suspense item balance.
-          example: 75.25
+          type: string
 
     suspenseItemType:
       title: Suspense Item Type Reference
