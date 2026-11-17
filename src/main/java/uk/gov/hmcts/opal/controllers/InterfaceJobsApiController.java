@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.InterfaceJobsApi;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
-import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessedFileSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsSummaryResponse;
@@ -47,14 +45,6 @@ public class InterfaceJobsApiController implements InterfaceJobsApi {
         return ResponseEntity.ok().build();
     }
 
-    @Override
-    @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
-        defaultValueProperty = FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
-    public ResponseEntity<InterfaceJobsCreateResponse> postInterfaceJobs(
-        InterfaceJobsCreateRequest request) {
-
-        return buildResponse(interfaceJobService.create(request));
-    }
 
     @Override
     @FeatureToggle(feature = FeatureFlags.RELEASE_1C_PAYMENT,
