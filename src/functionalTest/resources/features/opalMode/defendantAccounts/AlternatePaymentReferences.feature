@@ -21,14 +21,14 @@ Feature: Alternate payment reference management
       | detail | You do not have permission to access this resource |
       | type   | https://hmcts.gov.uk/problems/forbidden            |
 
-#  @JIRA-STORY:PO-10877
-#  Scenario: 03 - GET returns the defendant account's alternate payment reference
-#    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
-#    And a defendant account exists in business unit "77"
-#    And an alternate payment reference exists for the created defendant account
-#    When I retrieve alternate payment references for the created defendant account
-#    Then the response status code is 200
-#    And the alternate payment references response is as expected
+  @JIRA-STORY:PO-10877
+  Scenario: 03 - GET returns the defendant account's alternate payment reference
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    And a defendant account exists in business unit "77"
+    And an alternate payment reference exists for the created defendant account
+    When I retrieve alternate payment references for the created defendant account
+    Then the response status code is 200
+    And the alternate payment references response is as expected
 
   @JIRA-STORY:PO-10877
   Scenario: 04 - GET returns an empty list when the defendant has no alternate payment reference
