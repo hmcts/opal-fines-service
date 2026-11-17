@@ -9,11 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
-import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
@@ -273,6 +274,12 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
 
     @Override
     void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures) {
+        validateOriginator(docContext, failures, this::findProsecutorName);
+    }
+
+    void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures,
+                            Function<Long, Optional<String>> prosecutorNameLookup) {
+
         Long originatorId = safeReadLong(docContext, ORIGINATOR_ID_PATH);
         String originatorName = safeReadString(docContext, ORIGINATOR_NAME_PATH, null);
         DraftAccountType accountType = readDraftAccountType(docContext, failures);
@@ -294,7 +301,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
             return;
         }
 
-        validateProsecutorOriginator(originatorId, originatorName, failures);
+        validateProsecutorOriginator(originatorId, originatorName, failures, prosecutorNameLookup);
     }
 
     private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
@@ -320,17 +327,27 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
         }
     }
 
-    private void validateProsecutorOriginator(Long originatorId, String originatorName, List<String> failures) {
-        ProsecutorLegacyEntity prosecutor = prosecutorRepository.findById(originatorId).orElse(null);
-        if (prosecutor == null) {
+    private void validateProsecutorOriginator(Long originatorId, String originatorName, List<String> failures,
+                                              Function<Long, Optional<String>> prosecutorNameLookup) {
+
+        String prosecutorName = prosecutorNameLookup.apply(originatorId).orElse(null);
+        if (prosecutorName == null) {
             failures.add(ORIGINATOR_ID_PATH + ": prosecutor id " + originatorId + DOES_NOT_EXIST);
             return;
         }
 
-        if (!originatorName.equals(prosecutor.getName())) {
+        if (!originatorName.equals(prosecutorName)) {
             failures.add(ORIGINATOR_NAME_PATH + ": originator name '" + originatorName
-                + "' does not match prosecutor name '" + prosecutor.getName() + "' for id " + originatorId);
+                + "' does not match prosecutor name '" + prosecutorName + "' for id " + originatorId);
         }
+    }
+
+    private Optional<String> findProsecutorName(Long prosecutorKey) {
+        Short prosecutorCode = toShort(prosecutorKey);
+        if (prosecutorCode == null) {
+            return Optional.empty();
+        }
+        return prosecutorRepository.findById(prosecutorCode).map(ProsecutorEntity::getName);
     }
 
     private DraftAccountType readDraftAccountType(JsonPathUtil.DocContext docContext, List<String> failures) {
@@ -384,7 +401,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
         return null;
     }
 
-    private Short toShort(Long value) {
+    Short toShort(Long value) {
         if (value == null || value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
             return null;
         }

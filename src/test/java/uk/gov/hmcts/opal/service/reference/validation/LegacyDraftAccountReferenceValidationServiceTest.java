@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.reference.validation;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -17,6 +18,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
+import uk.gov.hmcts.opal.repository.ProsecutorLegacyRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class LegacyDraftAccountReferenceValidationServiceTest {
@@ -24,6 +26,9 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
 
     @Mock
     private OpalDraftAccountReferenceValidationService delegateService;
+
+    @Mock
+    private ProsecutorLegacyRepository prosecutorLegacyRepository;
 
     @InjectMocks
     private LegacyDraftAccountReferenceValidationService validationService;
@@ -44,7 +49,7 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
             verify(delegateService, times(1)).validateEnforcementCourt(eq(docContext), anyList());
             verify(delegateService, times(1)).validateOffences(eq(BUSINESS_UNIT_ID), eq(docContext), anyList());
             verify(delegateService, times(1)).validatePaymentTermsEnforcements(eq(docContext), anyList(), anyMap());
-            verify(delegateService, times(1)).validateOriginator(eq(docContext), anyList());
+            verify(delegateService, times(1)).validateOriginator(eq(docContext), anyList(), any());
         }
     }
 }
