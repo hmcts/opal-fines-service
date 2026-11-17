@@ -7,12 +7,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
+@TestPropertySource(properties = {
+    "launchdarkly.enabled=false",
+    "launchdarkly.default-flag-values.release-1b=true"
+})
 @Slf4j(topic = "opal.LegacyDefendantsIntegrationTest01")
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
@@ -42,7 +47,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5956")
     void testGetMinorCreditorAtAGlanceSuccess() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_Success(log, "Parking Enforcement Corp");
+        super.getMinorCreditorAtAGlanceImpl_Success(log, "Speed Camera Services Ltd");
     }
 
     @Test
@@ -103,11 +108,11 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
 
     @Test
     @Sql(
-        scripts = "classpath:db/insertData/set_legacy_minor_creditor_repayment.sql",
+        statements = "UPDATE public.creditor_accounts SET repayment = true WHERE creditor_account_id = 99000000000802",
         executionPhase = BEFORE_TEST_METHOD
     )
     @Sql(
-        scripts = "classpath:db/deleteData/reset_legacy_minor_creditor_repayment.sql",
+        statements = "UPDATE public.creditor_accounts SET repayment = false WHERE creditor_account_id = 99000000000802",
         executionPhase = AFTER_TEST_METHOD
     )
     @JiraStory("PO-9786")
