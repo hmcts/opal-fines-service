@@ -42,10 +42,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
     )
 )
 @Import({InterfaceJobsApiController.class, JsonSchemaValidationService.class, OpalGlobalExceptionHandler.class})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1c-payment=true"
-})
 @DisplayName("Interface Jobs Process Common Response Integration Tests")
 class ProcessInterfaceJobsResponseTest extends AbstractWebMvcIntegrationTest {
 
