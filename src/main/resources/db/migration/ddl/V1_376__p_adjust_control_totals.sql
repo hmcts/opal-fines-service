@@ -1,3 +1,13 @@
+
+CREATE OR REPLACE PROCEDURE p_adjust_control_totals(
+IN pi_business_unit_id defendant_accounts.business_unit_id%TYPE,
+IN pi_item_amounts control_total_item_amount_type[],
+IN pi_counter_item_number control_totals.item_number%TYPE,
+IN pi_account_count control_totals.amount%TYPE,
+IN pi_associated_record_type control_totals.associated_record_type%TYPE DEFAULT NULL,
+IN pi_associated_record_id control_totals.associated_record_id%TYPE DEFAULT NULL)
+language plpgsql
+AS $procedure$
 /** 
 
  * OPAL Program 
@@ -40,15 +50,6 @@
  **/ 
 
  
-CREATE OR REPLACE PROCEDURE p_adjust_control_totals(
-IN pi_business_unit_id defendant_accounts.business_unit_id%TYPE,
-IN pi_item_amounts control_total_item_amount_type[],
-IN pi_counter_item_number control_totals.item_number%TYPE,
-IN pi_account_count control_totals.amount%TYPE,
-IN pi_associated_record_type control_totals.associated_record_type%TYPE DEFAULT NULL,
-IN pi_associated_record_id control_totals.associated_record_id%TYPE DEFAULT NULL)
-language plpgsql
-as $procedure$
 DECLARE
 v_pg_exception_detail TEXT;
 c_control_type_ct CONSTANT control_total_item_amount_type.control_total_type%type:='CT';
@@ -198,6 +199,6 @@ EXCEPTION
         
 
 END;
-$procedure$
+$procedure$;
 
 COMMENT ON PROCEDURE p_adjust_control_totals IS 'Adjust Control Totals Common procedure';
