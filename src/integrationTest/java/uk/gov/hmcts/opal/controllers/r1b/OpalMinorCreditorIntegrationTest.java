@@ -43,7 +43,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
@@ -78,9 +77,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "opal"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @Sql(scripts = "classpath:db/insertData/insert_into_minor_creditors.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_minor_creditors.sql", executionPhase = AFTER_TEST_METHOD)
 @Tag("ExtendedTest")
@@ -313,6 +309,7 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
 
     private record UpdateSnapshot(Map<String, Object> party, Map<String, Object> account,
                                   List<Map<String, Object>> amendments) {
+
     }
 
     @MockitoSpyBean
@@ -861,16 +858,16 @@ public class OpalMinorCreditorIntegrationTest extends MinorCreditorControllerInt
         // Act
         ResultActions actions = mockMvc.perform(delete(URL_BASE + "/" + creditorAccountId)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("If-Match", "0")
-                            .param("ignore_missing", "false"));
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("If-Match", "0")
+            .param("ignore_missing", "false"));
 
         String body = actions.andReturn().getResponse().getContentAsString();
         log.info(":deleteMinorCreditorAccount: Response body:\n{}", ToJsonString.toPrettyJson(body));
 
         actions.andExpect(status().isOk())
             .andExpect(jsonPath("$.message")
-                           .value("Creditor Account '" + creditorAccountId + "' deleted"));
+                .value("Creditor Account '" + creditorAccountId + "' deleted"));
 
         // Assert
         assertEquals(0, impositionRepository.findAll(impositionSpec).size());
