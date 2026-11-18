@@ -90,9 +90,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @DisplayName("PO-2576 INT.01/INT.04/INT.06 - returns the permitted processed file summary")
-    @JiraStory("PO-2576")
-    @JiraEpic("PO-2468")
+    @DisplayName("PO-11388 INT.01/INT.04/INT.06 - returns the permitted processed file summary")
+    @JiraStory("PO-11388")
+    @JiraEpic("PO-11360")
     void returnsPermittedProcessedFileSummary() throws Exception {
 
         // Arrange
