@@ -1,0 +1,27 @@
+meta {
+  name: Delete disposable defendant account
+  type: http
+  seq: 1
+}
+
+delete {
+  url: {{baseURL}}/testing-support/defendant-accounts/{{defendantAccount_idToDelete}}
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+script:pre-request {
+  const accountId = bru.getEnvVar("defendantAccount_idToDelete");
+  if (!accountId || !/^[0-9]+$/.test(String(accountId))) {
+    throw new Error("Set defendantAccount_idToDelete to a disposable defendant account id first");
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

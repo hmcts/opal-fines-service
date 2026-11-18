@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -16,9 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import net.serenitybdd.rest.SerenityRest;
@@ -42,12 +39,6 @@ public class AlternatePaymentReferencesStepDef extends BaseStepDef {
     private String createdAprCreatedAt;
     private String createdAprUpdatedAt;
     private String expectedAprText;
-    private String fixtureAccountId;
-    private String fixtureAprId;
-    private String fixtureEtag;
-    private String fixtureAprText;
-    private String fixtureRelationship;
-    private String fixtureCategory;
     private final DefendantAccountEnforcementWorkflow accountWorkflow = new DefendantAccountEnforcementWorkflow();
 
     @Before
@@ -77,140 +68,6 @@ public class AlternatePaymentReferencesStepDef extends BaseStepDef {
             "submitted_by", "APR" + Long.toString(System.nanoTime(), 36).substring(0, 5).toUpperCase(),
             "submitted_by_name", "APR Test"
         ));
-    }
-
-    @Given("a disposable APR fixture exists for relationship {string} and category {string} "
-        + "on the created defendant account")
-    public void createAprFixtureOnCreatedDefendantAccount(String relationship, String category) {
-        fixtureAccountId = createdAccountId();
-        String normalizedRelationship = relationship.toUpperCase(Locale.ROOT);
-        String normalizedCategory = category.toUpperCase(Locale.ROOT);
-        String aprText = uniqueAprText();
-        try (AlternatePaymentReferenceFixtureDatabaseClient database =
-                 new AlternatePaymentReferenceFixtureDatabaseClient()) {
-            fixtureAprId = String.valueOf(database.createFixture(
-                fixtureAccountId, normalizedRelationship, normalizedCategory, aprText));
-        }
-        captureAprFixture(normalizedRelationship, normalizedCategory);
-    }
-
-    @After(value = "@JIRA-LABEL:apr-management", order = Integer.MAX_VALUE - 1)
-    public void cleanUpAprsForCreatedDefendantAccounts() {
-        List<String> defendantAccountIds = new ArrayList<>(scenarioContext().getCreatedDefendantAccountIds());
-        if (fixtureAccountId != null && !defendantAccountIds.contains(fixtureAccountId)) {
-            defendantAccountIds.add(fixtureAccountId);
-        }
-
-        try {
-            if (!defendantAccountIds.isEmpty()) {
-                try (AlternatePaymentReferenceFixtureDatabaseClient database =
-                         new AlternatePaymentReferenceFixtureDatabaseClient()) {
-                    for (String defendantAccountId : defendantAccountIds) {
-                        database.deleteForDefendantAccount(defendantAccountId);
-                    }
-                }
-            }
-        } finally {
-            fixtureAccountId = null;
-            fixtureAprId = null;
-        }
-    }
-
-    private void captureAprFixture(String normalizedRelationship, String normalizedCategory) {
-        Response response = getCollection(fixtureAccountId);
-        assertEquals(200, response.statusCode(), "Could not retrieve the deployed APR fixture");
-        List<String> relationships = response.jsonPath().getList("relationship");
-        List<String> categories = response.jsonPath().getList("category");
-        List<String> ids = aprIds(response);
-        int matchIndex = -1;
-        if (relationships != null) {
-            for (int index = 0; index < relationships.size(); index++) {
-                if (normalizedRelationship.equals(relationships.get(index))
-                    && (normalizedCategory == null || normalizedCategory.equals(categories.get(index)))) {
-                    matchIndex = index;
-                    break;
-                }
-            }
-        }
-        assertTrue(matchIndex >= 0, "Fixture account has no " + normalizedRelationship + " APR row");
-        fixtureAprId = ids.get(matchIndex);
-        fixtureRelationship = relationships.get(matchIndex);
-        fixtureCategory = categories.get(matchIndex);
-        fixtureAprText = response.jsonPath().getList("apr_text", String.class).get(matchIndex);
-        fixtureEtag = requireEtag(response);
-    }
-
-    @When("I delete the prepared deployed APR fixture")
-    public void deletePreparedDeployedAprFixture() {
-        authorisedJsonRequest()
-            .header(HttpHeaders.IF_MATCH, fixtureEtag)
-            .when().delete(getTestUrl() + itemPath(fixtureAccountId, fixtureAprId));
-    }
-
-    @Then("the prepared deployed APR fixture is deleted")
-    public void preparedDeployedAprFixtureIsDeleted() {
-        Response deleteResponse = SerenityRest.lastResponse();
-        assertEquals(200, deleteResponse.statusCode(), "Unexpected APR fixture deletion status");
-        assertEquals(fixtureAprId, deleteResponse.jsonPath().getString("alternate_payment_reference_id"));
-        Response latest = getCollection(fixtureAccountId);
-        assertEquals(200, latest.statusCode(), "Could not verify deletion of the deployed APR fixture");
-        assertFalse(aprIds(latest).contains(fixtureAprId), "Deleted APR fixture remains on the defendant account");
-    }
-
-    @Then("the prepared deployed APR fixture delete is rejected with status {int} and remains present")
-    public void preparedDeployedAprFixtureDeleteIsRejected(int expectedStatus) {
-        assertEquals(expectedStatus, SerenityRest.lastResponse().statusCode(),
-            "Unexpected read-only APR delete status");
-        Response latest = getCollection(fixtureAccountId);
-        assertEquals(200, latest.statusCode(), "Could not verify the rejected APR fixture deletion");
-        int index = aprIds(latest).indexOf(fixtureAprId);
-        assertTrue(index >= 0, "Rejected APR fixture was not returned by GET");
-        assertEquals(fixtureAprText, latest.jsonPath().getList("apr_text", String.class).get(index));
-        assertEquals(fixtureRelationship, latest.jsonPath().getList("relationship", String.class).get(index));
-        assertEquals(fixtureCategory, latest.jsonPath().getList("category", String.class).get(index));
-    }
-
-    @When("I update the prepared deployed APR fixture")
-    public void updatePreparedDeployedAprFixture() {
-        expectedAprText = uniqueAprText();
-        authorisedJsonRequest()
-            .header(HttpHeaders.IF_MATCH, fixtureEtag)
-            .body("{\"apr_text\":\"" + expectedAprText + "\"}")
-            .when().patch(getTestUrl() + itemPath(fixtureAccountId, fixtureAprId));
-    }
-
-    @Then("the prepared deployed APR fixture is updated and retains its relationship and category")
-    public void preparedDeployedAprFixtureIsUpdated() {
-        Response updateResponse = SerenityRest.lastResponse();
-        assertEquals(200, updateResponse.statusCode(), "Unexpected inherited APR update status");
-        assertEquals(expectedAprText, updateResponse.jsonPath().getString("apr_text"));
-        assertEquals(fixtureAprId, updateResponse.jsonPath().getString("alternate_payment_reference_id"));
-        assertEquals(fixtureAccountId, updateResponse.jsonPath().getString("defendant_account_id"));
-        assertEquals(fixtureRelationship, updateResponse.jsonPath().getString("relationship"));
-        assertEquals(fixtureCategory, updateResponse.jsonPath().getString("category"));
-        assertNotNull(updateResponse.getHeader(HttpHeaders.ETAG), "Expected the updated account ETag");
-
-        Response latest = getCollection(fixtureAccountId);
-        assertEquals(200, latest.statusCode(), "Could not verify the updated APR fixture");
-        int index = aprIds(latest).indexOf(fixtureAprId);
-        assertTrue(index >= 0, "Updated APR fixture was not returned by GET");
-        assertEquals(expectedAprText, latest.jsonPath().getList("apr_text", String.class).get(index));
-        assertEquals(fixtureRelationship, latest.jsonPath().getList("relationship", String.class).get(index));
-        assertEquals(fixtureCategory, latest.jsonPath().getList("category", String.class).get(index));
-        assertEquals(fixtureAccountId,
-            String.valueOf(latest.jsonPath().getList("defendant_account_id").get(index)));
-    }
-
-    @Then("the prepared deployed APR fixture update is rejected with status {int} and its text is unchanged")
-    public void preparedDeployedAprFixtureUpdateIsRejected(int expectedStatus) {
-        assertEquals(expectedStatus, SerenityRest.lastResponse().statusCode(), "Unexpected read-only APR status");
-        Response latest = getCollection(fixtureAccountId);
-        assertEquals(200, latest.statusCode(), "Could not verify the rejected APR fixture update");
-        int index = aprIds(latest).indexOf(fixtureAprId);
-        assertTrue(index >= 0, "Rejected APR fixture was not returned by GET");
-        assertEquals(fixtureAprText, latest.jsonPath().getList("apr_text", String.class).get(index));
-        assertEquals(fixtureRelationship, latest.jsonPath().getList("relationship", String.class).get(index));
-        assertEquals(fixtureCategory, latest.jsonPath().getList("category", String.class).get(index));
     }
 
     @When("I retrieve alternate payment references for the created defendant account")

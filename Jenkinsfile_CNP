@@ -1,6 +1,5 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
-import uk.gov.hmcts.contino.Kubectl
 
 @Library("Infrastructure@2.13.6")
 
@@ -135,82 +134,6 @@ def failBuildOnUnstableResults() {
   }
 }
 
-def configureFunctionalTestDatabase(String valuesFile, String releaseName, String namespace) {
-  Map devValues = steps.readYaml(file: valuesFile)
-  Map globalValues = devValues.global as Map
-  Map javaValues = devValues.java as Map
-  Map javaEnvironment = javaValues.environment as Map
-  Map postgresql = javaValues.postgresql as Map
-  Map databaseAuth = postgresql.auth as Map
-
-  if (!postgresql?.enabled) {
-    throw new RuntimeException("PostgreSQL must be enabled in ${valuesFile}")
-  }
-
-  String databaseHost = javaEnvironment.OPAL_FINES_DB_HOST
-    ?.toString()
-    ?.replace('{{ .Release.Name }}', releaseName)
-  String databaseName = javaEnvironment.OPAL_FINES_DB_NAME?.toString()?.trim()
-  String databaseUsername = databaseAuth.username?.toString()?.trim()
-  String databasePassword = databaseAuth.password?.toString()
-  String databaseOptions = globalValues.postgresOptions?.toString() ?: ''
-
-  if (!databaseHost || databaseHost.contains('{{') || !databaseName
-    || !databaseUsername || !databasePassword) {
-    throw new RuntimeException("Missing functional-test database values in ${valuesFile}")
-  }
-
-  env.OPAL_FINES_DB_HOST = "${databaseHost}.${namespace}.svc.cluster.local"
-  env.OPAL_FINES_DB_PORT = '5432'
-  env.OPAL_FINES_DB_NAME = databaseName
-  env.OPAL_FINES_DB_USERNAME = databaseUsername
-  env.OPAL_FINES_DB_PASSWORD = databasePassword
-  env.OPAL_FINES_DB_OPTIONS = databaseOptions
-}
-
-def configureStagingFunctionalTestDatabase(String valuesFile) {
-  Map stagingValues = steps.readYaml(file: valuesFile)
-  Map functionalTestValues = stagingValues.functionalTest as Map
-  List<String> missingVariables = []
-  ['HOST', 'PORT', 'NAME', 'USERNAME', 'PASSWORD'].each { suffix ->
-    String variable = "OPAL_FINES_DB_${suffix}"
-    if (!env[variable]?.trim()) {
-      missingVariables.add(variable)
-    }
-  }
-
-  if (!missingVariables.isEmpty()) {
-    throw new RuntimeException(
-      "Missing staging functional-test database secrets: ${missingVariables.join(', ')}"
-    )
-  }
-
-  env.OPAL_FINES_DB_OPTIONS = functionalTestValues?.finesDatabaseOptions?.toString() ?: ''
-  env.FUNCTIONAL_TEST_FINES_DB_URL = "jdbc:postgresql://${env.OPAL_FINES_DB_HOST}:" +
-    "${env.OPAL_FINES_DB_PORT}/${env.OPAL_FINES_DB_NAME}${env.OPAL_FINES_DB_OPTIONS}"
-  env.FUNCTIONAL_TEST_FINES_DB_USERNAME = env.OPAL_FINES_DB_USERNAME
-  env.FUNCTIONAL_TEST_FINES_DB_PASSWORD = env.OPAL_FINES_DB_PASSWORD
-}
-
-def stagingFunctionalTestSecrets = [
-  'opal-${env}': [
-    secret('fines-service-POSTGRES-HOST', 'OPAL_FINES_DB_HOST'),
-    secret('fines-service-POSTGRES-PORT', 'OPAL_FINES_DB_PORT'),
-    secret('fines-service-POSTGRES-DATABASE', 'OPAL_FINES_DB_NAME'),
-    secret('fines-service-POSTGRES-USER', 'OPAL_FINES_DB_USERNAME'),
-    secret('fines-service-POSTGRES-PASS', 'OPAL_FINES_DB_PASSWORD'),
-  ]
-]
-
-static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
-  [$class     : 'AzureKeyVaultSecret',
-   secretType : 'Secret',
-   name       : secretName,
-   version    : '',
-   envVariable: envVar
-  ]
-}
-
 def publishFunctionalResults(String reportNameSuffix = '') {
   ensureFunctionalReportOutputExists()
 
@@ -286,7 +209,6 @@ withPipeline(type, product, component) {
   // master fails we want a notification on slack
   onMaster {
     enableSlackNotifications('#opal-builds')
-    loadVaultSecrets(stagingFunctionalTestSecrets)
   }
 
 
@@ -361,60 +283,11 @@ withPipeline(type, product, component) {
   }
 
   afterAlways('functionalTest:dev') {
-    try {
-      onPR {
-        try {
-          steps.sh 'bash src/functionalTest/resources/db/port-forward.sh stop'
-        } finally {
-          env.FUNCTIONAL_TEST_FINES_DB_URL = ''
-          env.FUNCTIONAL_TEST_FINES_DB_USERNAME = ''
-          env.FUNCTIONAL_TEST_FINES_DB_PASSWORD = ''
-          env.OPAL_FINES_DB_HOST = ''
-          env.OPAL_FINES_DB_PORT = ''
-          env.OPAL_FINES_DB_NAME = ''
-          env.OPAL_FINES_DB_USERNAME = ''
-          env.OPAL_FINES_DB_PASSWORD = ''
-          env.OPAL_FINES_DB_OPTIONS = ''
-          steps.archiveArtifacts allowEmptyArchive: true,
-            artifacts: '.functional-test-db-tunnel/**'
-        }
-      }
-    } finally {
-      publishFunctionalResults()
-    }
+    publishFunctionalResults()
   }
 
   afterAlways('smoketest:dev') {
     publishSmokeResults()
-  }
-
-  before('functionalTest:dev') {
-    onPR {
-      withAksClient('dev', 'dev', product) {
-        def kubectl = new Kubectl(this, 'dev', product)
-        kubectl.login()
-        String releaseName = "opal-${component}-pr-${env.CHANGE_ID}"
-        configureFunctionalTestDatabase(
-          'charts/opal-fines-service/values.dev.template.yaml', releaseName, product
-        )
-
-        String port = steps.sh(
-          script: "bash src/functionalTest/resources/db/port-forward.sh start '${product}' " +
-            "'${releaseName}-postgresql-0'",
-          returnStdout: true
-        ).trim()
-        env.FUNCTIONAL_TEST_FINES_DB_URL = "jdbc:postgresql://127.0.0.1:${port}/" +
-          "${env.OPAL_FINES_DB_NAME}${env.OPAL_FINES_DB_OPTIONS ?: ''}"
-        env.FUNCTIONAL_TEST_FINES_DB_USERNAME = env.OPAL_FINES_DB_USERNAME
-        env.FUNCTIONAL_TEST_FINES_DB_PASSWORD = env.OPAL_FINES_DB_PASSWORD
-      }
-    }
-  }
-
-  before('functionalTest:stg') {
-    onMaster {
-      configureStagingFunctionalTestDatabase('charts/opal-fines-service/values.stg.template.yaml')
-    }
   }
 
   afterAlways('functionalTest:stg') {
