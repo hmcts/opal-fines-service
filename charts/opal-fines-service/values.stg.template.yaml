@@ -16,3 +16,6 @@ java:
     RELEASE_1B_ENABLED: true
     INTERFACE_FILE_CONSUMER_ENABLED: true
     REPORT_CONSUMER_ENABLED: true
+
+functionalTest:
+  finesDatabaseOptions: "?sslmode=require"

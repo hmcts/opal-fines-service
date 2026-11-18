@@ -49,6 +49,11 @@ def secrets = [
             secret('zephyr-access-key', 'ZEPHYR_ACCESS_KEY'),
             secret('zephyr-secret-key', 'ZEPHYR_SECRET_KEY'),
             secret('zephyr-account-id', 'ZEPHYR_ACCOUNT_ID'),
+            secret('fines-service-POSTGRES-HOST', 'OPAL_FINES_DB_HOST'),
+            secret('fines-service-POSTGRES-PORT', 'OPAL_FINES_DB_PORT'),
+            secret('fines-service-POSTGRES-DATABASE', 'OPAL_FINES_DB_NAME'),
+            secret('fines-service-POSTGRES-USER', 'OPAL_FINES_DB_USERNAME'),
+            secret('fines-service-POSTGRES-PASS', 'OPAL_FINES_DB_PASSWORD'),
     ],
 ]
 
@@ -63,11 +68,48 @@ static LinkedHashMap<String, Object> secret(String secretName, String envVar) {
   ]
 }
 
+def configureStagingFunctionalTestDatabase = { valuesFile ->
+  Map stagingValues = steps.readYaml(file: valuesFile)
+  Map functionalTestValues = stagingValues.functionalTest as Map
+  List<String> missingVariables = []
+  ['HOST', 'PORT', 'NAME', 'USERNAME', 'PASSWORD'].each { suffix ->
+    String variable = "OPAL_FINES_DB_${suffix}"
+    if (!env[variable]?.trim()) {
+      missingVariables.add(variable)
+    }
+  }
+
+  if (!missingVariables.isEmpty()) {
+    steps.error("Missing staging functional-test database secrets: ${missingVariables.join(', ')}")
+  }
+
+  env.OPAL_FINES_DB_OPTIONS = functionalTestValues?.finesDatabaseOptions?.toString() ?: ''
+  env.FUNCTIONAL_TEST_FINES_DB_URL = "jdbc:postgresql://${env.OPAL_FINES_DB_HOST}:" +
+    "${env.OPAL_FINES_DB_PORT}/${env.OPAL_FINES_DB_NAME}${env.OPAL_FINES_DB_OPTIONS}"
+  env.FUNCTIONAL_TEST_FINES_DB_USERNAME = env.OPAL_FINES_DB_USERNAME
+  env.FUNCTIONAL_TEST_FINES_DB_PASSWORD = env.OPAL_FINES_DB_PASSWORD
+  echo 'Configured staging functional-test Fines database connection'
+}
+
 def configureTestEnvironment = { testEnvironment ->
   env.ENVIRONMENT_NAME = testEnvironment.name
   env.TEST_URL = testEnvironment.testUrl
   env.OPAL_USER_SERVICE_API_URL = testEnvironment.userServiceApiUrl
   env.OPAL_LOGGING_SERVICE_API_URL = testEnvironment.loggingServiceApiUrl
+
+  if (testEnvironment.name == 'staging' && params.Functional) {
+    configureStagingFunctionalTestDatabase('charts/opal-fines-service/values.stg.template.yaml')
+  } else {
+    env.FUNCTIONAL_TEST_FINES_DB_URL = ''
+    env.FUNCTIONAL_TEST_FINES_DB_USERNAME = ''
+    env.FUNCTIONAL_TEST_FINES_DB_PASSWORD = ''
+    env.OPAL_FINES_DB_HOST = ''
+    env.OPAL_FINES_DB_PORT = ''
+    env.OPAL_FINES_DB_NAME = ''
+    env.OPAL_FINES_DB_USERNAME = ''
+    env.OPAL_FINES_DB_PASSWORD = ''
+    env.OPAL_FINES_DB_OPTIONS = ''
+  }
 
   echo "Configured ${testEnvironment.name} test environment: TEST_URL=${env.TEST_URL}"
 }
