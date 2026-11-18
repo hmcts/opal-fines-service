@@ -64,6 +64,8 @@ public class CreateTillService {
     private static final String PAYMENT_RECEIVED_FROM = "payment_received_from";
     private static final String ADDITIONAL_INFORMATION = "additional_information";
     private static final String TRANSFER_SOURCE = "transfer_source";
+    private static final String PAYER_TYPE = "payer_type";
+    private static final String PAYER_DETAILS = "payer_details";
 
     @Transactional
     public void createTill(TillsCreateRequest request) {
@@ -363,6 +365,10 @@ public class CreateTillService {
         TillsCreateAdditionalInformation additionalInformation) {
         Map<String, Object> storedAdditionalInformation = objectMapper.convertValue(
             additionalInformation, new TypeReference<>() {});
+
+        // Payer identity now lives in durable Party/MiscellaneousAccount records, not Payment In JSON.
+        storedAdditionalInformation.remove(PAYER_TYPE);
+        storedAdditionalInformation.remove(PAYER_DETAILS);
 
         if (additionalInformation.getTransferSource() != null) {
             storedAdditionalInformation.put(TRANSFER_SOURCE,
