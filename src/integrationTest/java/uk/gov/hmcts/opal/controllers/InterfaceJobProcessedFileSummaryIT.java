@@ -48,6 +48,7 @@ import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
+import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -96,6 +97,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @Autowired
     private InterfaceJobRepository interfaceJobRepository;
 
+    @Autowired
+    private InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+
     @BeforeEach
     void setUpTestDoubles() {
         when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
@@ -112,6 +116,8 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
         // Arrange
         stubPermittedOpalUser();
+        assertEquals(TILL_ID, summaryViewRepository.findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(INTERFACE_JOB_ID)
+            .getFirst().getTillId());
 
         // Act & Assert
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
@@ -367,12 +373,15 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             interfaceJobRepository.findById(IGNORED_INTERFACE_JOB_ID).orElseThrow().getStatus());
         assertEquals(0L, tillRepository.countByInterfaceFile_InterfaceFileIdIn(
             List.of(IGNORED_INTERFACE_FILE_ID)));
+        assertEquals(0, summaryViewRepository
+            .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(IGNORED_INTERFACE_JOB_ID).size());
 
         mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$", aMapWithSize(SUMMARY_RESPONSE_FIELD_COUNT)))
             .andExpect(jsonPath("$.file_name").value("ignored-summary.dat"))
+            .andExpect(jsonPath("$.source").value("NATWEST"))
             .andExpect(jsonPath("$.business_unit_name").value("Processed Summary BU"))
             .andExpect(jsonPath("$.total_amount").value(50.00))
             .andExpect(jsonPath("$.total_records").value(2))

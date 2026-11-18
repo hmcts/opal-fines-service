@@ -6,11 +6,21 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
+import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageGroup;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessedFileSummaryResponse;
 
 @Mapper(componentModel = "spring")
 public interface InterfaceJobProcessedFileSummaryMapper {
+
+    @Mapping(target = "fileName", source = "summary.interfaceFileName")
+    @Mapping(target = "businessUnitName", source = "businessUnitName")
+    @Mapping(target = "interfaceMessages", source = "messages")
+    @Mapping(target = "totalAmount", source = "summary.totalAmount", qualifiedByName = "penceToPounds")
+    InterfaceJobsProcessedFileSummaryResponse toResponse(
+        InterfaceJobProcessedFileSummaryEntity summary,
+        String businessUnitName,
+        List<InterfaceJobsMessageGroup> messages);
 
     @Mapping(target = "fileName", source = "file.fileName")
     @Mapping(target = "source", source = "file.source")

@@ -13,6 +13,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowe
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
+import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.entity.InterfaceMessageEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
@@ -23,7 +24,9 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessedFileSummaryRespon
 import uk.gov.hmcts.opal.mapper.InterfaceJobProcessedFileSummaryMapper;
 import uk.gov.hmcts.opal.mapper.InterfaceMessageMapper;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
+import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
 import uk.gov.hmcts.opal.repository.InterfaceMessageRepository;
+import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 
 @Service
@@ -42,13 +45,45 @@ public class InterfaceJobProcessedFileSummaryService {
 
     private final InterfaceJobProcessedFileSummaryPdplLoggingService pdplLoggingService;
 
+    private final InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+
+    private final TillRepository tillRepository;
+
     @Transactional(readOnly = true)
     public InterfaceJobsProcessedFileSummaryResponse getProcessedFileSummary(Long interfaceJobId) {
 
         InterfaceJobEntity interfaceJob = findInterfaceJob(interfaceJobId);
-        InterfaceFileEntity file = findProcessedFile(interfaceJob);
+        if (interfaceJob.getStatus() == InterfaceJobStatus.IGNORED) {
+            return getIgnoredFileSummary(interfaceJob);
+        }
+        if (interfaceJob.getStatus() != InterfaceJobStatus.COMPLETED) {
+            throw new EntityNotFoundException("Processed file summary not found for interface job id: "
+                + interfaceJobId);
+        }
+
+        InterfaceJobProcessedFileSummaryEntity summary = findProcessedFileSummary(interfaceJobId);
         checkPermission(getBusinessUnitId(interfaceJob));
-        checkTillStatus(file);
+        checkTillStatus(summary.getTillId());
+
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        List<InterfaceMessageEntity> messages = interfaceMessageRepository
+            .findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(
+                summary.getInterfaceFileId());
+        String businessUnitName = summary.getBusinessUnitName() == null
+            ? interfaceJob.getBusinessUnit().getBusinessUnitName() : summary.getBusinessUnitName();
+        InterfaceJobsProcessedFileSummaryResponse response = processedFileSummaryMapper.toResponse(
+            summary, businessUnitName, getMessageGroups(messages));
+
+        pdplLoggingService.logView(userState, extractInterfaceMessageIds(messages));
+
+        return response;
+    }
+
+    private InterfaceJobsProcessedFileSummaryResponse getIgnoredFileSummary(InterfaceJobEntity interfaceJob) {
+        InterfaceFileEntity file = findIgnoredFile(interfaceJob);
+        checkPermission(getBusinessUnitId(interfaceJob));
+        Long tillId = file.getTillEntities().isEmpty() ? null : file.getTillEntities().getFirst().getTillId();
+        checkTillStatus(tillId);
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         List<InterfaceMessageEntity> messages = interfaceMessageRepository
@@ -75,11 +110,24 @@ public class InterfaceJobProcessedFileSummaryService {
             .toList();
     }
 
-    private InterfaceFileEntity findProcessedFile(InterfaceJobEntity interfaceJob) {
+    private InterfaceJobProcessedFileSummaryEntity findProcessedFileSummary(Long interfaceJobId) {
+        List<InterfaceJobProcessedFileSummaryEntity> rows = summaryViewRepository
+            .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(interfaceJobId);
+        if (rows.isEmpty()) {
+            throw new EntityNotFoundException("Processed file summary not found for interface job id: "
+                + interfaceJobId);
+        }
+        if (rows.size() > 1) {
+            throw new IllegalStateException("Multiple processed file summaries found for interface job id: "
+                + interfaceJobId);
+        }
+        return rows.getFirst();
+    }
+
+    private InterfaceFileEntity findIgnoredFile(InterfaceJobEntity interfaceJob) {
         Long interfaceJobId = interfaceJob.getInterfaceJobId();
         List<InterfaceFileEntity> files = interfaceJob.getInterfaceFiles();
-        if ((interfaceJob.getStatus() != InterfaceJobStatus.COMPLETED
-            && interfaceJob.getStatus() != InterfaceJobStatus.IGNORED) || files.isEmpty()) {
+        if (files.isEmpty()) {
             throw new EntityNotFoundException("Processed file summary not found for interface job id: "
                 + interfaceJobId);
         }
@@ -104,10 +152,14 @@ public class InterfaceJobProcessedFileSummaryService {
         }
     }
 
-    private void checkTillStatus(InterfaceFileEntity file) {
-        if (file.getTillEntities().stream().anyMatch(till -> till.getStatus() == TillStatusEnum.Allocated)) {
-            throw new EntityNotFoundException("Processed file summary unavailable for allocated till on interface job: "
-                + file.getInterfaceJob().getInterfaceJobId());
+    private void checkTillStatus(Long tillId) {
+        if (tillId == null) {
+            return;
+        }
+        TillEntity till = tillRepository.findById(tillId)
+            .orElseThrow(() -> new EntityNotFoundException("Till not found for processed file summary: " + tillId));
+        if (till.getStatus() == TillStatusEnum.Allocated) {
+            throw new EntityNotFoundException("Processed file summary unavailable for allocated till: " + tillId);
         }
     }
 
