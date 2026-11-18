@@ -16,10 +16,10 @@
 *
 **/
 
-CREATE TYPE public.t_report_permissions_enum AS ENUM
+CREATE TYPE t_report_permissions_enum AS ENUM
 (
     'REVERSE_PAYMENT_REPORT'
 );
 
-COMMENT ON TYPE public.t_report_permissions_enum IS
+COMMENT ON TYPE t_report_permissions_enum IS
     'Defines report-specific permissions used to control access to individual reports.';
