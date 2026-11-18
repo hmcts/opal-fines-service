@@ -29,6 +29,7 @@ def make_card(heading, message, colour, actions, details=None):
         "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
         "type": "AdaptiveCard",
         "version": "1.2",
+        "msteams": {"width": "Full"},
         "body": [
             {"type": "Container", "style": colour, "items": [
                 {"type": "TextBlock", "text": heading, "size": "Large", "weight": "Bolder", "wrap": True},
@@ -43,7 +44,8 @@ def make_card(heading, message, colour, actions, details=None):
 def send_card(card, webhook):
     """Post an Adaptive Card envelope to a Teams workflow webhook."""
     payload = {"type": "message", "attachments": [
-        {"contentType": "application/vnd.microsoft.card.adaptive", "content": card},
+        {"contentType": "application/vnd.microsoft.card.adaptive",
+         "contentUrl": None, "content": card},
     ]}
     subprocess.run(["curl", "--fail-with-body", "--silent", "--show-error",
                     "--retry", "2", "--retry-delay", "2", "-H", "Content-Type: application/json",
