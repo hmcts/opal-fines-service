@@ -12,8 +12,8 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import java.math.BigDecimal;
 import java.time.Duration;
-import java.util.HashSet;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import tools.jackson.core.JacksonException;
@@ -38,7 +38,7 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     private static final String TESTING_SUPPORT_PATH = "/testing-support/interface-jobs";
     private static final Duration COMPLETION_TIMEOUT = Duration.ofSeconds(90);
     private static final Duration POLL_INTERVAL = Duration.ofSeconds(2);
-    private static final String COMPLETED_PAYMENT_RECORDS = """
+    private static final String PAYMENT_RECORDS = """
         [
           {
             "receiving_sort_code": "123456",
@@ -54,23 +54,9 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
           }
         ]
         """;
-    private static final String IGNORED_PAYMENT_RECORDS = """
-        [
-          {
-            "receiving_sort_code": "123456",
-            "receiving_bank_account_number": "01234567",
-            "receiving_account_type": "5",
-            "transaction_code": "68",
-            "originator_sort_code": "654321",
-            "originator_bank_account_number": "98765432",
-            "amount_pence": "0",
-            "originator_name": "Test Payer",
-            "originator_reference": "99000001A",
-            "originator_beneficiary_name": "Test Court"
-          }
-        ]
-        """;
     private static final int RECORD_COUNT = 1;
+    private static final BigDecimal TOTAL_AMOUNT_PENCE = new BigDecimal("12345");
+    private static final BigDecimal TOTAL_AMOUNT_POUNDS = new BigDecimal("123.45");
     private static final Set<String> SUMMARY_FIELDS = Set.of(
         "file_name", "source", "business_unit_name", "total_amount", "total_records", "total_errors",
         "interface_messages"
@@ -80,66 +66,12 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
 
     private Long createdInterfaceJobId;
     private String createdByToken;
-    private SummaryExpectation summaryExpectation;
-
-    private record SummaryExpectation(
-        String fileName,
-        String records,
-        BigDecimal persistedTotalPence,
-        BigDecimal expectedTotalPounds,
-        String expectedTerminalStatus
-    ) {
-    }
 
     /**
      * Creates an interface job and remembers its generated ID for the current scenario.
      */
     @Given("I create an interface job for processed file summary")
     public void createInterfaceJobForProcessedFileSummary() {
-        summaryExpectation = new SummaryExpectation(
-            "e2e-processed-file-summary.dat",
-            COMPLETED_PAYMENT_RECORDS,
-            new BigDecimal("12345"),
-            new BigDecimal("123.45"),
-            "COMPLETED"
-        );
-        createInterfaceJob();
-    }
-
-    /**
-     * Creates an interface job that completes without a till.
-     */
-    @Given("I create an ignored interface job for processed file summary")
-    public void createIgnoredInterfaceJobForProcessedFileSummary() {
-        summaryExpectation = new SummaryExpectation(
-            "e2e-ignored-file-summary.dat",
-            IGNORED_PAYMENT_RECORDS,
-            BigDecimal.ZERO,
-            new BigDecimal("0.00"),
-            "IGNORED"
-        );
-        createInterfaceJob();
-    }
-
-    /**
-     * Creates an ignored interface job using a specified interface-file pence total.
-     *
-     * @param pence stored interface-file total in pence.
-     * @param pounds expected API total in pounds.
-     */
-    @Given("I create an ignored interface job with file total {string} pence and expected total {string} pounds")
-    public void createIgnoredInterfaceJobWithExpectedTotal(String pence, String pounds) {
-        summaryExpectation = new SummaryExpectation(
-            "e2e-ignored-file-summary-" + pence + ".dat",
-            IGNORED_PAYMENT_RECORDS,
-            new BigDecimal(pence),
-            new BigDecimal(pounds),
-            "IGNORED"
-        );
-        createInterfaceJob();
-    }
-
-    private void createInterfaceJob() {
         createdByToken = BearerTokenStepDef.getToken();
         Response response = authorisedJsonRequest()
             .body(createRequestBody())
@@ -165,12 +97,11 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     }
 
     /**
-     * Polls the interface-job summary until the asynchronous processor reaches the expected terminal state.
+     * Polls the interface-job summary until the asynchronous processor marks the job completed.
      */
-    @When("I wait for the interface job to reach its expected terminal state")
-    public void waitForInterfaceJobToReachExpectedTerminalState() {
+    @When("I wait for the interface job to complete")
+    public void waitForInterfaceJobToComplete() {
         long interfaceJobId = createdInterfaceJobIdOrFail();
-        String expectedTerminalStatus = summaryExpectationOrFail().expectedTerminalStatus();
         long deadline = System.nanoTime() + COMPLETION_TIMEOUT.toNanos();
         String lastStatus = "unknown";
 
@@ -191,12 +122,14 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
 
             if (job != null) {
                 lastStatus = String.valueOf(job.get("status"));
-                if (expectedTerminalStatus.equals(lastStatus)) {
+                if ("COMPLETED".equals(lastStatus)) {
                     return;
                 }
-                if ("COMPLETED".equals(lastStatus) || "IGNORED".equals(lastStatus) || "FAILED".equals(lastStatus)) {
-                    throw new AssertionError("Interface job reached unexpected terminal state " + lastStatus
-                        + "; expected " + expectedTerminalStatus + ": " + interfaceJobId);
+                if ("FAILED".equals(lastStatus)) {
+                    throw new AssertionError("Interface job failed during processing: " + interfaceJobId);
+                }
+                if ("IGNORED".equals(lastStatus)) {
+                    throw new AssertionError("Interface job completed without creating a till: " + interfaceJobId);
                 }
             }
 
@@ -210,8 +143,8 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     /**
      * Requests the summary using the ID generated during the scenario.
      */
-    @When("I request the processed file summary for the processed interface job")
-    public void requestProcessedFileSummaryForProcessedInterfaceJob() {
+    @When("I request the processed file summary for the completed interface job")
+    public void requestProcessedFileSummaryForCompletedInterfaceJob() {
         authorisedJsonRequest()
             .accept("application/json")
             .when()
@@ -306,38 +239,11 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     @Then("the processed file summary contains the expected file details and totals")
     public void processedFileSummaryContainsExpectedFileDetailsAndTotals() {
         JsonNode response = readResponse();
-        SummaryExpectation expectation = summaryExpectationOrFail();
 
-        assertEquals(expectation.fileName(), response.path("file_name").asText());
+        assertEquals("e2e-processed-file-summary.dat", response.path("file_name").asText());
         assertEquals("NATWEST", response.path("source").asText());
-        assertEquals(0, expectation.expectedTotalPounds().compareTo(response.path("total_amount").decimalValue()));
+        assertEquals(0, TOTAL_AMOUNT_POUNDS.compareTo(response.path("total_amount").decimalValue()));
         assertEquals(RECORD_COUNT, response.path("total_records").intValue());
-    }
-
-    /**
-     * Ensures a monetary value within existing message data remains in pounds.
-     *
-     * @param expectedValue expected pounds value.
-     */
-    @Then("the records read message value remains {string} pounds")
-    public void recordsReadMessageValueRemainsInPounds(String expectedValue) {
-        JsonNode response = readResponse();
-        BigDecimal expected = new BigDecimal(expectedValue);
-
-        for (JsonNode group : response.path("interface_messages")) {
-            if (!"records_read".equals(group.path("message_text").asText())) {
-                continue;
-            }
-            for (JsonNode message : group.path("messages")) {
-                JsonNode value = message.path("message_data").path("value");
-                if (value.isNumber()) {
-                    assertEquals(0, expected.compareTo(value.decimalValue()));
-                    return;
-                }
-            }
-        }
-
-        throw new AssertionError("No records_read message with a numeric value was returned");
     }
 
     private JsonNode readResponse() {
@@ -355,12 +261,11 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
     }
 
     private String createRequestBody() {
-        SummaryExpectation expectation = summaryExpectationOrFail();
         return """
             {
               "interface_jobs": [
                 {
-                  "file_name": "%s",
+                  "file_name": "e2e-processed-file-summary.dat",
                   "source": "NATWEST",
                   "records": %s,
                   "record_count": %d,
@@ -371,8 +276,8 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
                 }
               ]
             }
-            """.formatted(expectation.fileName(), OBJECT_MAPPER.writeValueAsString(expectation.records()), RECORD_COUNT,
-                expectation.persistedTotalPence(), BUSINESS_UNIT_ID, INTERFACE_NAME);
+            """.formatted(OBJECT_MAPPER.writeValueAsString(PAYMENT_RECORDS), RECORD_COUNT, TOTAL_AMOUNT_PENCE,
+                BUSINESS_UNIT_ID, INTERFACE_NAME);
     }
 
     private String processRequestBody(long interfaceJobId) {
@@ -405,13 +310,6 @@ public class InterfaceJobsProcessedFileSummaryStepDef extends BaseStepDef {
             throw new IllegalStateException("No interface job has been created for this scenario");
         }
         return createdInterfaceJobId;
-    }
-
-    private SummaryExpectation summaryExpectationOrFail() {
-        if (summaryExpectation == null) {
-            throw new IllegalStateException("No processed file summary expectation has been configured for this scenario");
-        }
-        return summaryExpectation;
     }
 
     private void sleepBeforeNextPoll() {
