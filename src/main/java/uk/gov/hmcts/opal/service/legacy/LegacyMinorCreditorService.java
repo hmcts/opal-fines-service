@@ -296,13 +296,14 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
-            //log.error(response.toString());
             if (response.isException()) {
                 log.error(":{}: Exception Message:", method, response.exception);
-                throw new EntityNotFoundException(method + " Exception Message: " + response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
                 throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
+            } else if (response.body == null) {
+                log.info("Account not found");
+                throw new EntityNotFoundException(method + " Account not found");
             }
             throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
