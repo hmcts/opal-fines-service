@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.iface.SuspenseAccountsSummaryServiceInterface;
 import uk.gov.hmcts.opal.service.proxy.SuspenseAccountSummaryServiceProxy;
@@ -23,7 +24,7 @@ public class SuspenseAccountsSummaryService implements SuspenseAccountsSummarySe
     private final UserStateService userStateService;
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId,
+    public VersionedResponse<SuspenseItemSummaryCommonStrict> getSuspenseAccountsSummary(Short businessUnitId,
         BigInteger suspenseItemNumber) {
 
         log.debug("getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",

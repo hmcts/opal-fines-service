@@ -22,6 +22,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.proxy.SuspenseAccountSummaryServiceProxy;
 
@@ -43,12 +44,14 @@ class SuspenseAccountsSummaryServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWith(permission));
         SuspenseItemSummaryCommonStrict expected =
             SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance("100.0").build();
-        when(proxy.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345))).thenReturn(expected);
+        when(proxy.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345)))
+            .thenReturn(new VersionedResponse<>(expected, 7L));
 
-        SuspenseItemSummaryCommonStrict result = service.getSuspenseAccountsSummary((short) 123,
+        VersionedResponse<SuspenseItemSummaryCommonStrict> result = service.getSuspenseAccountsSummary((short) 123,
             BigInteger.valueOf(12345));
 
-        assertEquals(expected, result);
+        assertEquals(expected, result.getData());
+        assertEquals(7L, result.getVersion());
         verify(proxy).getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345));
     }
 

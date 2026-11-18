@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.controllers.r1c;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -16,6 +17,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.SuspenseAccountsSummaryService;
@@ -54,7 +56,8 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
             .balance("100.00")
             .build();
 
-        doReturn(expected).when(suspenseAccountsSummaryService).getSuspenseAccountsSummary(any(), any());
+        doReturn(new VersionedResponse<>(expected, 7L)).when(suspenseAccountsSummaryService)
+            .getSuspenseAccountsSummary(any(), any());
 
         ResultActions resultActions = mockMvc.perform(get(SUMMARY_URL, 123, 123L)
             .accept(MediaType.APPLICATION_JSON)
@@ -62,6 +65,7 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
 
         resultActions
             .andExpect(status().isOk())
+            .andExpect(header().string(HttpHeaders.ETAG, "\"7\""))
             .andExpect(jsonPath("$.business_unit_details.business_unit_id").value(1))
             .andExpect(jsonPath("$.business_unit_details.business_unit_name").value("Business Unit Name"))
             .andExpect(jsonPath("$.suspense_item_id").value(1))
@@ -84,7 +88,8 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
-        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(status().isNotFound())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG));
     }
 
 }

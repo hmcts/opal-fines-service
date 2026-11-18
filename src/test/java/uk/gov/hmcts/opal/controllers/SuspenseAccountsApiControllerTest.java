@@ -12,11 +12,14 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
@@ -36,8 +39,9 @@ public class SuspenseAccountsApiControllerTest {
     @InjectMocks
     private SuspenseAccountsApiController suspenseAccountsApiController;
 
-    @Test
-    public void testGetSuspenseAccountsSummary() {
+    @ParameterizedTest
+    @ValueSource(longs = { 0L, 7L, Long.MAX_VALUE })
+    void getSummary_returnsVersionEtag(long version) {
         //  Set up test data
         SuspenseItemSummaryCommonStrict itemSummary = SuspenseItemSummaryCommonStrict
             .builder()
@@ -57,7 +61,8 @@ public class SuspenseAccountsApiControllerTest {
             .build();
 
         //  Mock the service
-        when(suspenseAccountsSummaryService.getSuspenseAccountsSummary(any(), any())).thenReturn(itemSummary);
+        when(suspenseAccountsSummaryService.getSuspenseAccountsSummary(any(), any())).thenReturn(
+            new VersionedResponse<>(itemSummary, version));
 
         //  Call the method under test
         ResponseEntity<SuspenseItemSummaryCommonStrict> response =
@@ -66,6 +71,7 @@ public class SuspenseAccountsApiControllerTest {
         //  Assert the result
         assertEquals(itemSummary, response.getBody());
         assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("\"" + version + "\"", response.getHeaders().getETag());
         verify(suspenseAccountsSummaryService).getSuspenseAccountsSummary((short) 122, BigInteger.valueOf(123));
 
         assertNotNull(response.getBody());
