@@ -1,0 +1,35 @@
+name: Report fines service master status to Teams
+
+on:
+  status: {}
+
+permissions:
+  contents: read
+  statuses: read
+  pull-requests: read
+
+concurrency:
+  group: fines-service-master-teams-alert
+  cancel-in-progress: false
+
+jobs:
+  report:
+    if: >-
+      github.run_attempt == 1 &&
+      github.event.context == 'continuous-integration/jenkins/branch' &&
+      (github.event.state == 'success' || github.event.state == 'failure' || github.event.state == 'error') &&
+      startsWith(github.event.target_url,
+        'https://sds-build.hmcts.net/job/HMCTS/job/opal-fines-service/job/master/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Report master build result
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS_ID: ${{ github.event.id }}
+          STATUS_URL: ${{ github.event.target_url }}
+          STATUS_SHA: ${{ github.event.sha }}
+          REPORT_ALL_BUILDS: ${{ vars.OPAL_MASTER_ALERT_REPORT_ALL_BUILDS }}
+          ALERTS_WEBHOOK_URL: ${{ secrets.OPAL_MASTER_ALERT_TEAMS_WEBHOOK }}
+          BUILDS_WEBHOOK_URL: ${{ secrets.OPAL_MASTER_BUILDS_TEAMS_WEBHOOK }}
+        run: python3 bin/ci/teams-master-alert.py

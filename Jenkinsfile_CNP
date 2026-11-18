@@ -162,6 +162,16 @@ def publishIntegrationResults() {
       allowMissing         : true,
       alwaysLinkToLastBuild: true,
       keepAll              : true,
+      reportDir            : "integration-output",
+      reportFiles          : "spring-test-context-cache.json",
+      includes             : "spring-test-context-cache.json",
+      reportName           : "Spring Test Context Cache Report"
+  ]
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
       reportDir            : "integration-output/report",
       reportFiles          : "index.html",
       reportName           : "Integration Tests Report"

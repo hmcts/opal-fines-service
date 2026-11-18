@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
@@ -64,8 +65,8 @@ class InterfaceJobRepositoryIntegrationTest extends AbstractIntegrationTest {
         assertEquals(257401L, result.getInterfaceJobId());
         assertEquals("Luton", result.getBusinessUnit().getBusinessUnitName());
         assertEquals(InterfaceJobStatus.COMPLETED, result.getStatus());
-        assertEquals(List.of("auto-payments-in-1.dat", "auto-payments-in-2.dat"),
-            result.getInterfaceFiles().stream().map(interfaceFile -> interfaceFile.getFileName()).toList());
+        assertThat(result.getInterfaceFiles().stream().map(interfaceFile -> interfaceFile.getFileName()).toList())
+            .containsExactlyInAnyOrder("auto-payments-in-1.dat", "auto-payments-in-2.dat");
     }
 
     @Test

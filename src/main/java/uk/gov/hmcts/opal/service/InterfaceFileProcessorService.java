@@ -157,7 +157,7 @@ public class InterfaceFileProcessorService {
             .domain(DomainEnum.FINES)
             .paymentType(PaymentTypeEnum.fromValue(transformedData.getPaymentType().name()))
             .fileName(transformedData.getFileName())
-            .businessUnitCode(businessUnit.getBusinessUnitCode())
+            .businessUnitId(businessUnit.getBusinessUnitId())
             .build();
 
         InterfaceFileObject transformedJson = fileHandlerAPIService.addInterfaceFile(
