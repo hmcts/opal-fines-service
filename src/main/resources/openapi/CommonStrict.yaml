@@ -778,20 +778,7 @@ components:
         note:
           $ref: './common.yaml#/components/schemas/note'
         posted_details:
-          ref: '#/components/schemas/postedDetails'
-
-    postedDetails:
-      title: Posted Details
-      additionalProperties: false
-      type: object
-      properties:
-        posted_date:
-          type: string
-          format: date-time
-        posted_by:
-          type: string
-        posted_by_name:
-          type: string
+          $ref: './common.yaml#/components/schemas/postedDetails'
 
     suspenseTransaction:
       title: Suspense Transaction

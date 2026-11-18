@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import jdk.jfr.Description;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +28,7 @@ import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
-import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.TransactionTypeCodeCommonStrict;
@@ -194,6 +195,120 @@ public class SuspenseAccountsApiControllerTest {
         assertEquals(1, response.getBody().getSuspenseTransactions().get().size());
 
         //TEMP: Test transaction type
+    }
+
+    @Test
+    public void testGetSuspenseAccountItemHistoryAndTransactions_rejectsMissingItem() {
+        when(suspenseAccountsHistoryService.getSuspenseItemHistory(any(), any()))
+            .thenThrow(new EntityNotFoundException("Suspense item not found in the requested business unit"));
+
+        assertThrows(EntityNotFoundException.class, () -> {
+            suspenseAccountsApiController.getSuspenseItemHistory(123L, 12345L);
+        });
+    }
+
+    @Test
+    @Description("Test that when API returns valid suspense account item history and transactions")
+    public void testGetValidSuspenseAccountItemHistoryAndTransactions() {
+        SuspenseItemHistoryCommonStrict itemHistory = SuspenseItemHistoryCommonStrict
+            .builder()
+            .version(BigInteger.valueOf(1))
+            .businessUnitId(1)
+            .suspenseItemId(1L)
+            .suspenseNotes(List.of(
+                SuspenseNoteCommonStrict
+                    .builder()
+                    .note(NoteCommon
+                        .builder()
+                        .recordType(RecordTypeEnum.SUSPENSE_ITEMS)
+                        .recordId("12345")
+                        .noteText("Test Note")
+                        .noteType(NoteTypeEnum.AA)
+                        .build())
+                    .postedDetails(PostedDetailsCommon
+                        .builder()
+                        .postedDate(LocalDateTime.of(2023, 1, 1, 0, 0))
+                        .postedBy("Test User")
+                        .postedByName("Test User")
+                        .build())
+                    .build()
+            ))
+            .suspenseTransactions(List.of(
+                SuspenseTransactionCommonStrict
+                    .builder()
+                    .transactionId(1L)
+                    .transactionType(TransactionTypeCommonStrict
+                        .builder()
+                        .transactionTypeCode(TransactionTypeCodeCommonStrict.CC)
+                        .transactionTypeDisplayName("Cancelled cheque (Fines)")
+                        .build())
+                    .postedDetails(PostedDetailsCommon
+                        .builder()
+                        .postedDate(LocalDateTime.of(2026, 1, 1, 0, 0))
+                        .postedBy("Test User One")
+                        .postedByName("Test User One")
+                        .build())
+                    .build()
+            ))
+            .build();
+        when(suspenseAccountsHistoryService.getSuspenseItemHistory(any(), any())).thenReturn(itemHistory);
+
+        var response = suspenseAccountsApiController.getSuspenseItemHistory(1L, 1L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(BigInteger.valueOf(1), response.getBody().getVersion());
+        assertEquals(1, response.getBody().getBusinessUnitId());
+        assertEquals(1, response.getBody().getSuspenseItemId());
+        assertEquals(1L, response.getBody().getSuspenseItemId());
+
+        assertNotNull(response.getBody().getSuspenseNotes());
+        assertNotNull(response.getBody().getSuspenseTransactions());
+        assertEquals(1, response.getBody().getSuspenseNotes().get().size());
+        assertEquals(1, response.getBody().getSuspenseTransactions().get().size());
+
+        //  Notes:
+        assertNotNull(response.getBody().getSuspenseNotes().get().getFirst().getNote());
+        assertEquals(RecordTypeEnum.SUSPENSE_ITEMS,
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getNote()).getRecordType());
+        assertEquals("12345",
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getNote()).getRecordId());
+        assertEquals("Test Note",
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getNote()).getNoteText());
+        assertEquals(NoteTypeEnum.AA,
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getNote()).getNoteType());
+        assertNotNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails());
+        assertEquals(LocalDateTime.of(2023, 1, 1, 0, 0),
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails())
+                .getPostedDate());
+        assertEquals("Test User",
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails())
+                .getPostedBy());
+        assertEquals("Test User",
+            Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails())
+                .getPostedByName());
+
+        //  Transactions:
+        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst());
+        assertEquals(1L, response.getBody().getSuspenseTransactions().get().getFirst().getTransactionId());
+
+        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType());
+        assertEquals(TransactionTypeCodeCommonStrict.CC,
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType())
+                .getTransactionTypeCode());
+        assertEquals("Cancelled cheque (Fines)",
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType())
+                .getTransactionTypeDisplayName());
+        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails());
+        assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0),
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+                .getPostedDate());
+        assertEquals("Test User One",
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+                .getPostedBy());
+        assertEquals("Test User One",
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+                .getPostedByName());
     }
 
 }

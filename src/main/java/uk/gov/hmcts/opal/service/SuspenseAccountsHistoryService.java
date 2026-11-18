@@ -29,7 +29,8 @@ public class SuspenseAccountsHistoryService implements SuspenseAccountsHistorySe
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
-        if (userState.anyBusinessUnitUserHasAnyPermission(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS)) {
+        if (userState.hasBusinessUnitUserWithAnyPermission(businessUnitId.shortValue(),
+            VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS)) {
             return suspenseAccountHistoryServiceProxy.getSuspenseItemHistory(businessUnitId, suspenseItemId);
         } else {
             throw new PermissionNotAllowedException(VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS);

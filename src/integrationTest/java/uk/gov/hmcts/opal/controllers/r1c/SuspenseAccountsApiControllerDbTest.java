@@ -148,7 +148,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
         return mockMvc.perform(get(HISTORY_URL, itemId)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor())
             .accept(MediaType.APPLICATION_JSON)
-            .header("BusinessUnitId", businessUnitId)
+            .header("Business-Unit-Id", businessUnitId)
             .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()));
     }
 
