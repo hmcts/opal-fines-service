@@ -232,29 +232,14 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-3630")
     @JiraEpic("PO-2439")
     void postTills_rollsBackTillAndPaymentsWhenPreAllocatedReportCreationFails() throws Exception {
-        userStateStub.setupWithNoPermissions();
-        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-        long partiesBefore = partyRepository.count();
-        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
-        when(preAllocatedCashTillService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
-            .thenThrow(new ReportGenerationException("Report creation failed", new RuntimeException()));
+        assertRollbackOnReportCreationFailure(VALID_REQUEST);
+    }
 
-        mockMvc.perform(post(URL)
-                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST))
-            .andExpect(status().isInternalServerError())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.title").value("Report Generation Failed"))
-            .andExpect(jsonPath("$.detail").value("Unable to generate the requested report"))
-            .andExpect(jsonPath("$.retriable").value(true));
-
-        assertThat(tillRepository.count()).isEqualTo(tillsBefore);
-        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
-        assertThat(partyRepository.count()).isEqualTo(partiesBefore);
-        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore);
+    @Test
+    @JiraStory("PO-11364")
+    @JiraEpic("PO-2439")
+    void postTills_rollsBackTillPaymentPartyAndMiscAccountWhenReportCreationFailsForCourtFee() throws Exception {
+        assertRollbackOnReportCreationFailure(requestWithPayerDetails("Court Fee"));
     }
 
     @ParameterizedTest
@@ -457,6 +442,32 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
     private static String requestWithPaymentDetails(String paymentDetails) {
         return VALID_REQUEST.replace(VALID_PAYMENT_DETAILS, paymentDetails);
+    }
+
+    private void assertRollbackOnReportCreationFailure(String requestBody) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        long tillsBefore = tillRepository.count();
+        long paymentsBefore = paymentInRepository.count();
+        long partiesBefore = partyRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
+        when(preAllocatedCashTillService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
+            .thenThrow(new ReportGenerationException("Report creation failed", new RuntimeException()));
+
+        mockMvc.perform(post(URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.title").value("Report Generation Failed"))
+            .andExpect(jsonPath("$.detail").value("Unable to generate the requested report"))
+            .andExpect(jsonPath("$.retriable").value(true));
+
+        assertThat(tillRepository.count()).isEqualTo(tillsBefore);
+        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore);
     }
 
     private static String requestWithPayerDetails(String destinationType) {
