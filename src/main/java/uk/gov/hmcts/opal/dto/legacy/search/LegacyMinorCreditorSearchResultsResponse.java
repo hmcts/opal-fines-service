@@ -4,7 +4,9 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlElementWrapper;
+import jakarta.xml.bind.annotation.XmlElements;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,8 +17,6 @@ import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
-
-import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -35,6 +35,9 @@ public class LegacyMinorCreditorSearchResultsResponse implements ToXmlString, Ha
     private int count;
 
     @XmlElementWrapper(name = "creditor_accounts")
-    @XmlElement(name = "creditorAccount")
+    @XmlElements({
+        @XmlElement(name = "creditorAccount", type = CreditorAccount.class),
+        @XmlElement(name = "creditor_accounts_element", type = CreditorAccount.class)
+    })
     private List<CreditorAccount> creditorAccounts;
 }

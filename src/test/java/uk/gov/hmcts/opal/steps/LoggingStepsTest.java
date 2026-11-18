@@ -1,23 +1,5 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.datatable.DataTable;
-import io.cucumber.datatable.DataTableTypeRegistry;
-import io.cucumber.datatable.DataTableTypeRegistryTableConverter;
-import io.restassured.builder.ResponseBuilder;
-import io.restassured.specification.RequestSpecification;
-import net.serenitybdd.rest.SerenityRest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
-import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.context.ScenarioContextHolder;
-
-import java.util.List;
-import java.util.Locale;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,6 +10,23 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import io.cucumber.datatable.DataTable;
+import io.cucumber.datatable.DataTableTypeRegistry;
+import io.cucumber.datatable.DataTableTypeRegistryTableConverter;
+import io.restassured.builder.ResponseBuilder;
+import io.restassured.specification.RequestSpecification;
+import java.util.List;
+import java.util.Locale;
+import net.serenitybdd.rest.SerenityRest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.context.ScenarioContextHolder;
 
 class LoggingStepsTest {
 
@@ -192,6 +191,59 @@ class LoggingStepsTest {
             assertThatThrownBy(() -> new LoggingSteps().noPdpoLogsExistForCreatedBy(
                 "invalidToken", "OPAL_USER_ID", "Rejected operation"))
                 .isInstanceOf(AssertionError.class).hasMessageContaining("PDPO log search failed");
+        }
+    }
+
+    @Test
+    void ignoresRetainedMinorCreditorLogsThroughoutTheWindow() {
+        ScenarioContextHolder.current().setCreatedMinorCreditorAccountId(123L);
+        RequestSpecification request = requestReturning("[{\"pdpo_log_id\":1}]");
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+            LoggingSteps steps = new LoggingSteps();
+
+            steps.recordExistingMinorCreditorLogs("Update Minor Creditor");
+            steps.loggingServiceDoesNotEmitMinorCreditorOperation("Update Minor Creditor");
+
+            ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+            verify(request, atLeast(3)).body(body.capture());
+            var criteria = new ObjectMapper().readTree(body.getValue());
+            assertThat(criteria.path("individual_identifier").asString()).isEqualTo("123");
+            assertThat(criteria.path("individual_type").asString()).isEqualTo("MINOR_CREDITOR");
+            assertThat(criteria.path("business_identifier").asString()).isEqualTo("Update Minor Creditor");
+        }
+    }
+
+    @Test
+    void rejectsNewMinorCreditorLogAfterRetainedLogs() {
+        ScenarioContextHolder.current().setCreatedMinorCreditorAccountId(123L);
+        RequestSpecification request = requestReturning("[{\"pdpo_log_id\":1}]");
+        when(request.post(anyString())).thenReturn(
+            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":1}]").build(),
+            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":1}]").build(),
+            new ResponseBuilder().setStatusCode(200).setBody("[{\"pdpo_log_id\":1},{\"pdpo_log_id\":2}]").build());
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+            LoggingSteps steps = new LoggingSteps();
+            steps.recordExistingMinorCreditorLogs("Update Minor Creditor");
+
+            assertThatThrownBy(() -> steps.loggingServiceDoesNotEmitMinorCreditorOperation("Update Minor Creditor"))
+                .isInstanceOf(AssertionError.class).hasMessageContaining("Unexpected new PDPO logs")
+                .hasMessageContaining("Update Minor Creditor").hasMessageContaining("\"pdpo_log_id\":2");
+            verify(request, times(3)).post(anyString());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{}", "null", "[{}]"})
+    void rejectsInvalidMinorCreditorLogBaseline(String responseBody) {
+        ScenarioContextHolder.current().setCreatedMinorCreditorAccountId(123L);
+        RequestSpecification request = requestReturning(responseBody);
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+
+            assertThatThrownBy(() -> new LoggingSteps().recordExistingMinorCreditorLogs("Update Minor Creditor"))
+                .isInstanceOf(AssertionError.class);
         }
     }
 

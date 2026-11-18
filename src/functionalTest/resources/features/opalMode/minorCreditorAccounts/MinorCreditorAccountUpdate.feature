@@ -14,6 +14,7 @@ Feature: Minor creditor account amendments and conversions
   @MinorCreditorUpdatePdpo @JIRA-STORY:PO-10765 @JIRA-EPIC:PO-10729
   Scenario: Updating a company minor creditor does not emit an individual alteration log
     Given a company minor creditor account exists for amendment
+    And existing "Update Minor Creditor" logs for the created minor creditor account are recorded
     When I update the created minor creditor account details
     Then the minor creditor update returns the changed details and preserves version behaviour
     And the logging service does not emit "Update Minor Creditor" for the created minor creditor account
