@@ -17,8 +17,6 @@ ALTER TABLE prosecutors
     DROP CONSTRAINT IF EXISTS prosecutors_pk;
 
 ALTER TABLE prosecutors
-    ALTER COLUMN prosecutor_code TYPE SMALLINT
-        USING prosecutor_code::SMALLINT,
     ALTER COLUMN prosecutor_code SET NOT NULL,
     ADD CONSTRAINT prosecutors_pk PRIMARY KEY (prosecutor_code),
     DROP COLUMN IF EXISTS prosecutor_id;
