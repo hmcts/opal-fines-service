@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
 import java.math.BigInteger;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.json.JSONException;
 import org.springframework.http.HttpHeaders;
 import tools.jackson.databind.JsonNode;
@@ -19,7 +22,7 @@ import uk.gov.hmcts.opal.actions.minorcreditor.MinorCreditorHistoryFixtureAction
 import uk.gov.hmcts.opal.steps.BaseStepDef;
 
 /**
- * Exercises minor-creditor updates using a scenario-owned account and the shared PDPO assertions.
+ * Exercises minor-creditor amendments and conversions using scenario-owned accounts.
  */
 public class MinorCreditorAccountUpdateStepDef extends BaseStepDef {
 
@@ -32,6 +35,8 @@ public class MinorCreditorAccountUpdateStepDef extends BaseStepDef {
     private boolean company;
     private BigInteger initialVersion;
     private Response updateResponse;
+    private ObjectNode maximumLengthRequest;
+    private final Map<String, Integer> expectedLengths = new LinkedHashMap<>();
 
     /**
      * Creates a unique minor creditor and prepares its account type for the requested scenario.
@@ -39,7 +44,7 @@ public class MinorCreditorAccountUpdateStepDef extends BaseStepDef {
      * @param accountType individual or company.
      * @throws JSONException if the fixture request cannot be created.
      */
-    @Given("a(n) {word} minor creditor account exists for PDPO update logging")
+    @Given("a(n) {word} minor creditor account exists for amendment")
     public void createMinorCreditor(String accountType) throws JSONException {
         assertTrue("individual".equals(accountType) || "company".equals(accountType), "Unsupported account type");
         company = "company".equals(accountType);
@@ -100,14 +105,95 @@ public class MinorCreditorAccountUpdateStepDef extends BaseStepDef {
     }
 
     /**
+     * Submits an amendment or conversion with the applicable values from the boundary fixture.
+     *
+     * @param targetType individual or company after the update.
+     * @param accountNumber BACS account number, or "none" for non-BACS payment.
+     * @param fixture explicit field values and their expected lengths.
+     */
+    @When("I amend the minor creditor to a(n) {word} with BACS account number {string} and maximum-length details")
+    public void updateMaximumLengthDetails(String targetType, String accountNumber, DataTable fixture) {
+        assertTrue("individual".equals(targetType) || "company".equals(targetType), "Unsupported target type");
+        Response current = getAccount();
+        assertEquals(company, MAPPER.readTree(current.asString()).at("/party_details/organisation_flag").asBoolean(),
+            "Expected the source account type before amendment or conversion");
+        company = "company".equals(targetType);
+        maximumLengthRequest = updateRequest(current);
+        ObjectNode party = (ObjectNode) maximumLengthRequest.path("party_details");
+        party.put("organisation_flag", company);
+        party.remove("individual_details");
+        party.remove("organisation_details");
+        party.putObject(company ? "organisation_details" : "individual_details");
+        ObjectNode payment = (ObjectNode) maximumLengthRequest.path("payment");
+        payment.remove("account_name");
+        payment.remove("account_reference");
+        payment.remove("sort_code");
+        payment.remove("account_number");
+        boolean bacs = !"none".equals(accountNumber);
+        payment.put("pay_by_bacs", bacs);
+        if (bacs) {
+            assertTrue(accountNumber.matches("[0-9]{6,8}"), "Expected a 6-8 digit BACS account number");
+            payment.put("account_number", accountNumber);
+            expectedLengths.put("/payment/account_number", accountNumber.length());
+        }
+        applyMaximumLengthFixture(fixture, bacs);
+        updateResponse = patchAccount(maximumLengthRequest, current.getHeader(HttpHeaders.ETAG));
+    }
+
+    /**
+     * Checks success and reads the account back to prove content and length survive persistence.
+     */
+    @Then("the minor creditor amendment succeeds and GET returns the submitted maximum-length details")
+    public void assertMaximumLengthDetails() {
+        assertNotNull(updateResponse, "No minor-creditor update response is available");
+        assertEquals(200, updateResponse.statusCode(), "Expected PATCH success: " + updateResponse.asString());
+        JsonNode persisted = MAPPER.readTree(getAccount().asString());
+        assertEquals(accountId.longValue(), persisted.path("creditor_account_id").asLong());
+        assertEquals(company, persisted.at("/party_details/organisation_flag").asBoolean());
+        JsonNode inactiveParty = persisted.at(company ? "/party_details/individual_details"
+            : "/party_details/organisation_details");
+        assertTrue(inactiveParty.isNull() || inactiveParty.isMissingNode(),
+            "Expected only the applicable party details");
+        expectedLengths.forEach((path, length) -> {
+            assertEquals(maximumLengthRequest.at(path), persisted.at(path), "Changed content at " + path);
+            assertEquals(length.intValue(), persisted.at(path).asString().length(), "Changed length at " + path);
+        });
+        assertEquals(maximumLengthRequest.at("/payment/pay_by_bacs"), persisted.at("/payment/pay_by_bacs"));
+        assertEquals(maximumLengthRequest.at("/payment/hold_payment"), persisted.at("/payment/hold_payment"));
+    }
+
+    /**
      * Removes all fixture data, including amendments produced by the update.
      */
-    @After("@MinorCreditorUpdatePdpo")
+    @After("@MinorCreditorUpdatePdpo or @MinorCreditorMaximumLength")
     public void cleanUpMinorCreditor() {
         if (accountId != null) {
             Response response = fixtureActions.deleteFixture(accountId);
             assertTrue(response.statusCode() == 204 || response.statusCode() == 404,
                 "Unexpected minor-creditor fixture cleanup status: " + response.statusCode());
+        }
+    }
+
+    private void applyMaximumLengthFixture(DataTable fixture, boolean bacs) {
+        for (Map<String, String> row : fixture.asMaps()) {
+            String group = row.get("group");
+            if (("individual".equals(group) && company) || ("company".equals(group) && !company)
+                || ("BACS".equals(group) && !bacs)) {
+                continue;
+            }
+            String path = switch (group) {
+                case "individual" -> "/party_details/individual_details";
+                case "company" -> "/party_details/organisation_details";
+                case "address" -> "/address";
+                case "BACS" -> "/payment";
+                default -> throw new IllegalArgumentException("Unsupported fixture group: " + group);
+            };
+            String field = row.get("field");
+            String value = row.get("value");
+            int length = Integer.parseInt(row.get("length"));
+            assertEquals(length, value.length(), "Incorrect fixture length for " + field);
+            ((ObjectNode) maximumLengthRequest.at(path)).put(field, value);
+            expectedLengths.put(path + "/" + field, length);
         }
     }
 
