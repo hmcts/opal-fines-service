@@ -9,26 +9,36 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentReceivedFrom;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
+import uk.gov.hmcts.opal.generated.model.TillsCreatePayerType;
 import uk.gov.hmcts.opal.generated.model.TillsCreateAdditionalInformation;
+import uk.gov.hmcts.opal.generated.model.TillsCreateIndividualPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreateOrganisationPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreatePayerDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
 import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
 import uk.gov.hmcts.opal.mapper.till.CreateTillMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
@@ -43,6 +53,8 @@ public class CreateTillService {
     private final TillRepository tillRepository;
     private final PaymentInRepository paymentInRepository;
     private final BusinessUnitRepository businessUnitRepository;
+    private final PartyRepository partyRepository;
+    private final MiscellaneousAccountRepository miscellaneousAccountRepository;
     private final PreAllocatedCashTillService preAllocatedCashTillService;
     private final UserStateService userStateService;
     private final CreateTillMapper createTillMapper;
@@ -63,6 +75,8 @@ public class CreateTillService {
 
         TillCreationContext context = resolveCreationContext(businessUnitId);
         TillEntity till = saveTill(requestPayments, paymentsCount, context);
+        createDurablePayerRecordsIfRequired(
+            requestPayments, request.getAdditionalInformation(), context.businessUnit());
 
         savePayments(requestPayments, till, context.createdDate(), request.getAdditionalInformation());
         createPreAllocatedReport(till, context.userState());
@@ -196,6 +210,122 @@ public class CreateTillService {
 
         // Court fee and qualifying suspense payments move to miscellaneous-account ownership in follow-up changes.
         return new PaymentAssociation(null, null);
+    }
+
+    private void createDurablePayerRecordsIfRequired(List<TillsCreatePaymentIn> requestPayments,
+                                                      TillsCreateAdditionalInformation additionalInformation,
+                                                      BusinessUnitEntity businessUnit) {
+        if (!containsDurablePayerPayment(requestPayments)) {
+            return;
+        }
+
+        PartyEntity party = partyRepository.save(toPartyEntity(additionalInformation));
+        miscellaneousAccountRepository.save(MiscellaneousAccountEntity.builder()
+            .businessUnit(businessUnit)
+            .party(party)
+            .accountNumber(nextMiscellaneousAccountNumber(businessUnit.getBusinessUnitId()))
+            .build());
+    }
+
+    private boolean containsDurablePayerPayment(List<TillsCreatePaymentIn> requestPayments) {
+        return requestPayments.stream().anyMatch(requestPayment -> {
+            TillsCreatePaymentDetails.DestinationTypeEnum destinationType =
+                requestPayment.getPaymentDetails().getDestinationType();
+            return destinationType == TillsCreatePaymentDetails.DestinationTypeEnum.COURT_FEE
+                || destinationType == TillsCreatePaymentDetails.DestinationTypeEnum.SUSPENSE;
+        });
+    }
+
+    private PartyEntity toPartyEntity(TillsCreateAdditionalInformation additionalInformation) {
+        if (additionalInformation == null) {
+            throw badRequest("additional_information is required for court fee and qualifying suspense payments");
+        }
+
+        TillsCreatePayerType payerType = additionalInformation.getPayerType();
+        if (payerType == null) {
+            throw badRequest("payer_type is required for court fee and qualifying suspense payments");
+        }
+
+        TillsCreatePayerDetails payerDetails = requirePayerDetails(additionalInformation);
+
+        return switch (payerType) {
+            case INDIVIDUAL -> toIndividualParty(payerDetails);
+            case ORGANISATION -> toOrganisationParty(payerDetails);
+        };
+    }
+
+    private TillsCreatePayerDetails requirePayerDetails(TillsCreateAdditionalInformation additionalInformation) {
+        JsonNullable<TillsCreatePayerDetails> payerDetails = additionalInformation.getPayerDetails();
+        if (payerDetails == null || !payerDetails.isPresent() || payerDetails.get() == null) {
+            throw badRequest("additional_information.payer_details is required");
+        }
+        return payerDetails.get();
+    }
+
+    private PartyEntity toIndividualParty(TillsCreatePayerDetails payerDetails) {
+        TillsCreateIndividualPayer individual = payerDetails.getIndividual();
+        if (individual == null) {
+            throw badRequest("additional_information.payer_details.individual is required for individual payer_type");
+        }
+
+        return PartyEntity.builder()
+            .organisation(false)
+            .organisationName(null)
+            .forenames(requiredText(individual.getForenames(),
+                "additional_information.payer_details.individual.forenames"))
+            .surname(requiredText(individual.getSurname(),
+                "additional_information.payer_details.individual.surname"))
+            .title(text(individual.getTitle()))
+            .addressLine1(text(payerDetails.getAddressLine1()))
+            .addressLine2(text(payerDetails.getAddressLine2()))
+            .addressLine3(text(payerDetails.getAddressLine3()))
+            .postcode(text(payerDetails.getPostcode()))
+            .build();
+    }
+
+    private PartyEntity toOrganisationParty(TillsCreatePayerDetails payerDetails) {
+        TillsCreateOrganisationPayer organisation = payerDetails.getOrganisation();
+        if (organisation == null) {
+            throw badRequest(
+                "additional_information.payer_details.organisation is required for organisation payer_type");
+        }
+
+        return PartyEntity.builder()
+            .organisation(true)
+            .organisationName(requiredText(organisation.getOrganisationName(),
+                "additional_information.payer_details.organisation.organisation_name"))
+            .forenames(null)
+            .surname(null)
+            .title(null)
+            .addressLine1(text(payerDetails.getAddressLine1()))
+            .addressLine2(text(payerDetails.getAddressLine2()))
+            .addressLine3(text(payerDetails.getAddressLine3()))
+            .postcode(text(payerDetails.getPostcode()))
+            .build();
+    }
+
+    private static String requiredText(String value, String fieldPath) {
+        value = text(value);
+        if (value == null) {
+            throw badRequest(fieldPath + " is required");
+        }
+        return value;
+    }
+
+    private static String text(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private String nextMiscellaneousAccountNumber(Short businessUnitId) {
+        return Optional.ofNullable(miscellaneousAccountRepository.getNextAccountNumber(businessUnitId))
+            .filter(accountNumber -> !accountNumber.isBlank())
+            .orElseThrow(() -> new IllegalStateException(
+                "Miscellaneous account number was not generated for business unit " + businessUnitId));
     }
 
     private static ResponseStatusException badRequest(String reason) {
