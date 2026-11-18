@@ -35,6 +35,8 @@ import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -53,6 +55,12 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private PaymentInRepository paymentInRepository;
+
+    @Autowired
+    private PartyRepository partyRepository;
+
+    @Autowired
+    private MiscellaneousAccountRepository miscellaneousAccountRepository;
 
     private static final String URL = "/tills";
     private static final short BUSINESS_UNIT_ID = 10;
@@ -173,6 +181,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         long tillsBefore = tillRepository.count();
         long paymentsBefore = paymentInRepository.count();
+        long partiesBefore = partyRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
 
         // Act
         mockMvc.perform(post(URL)
@@ -193,6 +203,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore + 1);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 1);
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore);
         assertThat(till.getBusinessUnit().getBusinessUnitId()).isEqualTo(BUSINESS_UNIT_ID);
         assertThat(till.getStatus()).isEqualTo(TillStatusEnum.Created);
         assertThat(till.getTotalAmount()).isEqualByComparingTo("12.34");
@@ -224,6 +236,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         long tillsBefore = tillRepository.count();
         long paymentsBefore = paymentInRepository.count();
+        long partiesBefore = partyRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
         when(preAllocatedCashTillService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
             .thenThrow(new ReportGenerationException("Report creation failed", new RuntimeException()));
 
@@ -239,6 +253,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore);
     }
 
     @ParameterizedTest
@@ -250,10 +266,13 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         long tillsBefore = tillRepository.count();
         long paymentsBefore = paymentInRepository.count();
+        long partiesBefore = partyRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
 
-        String request = VALID_REQUEST.replace("\"Fines\"", "\"" + destinationType + "\"");
+        String request = requestWithPayerDetails(destinationType);
         if ("Suspense".equals(destinationType)) {
-            request = request.replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n            \"suspense_reason_code\": \"Fines Overpayment\"");
+            request = request.replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n"
+                + "            \"suspense_reason_code\": \"Fines Overpayment\"");
         }
 
         mockMvc.perform(post(URL)
@@ -264,6 +283,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore + 1);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 1);
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore + 1);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore + 1);
     }
 
     @Test
@@ -274,10 +295,12 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         long tillsBefore = tillRepository.count();
         long paymentsBefore = paymentInRepository.count();
+        long partiesBefore = partyRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
 
-        String suspenseRequest = VALID_REQUEST
-            .replace("\"Fines\"", "\"Suspense\"")
-            .replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n            \"suspense_reason_code\": \"Unidentified amount\"");
+        String suspenseRequest = requestWithPayerDetails("Suspense")
+            .replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n"
+                + "            \"suspense_reason_code\": \"Unidentified amount\"");
 
         mockMvc.perform(post(URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -285,10 +308,13 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
                 .content(suspenseRequest))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Only suspense payments with reason OF, FA or MS are supported when creating a till"));
+            .andExpect(jsonPath("$.detail")
+                .value("Only suspense payments with reason OF, FA or MS are supported when creating a till"));
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore);
         verifyNoInteractions(preAllocatedCashTillService);
     }
 
@@ -307,7 +333,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
                 .content(VALID_REQUEST.replace("\"defendant_account_id\": 123,", "")))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("defendant_account_id is required for fines payments"));
+            .andExpect(jsonPath("$.detail")
+                .value("defendant_account_id is required for fines payments"));
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);
@@ -350,5 +377,20 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
 
     private static String requestWithPaymentDetails(String paymentDetails) {
         return VALID_REQUEST.replace(VALID_PAYMENT_DETAILS, paymentDetails);
+    }
+
+    private static String requestWithPayerDetails(String destinationType) {
+        return VALID_REQUEST
+            .replace("\"Fines\"", "\"" + destinationType + "\"")
+            .replace("\"payer_type\": \"Individual\"", """
+                "payer_type": "Individual",
+                            "payer_details": {
+                              "address_line_1": "10 Sample Street",
+                              "postcode": "AB1 2CD",
+                              "individual": {
+                                "forenames": "Jane",
+                                "surname": "Doe"
+                              }
+                            }""");
     }
 }
