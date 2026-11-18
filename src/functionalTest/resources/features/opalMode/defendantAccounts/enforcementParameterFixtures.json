@@ -15,7 +15,11 @@
     "enforcer": {
       "opal": "1",
       "legacy": "770000000001"
-    }
+    },
+    "_legacy_acceptance_only_text": [
+      "baildirection",
+      "courtdetails"
+    ]
   },
   "CLAMPO": {
     "effectivedate": "2030-06-15",
@@ -25,7 +29,10 @@
     }
   },
   "COLLO": {
-    "collectiontype": "Wages"
+    "collectiontype": "Wages",
+    "_legacy_acceptance_only_text": [
+      "reserveterms"
+    ]
   },
   "CONF": {},
   "CW": {
@@ -35,7 +42,13 @@
       "opal": "2",
       "legacy": "780000000001"
     },
-    "prisonid": "780000000001"
+    "prisonid": "780000000001",
+    "_legacy_acceptance_only_text": [
+      "detailsconsecutive",
+      "processserver",
+      "basisofcommital",
+      "reasonnoaltused"
+    ]
   },
   "DW": {
     "enforcer": {
@@ -48,21 +61,30 @@
   "INTL": {},
   "MPSO": {
     "supervisor": "Other",
-    "prisondetention": "Prison"
+    "prisondetention": "Prison",
+    "_legacy_acceptance_only_text": [
+      "detailsifother"
+    ]
   },
   "NAP": {},
   "NBWT": {
     "enforcer": {
       "opal": "1",
       "legacy": "770000000001"
-    }
+    },
+    "_legacy_acceptance_only_text": [
+      "courtdetails"
+    ]
   },
   "NOENF": {},
   "PRIS": {
     "earliestreleasedate": {
       "opal": "2030-06-15T00:00:00",
       "legacy": "2030-06-15"
-    }
+    },
+    "_legacy_acceptance_only_text": [
+      "prisonandprisonnumber"
+    ]
   },
   "REGF": {},
   "REM": {},
@@ -70,17 +92,27 @@
     "enforcer": {
       "opal": "1",
       "legacy": "770000000001"
-    }
+    },
+    "_legacy_acceptance_only_text": [
+      "timeofrelease"
+    ]
   },
   "SC": {
     "daysindefault": "14",
-    "totalamount": "100.00"
+    "totalamount": "100.00",
+    "_legacy_acceptance_only_text": [
+      "paymentterms"
+    ]
   },
   "UPWO": {
     "noofhours": "14",
     "consecconcurrent": "Consecutive",
     "completiondate": "2030-07-15",
-    "supervisor": "Other"
+    "supervisor": "Other",
+    "_legacy_acceptance_only_text": [
+      "detailsifother",
+      "supervisingcourt"
+    ]
   },
   "WDN": {}
 }

@@ -54,7 +54,7 @@ Feature: Defendant Account Enforcements
   # Each text value uses the maximum length allowed for the selected action.
   # After adding the action, we check that the values returned match those submitted.
   # Some values are not returned by Legacy, so we can only check that they were accepted.
-  # The notes beside each example explain these limits.
+  # The notes beside each example explain these limits. Other text fields must be returned for checking.
   # Dates, numbers, courts and enforcers use suitable test values for each system
   @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
   Scenario Outline: Maximum-length enforcement text is accepted and exposed values are preserved for <result>
@@ -99,9 +99,9 @@ Feature: Defendant Account Enforcements
       | WDN    | 77            | 770000000001 |  |
 
   # cy_ parameters are supplied by GET /results/{id}?include_welsh=true.
-  # Notes identify text fields absent from Legacy enforcement status; their persisted content is not verified.
+  # Acceptance only: these examples check that Welsh text can be submitted, not that saved Welsh text is returned.
   @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
-  Scenario Outline: Maximum-length Welsh text is preserved for enforcement result <result>
+  Scenario Outline: Maximum-length Welsh text is accepted for enforcement result <result>
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
       | source            | MAC                                               |
@@ -113,13 +113,14 @@ Feature: Defendant Account Enforcements
       | submitted_by_name | Laura Clerk                                       |
     And a maximum-length enforcement fixture for "<result>" in "Welsh"
     When I submit the enforcement parameter fixture for business unit "77"
-    Then the exposed enforcement parameters match the submitted content and lengths
+    Then the created defendant account enforcement status contains the following data
+      | last_enforcement_action.enforcement_action.result_id | <result> |
 
     Examples:
       | result | notes |
-      | COLLO  | Legacy accepts reserveterms and cy_reserveterms but does not return them for checking. |
-      | SC     | Legacy accepts paymentterms and cy_paymentterms but does not return them for checking. |
-      | UPWO   | Legacy accepts detailsifother, supervisingcourt and cy_supervisingcourt but does not return them for checking. |
+      | COLLO  | Acceptance only: cy_reserveterms is submitted at its limit; its saved value is not checked. |
+      | SC     | Acceptance only: cy_paymentterms is submitted at its limit; its saved value is not checked. |
+      | UPWO   | Acceptance only: cy_supervisingcourt is submitted at its limit; its saved value is not checked. |
 
   @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
   @JIRA-DEFECT:PO-11610

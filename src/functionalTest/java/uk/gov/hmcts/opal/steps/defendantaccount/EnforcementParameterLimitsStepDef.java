@@ -13,9 +13,11 @@ import uk.gov.hmcts.opal.steps.BaseStepDef;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,6 +31,7 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementsActions actions = new DefendantAccountEnforcementsActions();
     private final Map<String, String> submittedResponses = new LinkedHashMap<>();
     private final Map<String, Integer> expectedTextLengths = new LinkedHashMap<>();
+    private final Set<String> acceptanceOnlyTextParameters = new HashSet<>();
     private JSONObject request;
     private boolean paymentTermsAllowed;
 
@@ -43,10 +46,17 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
             .get(getTestUrl() + "/results/" + resultId);
         configuration.then().statusCode(200);
         paymentTermsAllowed = configuration.jsonPath().getBoolean("allow_payment_terms");
-        JSONArray parameters = new JSONArray(configuration.jsonPath().getString("result_parameters"));
-        JSONObject values = loadFixtures().getJSONObject(resultId);
         submittedResponses.clear();
         expectedTextLengths.clear();
+        acceptanceOnlyTextParameters.clear();
+        JSONObject values = loadFixtures().getJSONObject(resultId);
+        JSONArray acceptanceOnly = values.optJSONArray("_legacy_acceptance_only_text");
+        if (legacyMode && acceptanceOnly != null) {
+            for (int index = 0; index < acceptanceOnly.length(); index++) {
+                acceptanceOnlyTextParameters.add(acceptanceOnly.getString(index));
+            }
+        }
+        JSONArray parameters = new JSONArray(configuration.jsonPath().getString("result_parameters"));
         for (int index = 0; index < parameters.length(); index++) {
             JSONObject parameter = parameters.getJSONObject(index);
             String name = parameter.getString("name");
@@ -134,6 +144,9 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
         }
         for (Map.Entry<String, String> entry : submittedResponses.entrySet()) {
             if (!actual.containsKey(entry.getKey())) {
+                assertTrue(!expectedTextLengths.containsKey(entry.getKey())
+                        || acceptanceOnlyTextParameters.contains(entry.getKey()),
+                    "Expected text parameter " + entry.getKey() + " is missing from enforcement status");
                 continue;
             }
             String value = actual.get(entry.getKey());
