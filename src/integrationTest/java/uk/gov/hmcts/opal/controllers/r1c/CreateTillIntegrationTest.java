@@ -281,10 +281,20 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
                 .content(request))
             .andExpect(status().isCreated());
 
+        ArgumentCaptor<Long> tillIdCaptor = ArgumentCaptor.forClass(Long.class);
+        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(
+            tillIdCaptor.capture(), anyLong(), anyString());
+
+        List<PaymentInEntity> createdPayments = paymentInRepository
+            .findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(tillIdCaptor.getValue());
+        JsonNode additionalInformation = objectMapper.readTree(createdPayments.getFirst().getAdditionalInformation());
+
         assertThat(tillRepository.count()).isEqualTo(tillsBefore + 1);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 1);
         assertThat(partyRepository.count()).isEqualTo(partiesBefore + 1);
         assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore + 1);
+        assertThat(additionalInformation.path("additional_information").path("payer_type").isMissingNode()).isTrue();
+        assertThat(additionalInformation.path("additional_information").path("payer_details").isMissingNode()).isTrue();
     }
 
     @Test

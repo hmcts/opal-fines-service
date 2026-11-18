@@ -214,6 +214,7 @@ class CreateTillServiceTest {
         TillsCreatePaymentDetails.DestinationTypeEnum destinationType) {
         final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
         final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+        final ArgumentCaptor<String> additionalInformationCaptor = ArgumentCaptor.forClass(String.class);
         final TillsCreateRequest request = request(
             suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINES_OVERPAYMENT),
             payment(destinationType, null));
@@ -236,8 +237,11 @@ class CreateTillServiceTest {
 
         service.createTill(request);
 
-        verify(createTillMapper).toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(),
+        verify(createTillMapper).toPaymentIn(any(), eq(persistedTill), eq(NOW), additionalInformationCaptor.capture(),
             eq(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS), eq("456"));
+        assertThat(additionalInformationCaptor.getValue())
+            .doesNotContain("\"payer_type\"")
+            .doesNotContain("\"payer_details\"");
         verify(partyRepository).save(any(PartyEntity.class));
         verify(miscellaneousAccountRepository).save(any(MiscellaneousAccountEntity.class));
         verify(miscellaneousAccountRepository).getNextAccountNumber(BUSINESS_UNIT_ID);
