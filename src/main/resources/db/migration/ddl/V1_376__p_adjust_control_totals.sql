@@ -86,7 +86,9 @@ BEGIN
 		  IF (pi_item_amounts[i].control_total_type=c_control_type_ct) THEN		  
 		      PERFORM 1 FROM control_totals
 		       WHERE business_unit_id =pi_business_unit_id
-		       AND item_number = pi_item_amounts[i].item_number;
+		       AND item_number = pi_item_amounts[i].item_number
+           AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+		       AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
 		     
 		    IF NOT FOUND THEN		     
 		        INSERT into control_totals (control_total_id, 
@@ -118,7 +120,9 @@ BEGIN
 	     ELSIF (pi_item_amounts[i].control_total_type=c_control_type_wot) THEN	      
 	        PERFORM 1 FROM control_totals
 		    WHERE business_unit_id =pi_business_unit_id
-		    AND item_number = pi_item_amounts[i].item_number;
+		    AND item_number = pi_item_amounts[i].item_number
+        AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+		    AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
 			
 		    IF NOT FOUND THEN
 		      INSERT into control_totals (control_total_id, 
@@ -160,7 +164,9 @@ BEGIN
         IF (pi_counter_item_number IS NOT NULL AND pi_account_count IS NOT NULL) THEN
             PERFORM 1 FROM control_totals
             WHERE business_unit_id=pi_business_unit_id
-            AND item_number=pi_counter_item_number;
+            AND item_number=pi_counter_item_number
+            AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+		        AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
                 
             IF NOT FOUND THEN
             INSERT into control_totals (control_total_id, 
