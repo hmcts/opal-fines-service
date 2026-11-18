@@ -75,10 +75,11 @@ public class CreateTillService {
 
         TillCreationContext context = resolveCreationContext(businessUnitId);
         TillEntity till = saveTill(requestPayments, paymentsCount, context);
-        createDurablePayerRecordsIfRequired(
+        Long miscellaneousAccountId = createDurablePayerRecordsIfRequired(
             requestPayments, request.getAdditionalInformation(), context.businessUnit());
 
-        savePayments(requestPayments, till, context.createdDate(), request.getAdditionalInformation());
+        savePayments(requestPayments, till, context.createdDate(), request.getAdditionalInformation(),
+            miscellaneousAccountId);
         createPreAllocatedReport(till, context.userState());
     }
 
@@ -110,9 +111,10 @@ public class CreateTillService {
     }
 
     private void savePayments(List<TillsCreatePaymentIn> requestPayments, TillEntity till,
-                              LocalDateTime paymentDate, TillsCreateAdditionalInformation additionalInformation) {
+                              LocalDateTime paymentDate, TillsCreateAdditionalInformation additionalInformation,
+                              Long miscellaneousAccountId) {
         paymentInRepository.saveAll(requestPayments.stream()
-            .map(payment -> toPaymentIn(payment, till, paymentDate, additionalInformation))
+            .map(payment -> toPaymentIn(payment, till, paymentDate, additionalInformation, miscellaneousAccountId))
             .toList());
     }
 
@@ -137,9 +139,10 @@ public class CreateTillService {
     }
 
     private PaymentInEntity toPaymentIn(TillsCreatePaymentIn requestPayment, TillEntity till,
-        LocalDateTime dateTimeNow, TillsCreateAdditionalInformation additionalInformation) {
+        LocalDateTime dateTimeNow, TillsCreateAdditionalInformation additionalInformation,
+        Long miscellaneousAccountId) {
         TillsCreatePaymentDetails details = requestPayment.getPaymentDetails();
-        PaymentAssociation association = paymentAssociation(requestPayment);
+        PaymentAssociation association = paymentAssociation(requestPayment, miscellaneousAccountId);
 
         return createTillMapper.toPaymentIn(
             requestPayment,
@@ -201,30 +204,38 @@ public class CreateTillService {
         return defendantAccountId;
     }
 
-    private static PaymentAssociation paymentAssociation(TillsCreatePaymentIn requestPayment) {
+    private static PaymentAssociation paymentAssociation(TillsCreatePaymentIn requestPayment,
+                                                         Long miscellaneousAccountId) {
         if (requestPayment.getPaymentDetails().getDestinationType()
             == TillsCreatePaymentDetails.DestinationTypeEnum.FINES) {
             return new PaymentAssociation(AssociatedRecordType.DEFENDANT_ACCOUNTS,
                 requireDefendantAccountId(requestPayment).toString());
         }
 
-        // Court fee and qualifying suspense payments move to miscellaneous-account ownership in follow-up changes.
-        return new PaymentAssociation(null, null);
+        if (miscellaneousAccountId == null) {
+            throw new IllegalStateException("Miscellaneous account id is required for court fee and suspense payments");
+        }
+        return new PaymentAssociation(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS,
+            miscellaneousAccountId.toString());
     }
 
-    private void createDurablePayerRecordsIfRequired(List<TillsCreatePaymentIn> requestPayments,
-                                                      TillsCreateAdditionalInformation additionalInformation,
-                                                      BusinessUnitEntity businessUnit) {
+    private Long createDurablePayerRecordsIfRequired(List<TillsCreatePaymentIn> requestPayments,
+                                                     TillsCreateAdditionalInformation additionalInformation,
+                                                     BusinessUnitEntity businessUnit) {
         if (!containsDurablePayerPayment(requestPayments)) {
-            return;
+            return null;
         }
 
         PartyEntity party = partyRepository.save(toPartyEntity(additionalInformation));
-        miscellaneousAccountRepository.save(MiscellaneousAccountEntity.builder()
+        MiscellaneousAccountEntity miscellaneousAccount = miscellaneousAccountRepository.save(
+            MiscellaneousAccountEntity.builder()
             .businessUnit(businessUnit)
             .party(party)
             .accountNumber(nextMiscellaneousAccountNumber(businessUnit.getBusinessUnitId()))
             .build());
+
+        return Optional.ofNullable(miscellaneousAccount.getMiscellaneousAccountId())
+            .orElseThrow(() -> new IllegalStateException("Miscellaneous account id was not generated"));
     }
 
     private boolean containsDurablePayerPayment(List<TillsCreatePaymentIn> requestPayments) {
