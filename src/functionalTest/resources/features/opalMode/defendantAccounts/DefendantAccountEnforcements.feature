@@ -99,7 +99,7 @@ Feature: Defendant Account Enforcements
       | WDN    | 77            | 770000000001 |  |
 
   # cy_ parameters are supplied by GET /results/{id}?include_welsh=true.
-  # Acceptance only: these examples check that Welsh text can be submitted, not that saved Welsh text is returned.
+  # These examples check that Welsh text can be submitted. The saved Welsh text is not returned for checking.
   @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
   Scenario Outline: Maximum-length Welsh text is accepted for enforcement result <result>
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
@@ -118,9 +118,9 @@ Feature: Defendant Account Enforcements
 
     Examples:
       | result | notes |
-      | COLLO  | Acceptance only: cy_reserveterms is submitted at its limit; its saved value is not checked. |
-      | SC     | Acceptance only: cy_paymentterms is submitted at its limit; its saved value is not checked. |
-      | UPWO   | Acceptance only: cy_supervisingcourt is submitted at its limit; its saved value is not checked. |
+      | COLLO  | Welsh cy_reserveterms text is submitted at its limit but is not returned for checking. |
+      | SC     | Welsh cy_paymentterms text is submitted at its limit but is not returned for checking. |
+      | UPWO   | Welsh cy_supervisingcourt text is submitted at its limit but is not returned for checking. |
 
   @R1BDrop2 @JIRA-EPIC:PO-978 @cleanUpData @JIRA-STORY:PO-11198
   @JIRA-DEFECT:PO-11610

@@ -16,7 +16,7 @@
       "opal": "1",
       "legacy": "770000000001"
     },
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "baildirection",
       "courtdetails"
     ]
@@ -30,7 +30,7 @@
   },
   "COLLO": {
     "collectiontype": "Wages",
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "reserveterms"
     ]
   },
@@ -43,7 +43,7 @@
       "legacy": "780000000001"
     },
     "prisonid": "780000000001",
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "detailsconsecutive",
       "processserver",
       "basisofcommital",
@@ -62,7 +62,7 @@
   "MPSO": {
     "supervisor": "Other",
     "prisondetention": "Prison",
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "detailsifother"
     ]
   },
@@ -72,7 +72,7 @@
       "opal": "1",
       "legacy": "770000000001"
     },
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "courtdetails"
     ]
   },
@@ -82,7 +82,7 @@
       "opal": "2030-06-15T00:00:00",
       "legacy": "2030-06-15"
     },
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "prisonandprisonnumber"
     ]
   },
@@ -93,14 +93,14 @@
       "opal": "1",
       "legacy": "770000000001"
     },
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "timeofrelease"
     ]
   },
   "SC": {
     "daysindefault": "14",
     "totalamount": "100.00",
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "paymentterms"
     ]
   },
@@ -109,7 +109,7 @@
     "consecconcurrent": "Consecutive",
     "completiondate": "2030-07-15",
     "supervisor": "Other",
-    "_legacy_acceptance_only_text": [
+    "_legacy_unreturned_text": [
       "detailsifother",
       "supervisingcourt"
     ]

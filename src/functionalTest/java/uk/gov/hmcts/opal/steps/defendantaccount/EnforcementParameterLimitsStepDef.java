@@ -31,7 +31,7 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
     private final DefendantAccountEnforcementsActions actions = new DefendantAccountEnforcementsActions();
     private final Map<String, String> submittedResponses = new LinkedHashMap<>();
     private final Map<String, Integer> expectedTextLengths = new LinkedHashMap<>();
-    private final Set<String> acceptanceOnlyTextParameters = new HashSet<>();
+    private final Set<String> legacyUnreturnedTextParameters = new HashSet<>();
     private JSONObject request;
     private boolean paymentTermsAllowed;
 
@@ -48,12 +48,12 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
         paymentTermsAllowed = configuration.jsonPath().getBoolean("allow_payment_terms");
         submittedResponses.clear();
         expectedTextLengths.clear();
-        acceptanceOnlyTextParameters.clear();
+        legacyUnreturnedTextParameters.clear();
         JSONObject values = loadFixtures().getJSONObject(resultId);
-        JSONArray acceptanceOnly = values.optJSONArray("_legacy_acceptance_only_text");
-        if (legacyMode && acceptanceOnly != null) {
-            for (int index = 0; index < acceptanceOnly.length(); index++) {
-                acceptanceOnlyTextParameters.add(acceptanceOnly.getString(index));
+        JSONArray unreturnedText = values.optJSONArray("_legacy_unreturned_text");
+        if (legacyMode && unreturnedText != null) {
+            for (int index = 0; index < unreturnedText.length(); index++) {
+                legacyUnreturnedTextParameters.add(unreturnedText.getString(index));
             }
         }
         JSONArray parameters = new JSONArray(configuration.jsonPath().getString("result_parameters"));
@@ -145,7 +145,7 @@ public class EnforcementParameterLimitsStepDef extends BaseStepDef {
         for (Map.Entry<String, String> entry : submittedResponses.entrySet()) {
             if (!actual.containsKey(entry.getKey())) {
                 assertTrue(!expectedTextLengths.containsKey(entry.getKey())
-                        || acceptanceOnlyTextParameters.contains(entry.getKey()),
+                        || legacyUnreturnedTextParameters.contains(entry.getKey()),
                     "Expected text parameter " + entry.getKey() + " is missing from enforcement status");
                 continue;
             }
