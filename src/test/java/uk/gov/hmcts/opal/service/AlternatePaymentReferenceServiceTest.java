@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
@@ -286,14 +287,22 @@ class AlternatePaymentReferenceServiceTest {
         private static final String EXPECTED_VERSION = "\"3\"";
         private static final String APR_TEXT = "REFERENCE-TO-DELETE";
 
-        @Test
+        @ParameterizedTest
+        @CsvSource({
+            "APR, APR",
+            "APR, CONSOLIDATED",
+            "APR, AMALGAMATED",
+            "ACC, APR"
+        })
         @DisplayName("Maps the reference before deletion, adds an activity note, and returns the deleted reference")
-        void deletesReferenceAddsActivityNoteAndReturnsMappedReference() {
+        void deletesReferenceAddsActivityNoteAndReturnsMappedReference(Category category, Relationship relationship) {
             DefendantAccountEntity account = createDefendantAccount();
             account.setVersionNumber(3L);
             doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
+            reference.setCategory(category);
+            reference.setRelationship(relationship);
             AlternatePaymentReferencesItem expected = new AlternatePaymentReferencesItem()
                 .alternatePaymentReferenceId(REFERENCE_ID).aprText(APR_TEXT);
             when(alternatePaymentReferenceMapper.toAlternatePaymentReferencesItem(reference)).thenReturn(expected);
@@ -350,13 +359,16 @@ class AlternatePaymentReferenceServiceTest {
             }
         }
 
-        @Test
-        @DisplayName("Rejects an account version mismatch without mapping, deleting, or adding a note")
-        void stopsBeforeDeletingReferenceWhenVersionDoesNotMatch() {
+        @ParameterizedTest
+        @EnumSource(Relationship.class)
+        @DisplayName("Rejects a version mismatch before the read-only check or deletion")
+        void stopsBeforeDeletingReferenceWhenVersionDoesNotMatch(Relationship relationship) {
             DefendantAccountEntity account = createDefendantAccount();
             doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
-            stubExistingReference();
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            reference.setCategory(Category.ACC);
+            reference.setRelationship(relationship);
             ObjectOptimisticLockingFailureException expected = new ObjectOptimisticLockingFailureException(
                 DefendantAccountEntity.class, DEFENDANT_ACCOUNT_ID);
 
@@ -395,9 +407,35 @@ class AlternatePaymentReferenceServiceTest {
             }
         }
 
+        @ParameterizedTest
+        @EnumSource(value = Relationship.class, names = {"CONSOLIDATED", "AMALGAMATED"})
+        @DisplayName("Rejects deletion of read-only ACC references without mapping, deletion, or an activity note")
+        void rejectsReadOnlyAccountReferencesWithoutDeleting(Relationship relationship) {
+            DefendantAccountEntity account = createDefendantAccount();
+            account.setVersionNumber(3L);
+            doReturn(account).when(service)
+                .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
+            AlternatePaymentReferenceEntity reference = stubExistingReference();
+            reference.setCategory(Category.ACC);
+            reference.setRelationship(relationship);
+
+            BusinessRuleViolationException exception = assertThrows(
+                BusinessRuleViolationException.class, this::deleteReference);
+
+            assertEquals("Alternate Payment Reference is read-only", exception.getTitle());
+            assertEquals("Alternate Payment Reference with relationship: " + relationship
+                + " and category: ACC cannot be modified or deleted for defendant account: "
+                + DEFENDANT_ACCOUNT_ID, exception.getDetail());
+            assertEquals(APR_TEXT, reference.getAprText());
+            verifyNoInteractions(repository, notesService, alternatePaymentReferenceMapper);
+        }
+
         private AlternatePaymentReferenceEntity stubExistingReference() {
             AlternatePaymentReferenceEntity reference = AlternatePaymentReferenceEntity.builder()
                 .alternatePaymentReferenceId(REFERENCE_ID)
+                .defendantAccount(createDefendantAccount())
+                .category(Category.APR)
+                .relationship(Relationship.APR)
                 .aprText(APR_TEXT)
                 .versionNumber(5L)
                 .build();
@@ -418,14 +456,22 @@ class AlternatePaymentReferenceServiceTest {
         private static final String EXPECTED_VERSION = "\"3\"";
         private static final String UPDATED_TEXT = "UPDATED-REFERENCE";
 
-        @Test
+        @ParameterizedTest
+        @CsvSource({
+            "APR, APR",
+            "APR, CONSOLIDATED",
+            "APR, AMALGAMATED",
+            "ACC, APR"
+        })
         @DisplayName("Updates the text, saves the reference, adds an activity note, and returns the mapped result")
-        void savesUpdatedReferenceAddsActivityNoteAndReturnsMappedResult() {
+        void savesUpdatedReferenceAddsActivityNoteAndReturnsMappedResult(Category category, Relationship relationship) {
             DefendantAccountEntity account = createDefendantAccount();
             account.setVersionNumber(3L);
             doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
+            reference.setCategory(category);
+            reference.setRelationship(relationship);
             doNothing().when(service).verifyUniqueApr(reference.getBusinessUnit(), UPDATED_TEXT);
             AlternatePaymentReferenceEntity saved = AlternatePaymentReferenceEntity.builder()
                 .alternatePaymentReferenceId(REFERENCE_ID).aprText(UPDATED_TEXT).versionNumber(6L).build();
@@ -517,22 +563,23 @@ class AlternatePaymentReferenceServiceTest {
 
         @ParameterizedTest
         @EnumSource(value = Relationship.class, names = {"CONSOLIDATED", "AMALGAMATED"})
-        @DisplayName("Rejects non-APR relationships before version checks, text changes, saving, or adding a note")
-        void rejectsNonAprRelationshipsWithoutChangingReference(Relationship relationship) {
+        @DisplayName("Rejects read-only ACC references before version checks or changes")
+        void rejectsReadOnlyAccountReferencesWithoutChangingReference(Relationship relationship) {
             DefendantAccountEntity account = createDefendantAccount();
             doReturn(account).when(service)
                 .verifyDefendantAccountEntityExistAndUserHasCorrectPermission(DEFENDANT_ACCOUNT_ID);
             AlternatePaymentReferenceEntity reference = stubExistingReference();
             reference.setRelationship(relationship);
+            reference.setCategory(Category.ACC);
 
             try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
                 BusinessRuleViolationException exception = assertThrows(
                     BusinessRuleViolationException.class, this::updateReference);
 
-                assertEquals("Alternate Payment Reference relationship does not have a relationship of APR",
-                    exception.getTitle());
+                assertEquals("Alternate Payment Reference is read-only", exception.getTitle());
                 assertEquals("Alternate Payment Reference with relationship: " + relationship
-                    + " cannot be updated for defendant account: " + DEFENDANT_ACCOUNT_ID, exception.getDetail());
+                    + " and category: ACC cannot be modified or deleted for defendant account: "
+                    + DEFENDANT_ACCOUNT_ID, exception.getDetail());
                 assertEquals("ORIGINAL-REFERENCE", reference.getAprText());
                 assertEquals(relationship, reference.getRelationship());
                 versionUtils.verifyNoInteractions();
@@ -544,6 +591,8 @@ class AlternatePaymentReferenceServiceTest {
         private AlternatePaymentReferenceEntity stubExistingReference() {
             AlternatePaymentReferenceEntity reference = AlternatePaymentReferenceEntity.builder()
                 .alternatePaymentReferenceId(REFERENCE_ID)
+                .defendantAccount(createDefendantAccount())
+                .category(Category.APR)
                 .relationship(Relationship.APR)
                 .businessUnit(BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build())
                 .aprText("ORIGINAL-REFERENCE")
