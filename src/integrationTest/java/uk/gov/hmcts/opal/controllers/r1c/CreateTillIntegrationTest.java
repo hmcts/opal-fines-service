@@ -290,6 +290,76 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-3630")
     @JiraEpic("PO-2439")
+    void postTills_linksCourtFeeAndOverpaymentPairToSameMiscellaneousAccount() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        long paymentsBefore = paymentInRepository.count();
+        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
+
+        String request = """
+            {
+              "business_unit_id": 10,
+              "additional_information": {
+                "payer_type": "Individual",
+                "suspense_reason_code": "Fines Overpayment",
+                "payer_details": {
+                  "address_line_1": "10 Sample Street",
+                  "postcode": "AB1 2CD",
+                  "individual": {
+                    "forenames": "Jane",
+                    "surname": "Doe"
+                  }
+                }
+              },
+              "payments_in": [
+                {
+                  "payment_details": {
+                    "amount": 10.00,
+                    "method": "Notes & Coins",
+                    "destination_type": "Court Fee",
+                    "allocation_type": "FULL",
+                    "additional_information": "Defendant"
+                  }
+                },
+                {
+                  "payment_details": {
+                    "amount": 2.34,
+                    "method": "Notes & Coins",
+                    "destination_type": "Suspense",
+                    "allocation_type": "FULL",
+                    "additional_information": "Defendant"
+                  }
+                }
+              ]
+            }
+            """;
+
+        mockMvc.perform(post(URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isCreated());
+
+        ArgumentCaptor<Long> tillIdCaptor = ArgumentCaptor.forClass(Long.class);
+        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(
+            tillIdCaptor.capture(), anyLong(), anyString());
+
+        List<PaymentInEntity> payments =
+            paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(tillIdCaptor.getValue());
+
+        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 2);
+        assertThat(miscellaneousAccountRepository.count()).isEqualTo(miscellaneousAccountsBefore + 1);
+        assertThat(payments).hasSize(2);
+        assertThat(payments).extracting(PaymentInEntity::getAssociatedRecordType)
+            .containsOnly(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS);
+        assertThat(payments).extracting(PaymentInEntity::getAssociatedRecordId)
+            .doesNotContainNull()
+            .containsOnly(payments.getFirst().getAssociatedRecordId());
+    }
+
+    @Test
+    @JiraStory("PO-3630")
+    @JiraEpic("PO-2439")
     void postTills_rejectsSuspensePaymentWithUnidentifiedReason() throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
