@@ -245,19 +245,47 @@ class CreateTillIntegrationTest extends AbstractIntegrationTest {
     @ValueSource(strings = {"Suspense", "Court Fee"})
     @JiraStory("PO-3630")
     @JiraEpic("PO-2439")
-    void postTills_rejectsOutOfScopePaymentDestination(String destinationType) throws Exception {
+    void postTills_supportsCourtFeeAndQualifyingSuspenseDestinations(String destinationType) throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
         long tillsBefore = tillRepository.count();
         long paymentsBefore = paymentInRepository.count();
 
+        String request = VALID_REQUEST.replace("\"Fines\"", "\"" + destinationType + "\"");
+        if ("Suspense".equals(destinationType)) {
+            request = request.replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n            \"suspense_reason_code\": \"Fines Overpayment\"");
+        }
+
         mockMvc.perform(post(URL)
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(VALID_REQUEST.replace("\"Fines\"", "\"" + destinationType + "\"")))
+                .content(request))
+            .andExpect(status().isCreated());
+
+        assertThat(tillRepository.count()).isEqualTo(tillsBefore + 1);
+        assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore + 1);
+    }
+
+    @Test
+    @JiraStory("PO-3630")
+    @JiraEpic("PO-2439")
+    void postTills_rejectsSuspensePaymentWithUnidentifiedReason() throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
+        long tillsBefore = tillRepository.count();
+        long paymentsBefore = paymentInRepository.count();
+
+        String suspenseRequest = VALID_REQUEST
+            .replace("\"Fines\"", "\"Suspense\"")
+            .replace("\"payer_type\": \"Individual\"", "\"payer_type\": \"Individual\",\n            \"suspense_reason_code\": \"Unidentified amount\"");
+
+        mockMvc.perform(post(URL)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(suspenseRequest))
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-            .andExpect(jsonPath("$.detail").value("Only fines payments are supported when creating a till"));
+            .andExpect(jsonPath("$.detail").value("Only suspense payments with reason OF, FA or MS are supported when creating a till"));
 
         assertThat(tillRepository.count()).isEqualTo(tillsBefore);
         assertThat(paymentInRepository.count()).isEqualTo(paymentsBefore);

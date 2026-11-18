@@ -59,7 +59,7 @@ public class CreateTillService {
         checkPermission(businessUnitId);
         List<TillsCreatePaymentIn> requestPayments = request.getPaymentsIn();
         Short paymentsCount = validatePaymentCount(requestPayments);
-        validatePaymentScope(requestPayments);
+        validatePaymentScope(requestPayments, request.getAdditionalInformation());
 
         TillCreationContext context = resolveCreationContext(businessUnitId);
         TillEntity till = saveTill(requestPayments, paymentsCount, context);
@@ -125,6 +125,7 @@ public class CreateTillService {
     private PaymentInEntity toPaymentIn(TillsCreatePaymentIn requestPayment, TillEntity till,
         LocalDateTime dateTimeNow, TillsCreateAdditionalInformation additionalInformation) {
         TillsCreatePaymentDetails details = requestPayment.getPaymentDetails();
+        PaymentAssociation association = paymentAssociation(requestPayment);
 
         return createTillMapper.toPaymentIn(
             requestPayment,
@@ -133,12 +134,13 @@ public class CreateTillService {
             serializeAdditionalInformation(
                 createTillMapper.toPaymentReceivedFrom(details.getAdditionalInformation()),
                 additionalInformation),
-            AssociatedRecordType.DEFENDANT_ACCOUNTS,
-            requireDefendantAccountId(requestPayment).toString());
+            association.associatedRecordType(),
+            association.associatedRecordId());
     }
 
-    private static void validatePaymentScope(List<TillsCreatePaymentIn> requestPayments) {
-        requestPayments.forEach(CreateTillService::validateFinesPayment);
+    private static void validatePaymentScope(List<TillsCreatePaymentIn> requestPayments,
+                                             TillsCreateAdditionalInformation additionalInformation) {
+        requestPayments.forEach(requestPayment -> validatePayment(requestPayment, additionalInformation));
     }
 
     private static Short validatePaymentCount(List<TillsCreatePaymentIn> requestPayments) {
@@ -150,12 +152,30 @@ public class CreateTillService {
         return (short) paymentsCount;
     }
 
-    private static void validateFinesPayment(TillsCreatePaymentIn requestPayment) {
-        if (requestPayment.getPaymentDetails().getDestinationType()
-            != TillsCreatePaymentDetails.DestinationTypeEnum.FINES) {
-            throw badRequest("Only fines payments are supported when creating a till");
+    private static void validatePayment(TillsCreatePaymentIn requestPayment,
+                                        TillsCreateAdditionalInformation additionalInformation) {
+        TillsCreatePaymentDetails.DestinationTypeEnum destinationType =
+            requestPayment.getPaymentDetails().getDestinationType();
+
+        switch (destinationType) {
+            case FINES -> requireDefendantAccountId(requestPayment);
+            case COURT_FEE -> {
+                // Court fee payments are now in scope for manual till creation.
+            }
+            case SUSPENSE -> validateSuspenseReason(additionalInformation);
+            default -> throw badRequest("Unsupported destination_type: " + destinationType);
         }
-        requireDefendantAccountId(requestPayment);
+    }
+
+    private static void validateSuspenseReason(TillsCreateAdditionalInformation additionalInformation) {
+        TillsCreateAdditionalInformation.SuspenseReasonCodeEnum suspenseReasonCode =
+            additionalInformation == null ? null : additionalInformation.getSuspenseReasonCode();
+
+        if (suspenseReasonCode != TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINES_OVERPAYMENT
+            && suspenseReasonCode != TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINE_PAID_IN_ADVANCE
+            && suspenseReasonCode != TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.MISCELLANEOUS_PAYMENT) {
+            throw badRequest("Only suspense payments with reason OF, FA or MS are supported when creating a till");
+        }
     }
 
     private static Long requireDefendantAccountId(TillsCreatePaymentIn requestPayment) {
@@ -165,6 +185,17 @@ public class CreateTillService {
             throw badRequest("defendant_account_id is required for fines payments");
         }
         return defendantAccountId;
+    }
+
+    private static PaymentAssociation paymentAssociation(TillsCreatePaymentIn requestPayment) {
+        if (requestPayment.getPaymentDetails().getDestinationType()
+            == TillsCreatePaymentDetails.DestinationTypeEnum.FINES) {
+            return new PaymentAssociation(AssociatedRecordType.DEFENDANT_ACCOUNTS,
+                requireDefendantAccountId(requestPayment).toString());
+        }
+
+        // Court fee and qualifying suspense payments move to miscellaneous-account ownership in follow-up changes.
+        return new PaymentAssociation(null, null);
     }
 
     private static ResponseStatusException badRequest(String reason) {
@@ -203,5 +234,8 @@ public class CreateTillService {
 
     private record TillCreationContext(BusinessUnitEntity businessUnit, UserStateV2 userState,
                                        LocalDateTime createdDate) {
+    }
+
+    private record PaymentAssociation(AssociatedRecordType associatedRecordType, String associatedRecordId) {
     }
 }
