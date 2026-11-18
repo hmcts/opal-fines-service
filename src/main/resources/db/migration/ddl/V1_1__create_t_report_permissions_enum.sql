@@ -12,7 +12,7 @@
 *
 * Date         Author      Version   Nature of Change
 * -----------  ----------  --------  ----------------------------------------
-* 11/11/2026   I Chandio   1.0      PO-11469.Create an enum of permissions to be used by Reports
+* 11/11/2026   I Chandio   1.0      PO-11469.Create an enum of permissions to be used by Reports given
 *
 **/
 
