@@ -198,12 +198,21 @@ def card_for(message, build, merged_pr=None, new_code=False, recovered=False, no
     details = []
     if merged_pr:
         pr_number = merged_pr["number"]
+        author = (merged_pr.get("user") or {}).get("login")
         merged_by = (merged_pr.get("merged_by") or {}).get("login")
         description = f"Merged PR #{pr_number}"
-        if merged_by:
-            description += f" by @{merged_by}"
-        details.append({"type": "TextBlock", "text": description + ".", "wrap": True,
+        if merged_pr.get("title"):
+            description += f": {merged_pr['title']}"
+        details.append({"type": "TextBlock", "text": description, "wrap": True,
                         "size": "Small", "spacing": "Small"})
+        people = []
+        if author:
+            people.append(f"PR author: @{author}")
+        if merged_by:
+            people.append(f"Merged by: @{merged_by}")
+        if people:
+            details.append({"type": "TextBlock", "text": " · ".join(people), "wrap": True,
+                            "size": "Small", "spacing": "Small"})
         actions.append({"type": "Action.OpenUrl", "title": f"PR #{pr_number}",
                         "url": merged_pr["html_url"]})
     elif new_code:

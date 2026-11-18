@@ -6,6 +6,7 @@ Feature: Major Creditor Account History API In Legacy Mode
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request major creditor account history for the created major creditor account
     Then the major creditor account history response is returned as documented
+    And the financial history items for transaction type "PAYMNT" have display name "Payments"
 
   @JIRA-STORY:PO-2659 @JIRA-EPIC:PO-2655 @JIRA-NFR:PO-2507
   Scenario: Legacy major creditor account history - E2E.02 Authentication propagation returns 401 when authentication is missing or invalid
