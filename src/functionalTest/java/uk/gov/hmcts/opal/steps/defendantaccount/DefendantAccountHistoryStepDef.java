@@ -650,6 +650,7 @@ public class DefendantAccountHistoryStepDef extends BaseStepDef {
     private Map<String, String> historyAccountData(String submittedBy) {
         Map<String, String> accountData = new LinkedHashMap<>();
         accountData.put("business_unit_id", HISTORY_BUSINESS_UNIT_ID);
+        accountData.put("source", "MAC");
         accountData.put("account", HISTORY_ACCOUNT_FIXTURE);
         accountData.put("account_type", HISTORY_ACCOUNT_TYPE);
         accountData.put("account_status", HISTORY_ACCOUNT_STATUS);

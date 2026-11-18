@@ -39,9 +39,11 @@ public class DefendantAccountPartyService {
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
 
         if (userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-
-            return defendantAccountPartyServiceProxy.getDefendantAccountParty(defendantAccountId,
+            PartyResponseDefendantAccount response = defendantAccountPartyServiceProxy.getDefendantAccountParty(
+                defendantAccountId,
                 defendantAccountPartyId);
+            pdplLoggingService.queuePdpoForViewedParty(response, userState);
+            return response;
         } else {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }

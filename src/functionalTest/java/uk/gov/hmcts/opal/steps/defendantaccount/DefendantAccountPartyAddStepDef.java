@@ -61,6 +61,7 @@ public class DefendantAccountPartyAddStepDef extends BaseStepDef {
 
         String partyId = party.path("party_details").path("party_id").asString();
         assertTrue(partyId != null && !partyId.isBlank(), "Expected response to contain the added party ID");
+        scenarioContext().rememberPartyId("Parent/Guardian", partyId);
     }
 
     private String nonPayingParentGuardianRequest() {

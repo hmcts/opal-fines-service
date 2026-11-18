@@ -4,6 +4,7 @@ public class Constants {
 
     public static final String BUSINESS_UNIT_REF_DATA_URI = "/business-units";
     public static final String COURTS_REF_DATA_URI = "/courts";
+    public static final String COURT_FEES_REF_DATA_URI = "/court-fees";
     public static final String LJA_REF_DATA_URI = "/local-justice-areas";
     public static final String OFFENCES_REF_DATA_URI = "/offences";
     public static final String OFFENCES_SEARCH_URI = "/offences/search";

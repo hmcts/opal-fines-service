@@ -5,6 +5,7 @@ Feature: Add Draft Account Authorisation
   Scenario: Post Draft Account - Invalid Auth
     Given I set an invalid token
     When I create a draft account with the following details using a raw HTTP client
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -16,6 +17,7 @@ Feature: Add Draft Account Authorisation
   @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5626
   Scenario: Post Draft Account - No Permission
     When the "opal-test-2@dev.platform.hmcts.net" user attempts to create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -27,6 +29,7 @@ Feature: Add Draft Account Authorisation
   @JIRA-STORY:PO-827 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5627
   Scenario: Post Draft Account - Permission in different BU
     When the "opal-test@dev.platform.hmcts.net" user attempts to create a draft account with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 26                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

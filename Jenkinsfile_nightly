@@ -7,16 +7,17 @@ properties([
     booleanParam(name: 'Integration', defaultValue: true, description: 'Run integration tests'),
     booleanParam(name: 'Functional', defaultValue: true, description: 'Run functional tests'),
     booleanParam(name: 'Smoke', defaultValue: true, description: 'Run smoke tests'),
-    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AAndR1BDrop1Only', 'RunR1AOnly', 'RunR1AAndR1BDropsOnly', 'RunR1BOffOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
+    choice(name: 'DemoTaggedFunctionalMode', choices: ['RunR1AAndR1BDropsOnly', 'RunR1AAndR1BDrop1Only', 'RunR1AOnly', 'RunR1BOffOnly', 'RunAllFlagsOff'], description: 'Select which demo tagged functional stage to run'),
     booleanParam(name: 'ZephyrExecution', defaultValue: false, description: 'Create Zephyr Execution'),
   ])
 ])
+import groovy.json.JsonOutput
 import uk.gov.hmcts.contino.GradleBuilder
 
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
 
-@Library("Infrastructure@2.13.4")
+@Library("Infrastructure@2.13.6")
 
 def type = "java"
 def product = "opal"
@@ -382,6 +383,7 @@ def runNamedTaggedFunctionalStage = { enabled, stageName, shouldRunWithZephyr, g
   }
 }
 
+try {
 withNightlyPipeline(type, product, component) {
   loadVaultSecrets(secrets)
   configureTestEnvironment(testEnvironments.staging)
@@ -492,5 +494,30 @@ withNightlyPipeline(type, product, component) {
       currentBuild.result = 'FAILURE'
       error("One or more selected test stages failed:\n - ${stageFailures.join('\n - ')}")
     }
+  }
+}
+} finally {
+  // Dispatch the nightly result separately from the regular master status.
+  if (env.GIT_CREDENTIALS_ID) {
+    def result = currentBuild.currentResult
+    try {
+      httpRequest(
+        url: 'https://api.github.com/repos/hmcts/opal-fines-service/dispatches',
+        httpMode: 'POST',
+        authentication: env.GIT_CREDENTIALS_ID,
+        contentType: 'APPLICATION_JSON',
+        requestBody: JsonOutput.toJson([
+          event_type: 'opal-nightly-build',
+          client_payload: [result: result, build_url: env.BUILD_URL, sha: env.GIT_COMMIT ?: '']
+        ]),
+        quiet: true,
+        timeout: 15,
+        validResponseCodes: '204'
+      )
+    } catch (err) {
+      echo "Unable to dispatch nightly result to GitHub: ${err.message}"
+    }
+  } else {
+    echo 'Nightly result not dispatched: GitHub credentials were not established.'
   }
 }

@@ -30,6 +30,7 @@ import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
+import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.DraftAccountService;
@@ -74,7 +75,8 @@ public class DraftAccountController {
         @RequestParam(value = "not_submitted_by") Optional<List<String>> optionalNotSubmittedBys,
         @RequestParam(value = "account_status_date_from") Optional<LocalDate> accountStatusDateFrom,
         @RequestParam(value = "account_status_date_to") Optional<LocalDate> accountStatusDateTo,
-        @RequestParam(value = "restrict") Optional<String> restrict) {
+        @RequestParam(value = "restrict") Optional<String> restrict,
+        @RequestParam(value = "source", required = false) Optional<DraftAccountSource> source) {
 
         log.debug(":GET:getDraftAccountSummaries:");
 
@@ -86,7 +88,8 @@ public class DraftAccountController {
                     optionalSubmittedBys,
                     optionalNotSubmittedBys,
                     accountStatusDateFrom,
-                    accountStatusDateTo
+                    accountStatusDateTo,
+                    source
                 )
             );
         }
@@ -98,7 +101,8 @@ public class DraftAccountController {
                 optionalSubmittedBys,
                 optionalNotSubmittedBys,
                 accountStatusDateFrom,
-                accountStatusDateTo
+                accountStatusDateTo,
+                source
             )
         );
     }

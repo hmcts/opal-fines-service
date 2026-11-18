@@ -1,0 +1,24 @@
+name: Report fines service nightly status to Teams
+
+on:
+  repository_dispatch:
+    types: [opal-nightly-build]
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    if: >-
+      startsWith(github.event.client_payload.build_url,
+        'https://sds-build.hmcts.net/job/HMCTS_Nightly/job/opal-fines-service/job/master/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Report nightly build result
+        env:
+          BUILD_URL: ${{ github.event.client_payload.build_url }}
+          BUILD_RESULT: ${{ github.event.client_payload.result }}
+          BUILD_SHA: ${{ github.event.client_payload.sha }}
+          NIGHTLY_WEBHOOK_URL: ${{ secrets.OPAL_NIGHTLY_BUILDS_TEAMS_WEBHOOK }}
+        run: python3 bin/ci/teams-nightly-alert.py

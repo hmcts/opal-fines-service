@@ -14,11 +14,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1c-payment=true",
-    "launchdarkly.default-flag-values.is-legacy-mode=true",
-    "launchdarkly.enabled=false"
-})
+@TestPropertySource(properties = "launchdarkly.default-flag-values.is-legacy-mode=true")
 @DisplayName("Tills Controller Legacy Mode Integration Test")
 class TillsControllerLegacyModeIntegrationTest extends AbstractIntegrationTest {
 

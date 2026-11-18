@@ -247,7 +247,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     @Test
-    void toOpal_mapsFinancialDetailsUsingCodeAsDisplayName() {
+    void toOpal_preservesFinancialDisplayNames() {
         // Arrange
         MinorCreditorHistoryLegacyResponse legacy = MinorCreditorHistoryLegacyResponse.builder()
             .historyItems(List.of(financialItem(
@@ -272,12 +272,12 @@ class MinorCreditorHistoryLegacyMapperTest {
             CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT,
             details.getTransactionType().getTransactionType()
         );
-        assertEquals("PAYMNT", details.getTransactionType().getTransactionTypeDisplayName());
+        assertEquals("Payment", details.getTransactionType().getTransactionTypeDisplayName());
         assertEquals(
             CreditorTransactionStatusReferenceCommon.CreditorTransactionStatusEnum.P,
             details.getStatus().getCreditorTransactionStatus()
         );
-        assertEquals("P", details.getStatus().getCreditorTransactionStatusDisplayName());
+        assertEquals("Pending", details.getStatus().getCreditorTransactionStatusDisplayName());
         assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
         assertEquals("Minor creditor", details.getAssociatedRecordType());
         assertEquals("777", details.getAssociatedRecordId());
@@ -313,6 +313,30 @@ class MinorCreditorHistoryLegacyMapperTest {
         LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
 
         assertEquals(List.of("Amendment"), result.getItemTypes());
+    }
+
+    @Test
+    void toOpal_prefersNestedFinancialDetails() {
+        LegacyMinorCreditorAccountHistoryItem item =
+            financialItem(LocalDateTime.of(2026, 2, 3, 12, 0), "PAYMNT", "P", BigDecimal.valueOf(15.25));
+        LegacyMinorCreditorHistoryDetails nestedDetails = item.getDetails();
+
+        item.setDetails(LegacyMinorCreditorHistoryDetails.builder()
+            .paymentReference("REFERENCE")
+            .creditorTransactionDetails(nestedDetails)
+            .build());
+
+        MinorCreditorHistoryLegacyResponse legacyResponse = MinorCreditorHistoryLegacyResponse.builder()
+                .historyItems(List.of(item)).build();
+
+        GetMinorCreditorHistoryResponse response = mapper.toOpal(legacyResponse);
+
+        CreditorTransactionDetailsHistory details = assertInstanceOf(
+            CreditorTransactionDetailsHistory.class, response.getPayload().getHistoryItems().getFirst().getDetails());
+        assertEquals("PAY-1", details.getPaymentReference());
+        assertEquals(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.PAYMNT,
+            details.getTransactionType().getTransactionType());
+        assertEquals(LocalDateTime.of(2026, 2, 3, 0, 0), details.getStatusDate());
     }
 
     private LegacyMinorCreditorAccountHistoryItem amendmentItem(
@@ -365,12 +389,12 @@ class MinorCreditorHistoryLegacyMapperTest {
             .details(LegacyMinorCreditorHistoryDetails.builder()
                 .transactionType(LegacyCreditorTransactionTypeReference.builder()
                     .transactionType(transactionType)
-                    .transactionTypeDisplayName("Ignored display name")
+                    .transactionTypeDisplayName("Payment")
                     .build())
                 .paymentReference(paymentReference)
                 .status(LegacyCreditorTransactionStatusReference.builder()
                     .creditorTransactionStatus(status)
-                    .creditorTransactionStatusDisplayName("Ignored status")
+                    .creditorTransactionStatusDisplayName("Pending")
                     .build())
                 .statusDate(LocalDate.of(2026, 2, 3))
                 .associatedRecordType("Minor creditor")

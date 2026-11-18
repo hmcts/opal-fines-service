@@ -7,6 +7,7 @@ Feature: Draft Account Access Token Identity
   @JIRA-STORY:PO-2292 @JIRA-EPIC:PO-2808 @cleanUpData @JIRA-TEST-KEY:PO-5641
   Scenario: Access token identity populates submitted-by values
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

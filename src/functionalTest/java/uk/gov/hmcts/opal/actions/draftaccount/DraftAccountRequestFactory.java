@@ -47,6 +47,9 @@ public class DraftAccountRequestFactory {
 
         addLongToJsonObject(postBody, dataToPost, "business_unit_id");
         addAllToJsonObject(postBody, dataToPost, "account_type");
+        if (dataToPost.containsKey("source")) {
+            addToJsonObject(postBody, dataToPost, "source");
+        }
         addToJsonObjectOrNull(postBody, dataToPost, "account_status");
         JSONObject accountObject = loadAccountFixture(dataToPost.get("account"));
         applyAccountOverrides(accountObject, dataToPost);
@@ -68,6 +71,7 @@ public class DraftAccountRequestFactory {
             Map.of(
                 "business_unit_id", businessUnitId,
                 "account_type", "Fine",
+                "source", "MAC",
                 "account_status", "",
                 "account", DEFAULT_ACCOUNT_PATH
             )

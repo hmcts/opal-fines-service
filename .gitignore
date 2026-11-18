@@ -53,3 +53,5 @@ bruno/environments/*.env
 
 # codex
 .codex/*
+/src/integrationTest/.sonar/spring-context-model.json
+/src/test/.sonar/spring-context-model.json

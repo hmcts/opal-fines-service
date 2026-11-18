@@ -10,6 +10,7 @@ import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Defines Cucumber steps and token helpers for authenticated functional-test calls.
@@ -20,6 +21,7 @@ public class BearerTokenStepDef extends BaseStepDef {
     public static final String DEFAULT_USER = "opal-test@dev.platform.hmcts.net";
     private static final ThreadLocal<String> TOKEN = new ThreadLocal<>();
     private static final ThreadLocal<String> ALT_TOKEN = new ThreadLocal<>();
+    private static final int MAX_TOKEN_ATTEMPTS = 4;
 
     /**
      * Clears any scenario-specific bearer-token state so each scenario starts with a fresh auth
@@ -59,20 +61,32 @@ public class BearerTokenStepDef extends BaseStepDef {
      * @return access token returned by the user-service test-support endpoint.
      */
     private static String fetchToken(String user) {
-        TestHttpResponse response = TestHttpClient.get(
-            getUserServiceUrl() + "/testing-support/token/user",
-            Map.of(
-                "Accept", "*/*",
-                "Content-Type", "application/json",
-                "X-User-Email", user
-            )
-        );
+        for (int attempt = 1; ; attempt++) {
+            TestHttpResponse response = TestHttpClient.get(
+                getUserServiceUrl() + "/testing-support/token/user",
+                Map.of("Accept", "*/*", "Content-Type", "application/json", "X-User-Email", user));
 
-        if (response.statusCode() != 200) {
-            throw new IllegalStateException("Failed to fetch access token, status: " + response.statusCode());
+            if (response.statusCode() == 200) {
+                return response.jsonPath("access_token");
+            }
+
+            boolean retryable = response.statusCode() == 502
+                || response.statusCode() == 503 || response.statusCode() == 504;
+            if (!retryable || attempt == MAX_TOKEN_ATTEMPTS) {
+                throw new IllegalStateException("Failed to fetch access token, status: " + response.statusCode()
+                    + " after " + attempt + " attempt(s)");
+            }
+
+            long delayMillis = (1_000L << (attempt - 1)) + ThreadLocalRandom.current().nextLong(250);
+            log.warn("Token request returned status {} on attempt {}/{}; retrying in {} ms",
+                response.statusCode(), attempt, MAX_TOKEN_ATTEMPTS, delayMillis);
+            try {
+                Thread.sleep(delayMillis);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("Interrupted while retrying access token request", e);
+            }
         }
-
-        return response.jsonPath("access_token");
     }
 
     /**
