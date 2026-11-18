@@ -127,6 +127,37 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     /**
+     * Asserts financial history items for a transaction type use the expected display name.
+     *
+     * @param transactionType transaction code returned by the history API.
+     * @param displayName expected display name for the transaction code.
+     */
+    @Then("the financial history items for transaction type {string} have display name {string}")
+    public void financialHistoryItemsForTransactionTypeHaveDisplayName(String transactionType, String displayName) {
+        List<JsonNode> matchingItems = historyItems().stream()
+            .filter(item -> "Financial".equals(typeOf(item)))
+            .filter(item -> transactionType.equals(
+                item.path("details").path("transactionType").path("transactionType").asString()
+            ))
+            .toList();
+
+        assertFalse(
+            matchingItems.isEmpty(),
+            "No financial history items found for transaction type " + transactionType
+        );
+        for (JsonNode item : matchingItems) {
+            assertEquals(
+                displayName,
+                assertText(
+                    item.path("details").path("transactionType").path("transactionTypeDisplayName"),
+                    "details.transactionType.transactionTypeDisplayName"
+                ),
+                "Unexpected display name for transaction type " + transactionType
+            );
+        }
+    }
+
+    /**
      * Asserts the repeated major-creditor history responses are identical.
      */
     @Then("the repeated major creditor account history responses are identical")
