@@ -1,6 +1,7 @@
 @Opal @JIRA-LABEL:account-enquiry
 Feature: Defendant Account Enforcements
 
+  @ExcludeFromDemoNightlyAsNotLegacy
   @R1BDrop1 @cleanUpData @JIRA-STORY:PO-1854 @JIRA-EPIC:PO-1675 @JIRA-TEST-KEY:PO-5620
   Scenario: An enforcement override can be applied to an enforceable defendant account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
@@ -21,6 +22,7 @@ Feature: Defendant Account Enforcements
       | enforcement_override.enforcement_override_result.enforcement_override_result_id | FWEC         |
       | enforcement_override.enforcer.enforcer_id                                       | 770000000001 |
 
+  @ExcludeFromDemoNightlyAsNotLegacy
   @R1BDrop1 @cleanUpData @JIRA-STORY:PO-10811 @JIRA-STORY:PO-10826 @JIRA-EPIC:PO-978
   Scenario: A manual enforcement action can be added with hearing court and date responses
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
