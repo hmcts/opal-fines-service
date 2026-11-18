@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
@@ -19,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.SuspenseItemSummaryEntity;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.mapper.SuspenseItemSummaryMapper;
@@ -41,6 +43,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
         //  Set up.
         SuspenseItemSummaryEntity returnedEntity = SuspenseItemSummaryEntity
             .builder()
+            .versionNumber(7L)
             .id(1L)
             .suspenseItemNumber(BigInteger.valueOf(12345))
             .businessUnitId((short) 1)
@@ -71,8 +74,10 @@ public class OpalSuspenseAccountSummaryServiceTest {
             .toSuspenseItemSummaryCommonStrict(returnedEntity);
 
         //  Execute.
-        SuspenseItemSummaryCommonStrict returnedCommonStrict =
+        VersionedResponse<SuspenseItemSummaryCommonStrict> response =
             opalSuspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(123L));
+        SuspenseItemSummaryCommonStrict returnedCommonStrict = response.getData();
+        assertEquals(7L, response.getVersion());
 
         //  Verify.
         assertNotNull(returnedCommonStrict.getSuspenseItemId());
@@ -92,6 +97,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
     @Test
     void getSummary_returnsMappedItem() {
         SuspenseItemSummaryEntity entity = SuspenseItemSummaryEntity.builder()
+            .versionNumber(7L)
             .id(1L)
             .suspenseItemNumber(BigInteger.valueOf(12345))
             .businessUnitId((short) 123)
@@ -106,11 +112,12 @@ public class OpalSuspenseAccountSummaryServiceTest {
             .thenReturn(entity);
         when(suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(entity)).thenReturn(expected);
 
-        SuspenseItemSummaryCommonStrict result =
+        VersionedResponse<SuspenseItemSummaryCommonStrict> result =
             opalSuspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123,
                 BigInteger.valueOf(12345));
 
-        assertSame(expected, result);
+        assertSame(expected, result.getData());
+        assertEquals(7L, result.getVersion());
         verify(suspenseItemSummaryRepository).findByBusinessUnitIdAndSuspenseItemNumber((short) 123,
             BigInteger.valueOf(12345));
         verify(suspenseItemSummaryMapper).toSuspenseItemSummaryCommonStrict(entity);
@@ -126,7 +133,7 @@ public class OpalSuspenseAccountSummaryServiceTest {
             BigInteger.valueOf(12345)));
         verify(suspenseItemSummaryRepository).findByBusinessUnitIdAndSuspenseItemNumber((short) 123,
             BigInteger.valueOf(12345));
-        verify(suspenseItemSummaryMapper).toSuspenseItemSummaryCommonStrict(null);
+        verifyNoInteractions(suspenseItemSummaryMapper);
     }
 
 }

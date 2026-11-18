@@ -4,6 +4,7 @@ import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TES
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
@@ -33,6 +34,33 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
         "/suspense-accounts/{business_unit_id}/suspense-items/{suspense_item_number}/summary";
 
     private static final String AUTH_HEADER = "Bearer some_value";
+
+    @ParameterizedTest
+    @CsvSource({ "29101, 100000, 7", "29102, 100000, 4294967296" })
+    @JiraStory("PO-10404")
+    @JiraEpic("PO-9048")
+    @DisplayName("The ETag contains the quoted version of the item in the requested business unit")
+    void getSummary_returnsStoredVersion(short businessUnitId, long itemNumber, long version) throws Exception {
+        getSummary(businessUnitId, itemNumber, VIEW_SUSPENSE_ITEMS)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string(HttpHeaders.ETAG, "\"" + version + "\""))
+            .andExpect(jsonPath("$.suspense_item_number").value(itemNumber))
+            .andExpect(jsonPath("$.version").doesNotExist())
+            .andExpect(jsonPath("$.version_number").doesNotExist())
+            .andExpect(jsonPath("$.data").doesNotExist());
+    }
+
+    @Test
+    @JiraStory("PO-10404")
+    @JiraEpic("PO-9048")
+    @DisplayName("An item with no stored version returns its summary without an ETag")
+    void getSummary_withoutVersion_omitsEtag() throws Exception {
+        getSummary((short) 29101, 3000000000L, VIEW_SUSPENSE_ITEMS)
+            .andExpect(status().isOk())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
+            .andExpect(jsonPath("$.suspense_item_id").value(99000000979603L));
+    }
 
     @ParameterizedTest
     @EnumSource(value = FinesPermission.class, names = { "VIEW_SUSPENSE_ITEMS", "MANAGE_SUSPENSE_ITEMS" })
@@ -88,6 +116,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     void getSummary_rejectsMissingOrMismatchedValues(short businessUnitId, long itemNumber) throws Exception {
         getSummary(businessUnitId, itemNumber, VIEW_SUSPENSE_ITEMS)
             .andExpect(status().isNotFound())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
@@ -98,6 +127,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     void getSummary_rejectsMissingPermission() throws Exception {
         getSummary((short) 29101, 100000L)
             .andExpect(status().isForbidden())
+            .andExpect(header().doesNotExist(HttpHeaders.ETAG))
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 

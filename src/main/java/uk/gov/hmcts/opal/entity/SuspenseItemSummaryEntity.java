@@ -42,4 +42,7 @@ public class SuspenseItemSummaryEntity {
     @Column(name = "balance")
     private BigDecimal balance;
 
+    @Column(name = "version_number")
+    private Long versionNumber;
+
 }
