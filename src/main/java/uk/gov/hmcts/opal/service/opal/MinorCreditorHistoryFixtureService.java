@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.sql.Types;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -8,6 +9,7 @@ import java.time.LocalTime;
 import lombok.Builder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.SqlParameterValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +21,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class MinorCreditorHistoryFixtureService {
 
     private static final short BUSINESS_UNIT_ID = 77;
-    private static final String CREDITOR_RECORD_TYPE = "creditor_accounts";
-    private static final String DEFENDANT_RECORD_TYPE = "defendant_accounts";
+    private static final SqlParameterValue CREDITOR_RECORD_TYPE =
+        new SqlParameterValue(Types.OTHER, "creditor_accounts");
+    private static final SqlParameterValue DEFENDANT_RECORD_TYPE =
+        new SqlParameterValue(Types.OTHER, "defendant_accounts");
 
     private final JdbcTemplate jdbcTemplate;
     private final Clock clock;
@@ -40,6 +44,7 @@ public class MinorCreditorHistoryFixtureService {
     public MinorCreditorHistoryFixture createFixture(String reference) {
         final String fixtureReference = reference == null || reference.isBlank() ? "MCHIST" : reference;
         final long partyId = nextVal("party_id_seq");
+        final long defendantPartyId = nextVal("party_id_seq");
         final long creditorAccountId = nextVal("creditor_account_id_seq");
         final long defendantAccountId = nextVal("defendant_account_id_seq");
         final String creditorAccountNumber = "MCH" + creditorAccountId;
@@ -52,6 +57,7 @@ public class MinorCreditorHistoryFixtureService {
         insertParty(partyId, fixtureReference);
         insertCreditorAccount(creditorAccountId, partyId, creditorAccountNumber);
         insertDefendantAccount(defendantAccountId, defendantAccountNumber);
+        insertDefendantParty(defendantAccountId, defendantPartyId, fixtureReference);
         insertImposition(defendantAccountId, creditorAccountId, excludedDate);
         insertHistory(creditorAccountId, defendantAccountId, excludedDate, dateFrom, dateTo);
 
@@ -84,15 +90,21 @@ public class MinorCreditorHistoryFixtureService {
             "SELECT defendant_account_id FROM impositions WHERE creditor_account_id = ? LIMIT 1",
             creditorAccountId
         );
+        final Long defendantPartyId = queryLong(
+            "SELECT dap.party_id FROM defendant_account_parties dap "
+                + "JOIN impositions i ON i.defendant_account_id = dap.defendant_account_id "
+                + "WHERE i.creditor_account_id = ? AND dap.association_type = 'Defendant' LIMIT 1",
+            creditorAccountId
+        );
 
         jdbcTemplate.update(
-            "DELETE FROM notes WHERE associated_record_type = ?::public.t_associated_record_type_enum "
+            "DELETE FROM notes WHERE associated_record_type = ? "
                 + "AND associated_record_id = ?",
             CREDITOR_RECORD_TYPE,
             String.valueOf(creditorAccountId)
         );
         jdbcTemplate.update(
-            "DELETE FROM amendments WHERE associated_record_type = ?::public.t_associated_record_type_enum "
+            "DELETE FROM amendments WHERE associated_record_type = ? "
                 + "AND associated_record_id = ?",
             CREDITOR_RECORD_TYPE,
             String.valueOf(creditorAccountId)
@@ -102,6 +114,8 @@ public class MinorCreditorHistoryFixtureService {
         jdbcTemplate.update("DELETE FROM creditor_accounts WHERE creditor_account_id = ?", creditorAccountId);
 
         jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", partyId);
+        jdbcTemplate.update("DELETE FROM defendant_account_parties WHERE defendant_account_id = ?", defendantAccountId);
+        jdbcTemplate.update("DELETE FROM parties WHERE party_id = ?", defendantPartyId);
         jdbcTemplate.update("DELETE FROM defendant_accounts WHERE defendant_account_id = ?", defendantAccountId);
     }
 
@@ -177,6 +191,25 @@ public class MinorCreditorHistoryFixtureService {
         );
     }
 
+    private void insertDefendantParty(long defendantAccountId, long partyId, String reference) {
+        jdbcTemplate.update(
+            """
+                INSERT INTO parties (party_id, organisation, forenames, surname, account_type, last_changed_date)
+                VALUES (?, false, 'Defendant', ?, 'Defendant', ?)
+                """,
+            partyId, reference, LocalDateTime.now(clock)
+        );
+        jdbcTemplate.update(
+            """
+                INSERT INTO defendant_account_parties (
+                  defendant_account_party_id, defendant_account_id, party_id, association_type, debtor
+                )
+                VALUES (?, ?, ?, 'Defendant', true)
+                """,
+            nextVal("defendant_account_party_id_seq"), defendantAccountId, partyId
+        );
+    }
+
     private void insertImposition(long defendantAccountId, long creditorAccountId, LocalDate postedDate) {
         jdbcTemplate.update(
             """
@@ -230,7 +263,7 @@ public class MinorCreditorHistoryFixtureService {
                   amended_date, amended_by, amended_by_name, field_code, old_value, new_value,
                   case_reference, function_code
                 )
-                VALUES (?, ?, ?::public.t_associated_record_type_enum, ?, ?, 'MCHAMD', 'Minor Creditor History',
+                VALUES (?, ?, ?, ?, ?, 'MCHAMD', 'Minor Creditor History',
                         ?, ?, ?, null, 'minor-creditor-history')
                 """,
             nextVal("amendment_id_seq"),
@@ -251,7 +284,7 @@ public class MinorCreditorHistoryFixtureService {
                   note_id, note_type, associated_record_type, associated_record_id,
                   note_text, posted_date, posted_by, posted_by_name
                 )
-                VALUES (?, 'AA', ?::public.t_associated_record_type_enum, ?, ?, ?, 'MCHNOTE',
+                VALUES (?, 'AA', ?, ?, ?, ?, 'MCHNOTE',
                         'Minor Creditor History')
                 """,
             nextVal("note_id_seq"),
@@ -277,7 +310,7 @@ public class MinorCreditorHistoryFixtureService {
                   payment_reference, status, status_date, associated_record_type, associated_record_id
                 )
                 VALUES (?, ?, ?, 'MCHFIN', 'Minor Creditor History', 'PAYMNT', ?, null, true,
-                        ?, 'C', ?, ?::public.t_associated_record_type_enum, ?)
+                        ?, 'C', ?, ?, ?)
                 """,
             nextVal("creditor_transaction_id_seq"),
             creditorAccountId,
