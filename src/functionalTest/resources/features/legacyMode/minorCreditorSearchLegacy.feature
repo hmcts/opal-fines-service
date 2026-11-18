@@ -1,4 +1,4 @@
-@Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @JIRA-DEFECT:PO-11471 @MinorCreditorSearch
+@Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @JIRA-DEFECT:PO-11471 @MinorCreditorSearch @JIRA-STORY:PO-11471 @JIRA-EPIC:PO-11478
 Feature: Minor Creditor Account Search API in Legacy Mode
 
   Scenario: Minor creditor search returns the creditor details from a published account
