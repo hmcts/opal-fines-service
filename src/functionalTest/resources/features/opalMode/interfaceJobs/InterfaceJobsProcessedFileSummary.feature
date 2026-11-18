@@ -16,12 +16,45 @@ Feature: Get processed file summary
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And I create an interface job for processed file summary
     And I submit the interface job for processing
-    And I wait for the interface job to complete
-    When I request the processed file summary for the completed interface job
+    And I wait for the interface job to reach its expected terminal state
+    When I request the processed file summary for the processed interface job
     Then the response status code is 200
     And the response matches the processed file summary schema
     And the processed file summary contains the expected file details and totals
     And interface messages are grouped by message text
+    And the records read message value remains "123.45" pounds
+
+  @JIRA-STORY:PO-11388 @JIRA-EPIC:PO-11360 @Ignore
+  Scenario: Ignored file without a till returns a processed file summary in pounds
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    And I create an ignored interface job for processed file summary
+    And I submit the interface job for processing
+    And I wait for the interface job to reach its expected terminal state
+    When I request the processed file summary for the processed interface job
+    Then the response status code is 200
+    And the response matches the processed file summary schema
+    And the processed file summary contains the expected file details and totals
+    And interface messages are grouped by message text
+
+  @JIRA-STORY:PO-11388 @JIRA-EPIC:PO-11360
+  Scenario Outline: Ignored file summary converts stored pence totals to pounds
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    And I create an ignored interface job with file total "<pence>" pence and expected total "<pounds>" pounds
+    And I submit the interface job for processing
+    And I wait for the interface job to reach its expected terminal state
+    When I request the processed file summary for the processed interface job
+    Then the response status code is 200
+    And the response matches the processed file summary schema
+    And the processed file summary contains the expected file details and totals
+
+    Examples:
+      | pence     | pounds     |
+      | 0         | 0.00       |
+      | 1         | 0.01       |
+      | 99        | 0.99       |
+      | 100       | 1.00       |
+      | 12345     | 123.45     |
+      | 987654321 | 9876543.21 |
 
   @JIRA-STORY:PO-2576
   Scenario: Unknown interface job returns not found
