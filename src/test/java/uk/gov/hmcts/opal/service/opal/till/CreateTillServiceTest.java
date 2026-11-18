@@ -34,6 +34,7 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentReceivedFrom;
 import uk.gov.hmcts.opal.entity.TillEntity;
@@ -194,15 +195,43 @@ class CreateTillServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = TillsCreatePaymentDetails.DestinationTypeEnum.class, names = {"SUSPENSE", "COURT_FEE"})
-    void createTill_rejectsOutOfScopePaymentDestination(
+    void createTill_supportsCourtFeeAndQualifyingSuspenseDestinations(
         TillsCreatePaymentDetails.DestinationTypeEnum destinationType) {
-        final TillsCreateRequest request = request(payment(destinationType, null));
+        final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
+        final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+        final TillsCreateRequest request = request(
+            suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINES_OVERPAYMENT),
+            payment(destinationType, null));
+
+        givenPermission();
+        givenUserDetails();
+        when(businessUnitRepository.findById(BUSINESS_UNIT_ID)).thenReturn(Optional.of(businessUnit));
+        when(tillRepository.getNextTillNumber(BUSINESS_UNIT_ID)).thenReturn(42L);
+        when(createTillMapper.toTillEntity(any(), anyString(), anyString(), any(), any(), any(), any()))
+            .thenReturn(persistedTill);
+        when(tillRepository.save(persistedTill)).thenReturn(persistedTill);
+        when(createTillMapper.toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), any(), any()))
+            .thenReturn(PaymentInEntity.builder().build());
+        when(createTillMapper.toPaymentReceivedFrom(
+            TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+
+        service.createTill(request);
+
+        verify(createTillMapper).toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), eq(null), eq(null));
+        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(persistedTill.getTillId(), 7L, "Test User");
+    }
+
+    @Test
+    void createTill_rejectsSuspensePaymentWithUnidentifiedReason() {
+        final TillsCreateRequest request = request(
+            suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.UNIDENTIFIED_AMOUNT),
+            payment(TillsCreatePaymentDetails.DestinationTypeEnum.SUSPENSE, null));
 
         givenPermission();
 
         assertThatThrownBy(() -> service.createTill(request))
             .isInstanceOf(ResponseStatusException.class)
-            .hasMessageContaining("Only fines payments are supported");
+            .hasMessageContaining("Only suspense payments with reason OF, FA or MS are supported");
 
         verifyNoPersistence();
     }
@@ -284,6 +313,14 @@ class CreateTillServiceTest {
                 .allocationType("FULL")
                 .additionalInformation(TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)
                 .build())
+            .build();
+    }
+
+    private static TillsCreateAdditionalInformation suspenseAdditionalInformation(
+        TillsCreateAdditionalInformation.SuspenseReasonCodeEnum suspenseReasonCode) {
+        return TillsCreateAdditionalInformation.builder()
+            .payerType(TillsCreatePayerType.INDIVIDUAL)
+            .suspenseReasonCode(suspenseReasonCode)
             .build();
     }
 
