@@ -15,7 +15,7 @@ import lombok.extern.jackson.Jacksonized;
 @Jacksonized
 public class LegacyGetMinorCreditorAccountRequest {
 
-    @JsonProperty("account_id")
-    @XmlElement(name = "account_id", required = true)
+    @JsonProperty("creditor_account_id")
+    @XmlElement(name = "creditor_account_id", required = true)
     private String accountId;
 }
