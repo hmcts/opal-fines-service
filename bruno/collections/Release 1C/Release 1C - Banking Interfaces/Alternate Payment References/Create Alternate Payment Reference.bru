@@ -1,0 +1,54 @@
+meta {
+  name: Create Alternate Payment Reference
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_id}}/alternate-payment-references
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+  Accept: application/json
+}
+
+body:json {
+  {
+    "apr_text": "{{alternatePaymentReference_text}}"
+  }
+}
+
+script:pre-request {
+  const id = bru.getEnvVar("defendantAccount_id");
+  const baseUrl = bru.getEnvVar("baseURL");
+  const token = bru.getVar("BEARER_TOKEN") || bru.getEnvVar("BEARER_TOKEN");
+  const response = await bru.sendRequest({
+    method: "GET",
+    url: `${baseUrl}/defendant-accounts/${id}/header-summary`,
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  if (response.status !== 200) {
+    throw new Error(`Could not retrieve the defendant account version: HTTP ${response.status}`);
+  }
+  const etag = response.headers?.etag || response.headers?.ETag || response.getHeader?.("ETag");
+  if (!etag) {
+    throw new Error("The defendant account response did not include an ETag");
+  }
+  req.setHeader("If-Match", etag);
+}
+
+script:post-response {
+  const body = typeof res.body === "string" ? JSON.parse(res.body) : res.body;
+  if (body?.alternate_payment_reference_id != null) {
+    bru.setEnvVar("alternatePaymentReference_id", String(body.alternate_payment_reference_id));
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
