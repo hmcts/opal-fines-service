@@ -78,6 +78,20 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-11027")
     @JiraEpic("PO-10769")
+    void getResultById_returnsNotFoundForUnknownId() throws Exception {
+        // Given
+        String unknownId = "NOPE99";
+
+        // When / Then
+        mockMvc.perform(get("/results/{id}", unknownId))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"));
+    }
+
+    @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
     void getResults_readsAndFiltersOpalTable() throws Exception {
         mockMvc.perform(get("/results").param("result_ids", "OPLIT1")
                 .param("active", "true").param("manual_enforcement_only", "true"))
