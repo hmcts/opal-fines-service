@@ -130,18 +130,18 @@ class InterfaceJobProcessedFileSummaryServiceTest {
     }
 
     @Test
-    void completedSummaryWithoutTillRemainsAvailable() {
+    @DisplayName("PO-11406 rejects a completed summary without a till before reading or logging messages")
+    void completedSummaryWithoutTillIsRejectedBeforeMessagesOrPdpl() {
         stubJob(InterfaceJobStatus.COMPLETED);
-        InterfaceJobProcessedFileSummaryEntity summary = stubViewWithDetails();
+        InterfaceJobProcessedFileSummaryEntity summary = stubView();
         when(summary.getTillId()).thenReturn(null);
-        stubUserWithPermission();
-        when(processedFileSummaryMapper.toResponse(eq(summary), eq("Luton"), any()))
-            .thenReturn(new InterfaceJobsProcessedFileSummaryResponse().fileName("payments.dat"));
+        stubPermission();
 
-        assertEquals("payments.dat", service.getProcessedFileSummary(JOB_ID).getFileName());
+        assertThrows(EntityNotFoundException.class, () -> service.getProcessedFileSummary(JOB_ID));
 
-        verifyNoInteractions(tillRepository);
-        verify(pdplLoggingService).logView(userState, List.of());
+        verify(userStateService, never()).getUserStateFromSecurityContext();
+        verifyNoInteractions(tillRepository, messageRepository, interfaceMessageMapper,
+            processedFileSummaryMapper, pdplLoggingService);
     }
 
     @Test
@@ -156,6 +156,18 @@ class InterfaceJobProcessedFileSummaryServiceTest {
 
         verifyNoInteractions(summaryViewRepository, tillRepository);
         verify(pdplLoggingService).logView(userState, List.of());
+    }
+
+    @Test
+    void ignoredFileWithAllocatedTillIsRejectedBeforeMessagesOrPdpl() {
+        InterfaceFileEntity file = stubIgnoredFile(TillStatusEnum.Allocated);
+        when(tillRepository.findById(TILL_ID)).thenReturn(Optional.of(file.getTillEntities().getFirst()));
+        stubPermission();
+
+        assertThrows(EntityNotFoundException.class, () -> service.getProcessedFileSummary(JOB_ID));
+
+        verify(userStateService, never()).getUserStateFromSecurityContext();
+        verifyNoInteractions(messageRepository, interfaceMessageMapper, processedFileSummaryMapper, pdplLoggingService);
     }
 
     @Test
@@ -186,7 +198,7 @@ class InterfaceJobProcessedFileSummaryServiceTest {
     void groupsCompletedViewMessages() {
         stubJob(InterfaceJobStatus.COMPLETED);
         final InterfaceJobProcessedFileSummaryEntity summary = stubViewWithDetails();
-        when(summary.getTillId()).thenReturn(null);
+        stubReferencedTill(summary, TillStatusEnum.Created);
         stubUserWithPermission();
         stubMessages();
 
@@ -209,33 +221,6 @@ class InterfaceJobProcessedFileSummaryServiceTest {
         assertMessageGroups();
         verifyNoInteractions(summaryViewRepository, tillRepository);
         verify(pdplLoggingService).logView(userState, List.of(1L, 2L, 3L, 4L));
-    }
-
-    @Test
-    void missingViewBusinessUnitNameFallsBackToJob() {
-        stubJob(InterfaceJobStatus.COMPLETED);
-        InterfaceJobProcessedFileSummaryEntity summary = stubView();
-        when(summary.getInterfaceFileId()).thenReturn(FILE_ID);
-        when(summary.getTillId()).thenReturn(null);
-        stubUserWithPermission();
-
-        service.getProcessedFileSummary(JOB_ID);
-
-        verify(processedFileSummaryMapper).toResponse(eq(summary), eq("Luton"), any());
-        verifyNoInteractions(tillRepository);
-    }
-
-    @Test
-    void ignoredFileUsesTillBusinessUnitNameWhenPresent() {
-        InterfaceFileEntity file = stubIgnoredFile(TillStatusEnum.Created);
-        file.getTillEntities().getFirst().setBusinessUnit(BusinessUnitEntity.builder()
-            .businessUnitId(BUSINESS_UNIT_ID).businessUnitName("Till business unit").build());
-        when(tillRepository.findById(TILL_ID)).thenReturn(Optional.of(file.getTillEntities().getFirst()));
-        stubUserWithPermission();
-
-        service.getProcessedFileSummary(JOB_ID);
-
-        verify(processedFileSummaryMapper).toResponse(eq(file), eq("Till business unit"), eq(0L), any());
     }
 
     @Test

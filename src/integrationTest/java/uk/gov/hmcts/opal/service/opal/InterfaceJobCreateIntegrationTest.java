@@ -23,12 +23,15 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.entity.InterfaceFileEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
+import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.entity.TillStatusEnum;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateItem;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequest;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponse;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsFileSource;
 import uk.gov.hmcts.opal.repository.InterfaceFileRepository;
 import uk.gov.hmcts.opal.repository.InterfaceJobRepository;
+import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -45,17 +48,26 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
     private static final Short BUSINESS_UNIT_ID = 2577;
     private static final Short MISSING_BUSINESS_UNIT_ID = 9999;
 
-    @Autowired
-    private InterfaceJobService interfaceJobService;
+    private final InterfaceJobService interfaceJobService;
 
-    @Autowired
-    private InterfaceJobRepository interfaceJobRepository;
+    private final InterfaceJobRepository interfaceJobRepository;
 
-    @Autowired
-    private InterfaceFileRepository interfaceFileRepository;
+    private final InterfaceFileRepository interfaceFileRepository;
+
+    private final TillRepository tillRepository;
 
     @MockitoBean
     private UserStateService userStateService;
+
+    @Autowired
+    public InterfaceJobCreateIntegrationTest(InterfaceJobRepository interfaceJobRepository,
+        InterfaceFileRepository interfaceFileRepository, InterfaceJobService interfaceJobService,
+        TillRepository tillRepository) {
+        this.interfaceJobRepository = interfaceJobRepository;
+        this.interfaceFileRepository = interfaceFileRepository;
+        this.interfaceJobService = interfaceJobService;
+        this.tillRepository = tillRepository;
+    }
 
     @Test
     @JiraStory("PO-2577")
@@ -96,6 +108,17 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
                 .build());
         Long interfaceJobId = response.getInterfaceJobs().getFirst().getInterfaceJobId();
         InterfaceJobEntity interfaceJob = interfaceJobRepository.findById(interfaceJobId).orElseThrow();
+        InterfaceFileEntity interfaceFile = fileFor(interfaceJobId);
+        LocalDateTime completedAt = interfaceJob.getCreatedDateTime().plusMinutes(1);
+        tillRepository.saveAndFlush(TillEntity.builder()
+            .businessUnit(interfaceJob.getBusinessUnit())
+            .tillNumber((short) 1)
+            .ownedBy("interface-jobs")
+            .status(TillStatusEnum.Created)
+            .interfaceFile(interfaceFile)
+            .autoPayment(true)
+            .createdDate(completedAt)
+            .build());
         interfaceJob.setStatus(InterfaceJobStatus.COMPLETED);
         interfaceJobRepository.save(interfaceJob);
 

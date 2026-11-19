@@ -63,16 +63,17 @@ public class InterfaceJobProcessedFileSummaryService {
 
         InterfaceJobProcessedFileSummaryEntity summary = findProcessedFileSummary(interfaceJobId);
         checkPermission(getBusinessUnitId(interfaceJob));
+        if (summary.getTillId() == null) {
+            throw new EntityNotFoundException("Till not found for completed interface job id: " + interfaceJobId);
+        }
         checkTillStatus(summary.getTillId());
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         List<InterfaceMessageEntity> messages = interfaceMessageRepository
             .findAllByInterfaceFile_InterfaceFileIdOrderByMessageTextAscInterfaceMessageIdAsc(
                 summary.getInterfaceFileId());
-        String businessUnitName = summary.getBusinessUnitName() == null
-            ? interfaceJob.getBusinessUnit().getBusinessUnitName() : summary.getBusinessUnitName();
         InterfaceJobsProcessedFileSummaryResponse response = processedFileSummaryMapper.toResponse(
-            summary, businessUnitName, getMessageGroups(messages));
+            summary, summary.getBusinessUnitName(), getMessageGroups(messages));
 
         pdplLoggingService.logView(userState, extractInterfaceMessageIds(messages));
 
@@ -82,8 +83,9 @@ public class InterfaceJobProcessedFileSummaryService {
     private InterfaceJobsProcessedFileSummaryResponse getIgnoredFileSummary(InterfaceJobEntity interfaceJob) {
         InterfaceFileEntity file = findIgnoredFile(interfaceJob);
         checkPermission(getBusinessUnitId(interfaceJob));
-        Long tillId = file.getTillEntities().isEmpty() ? null : file.getTillEntities().getFirst().getTillId();
-        checkTillStatus(tillId);
+        if (!file.getTillEntities().isEmpty()) {
+            checkTillStatus(file.getTillEntities().getFirst().getTillId());
+        }
 
         UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
         List<InterfaceMessageEntity> messages = interfaceMessageRepository
@@ -97,7 +99,7 @@ public class InterfaceJobProcessedFileSummaryService {
                 || "Warning".equals(message.getMessageType()))
             .count();
         InterfaceJobsProcessedFileSummaryResponse response = processedFileSummaryMapper.toResponse(file,
-            resolveBusinessUnitName(file, interfaceJob), totalErrors, messageGroups);
+            interfaceJob.getBusinessUnit().getBusinessUnitName(), totalErrors, messageGroups);
 
         pdplLoggingService.logView(userState, interfaceMessageIds);
 
@@ -153,9 +155,6 @@ public class InterfaceJobProcessedFileSummaryService {
     }
 
     private void checkTillStatus(Long tillId) {
-        if (tillId == null) {
-            return;
-        }
         TillEntity till = tillRepository.findById(tillId)
             .orElseThrow(() -> new EntityNotFoundException("Till not found for processed file summary: " + tillId));
         if (till.getStatus() == TillStatusEnum.Allocated) {
@@ -169,18 +168,6 @@ public class InterfaceJobProcessedFileSummaryService {
         }
 
         return interfaceJob.getBusinessUnit().getBusinessUnitId();
-    }
-
-    private String resolveBusinessUnitName(InterfaceFileEntity file, InterfaceJobEntity interfaceJob) {
-
-        if (!file.getTillEntities().isEmpty()) {
-            TillEntity till = file.getTillEntities().getFirst();
-            if (till.getBusinessUnit() != null && till.getBusinessUnit().getBusinessUnitName() != null) {
-                return till.getBusinessUnit().getBusinessUnitName();
-            }
-        }
-
-        return interfaceJob.getBusinessUnit() == null ? null : interfaceJob.getBusinessUnit().getBusinessUnitName();
     }
 
     private List<InterfaceJobsMessageGroup> getMessageGroups(List<InterfaceMessageEntity> messages) {
