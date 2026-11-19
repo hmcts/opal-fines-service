@@ -12,21 +12,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
-import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.controllers.shared.AbstractRelease1bDisabledIntegrationTest;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
-@TestPropertySource(properties = {
-    "launchdarkly.default-flag-values.release-1a=true",
-    "launchdarkly.default-flag-values.release-1b=false",
-    "launchdarkly.enabled=false"
-})
 @DisplayName("ResultController release-1b disabled Integration Test")
 @Tag("ExtendedTest")
-class ResultR1bDisabledTest extends AbstractIntegrationTest {
+class ResultR1bDisabledTest extends AbstractRelease1bDisabledIntegrationTest {
 
     @Test
     @DisplayName("GET /results remains available without filtering when release-1b is disabled")

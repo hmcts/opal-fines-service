@@ -96,8 +96,19 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
             .put("result_id", data.get("result_id"))
             .put("enforcement_result_responses", resultResponses);
 
+        return addEnforcementToCreatedDefendantAccount(data.get("business_unit_id"), requestBody);
+    }
+
+    /**
+     * Submits a prepared enforcement fixture, including result-specific responses and optional payment terms.
+     *
+     * @param businessUnitId business unit owning the created account.
+     * @param requestBody complete add-enforcement request.
+     * @return response from the add-enforcement endpoint.
+     */
+    public Response addEnforcementToCreatedDefendantAccount(String businessUnitId, JSONObject requestBody) {
         return authorisedJsonRequest()
-            .header("Business-Unit-Id", data.get("business_unit_id"))
+            .header("Business-Unit-Id", businessUnitId)
             .header("If-Match", scenarioContext().getDefendantAccountEtag())
             .body(requestBody.toString())
             .when()
@@ -108,6 +119,24 @@ public class DefendantAccountEnforcementsActions extends BaseStepDef {
         return new JSONObject()
             .put("parameter_name", parameterName)
             .put("response", response);
+    }
+
+    /**
+     * Removes the current enforcement hold using the version captured by the status request.
+     *
+     * @param businessUnitId business unit owning the created account.
+     * @param reason reason to record in the account's activity notes.
+     * @return response from the remove-enforcement-hold endpoint.
+     * @throws JSONException if the request body cannot be assembled.
+     */
+    public Response removeCreatedDefendantAccountEnforcementHold(String businessUnitId, String reason)
+        throws JSONException {
+        return authorisedJsonRequest()
+            .header("Business-Unit-Id", businessUnitId)
+            .header("If-Match", scenarioContext().getDefendantAccountEtag())
+            .body(new JSONObject().put("reason", reason).toString())
+            .when()
+            .patch(getTestUrl() + "/defendant-accounts/" + createdDefendantAccountIdOrFail() + "/remove-enf-hold");
     }
 
     /**

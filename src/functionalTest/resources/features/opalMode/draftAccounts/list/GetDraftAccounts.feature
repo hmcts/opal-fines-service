@@ -146,18 +146,11 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5661
-  Scenario: Invalid token is blocked and no PDPO logs emitted
-    Given a draft account exists with the following details
-      | source            | MAC                                                    |
-      | business_unit_id  | 73                                                     |
-      | account           | draftAccounts/accountJson/parentOrGuardianAccount.json |
-      | account_type      | Fine                                                   |
-      | account_status    | Submitted                                              |
-      | submitted_by      | BUUID                                                  |
-      | submitted_by_name | Laura Clerk                                            |
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5661
+  Scenario: Invalid token is blocked when listing draft accounts
     When I attempt to get draft accounts with an invalid token
     Then the request is rejected as unauthorized
 
-  # confirm no PDPO logs were emitted for this attempted GET (no side-effects)
-    Then no PDPO logs exist for the created draft account and business_identifier "Get Draft Account - Defendant"
+    # DraftAccountListSecurityIT verifies no PDPO publisher calls for rejected requests.
+    # A valid list request elsewhere can log any draft on a shared environment, so even a
+    # newly created draft ID cannot isolate this request in the logging search API.
