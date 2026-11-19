@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.MANAGE_SUSPENSE_ITEMS;
@@ -17,6 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -67,7 +70,9 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-9048")
     void createsSuspenseNoteWithManageSuspenseItemsPermissionAlone() throws Exception {
         String noteId = addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID)
-            .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+            .andExpect(status().isCreated())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andReturn().getResponse().getContentAsString();
 
         NoteEntity note = noteRepository.findById(Long.valueOf(noteId)).orElseThrow();
         assertThat(note.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.SUSPENSE_ITEMS);
@@ -97,7 +102,7 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, permission);
 
-        addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID).andExpect(status().isForbidden());
+        assertForbidden(addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID));
 
         assertNoNoteCreated();
     }
@@ -109,7 +114,7 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions((short) 78, MANAGE_SUSPENSE_ITEMS);
 
-        addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID).andExpect(status().isForbidden());
+        assertForbidden(addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID));
 
         assertNoNoteCreated();
     }
@@ -120,7 +125,7 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
     void rejectsItemOutsideProvidedBusinessUnit() throws Exception {
         userStateStub.addPermissions((short) 78, MANAGE_SUSPENSE_ITEMS);
 
-        addNote("/notes", ITEM_ID, "3", (short) 78).andExpect(status().isForbidden());
+        assertForbidden(addNote("/notes", ITEM_ID, "3", (short) 78));
 
         assertNoNoteCreated();
     }
@@ -133,7 +138,12 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
             RELEASE_1C_SUSPENSE, RELEASE_1C_SUSPENSE_ENABLED_PROPERTY)).thenReturn(false);
 
         addNote("/notes", ITEM_ID, "3", BUSINESS_UNIT_ID).andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"));
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/feature-disabled"))
+            .andExpect(jsonPath("$.title").value("Feature Disabled"))
+            .andExpect(jsonPath("$.detail").value("The requested feature is not currently available"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
 
         assertNoNoteCreated();
     }
@@ -142,7 +152,12 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-10403")
     @JiraEpic("PO-9048")
     void rejectsStaleVersionWithoutSavingNote() throws Exception {
-        addNote("/notes", ITEM_ID, "2", BUSINESS_UNIT_ID).andExpect(status().isConflict());
+        addNote("/notes", ITEM_ID, "2", BUSINESS_UNIT_ID)
+            .andExpect(status().isConflict())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/optimistic-locking"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.CONFLICT.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
 
         assertNoNoteCreated();
     }
@@ -151,7 +166,14 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-10403")
     @JiraEpic("PO-9048")
     void returnsNotFoundForMissingSuspenseItem() throws Exception {
-        addNote("/notes", 99000000104039L, "3", BUSINESS_UNIT_ID).andExpect(status().isNotFound());
+        addNote("/notes", 99000000104039L, "3", BUSINESS_UNIT_ID)
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.NOT_FOUND.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
 
         assertNoNoteCreated();
     }
@@ -165,15 +187,85 @@ class SuspenseNotesIntegrationTest extends AbstractIntegrationTest {
         assertNoNoteCreated();
     }
 
+    @Test
+    @JiraStory("PO-10403")
+    @JiraEpic("PO-9048")
+    void rejectsSuspenseNoteWhenIfMatchHeaderIsMissing() throws Exception {
+        AddNoteRequestNotes request = suspenseNoteRequest(ITEM_ID);
+
+        mockMvc.perform(post("/notes").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header("Business-Unit-Id", BUSINESS_UNIT_ID)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
+            .andExpect(jsonPath("$.title").value("Missing Required Header"))
+            .andExpect(jsonPath("$.detail").value("Required request header \"If-Match\" is missing"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertNoNoteCreated();
+    }
+
+    @Test
+    @JiraStory("PO-10403")
+    @JiraEpic("PO-9048")
+    void rejectsSuspenseNoteWhenBusinessUnitIdHeaderIsMissing() throws Exception {
+        AddNoteRequestNotes request = suspenseNoteRequest(ITEM_ID);
+
+        mockMvc.perform(post("/notes").contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request))
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/missing-header"))
+            .andExpect(jsonPath("$.title").value("Missing Required Header"))
+            .andExpect(jsonPath("$.detail").value("Required request header \"Business-Unit-Id\" is missing"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertNoNoteCreated();
+    }
+
+    @Test
+    @JiraStory("PO-10403")
+    @JiraEpic("PO-9048")
+    void rejectsSuspenseNoteWhenActivityNoteIsMissing() throws Exception {
+        mockMvc.perform(post("/notes").contentType(MediaType.APPLICATION_JSON)
+                .content("{}")
+                .header(HttpHeaders.IF_MATCH, "\"3\"")
+                .header("Business-Unit-Id", BUSINESS_UNIT_ID)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
+
+        assertNoNoteCreated();
+    }
+
     private ResultActions addNote(String path, long itemId, String version, short businessUnitId) throws Exception {
-        AddNoteRequestNotes request = AddNoteRequestNotes.builder().activityNote(NoteCommon.builder()
-            .recordType(NoteCommon.RecordTypeEnum.SUSPENSE_ITEMS).recordId(String.valueOf(itemId))
-            .noteType(NoteCommon.NoteTypeEnum.AA).noteText("Suspense item note").build()).build();
+        AddNoteRequestNotes request = suspenseNoteRequest(itemId);
 
         return mockMvc.perform(post(path).contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(request)).header("If-Match", "\"" + version + "\"")
             .header("Business-Unit-Id", businessUnitId)
             .with(userStateStub.getAuthenticaitonRequestPostProcessor()));
+    }
+
+    private AddNoteRequestNotes suspenseNoteRequest(long itemId) {
+        return AddNoteRequestNotes.builder().activityNote(NoteCommon.builder()
+            .recordType(NoteCommon.RecordTypeEnum.SUSPENSE_ITEMS).recordId(String.valueOf(itemId))
+            .noteType(NoteCommon.NoteTypeEnum.AA).noteText("Suspense item note").build()).build();
+    }
+
+    private void assertForbidden(ResultActions result) throws Exception {
+        result.andExpect(status().isForbidden())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/forbidden"))
+            .andExpect(jsonPath("$.title").value("Forbidden"))
+            .andExpect(jsonPath("$.status").value(HttpStatus.FORBIDDEN.value()))
+            .andExpect(jsonPath("$.retriable").value(false));
     }
 
     private void assertNoNoteCreated() {
