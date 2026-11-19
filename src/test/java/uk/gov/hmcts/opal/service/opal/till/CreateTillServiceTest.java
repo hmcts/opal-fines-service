@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.hmcts.opal.service.opal.till.TillRequestTestData.payment;
 import static uk.gov.hmcts.opal.service.opal.till.TillRequestTestData.request;
 
+import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -36,6 +37,7 @@ import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.CourtFeeEntity;
 import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
@@ -46,6 +48,7 @@ import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
 import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
 import uk.gov.hmcts.opal.mapper.till.CreateTillMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.CourtFeeRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
@@ -62,6 +65,7 @@ class CreateTillServiceTest {
     @Mock private PreAllocatedCashTillService reportService;
     @Mock private UserStateService userStateService;
     @Mock private CreateTillPayerService payerService;
+    @Mock private CourtFeeRepository courtFeeRepository;
     @Mock private OpalJwtAuthenticationToken authToken;
     @Mock private UserStateV2 userState;
     private MockedStatic<SecurityUtil> securityUtil;
@@ -78,7 +82,8 @@ class CreateTillServiceTest {
         service = new CreateTillService(tillRepository, paymentInRepository, businessUnitRepository, reportService,
             userStateService, Mappers.getMapper(CreateTillMapper.class), objectMapper,
             Clock.fixed(Instant.parse("2026-09-14T10:30:00Z"), ZoneOffset.UTC),
-            defendantAccountRepository, payerService);
+            defendantAccountRepository, payerService,
+            new CreateTillCourtFeeService(courtFeeRepository, Mappers.getMapper(CreateTillMapper.class), objectMapper));
     }
 
     @AfterEach
@@ -91,6 +96,9 @@ class CreateTillServiceTest {
     void persistsScenarioWithCorrectAssociation(String destination, String reason) {
         TillsCreatePaymentIn payment = payment(destination, reason);
         givenContext();
+        if (destination.equals("C")) {
+            givenCourtFee("10.00");
+        }
         if (destination.equals("F")) {
             givenAccount((short) 10);
         } else {
@@ -147,6 +155,9 @@ class CreateTillServiceTest {
     void retainsAllocationMetadata(String destination, String reason) {
         TillsCreatePaymentIn payment = payment(destination, reason);
         payment.getAdditionalInformation().setPaymentReference("reference");
+        if (destination.equals("C")) {
+            givenCourtFee("10.00");
+        }
         if ("UN".equals(reason)) {
             payment.getAdditionalInformation().setSuspenseReasonDetail("Unidentified receipt");
         }
@@ -160,6 +171,30 @@ class CreateTillServiceTest {
         } else {
             assertThat(json).contains("\"suspense_reason_code\":\"UN\"", "Unidentified receipt");
         }
+    }
+
+    @Test
+    void createsTwoCourtFeePaymentsWithOnePayer() {
+        TillsCreatePaymentIn payment = payment("C", null);
+        givenContext();
+        givenCourtFee("5.00");
+        when(payerService.createPayerAccount(payment.getAdditionalInformation(), businessUnit))
+            .thenReturn(MiscellaneousAccountEntity.builder().miscellaneousAccountId(500L).build());
+
+        service.createTill(request(payment));
+
+        ArgumentCaptor<List<PaymentInEntity>> captured = ArgumentCaptor.captor();
+        verify(paymentInRepository).saveAll(captured.capture());
+        List<PaymentInEntity> payments = captured.getValue();
+        assertThat(payments).hasSize(2).allSatisfy(stored -> {
+            assertThat(stored.getAssociatedRecordType()).isEqualTo(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS);
+            assertThat(stored.getAssociatedRecordId()).isEqualTo("500");
+        });
+        assertThat(payments.get(0).getPaymentAmount()).isEqualByComparingTo("10.00");
+        assertThat(payments.get(1).getPaymentAmount()).isEqualByComparingTo("2.50");
+        assertThat(payments.getFirst().getTillEntity().getTotalAmount()).isEqualByComparingTo("12.50");
+        assertThat(payments.getFirst().getTillEntity().getPaymentsCount()).isEqualTo((short) 2);
+        verify(payerService).createPayerAccount(payment.getAdditionalInformation(), businessUnit);
     }
 
     @Test
@@ -196,6 +231,26 @@ class CreateTillServiceTest {
         verifyNoPersistence();
     }
 
+    @Test
+    void rejectsPaymentCountOverflowAfterCourtFeeSplitting() {
+        final TillsCreatePaymentIn payment = payment("C", null);
+        when(businessUnitRepository.findById((short) 10)).thenReturn(Optional.of(businessUnit));
+        when(userStateService.getUserStateFromSecurityContext()).thenReturn(userState);
+        when(userState.getUserId()).thenReturn(7L);
+        when(userState.getUsername()).thenReturn("Test User");
+        when(tillRepository.getNextTillNumber((short) 10)).thenReturn(42L);
+        givenCourtFee("5.00");
+        when(payerService.createPayerAccount(payment.getAdditionalInformation(), businessUnit))
+            .thenReturn(MiscellaneousAccountEntity.builder().miscellaneousAccountId(500L).build());
+        TillsCreateRequest request = TillsCreateRequest.builder().businessUnitId((short) 10)
+            .paymentsIn(Collections.nCopies(Short.MAX_VALUE / 2 + 1, payment)).build();
+
+        assertThatThrownBy(() -> service.createTill(request)).isInstanceOf(ResponseStatusException.class)
+            .hasMessageContaining("cannot contain more than");
+        verify(tillRepository, never()).save(any());
+        verifyNoInteractions(paymentInRepository, reportService);
+    }
+
     private PaymentInEntity capturedPayment() {
         ArgumentCaptor<List<PaymentInEntity>> payments = ArgumentCaptor.captor();
         verify(paymentInRepository).saveAll(payments.capture());
@@ -213,6 +268,11 @@ class CreateTillServiceTest {
             till.setTillId(123L);
             return till;
         });
+    }
+
+    private void givenCourtFee(String amount) {
+        when(courtFeeRepository.findByBusinessUnit_BusinessUnitIdAndCourtFeeCode((short) 10, "FEE"))
+            .thenReturn(Optional.of(CourtFeeEntity.builder().amount(new BigDecimal(amount)).build()));
     }
 
     private void givenAccount(short businessUnitId) {

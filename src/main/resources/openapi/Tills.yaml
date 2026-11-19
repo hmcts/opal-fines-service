@@ -14,7 +14,17 @@ paths:
       tags:
         - tills
       summary: Add till
-      description: Create a till containing one or more payments.
+      description: |
+        Create a till containing one or more payments using the coded values returned by Get Mappings.
+        Criminal payments require a defendant account in the submitted business unit. Criminal third-party
+        payments require only third_party_payer_name for the payer; structured payer information is prohibited.
+        Court Fee and identified Suspense payments (OF, FA, MS) require a payer type and matching name structure.
+        Unidentified Suspense (UN) permits an absent payer. Payer addresses are optional in every permitted shape.
+        Credit Transfer requires transfer_source; payment_reference is optional for every method.
+        Payer identity is persisted in a Party through a Miscellaneous Account, separately from allocation metadata.
+        A Court Fee payment above the fee amount multiplied by number_of_items creates two Payment In records:
+        one for the fee and one for the excess. Both reference the same Miscellaneous Account and Party.
+        The till total equals the submitted amounts; its payment count includes both records.
       operationId: post_tills
       security:
         - permissions:
@@ -294,6 +304,7 @@ components:
       properties:
         defendant_account_id:
           $ref: './types.yaml#/components/schemas/BigInt'
+          description: Required only for F; must identify an existing defendant account in the submitted business unit.
         payment_details:
           $ref: '#/components/schemas/TillsCreatePaymentDetails'
         additional_information:
@@ -401,6 +412,10 @@ components:
           type: string
           description: Coded allocation category returned by Get Mappings.
     TillsCreateAdditionalInformation:
+      description: |
+        Per-payment allocation metadata and conditional payer input. Only payment_received_from is globally required.
+        Payer type, name and address are mapped to the durable Party and excluded from Payment In additional_information.
+        Court Fee and Suspense fields remain available to allocation.
       type: object
       additionalProperties: false
       required: [payment_received_from]
@@ -408,8 +423,14 @@ components:
         payment_received_from:
           type: string
           enum: [D, A, T]
+          description: |
+            F permits D or T; C permits A or T; S permits D, A or T.
+            Retained in Payment In metadata and copied to structured Suspense Transaction metadata during allocation.
         third_party_payer_name:
           type: string
+          description: |
+            Required for F received from T, without structured payer data. Stored in payments_in.third_party_payer_name
+            and retained in durable Suspense Transaction metadata if allocation creates a Suspense Transaction.
           minLength: 1
           maxLength: 30
         court_fee_code:
@@ -422,9 +443,15 @@ components:
           minimum: 1
         payment_reference:
           type: string
+          description: |
+            Optional for every method. Supplied values are retained for allocation and copied to structured
+            Suspense Transaction metadata when applicable.
         transfer_source:
           type: string
           enum: [NATWEST, ALLPAY, BARCLAYCARD, BTECKOH, OTHER, DWP, CDER, JACOBS, MARSTON]
+          description: |
+            Required for CT and optional for other methods. Supplied values are retained for allocation and copied
+            to structured Suspense Transaction metadata when applicable.
         suspense_reason_code:
           type: string
           enum: [OF, FA, MS, UN]
@@ -435,8 +462,14 @@ components:
           minLength: 1
         payer_type:
           $ref: '#/components/schemas/TillsCreatePayerType'
+          description: |
+            Required for C and S/OF, FA, MS; optional for S/UN; prohibited for F.
+            Used to populate parties.organisation through the associated Miscellaneous Account.
         payer_details:
           $ref: '#/components/schemas/TillsCreatePayerDetails'
+          description: |
+            Required whenever payer_type is supplied; must contain only the matching name structure.
+            Name fields and addresses remain optional. Persisted in Party, excluded from Payment In metadata.
       allOf:
         - if:
             properties:

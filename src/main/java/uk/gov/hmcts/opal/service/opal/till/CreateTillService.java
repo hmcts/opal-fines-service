@@ -55,20 +55,27 @@ public class CreateTillService {
     private final Clock clock;
     private final DefendantAccountRepository defendantAccountRepository;
     private final CreateTillPayerService createTillPayerService;
+    private final CreateTillCourtFeeService courtFeeService;
 
     @Transactional
     public void createTill(TillsCreateRequest request) {
         Short businessUnitId = request.getBusinessUnitId();
         checkPermission(businessUnitId);
         List<TillsCreatePaymentIn> requestPayments = request.getPaymentsIn();
-        Short paymentsCount = validatePaymentCount(requestPayments);
+        validatePaymentCount(requestPayments.size());
         CreateTillValidator.validate(request);
         validateDefendantAccounts(requestPayments, businessUnitId);
 
         TillCreationContext context = resolveCreationContext(businessUnitId);
-        TillEntity till = saveTill(requestPayments, paymentsCount, context);
-
-        savePayments(requestPayments, till, context.createdDate());
+        TillEntity till = buildTill(requestPayments, context);
+        List<PaymentInEntity> payments = requestPayments.stream()
+            .flatMap(payment -> courtFeeService.split(
+                toPaymentIn(payment, till, context.createdDate()), payment.getAdditionalInformation(), businessUnitId)
+                .stream())
+            .toList();
+        till.setPaymentsCount(validatePaymentCount(payments.size()));
+        tillRepository.save(till);
+        paymentInRepository.saveAll(payments);
         createPreAllocatedReport(till, context.userState());
     }
 
@@ -87,23 +94,15 @@ public class CreateTillService {
         return new TillCreationContext(businessUnit, userState, LocalDateTime.now(clock));
     }
 
-    private TillEntity saveTill(List<TillsCreatePaymentIn> requestPayments, Short paymentsCount,
-                                TillCreationContext context) {
-        return tillRepository.save(createTillMapper.toTillEntity(
+    private TillEntity buildTill(List<TillsCreatePaymentIn> requestPayments, TillCreationContext context) {
+        return createTillMapper.toTillEntity(
             context.businessUnit(),
             context.userState().getUserId().toString(),
             context.userState().getUsername(),
             nextTillNumber(context.businessUnit().getBusinessUnitId()),
             calculateTotalPaymentAmount(requestPayments),
-            paymentsCount,
-            context.createdDate()));
-    }
-
-    private void savePayments(List<TillsCreatePaymentIn> requestPayments, TillEntity till,
-                              LocalDateTime paymentDate) {
-        paymentInRepository.saveAll(requestPayments.stream()
-            .map(payment -> toPaymentIn(payment, till, paymentDate))
-            .toList());
+            (short) requestPayments.size(),
+            context.createdDate());
     }
 
     private void createPreAllocatedReport(TillEntity till, UserStateV2 userState) {
@@ -164,9 +163,7 @@ public class CreateTillService {
         }
     }
 
-    private static Short validatePaymentCount(List<TillsCreatePaymentIn> requestPayments) {
-        int paymentsCount = requestPayments.size();
-
+    private static Short validatePaymentCount(int paymentsCount) {
         if (paymentsCount > Short.MAX_VALUE) {
             throw badRequest("A till cannot contain more than " + Short.MAX_VALUE + " payments");
         }

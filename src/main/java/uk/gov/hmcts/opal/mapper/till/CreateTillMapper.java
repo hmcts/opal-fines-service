@@ -32,6 +32,9 @@ public interface CreateTillMapper {
     @Mapping(target = "postcode", source = "payer.postcode")
     PartyEntity toParty(TillsCreatePayerDetails payer, TillsCreatePayerType type);
 
+    @Mapping(target = "paymentInId", ignore = true)
+    PaymentInEntity copyPayment(PaymentInEntity payment);
+
     PaymentMethod toPaymentMethod(TillsCreatePaymentDetails.MethodEnum method);
 
     DestinationType toDestinationType(TillsCreatePaymentDetails.DestinationTypeEnum destinationType);

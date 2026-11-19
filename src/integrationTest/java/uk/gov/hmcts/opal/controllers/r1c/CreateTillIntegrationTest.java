@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +48,8 @@ import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @TestPropertySource(properties = "launchdarkly.default-flag-values.release-1c-payment=true")
 @Sql(scripts = "classpath:db/insertData/insert_into_create_till.sql",
@@ -70,6 +73,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     }
 
     @ParameterizedTest
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     @MethodSource("scenarios")
     void persistsScenarioWithoutDuplicatedPayer(String destination, String receivedFrom, String reason, String payer)
         throws Exception {
@@ -83,10 +88,22 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
         PaymentInEntity payment = storedPayments().getFirst();
         TillEntity till = tillRepository.findById(payment.getTillEntity().getTillId()).orElseThrow();
         assertThat(till.getTotalAmount()).isEqualByComparingTo("12.50");
-        assertThat(till.getPaymentsCount()).isEqualTo((short) 1);
+        assertThat(till.getPaymentsCount()).isEqualTo((short) (destination.equals("C") ? 2 : 1));
         assertThat(payment.getDestinationType().name()).isEqualTo(destination);
         ObjectNode metadata = information(request).deepCopy();
         metadata.remove(List.of("payer_type", "payer_details", "third_party_payer_name"));
+        if (destination.equals("C")) {
+            metadata.put("court_fee_overpayment", false);
+            List<PaymentInEntity> payments = storedPayments();
+            assertThat(payments).hasSize(2).allSatisfy(part -> {
+                assertThat(part.getAssociatedRecordType()).isEqualTo(payment.getAssociatedRecordType());
+                assertThat(part.getAssociatedRecordId()).isEqualTo(payment.getAssociatedRecordId());
+            });
+            assertThat(payments.get(0).getPaymentAmount()).isEqualByComparingTo("10.00");
+            assertThat(payments.get(1).getPaymentAmount()).isEqualByComparingTo("2.50");
+            ObjectNode excessMetadata = metadata.deepCopy().put("court_fee_overpayment", true);
+            assertThat(objectMapper.readTree(payments.get(1).getAdditionalInformation())).isEqualTo(excessMetadata);
+        }
         assertThat(objectMapper.readTree(payment.getAdditionalInformation())).isEqualTo(metadata);
         assertThat(payment.getAdditionalInformation())
             .doesNotContain("payer_type", "payer_details", "Smith", "Company");
@@ -114,7 +131,55 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
             Arguments.of("S", "A", "UN", "Individual"), Arguments.of("S", "T", "UN", "Organisation"));
     }
 
+    @ParameterizedTest
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
+    @CsvSource({"7.50,1", "10.00,1", "10.01,2", "12.50,2"})
+    void courtFeeRecordCountMatchesExcess(String amount, int count) throws Exception {
+        ObjectNode request = request("C", "A", null, "Individual");
+        ((ObjectNode) payment(request).path("payment_details")).put("amount", new BigDecimal(amount));
+        postRequest(request).andExpect(status().isCreated());
+        List<PaymentInEntity> payments = storedPayments();
+        assertThat(payments).hasSize(count);
+        assertThat(payments.stream().map(PaymentInEntity::getPaymentAmount).reduce(BigDecimal.ZERO, BigDecimal::add))
+            .isEqualByComparingTo(amount);
+        TillEntity till = tillRepository.findById(payments.getFirst().getTillEntity().getTillId()).orElseThrow();
+        assertThat(till.getTotalAmount()).isEqualByComparingTo(amount);
+        assertThat(till.getPaymentsCount()).isEqualTo((short) count);
+    }
+
     @Test
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
+    void allocatesMultipleCourtFeeSplitsIndependently() throws Exception {
+        ObjectNode request = request("C", "A", null, "Individual");
+        ObjectNode second = payment(request).deepCopy();
+        ((ObjectNode) second.path("additional_information")).put("payment_reference", "second");
+        request.withArray("payments_in").add(second);
+        long partiesBefore = partyRepository.count();
+        long accountsBefore = accountRepository.count();
+        postRequest(request).andExpect(status().isCreated());
+        List<PaymentInEntity> payments = storedPayments();
+        assertThat(payments).hasSize(4);
+        assertThat(payments.get(0).getAssociatedRecordId()).isEqualTo(payments.get(1).getAssociatedRecordId());
+        assertThat(payments.get(2).getAssociatedRecordId()).isEqualTo(payments.get(3).getAssociatedRecordId())
+            .isNotEqualTo(payments.get(0).getAssociatedRecordId());
+        assertThat(partyRepository.count()).isEqualTo(partiesBefore + 2);
+        assertThat(accountRepository.count()).isEqualTo(accountsBefore + 2);
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> jdbcTemplate.update(
+            "CALL p_allocate_till(?, ?, ?, ?::smallint)",
+            payments.getFirst().getTillEntity().getTillId(), "11365", "Test User", 10));
+        List<SuspenseMetadata> first = suspenseMetadata(payments.get(0));
+        List<SuspenseMetadata> next = suspenseMetadata(payments.get(2));
+        assertThat(first).hasSize(2)
+            .allSatisfy(metadata -> assertThat(metadata.information()).contains("reference-123"));
+        assertThat(next).hasSize(2).allSatisfy(metadata -> assertThat(metadata.information()).contains("second"));
+        assertThat(first.getFirst().itemId()).isNotEqualTo(next.getFirst().itemId());
+    }
+
+    @Test
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     void acceptsCreditTransferAndOptionalAddress() throws Exception {
         ObjectNode request = request("C", "A", null, "Individual");
         ((ObjectNode) request.path("payments_in").get(0).path("payment_details")).put("method", "CT");
@@ -133,7 +198,30 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
         });
     }
 
+    @ParameterizedTest
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
+    @CsvSource({"NC,false", "NC,true", "CQ,false", "CQ,true", "PO,false", "PO,true", "CT,true"})
+    void preservesOptionalMetadataForEveryMethod(String method, boolean supplied) throws Exception {
+        ObjectNode request = request("S", "D", "UN", null);
+        ((ObjectNode) payment(request).path("payment_details")).put("method", method);
+        ObjectNode information = information(request);
+        if (supplied) {
+            information.put("payment_reference", "").put("suspense_reason_detail", "Unidentified receipt");
+        } else {
+            information.remove(List.of("transfer_source", "payment_reference"));
+        }
+        assertJsonRequestMatchesBundledSpec(request, "/tills", "POST", "application/json");
+        postRequest(request).andExpect(status().isCreated());
+        PaymentInEntity payment = storedPayments().getFirst();
+        assertThat(objectMapper.readTree(payment.getAdditionalInformation())).isEqualTo(information);
+        assertThat(payment.getAssociatedRecordType()).isNull();
+        assertThat(payment.getAssociatedRecordId()).isNull();
+    }
+
     @Test
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     void preservesDistinctPerPaymentMetadata() throws Exception {
         ObjectNode request = request("F", "D", null, null);
         ObjectNode second = (ObjectNode) request("S", "A", "UN", null).path("payments_in").get(0);
@@ -147,6 +235,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     }
 
     @ParameterizedTest
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     @MethodSource("invalidRequests")
     void rejectsInvalidRequestWithoutPartialData(ObjectNode request) throws Exception {
         long[] before = counts();
@@ -177,6 +267,13 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
             }),
             changed("S", "D", "UN", null, r -> information(r).remove("suspense_note")),
             changed("C", "A", null, "Individual", r -> information(r).remove("court_fee_code")),
+            changed("C", "A", null, "Individual", r -> information(r).put("court_fee_code", "UNKNOWN")),
+            changed("C", "A", null, "Individual", r -> information(r).put("court_fee_overpayment", true)),
+            changed("C", "A", null, "Individual", r -> {
+                ObjectNode invalid = payment(r).deepCopy();
+                ((ObjectNode) invalid.path("additional_information")).put("court_fee_code", "UNKNOWN");
+                r.withArray("payments_in").add(invalid);
+            }),
             changed("C", "A", null, "Individual", r -> information(r).remove("number_of_items")),
             changed("C", "A", null, "Individual", r -> information(r).put("number_of_items", 0)),
             changed("S", "D", "OF", "Individual", r -> information(r).put("suspense_reason_detail", "bad")),
@@ -205,6 +302,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     }
 
     @Test
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     void rollsBackDurablePayerWhenReportCreationFails() throws Exception {
         long[] before = counts();
         when(reportService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
@@ -214,6 +313,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     }
 
     @Test
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     void requiresTokenAndBusinessUnitPermission() throws Exception {
         mockMvc.perform(post("/tills").contentType(MediaType.APPLICATION_JSON)
                 .content(request("F", "D", null, null).toString())).andExpect(status().isUnauthorized());
@@ -222,6 +323,8 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     }
 
     @ParameterizedTest
+    @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     @MethodSource("allocationScenarios")
     void allocationRetainsMetadataAfterPaymentDeletion(String destination, String receivedFrom, String reason,
                                                        String payer, String amount, int transactions)
@@ -249,7 +352,16 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
                 assertThat(objectMapper.readTree(json).path("suspense_reason_code").asString()).isEqualTo(reason);
             }
         });
-        paymentInRepository.deleteById(payment.getPaymentInId());
+        if (destination.equals("C")) {
+            assertThat(metadata).extracting(SuspenseMetadata::type)
+                .containsExactlyElementsOf(transactions == 2 ? List.of("CF", "OC") : List.of("CF"));
+            assertThat(metadata.getFirst().amount()).isEqualByComparingTo("10.00");
+            if (transactions == 2) {
+                assertThat(metadata.get(1).amount()).isEqualByComparingTo("2.50");
+                assertThat(metadata.get(1).itemId()).isEqualTo(metadata.getFirst().itemId());
+            }
+        }
+        paymentInRepository.deleteAll(storedPayments());
         assertThat(suspenseMetadata(payment)).containsExactlyElementsOf(metadata);
         if (payer != null) {
             assertParty(payment, payer);
@@ -268,16 +380,19 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
 
     private List<SuspenseMetadata> suspenseMetadata(PaymentInEntity payment) {
         return jdbcTemplate.query("""
-            SELECT additional_information::text, text FROM suspense_transactions
+            SELECT additional_information::text, text, amount, transaction_type::text, suspense_item_id
+              FROM suspense_transactions
              WHERE associated_record_type::text IS NOT DISTINCT FROM ? AND associated_record_id = ?
              ORDER BY suspense_transaction_id
-            """, (row, index) -> new SuspenseMetadata(row.getString(1), row.getString(2)),
+            """, (row, index) -> new SuspenseMetadata(row.getString(1), row.getString(2),
+                row.getBigDecimal(3), row.getString(4), row.getLong(5)),
             payment.getAssociatedRecordType() == null ? null : payment.getAssociatedRecordType().getLabel(),
             payment.getAssociatedRecordId() == null ? payment.getPaymentInId().toString()
                 : payment.getAssociatedRecordId());
     }
 
-    private record SuspenseMetadata(String information, String legacyText) {
+    private record SuspenseMetadata(String information, String legacyText, BigDecimal amount,
+                                     String type, Long itemId) {
     }
 
     private void assertParty(PaymentInEntity payment, String payer) {

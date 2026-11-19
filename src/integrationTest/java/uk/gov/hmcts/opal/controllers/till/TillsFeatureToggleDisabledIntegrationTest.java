@@ -22,6 +22,7 @@ class TillsFeatureToggleDisabledIntegrationTest extends AbstractIntegrationTest 
 
     @Test
     @JiraStory("PO-11365")
+    @JiraEpic("PO-2439")
     void rejectsCreationWhenDisabled() throws Exception {
         mockMvc.perform(post("/tills").with(userStateStub.getAuthenticaitonRequestPostProcessor())
                 .contentType(MediaType.APPLICATION_JSON).content("""
