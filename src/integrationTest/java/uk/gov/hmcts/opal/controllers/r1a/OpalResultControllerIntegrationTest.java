@@ -1,13 +1,19 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static org.hamcrest.Matchers.contains;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,14 +44,23 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
             .imposition(true)
             .impositionCategory("Compensation")
             .enforcement(true)
+            .enforcementOverride(true)
+            .generatesHearing(true)
             .resultParameters("[{\"name\":\"example\"}]")
             .manualEnforcement(true)
             .build());
+        resultRepository.saveAllAndFlush(List.of(
+            ResultEntity.builder().resultId("OPLIT2").resultTitle("Inactive result")
+                .resultType(ResultType.RESULT).manualEnforcement(false).build(),
+            ResultEntity.builder().resultId("OPLIT3").resultTitle("Mixed result")
+                .resultType(ResultType.RESULT).active(true).manualEnforcement(false)
+                .generatesHearing(true).enforcementOverride(true).build()
+        ));
     }
 
     @AfterEach
     void deleteResult() {
-        resultRepository.deleteById(RESULT_ID);
+        resultRepository.deleteAllById(List.of(RESULT_ID, "OPLIT2", "OPLIT3"));
     }
 
     @Test
@@ -71,4 +86,50 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].result_id").value("OPLIT1"))
             .andExpect(jsonPath("$.refData[0].result_title").value("Opal mode result"));
     }
+
+    @ParameterizedTest(name = "{0}={1}")
+    @MethodSource("booleanFilterCases")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void getResults_appliesBooleanFilters(String filter, String value, List<String> expectedIds) throws Exception {
+        // Given
+        String ids = "OPLIT1,OPLIT2,OPLIT3";
+
+        // When / Then
+        mockMvc.perform(get("/results").param("result_ids", ids).param(filter, value))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(expectedIds.size()))
+            .andExpect(jsonPath("$.refData[*].result_id", contains(expectedIds.toArray())));
+    }
+
+    private static Stream<Arguments> booleanFilterCases() {
+        return Stream.of(
+            Arguments.of("active", "true", List.of("OPLIT1", "OPLIT3")),
+            Arguments.of("active", "false", List.of("OPLIT2")),
+            Arguments.of("manual_enforcement_only", "true", List.of("OPLIT1")),
+            Arguments.of("manual_enforcement_only", "false", List.of("OPLIT2", "OPLIT3")),
+            Arguments.of("generates_hearing", "true", List.of("OPLIT1", "OPLIT3")),
+            Arguments.of("generates_hearing", "false", List.of("OPLIT2")),
+            Arguments.of("enforcement", "true", List.of("OPLIT1")),
+            Arguments.of("enforcement", "false", List.of("OPLIT2", "OPLIT3")),
+            Arguments.of("enforcement_override", "true", List.of("OPLIT1", "OPLIT3")),
+            Arguments.of("enforcement_override", "false", List.of("OPLIT2"))
+        );
+    }
+
+    @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void getResults_combinesBooleanFilters() throws Exception {
+        // Given
+        String ids = "OPLIT1,OPLIT2,OPLIT3";
+
+        // When / Then
+        mockMvc.perform(get("/results").param("result_ids", ids).param("active", "true")
+                .param("manual_enforcement_only", "false"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.refData[0].result_id").value("OPLIT3"));
+    }
+
 }
