@@ -1,16 +1,21 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -43,8 +48,15 @@ class LegacyProsecutorServiceTest {
         when(prosecutorLegacyRepository.findById((short) 10)).thenReturn(Optional.of(entity));
         when(prosecutorLegacyMapper.toProsecutor(entity)).thenReturn(expected);
 
-        assertEquals(expected, prosecutorService.getProsecutorByKey(10L));
+        assertEquals(expected, prosecutorService.getProsecutorByKey("10"));
         verify(prosecutorLegacyRepository).findById((short) 10);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"001X", "100000"})
+    void getProsecutorByKey_rejectsInvalidLegacyId(String key) {
+        assertThrows(EntityNotFoundException.class, () -> prosecutorService.getProsecutorByKey(key));
+        verifyNoInteractions(prosecutorLegacyRepository);
     }
 
     @SuppressWarnings("unchecked")

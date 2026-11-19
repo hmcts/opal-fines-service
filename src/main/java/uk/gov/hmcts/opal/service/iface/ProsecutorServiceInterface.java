@@ -6,7 +6,7 @@ import uk.gov.hmcts.opal.generated.model.ProsecutorsReferenceDataResponse;
 
 public interface ProsecutorServiceInterface {
 
-    ProsecutorsObject getProsecutorByKey(Long prosecutorKey);
+    ProsecutorsObject getProsecutorByKey(String prosecutorKey);
 
     ProsecutorsReferenceDataResponse getProsecutorsRefData(@Nullable String q);
 }

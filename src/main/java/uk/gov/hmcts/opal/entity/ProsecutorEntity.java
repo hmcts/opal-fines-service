@@ -31,9 +31,9 @@ import lombok.experimental.SuperBuilder;
 public class ProsecutorEntity {
 
     @Id
-    @Column(name = "prosecutor_code", nullable = false)
+    @Column(name = "prosecutor_code", nullable = false, length = 4)
     @JsonProperty("prosecutor_code")
-    private Short prosecutorCode;
+    private String prosecutorCode;
 
     @Column(name = "name", length = 200)
     private String name;

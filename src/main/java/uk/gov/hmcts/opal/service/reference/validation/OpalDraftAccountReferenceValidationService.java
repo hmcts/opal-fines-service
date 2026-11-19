@@ -343,11 +343,10 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     }
 
     private Optional<String> findProsecutorName(Long prosecutorKey) {
-        Short prosecutorCode = toShort(prosecutorKey);
-        if (prosecutorCode == null) {
+        if (prosecutorKey == null) {
             return Optional.empty();
         }
-        return prosecutorRepository.findById(prosecutorCode).map(ProsecutorEntity::getName);
+        return prosecutorRepository.findById(prosecutorKey.toString()).map(ProsecutorEntity::getName);
     }
 
     private DraftAccountType readDraftAccountType(JsonPathUtil.DocContext docContext, List<String> failures) {

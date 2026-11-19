@@ -33,10 +33,10 @@ class ProsecutorServiceProxyTest {
     @Test
     void getProsecutorByKey_usesOpalServiceInOpalMode() {
         ProsecutorsObject expected = ProsecutorsObject.builder().name("Opal").build();
-        when(opalProsecutorService.getProsecutorByKey(10L)).thenReturn(expected);
+        when(opalProsecutorService.getProsecutorByKey("10")).thenReturn(expected);
 
-        assertEquals(expected, prosecutorServiceProxy.getProsecutorByKey(10L));
-        verify(opalProsecutorService).getProsecutorByKey(10L);
+        assertEquals(expected, prosecutorServiceProxy.getProsecutorByKey("10"));
+        verify(opalProsecutorService).getProsecutorByKey("10");
         verifyNoInteractions(legacyProsecutorService);
     }
 
@@ -44,10 +44,10 @@ class ProsecutorServiceProxyTest {
     void getProsecutorByKey_usesLegacyServiceInLegacyMode() {
         when(dynamicConfigService.isLegacyMode()).thenReturn(true);
         ProsecutorsObject expected = ProsecutorsObject.builder().name("Legacy").build();
-        when(legacyProsecutorService.getProsecutorByKey(10L)).thenReturn(expected);
+        when(legacyProsecutorService.getProsecutorByKey("10")).thenReturn(expected);
 
-        assertEquals(expected, prosecutorServiceProxy.getProsecutorByKey(10L));
-        verify(legacyProsecutorService).getProsecutorByKey(10L);
+        assertEquals(expected, prosecutorServiceProxy.getProsecutorByKey("10"));
+        verify(legacyProsecutorService).getProsecutorByKey("10");
         verifyNoInteractions(opalProsecutorService);
     }
 }

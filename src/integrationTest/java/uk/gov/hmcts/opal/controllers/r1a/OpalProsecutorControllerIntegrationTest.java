@@ -16,6 +16,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
@@ -56,7 +58,7 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get(URL_BASE + "/1111"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.prosecutor_code").value(1111))
+            .andExpect(jsonPath("$.prosecutor_code").value("1111"))
             .andExpect(jsonPath("$.prosecutor_id").doesNotExist())
             .andExpect(jsonPath("$.name").value("AA1 Chief Prosecutor"));
 
@@ -76,12 +78,28 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(greaterThan(0)))
-            .andExpect(jsonPath("$.ref_data[0].prosecutor_code").isNumber())
+            .andExpect(jsonPath("$.ref_data[0].prosecutor_code").value("1111"))
             .andExpect(jsonPath("$.ref_data[0].prosecutor_id").doesNotExist());
         jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
 
         assertEquals(1, countInvocationsByMethodName(prosecutorRepository, "findBy"));
         assertEquals(0, countInvocationsByMethodName(prosecutorLegacyRepository, "findBy"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"001X", "0998"})
+    @JiraStory("PO-11043")
+    @JiraEpic("PO-9031")
+    void getProsecutorById_preservesStringCode(String code) throws Exception {
+        mockMvc.perform(get(URL_BASE + "/{code}", code))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.prosecutor_code").value(code));
+
+        String body = mockMvc.perform(get(URL_BASE).param("q", code.equals("001X") ? "Alphanumeric" : "Leading Zero"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.ref_data[0].prosecutor_code").value(code))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
     }
 
     private void clearRepositoryInvocations() {
