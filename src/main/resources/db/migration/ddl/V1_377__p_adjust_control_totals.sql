@@ -60,100 +60,97 @@ BEGIN
         -- Step 1: Check if the item amounts array is not empty. 
 
         -------------------------------------------------------------------- 
-      IF ARRAY_LENGTH(pi_item_amounts,1) <= 0 THEN
-	    RAISE EXCEPTION 'Array of records item amounts cannot be empty'
-		USING ERRCODE='P5001',
-		DETAIL ='p_adjust_control_totals: pi_item_amounts is required';
-       END IF;
-      
+      IF (ARRAY_LENGTH(pi_item_amounts,1) IS NOT NULL OR ARRAY_LENGTH(pi_item_amounts,1) > 0) THEN
+	   
         -------------------------------------------------------------------- 
 
         -- Step 2: Loop through the item amounts array and perform the necessary insert or update operations on the control_totals table. 
 
         -------------------------------------------------------------------- 
-	  FOR i IN 1..CARDINALITY(pi_item_amounts) LOOP
-	
-	      RAISE NOTICE 'Control Total Type: %', pi_item_amounts[i].control_total_type;
-		  RAISE NOTICE 'Item Number: %', pi_item_amounts[i].item_number;
-		  RAISE NOTICE 'Amount: %', pi_item_amounts[i].amount;
+        FOR i IN 1..CARDINALITY(pi_item_amounts) LOOP
+      
+            RAISE NOTICE 'Control Total Type: %', pi_item_amounts[i].control_total_type;
+          RAISE NOTICE 'Item Number: %', pi_item_amounts[i].item_number;
+          RAISE NOTICE 'Amount: %', pi_item_amounts[i].amount;
 
-           -------------------------------------------------------------------- 
+              -------------------------------------------------------------------- 
 
-            -- Step 3: Check if the control total type is 'CT' or 'WOT' 
-            --        and perform the corresponding insert or update operation on the control_totals table.
+                -- Step 3: Check if the control total type is 'CT' or 'WOT' 
+                --        and perform the corresponding insert or update operation on the control_totals table.
 
-           --------------------------------------------------------------------   
-		  IF (pi_item_amounts[i].control_total_type=c_control_type_ct) THEN		  
-		      PERFORM 1 FROM control_totals
-		       WHERE business_unit_id =pi_business_unit_id
-		       AND item_number = pi_item_amounts[i].item_number
-           AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
-		       AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
-		     
-		    IF NOT FOUND THEN		     
-		        INSERT into control_totals (control_total_id, 
-                                    business_unit_id, 
-                                    item_number, 
-                                    amount, 
-                                    associated_record_type,
-                                    associated_record_id, 
-                                    ct_report_instance_id,
-                                    qe_report_instance_id 
-                                    )
-		         VALUES (nextval('control_total_id_seq'), 
-		                           pi_business_unit_id,
-		                           pi_item_amounts[i].item_number, 
-		                           pi_item_amounts[i].amount,
-		                           CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE NULL END,
-		                           CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE NULL END, 
-		                           NULL, 
-		                           NULL);	     
-		     ELSE
-                 UPDATE control_totals
-		         SET  amount = amount + pi_item_amounts[i].amount,
-		              associated_record_type= CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
-                      associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
-		        WHERE business_unit_id =pi_business_unit_id
-		        AND item_number =pi_item_amounts[i].item_number;
-	
-	        END IF;
-	     ELSIF (pi_item_amounts[i].control_total_type=c_control_type_wot) THEN	      
-	        PERFORM 1 FROM control_totals
-		    WHERE business_unit_id =pi_business_unit_id
-		    AND item_number = pi_item_amounts[i].item_number
-        AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
-		    AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
-			
-		    IF NOT FOUND THEN
-		      INSERT into control_totals (control_total_id, 
+              --------------------------------------------------------------------   
+          IF (pi_item_amounts[i].control_total_type=c_control_type_ct) THEN		  
+              PERFORM 1 FROM control_totals
+              WHERE business_unit_id =pi_business_unit_id
+              AND item_number = pi_item_amounts[i].item_number
+              AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+              AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
+            
+            IF NOT FOUND THEN		     
+                INSERT into control_totals (control_total_id, 
                                         business_unit_id, 
                                         item_number, 
                                         amount, 
                                         associated_record_type,
                                         associated_record_id, 
-                                        ct_report_instance_id, 
-                                        qe_report_instance_id)
-		            VALUES (nextval('control_total_id_seq'), 
-		                           pi_business_unit_id,
-		                           pi_item_amounts[i].item_number, 
-		                           pi_item_amounts[i].amount,
-		                           CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE NULL END,
-		                           CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE NULL END, 
-		                           NULL, 
-		                           NULL);
-		    ELSE
-		            
-			  UPDATE control_totals 
-			  SET amount = amount + pi_item_amounts[i].amount,
-				  associated_record_type = CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
-				  associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
-			  WHERE business_unit_id = pi_business_unit_id
-			  AND item_number = pi_item_amounts[i].item_number;
+                                        ct_report_instance_id,
+                                        qe_report_instance_id 
+                                        )
+                VALUES (nextval('control_total_id_seq'), 
+                                  pi_business_unit_id,
+                                  pi_item_amounts[i].item_number, 
+                                  pi_item_amounts[i].amount,
+                                  CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE NULL END,
+                                  CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE NULL END, 
+                                  NULL, 
+                                  NULL);	     
+            ELSE
+                    UPDATE control_totals
+                SET  amount = amount + pi_item_amounts[i].amount,
+                      associated_record_type= CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
+                          associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
+                WHERE business_unit_id =pi_business_unit_id
+                AND item_number =pi_item_amounts[i].item_number;
+      
+              END IF;
+          ELSIF (pi_item_amounts[i].control_total_type=c_control_type_wot) THEN	      
+              PERFORM 1 FROM control_totals
+            WHERE business_unit_id =pi_business_unit_id
+            AND item_number = pi_item_amounts[i].item_number
+            AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+            AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
+          
+            IF NOT FOUND THEN
+              INSERT into control_totals (control_total_id, 
+                                            business_unit_id, 
+                                            item_number, 
+                                            amount, 
+                                            associated_record_type,
+                                            associated_record_id, 
+                                            ct_report_instance_id, 
+                                            qe_report_instance_id)
+                    VALUES (nextval('control_total_id_seq'), 
+                                  pi_business_unit_id,
+                                  pi_item_amounts[i].item_number, 
+                                  pi_item_amounts[i].amount,
+                                  CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE NULL END,
+                                  CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE NULL END, 
+                                  NULL, 
+                                  NULL);
+            ELSE
+                    
+            UPDATE control_totals 
+            SET amount = amount + pi_item_amounts[i].amount,
+              associated_record_type = CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
+              associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
+            WHERE business_unit_id = pi_business_unit_id
+            AND item_number = pi_item_amounts[i].item_number;
 
-		         
-		   END IF;
-		END IF;      
-     END LOOP; 
+                
+          END IF;
+        END IF;      
+        END LOOP; 
+      END IF;
       --------------------------------------------------------------------------- 
 
             -- Step 4: Check if the counter item number and account count are not null 
