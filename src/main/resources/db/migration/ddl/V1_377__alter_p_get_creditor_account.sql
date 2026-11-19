@@ -64,6 +64,13 @@ BEGIN
             RAISE;
     END;
 
+    --Ensure an item_number was returned from f_get_item_num_for_imp_cat, if not, raise the same P2004 exception
+    IF po_results_mapped_item_number IS NULL THEN
+        RAISE EXCEPTION 'Result % is not valid', v_result_id
+            USING ERRCODE = 'P2004'
+                , DETAIL = 'p_get_creditor_account: item_number was not returned for result_id = ' || v_result_id;
+    END IF;
+
     --Retrieve the CREDITOR_ACCOUNT record, if possible
     BEGIN
         IF v_results_imposition_creditor = 'CF' THEN
