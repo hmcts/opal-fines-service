@@ -68,7 +68,7 @@ INSERT INTO prosecutors (
     end_date
 )
 VALUES (
-    32010,
+    'VP01',
     'Draft Account Validation Prosecutor',
     '4 Validation Street',
     NULL,
@@ -94,7 +94,7 @@ INSERT INTO prosecutors_legacy (
 VALUES (
     32010,
     'Draft Account Validation Prosecutor',
-    NULL,
+    'VP01',
     '4 Validation Street',
     NULL,
     NULL,
