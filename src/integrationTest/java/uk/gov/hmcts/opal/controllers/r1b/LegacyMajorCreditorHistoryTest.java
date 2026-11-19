@@ -38,6 +38,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
@@ -208,6 +209,32 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
         getHistory()
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+    }
+
+    @Test
+    @DisplayName("PO-11466 returns 404 when Legacy reports major creditor history account not found")
+    @JiraStory("PO-11466")
+    @JiraEpic("PO-11478")
+    void getHistory_whenLegacyReportsAccountNotFoundReturns404WithoutHistoryData() throws Exception {
+        LegacyMajorCreditorHistoryResponse response = LegacyMajorCreditorHistoryResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20013")
+                .errorMessage("Account not found")
+                .build())
+            .build();
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
+            eq(LegacyMajorCreditorHistoryResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, response, null, null));
+
+        getHistory()
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
     }
 
     @Test
