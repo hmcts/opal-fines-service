@@ -22,19 +22,33 @@ class ResultsServiceProxyTest {
 
     @Test
     void routesLegacyRequestsToLegacyService() {
+        // Given
         when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+
+        // When
         proxy.getResult("A", true);
         proxy.getResultsByIds(List.of("A"), true, false, true, false, true);
+
+        // Then
         verify(legacyResultService).getResult("A", true);
+
+        // Then
         verify(legacyResultService).getResultsByIds(List.of("A"), true, false, true, false, true);
     }
 
     @Test
     void routesOpalRequestsToOpalService() {
+        // Given
         when(dynamicConfigService.isLegacyMode()).thenReturn(false);
+
+        // When
         proxy.getResult("A", true);
         proxy.getResultsByIds(List.of("A"), true, false, true, false, true);
+
+        // Then
         verify(opalResultService).getResult("A", true);
+
+        // Then
         verify(opalResultService).getResultsByIds(List.of("A"), true, false, true, false, true);
     }
 }
