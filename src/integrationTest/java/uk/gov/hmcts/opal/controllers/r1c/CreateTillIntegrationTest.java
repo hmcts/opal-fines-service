@@ -249,10 +249,10 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     void postTills_supportsCourtFeeAndQualifyingSuspenseDestinations(String destinationType) throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-        long partiesBefore = partyRepository.count();
-        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
+        final long tillsBefore = tillRepository.count();
+        final long paymentsBefore = paymentInRepository.count();
+        final long partiesBefore = partyRepository.count();
+        final long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
 
         String request = requestWithPayerDetails(destinationType);
         if ("Suspense".equals(destinationType)) {
@@ -447,10 +447,10 @@ class CreateTillIntegrationTest extends AbstractIntegrationWithSecurityTest {
     private void assertRollbackOnReportCreationFailure(String requestBody) throws Exception {
         userStateStub.setupWithNoPermissions();
         userStateStub.addPermissions(BUSINESS_UNIT_ID, FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS);
-        long tillsBefore = tillRepository.count();
-        long paymentsBefore = paymentInRepository.count();
-        long partiesBefore = partyRepository.count();
-        long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
+        final long tillsBefore = tillRepository.count();
+        final long paymentsBefore = paymentInRepository.count();
+        final long partiesBefore = partyRepository.count();
+        final long miscellaneousAccountsBefore = miscellaneousAccountRepository.count();
         when(preAllocatedCashTillService.createPreAllocatedReportInstance(anyLong(), anyLong(), anyString()))
             .thenThrow(new ReportGenerationException("Report creation failed", new RuntimeException()));
 
