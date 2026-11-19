@@ -167,6 +167,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         if (mappedResponse != null) {
             Optional<CreditorAccountEntity> creditorAccount =
                 creditorAccountRepository.findById(minorCreditorAccountId);
+
             Short businessUnitId = isRelease1B11Enabled() ? resolveLegacyBusinessUnitId(minorCreditorAccountId)
                 : creditorAccount.map(CreditorAccountEntity::getBusinessUnitId).orElse(null);
             mappedResponse.setBusinessUnitId(businessUnitId);
