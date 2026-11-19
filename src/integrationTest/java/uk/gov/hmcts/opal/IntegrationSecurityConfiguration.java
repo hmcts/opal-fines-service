@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
 
 @TestConfiguration
-@Profile("integration")
+@Profile("integration & !integration-with-spring-security")
 public class IntegrationSecurityConfiguration {
 
     // The common-lib security handler serializes ProblemDetail with custom properties under properties.retriable,

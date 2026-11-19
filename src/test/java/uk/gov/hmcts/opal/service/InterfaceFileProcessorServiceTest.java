@@ -272,7 +272,7 @@ class InterfaceFileProcessorServiceTest {
         assertThat(metadata.getType()).isEqualTo(InterfaceFileTypeEnum.TRANSFORMED_JSON);
         assertThat(metadata.getDomain().toString()).isEqualTo("FINES");
         assertThat(metadata.getPaymentType().toString()).isEqualTo(paymentType.name());
-        assertThat(metadata.getBusinessUnitCode()).isEqualTo("BC12");
+        assertThat(metadata.getBusinessUnitId()).isEqualTo((short) 6460);
         assertThat(metadata.getShouldPreProcessFile()).isFalse();
         assertThat(fileCaptor.getValue().getOriginalFilename()).isEqualTo("test_123");
         assertThat(fileCaptor.getValue().getContentType()).isEqualTo("application/json");
@@ -291,7 +291,7 @@ class InterfaceFileProcessorServiceTest {
         assertThat(job.getInterfaceFiles()).hasSize(1);
         InterfaceFileEntity finesFile = job.getInterfaceFiles().getFirst();
 
-        assertThat(job.getBusinessUnit().getBusinessUnitCode()).isEqualTo("BC12");
+        assertThat(job.getBusinessUnit().getBusinessUnitId()).isEqualTo((short) 6460);
         assertThat(job.getInterfaceName()).isEqualTo(paymentType == PaymentType.CASH
             ? "PAYMENTS_IN" : "PRESENTED_CHEQUES");
         assertThat(job.getStatus()).isEqualTo(InterfaceJobStatus.CREATED);
