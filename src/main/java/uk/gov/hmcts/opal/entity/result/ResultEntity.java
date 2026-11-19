@@ -104,6 +104,7 @@ public class ResultEntity {
     @Column(name = "lists_monies", nullable = false)
     private boolean listsMonies;
 
+    @ColumnTransformer(write = "?::json")
     @Column(name = "result_parameters")
     private String resultParameters;
 

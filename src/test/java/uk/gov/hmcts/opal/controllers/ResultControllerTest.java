@@ -21,13 +21,13 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
-import uk.gov.hmcts.opal.service.opal.ResultService;
+import uk.gov.hmcts.opal.service.proxy.ResultsServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class ResultControllerTest {
 
     @Mock
-    private ResultService resultService;
+    private ResultsServiceProxy resultService;
 
     @Mock
     private FeatureToggleApi featureToggleApi;

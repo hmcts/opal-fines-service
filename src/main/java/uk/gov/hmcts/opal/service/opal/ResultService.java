@@ -18,6 +18,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.iface.ResultsServiceInterface;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
@@ -30,7 +31,7 @@ import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
 @Service
 @RequiredArgsConstructor
 @Qualifier("resultService")
-public class ResultService {
+public class ResultService implements ResultsServiceInterface {
 
     private final ResultRepository resultRepository;
     private final ResultMapper resultMapper;

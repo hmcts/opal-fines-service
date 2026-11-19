@@ -14,13 +14,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
-import uk.gov.hmcts.opal.service.opal.ResultService;
+import uk.gov.hmcts.opal.service.proxy.ResultsServiceProxy;
 
 @ExtendWith(MockitoExtension.class)
 class ResultsApiControllerTest {
 
     @Mock
-    private ResultService resultService;
+    private ResultsServiceProxy resultService;
 
     @InjectMocks
     private ResultsApiController resultsApiController;

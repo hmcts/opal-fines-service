@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.generated.http.api.ResultsApi;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
-import uk.gov.hmcts.opal.service.opal.ResultService;
+import uk.gov.hmcts.opal.service.proxy.ResultsServiceProxy;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @RestController
@@ -32,7 +32,7 @@ public class ResultsApiController implements ResultsApi {
         "enforcement_override"
     );
 
-    private final ResultService resultService;
+    private final ResultsServiceProxy resultService;
     private final FeatureToggleApi featureToggleApi;
     private final HttpServletRequest request;
 
