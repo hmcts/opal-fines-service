@@ -99,7 +99,7 @@ public class TillsService {
             return Map.of();
         }
         Map<Long, MiscellaneousAccountEntity> accounts = miscellaneousAccountRepository
-            .findAllByMiscellaneousAccountIdIn(accountIds).stream()
+            .findWithPartyByMiscellaneousAccountIdIn(accountIds).stream()
             .collect(Collectors.toMap(MiscellaneousAccountEntity::getMiscellaneousAccountId, Function.identity()));
         for (Long accountId : accountIds) {
             MiscellaneousAccountEntity account = accounts.get(accountId);

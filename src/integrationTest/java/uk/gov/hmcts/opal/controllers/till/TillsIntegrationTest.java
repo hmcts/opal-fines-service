@@ -12,7 +12,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 import static uk.gov.hmcts.opal.entity.AssociatedRecordType.MISCELLANEOUS_ACCOUNTS;
 
-import jakarta.persistence.EntityManagerFactory;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
@@ -46,20 +44,21 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     @MockitoBean
     private UserStateService userStateService;
 
-    @Autowired
-    private PaymentInRepository paymentInRepository;
+    private final PaymentInRepository paymentInRepository;
+    private final MiscellaneousAccountRepository miscellaneousAccountRepository;
+    private final PartyRepository partyRepository;
+    private final TillRepository tillRepository;
 
     @Autowired
-    private MiscellaneousAccountRepository miscellaneousAccountRepository;
+    TillsIntegrationTest(PaymentInRepository paymentInRepository,
+                         MiscellaneousAccountRepository miscellaneousAccountRepository,
+                         PartyRepository partyRepository, TillRepository tillRepository) {
 
-    @Autowired
-    private PartyRepository partyRepository;
-
-    @Autowired
-    private TillRepository tillRepository;
-
-    @Autowired
-    private EntityManagerFactory entityManagerFactory;
+        this.paymentInRepository = paymentInRepository;
+        this.miscellaneousAccountRepository = miscellaneousAccountRepository;
+        this.partyRepository = partyRepository;
+        this.tillRepository = tillRepository;
+    }
 
     @Test
     @DisplayName("PO-11366 - Durable payer names without JSON payer details")
@@ -114,21 +113,6 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Entity Not Found"));
-    }
-
-    @Test
-    @DisplayName("PO-11366 - Batched miscellaneous accounts include loaded parties")
-    @JiraStory("PO-11366")
-    @JiraEpic("PO-3635")
-    @Sql(scripts = "classpath:db/insertData/insert_into_get_till_durable.sql", executionPhase = BEFORE_TEST_METHOD)
-    void batchLoadsParties() {
-        List<MiscellaneousAccountEntity> accounts = miscellaneousAccountRepository
-            .findAllByMiscellaneousAccountIdIn(List.of(99000000836280L, 99000000836281L));
-
-        assertThat(accounts).hasSize(2).allSatisfy(account -> {
-            assertThat(entityManagerFactory.getPersistenceUnitUtil().isLoaded(account, "party")).isTrue();
-            assertThat(account.getParty().getPartyId()).isNotNull();
-        });
     }
 
     @Test

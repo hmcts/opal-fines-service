@@ -9,6 +9,8 @@ import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 @Repository
 public interface MiscellaneousAccountRepository extends JpaRepository<MiscellaneousAccountEntity, Long> {
 
-    @EntityGraph(attributePaths = "party")
     List<MiscellaneousAccountEntity> findAllByMiscellaneousAccountIdIn(List<Long> miscellaneousAccountIds);
+
+    @EntityGraph(attributePaths = "party")
+    List<MiscellaneousAccountEntity> findWithPartyByMiscellaneousAccountIdIn(List<Long> miscellaneousAccountIds);
 }

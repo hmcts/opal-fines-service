@@ -182,13 +182,13 @@ class TillsServiceTest {
                 .miscellaneousAccountId(789L).party(PartyEntity.builder().organisation(organisation).build()).build();
             when(paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(TILL_ID))
                 .thenReturn(payments);
-            when(miscellaneousAccountRepository.findAllByMiscellaneousAccountIdIn(List.of(789L)))
+            when(miscellaneousAccountRepository.findWithPartyByMiscellaneousAccountIdIn(List.of(789L)))
                 .thenReturn(List.of(account));
 
             service.getTill(TILL_ID);
 
             verify(getTillMapper).toResponse(till, payments, Map.of(), Map.of(789L, account));
-            verify(miscellaneousAccountRepository).findAllByMiscellaneousAccountIdIn(List.of(789L));
+            verify(miscellaneousAccountRepository).findWithPartyByMiscellaneousAccountIdIn(List.of(789L));
             verifyNoMoreInteractions(miscellaneousAccountRepository);
             verifyNoInteractions(defendantAccountRepository);
         }
@@ -199,7 +199,7 @@ class TillsServiceTest {
             mockPermittedTill();
             when(paymentInRepository.findByTillEntity_TillIdOrderByPaymentDateAscPaymentInIdAsc(TILL_ID))
                 .thenReturn(List.of(payment(1L, C, MISCELLANEOUS_ACCOUNTS, "789")));
-            when(miscellaneousAccountRepository.findAllByMiscellaneousAccountIdIn(List.of(789L)))
+            when(miscellaneousAccountRepository.findWithPartyByMiscellaneousAccountIdIn(List.of(789L)))
                 .thenReturn(missingParty ? List.of(MiscellaneousAccountEntity.builder()
                     .miscellaneousAccountId(789L).build()) : List.of());
 
