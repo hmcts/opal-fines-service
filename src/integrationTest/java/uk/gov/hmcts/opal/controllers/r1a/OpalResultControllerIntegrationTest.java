@@ -87,6 +87,34 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.refData[0].result_title").value("Opal mode result"));
     }
 
+    @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void getResults_returnsKnownIdsInAscendingOrder() throws Exception {
+        // Given
+        String ids = "OPLIT3,NOPE99,OPLIT1";
+
+        // When / Then
+        mockMvc.perform(get("/results").param("result_ids", ids))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(2))
+            .andExpect(jsonPath("$.refData[*].result_id", contains("OPLIT1", "OPLIT3")));
+    }
+
+    @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void getResults_returnsEmptyListForUnknownIds() throws Exception {
+        // Given
+        String ids = "NOPE98,NOPE99";
+
+        // When / Then
+        mockMvc.perform(get("/results").param("result_ids", ids))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.count").value(0))
+            .andExpect(jsonPath("$.refData").isEmpty());
+    }
+
     @ParameterizedTest(name = "{0}={1}")
     @MethodSource("booleanFilterCases")
     @JiraStory("PO-11027")
