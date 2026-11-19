@@ -41,6 +41,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.entity.InterfaceJobEntity;
+import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
 import uk.gov.hmcts.opal.entity.InterfaceJobStatus;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.TillStatusEnum;
@@ -88,17 +90,24 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @MockitoBean
     private Clock clock;
 
-    @Autowired
-    private InterfaceFileRepository interfaceFileRepository;
+    private final InterfaceFileRepository interfaceFileRepository;
+
+    private final TillRepository tillRepository;
+
+    private final InterfaceJobRepository interfaceJobRepository;
+
+    private final InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
 
     @Autowired
-    private TillRepository tillRepository;
+    InterfaceJobProcessedFileSummaryIT(TillRepository tillRepository, InterfaceJobRepository interfaceJobRepository,
+                                       InterfaceJobsProcessedFileSummaryRepository summaryViewRepository,
+                                       InterfaceFileRepository interfaceFileRepository) {
 
-    @Autowired
-    private InterfaceJobRepository interfaceJobRepository;
-
-    @Autowired
-    private InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+        this.interfaceFileRepository = interfaceFileRepository;
+        this.tillRepository = tillRepository;
+        this.interfaceJobRepository = interfaceJobRepository;
+        this.summaryViewRepository = summaryViewRepository;
+    }
 
     @BeforeEach
     void setUpTestDoubles() {
@@ -210,6 +219,23 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
         setTillStatus(TillStatusEnum.Allocated);
 
         assertNotFound(URL);
+    }
+
+    @Test
+    @DisplayName("PO-11406 - rejects a completed summary without a till or logging a consultation")
+    @JiraStory("PO-11406")
+    @JiraEpic("PO-2468")
+    void rejectsCompletedSummaryWithoutTill() throws Exception {
+        InterfaceJobEntity job = interfaceJobRepository.findById(IGNORED_INTERFACE_JOB_ID).orElseThrow();
+        job.setStatus(InterfaceJobStatus.COMPLETED);
+        interfaceJobRepository.saveAndFlush(job);
+        List<InterfaceJobProcessedFileSummaryEntity> summaries = summaryViewRepository
+            .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(IGNORED_INTERFACE_JOB_ID);
+        assertEquals(1, summaries.size());
+        assertNull(summaries.getFirst().getTillId());
+        stubPermittedOpalUser();
+
+        assertNotFound(IGNORED_URL);
     }
 
     @Test
@@ -449,7 +475,10 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(header().exists("operation_id"))
             .andExpect(jsonPath("$.status").value(404))
-            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"));
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/entity-not-found"))
+            .andExpect(jsonPath("$.file_name").doesNotExist())
+            .andExpect(jsonPath("$.total_amount").doesNotExist())
+            .andExpect(jsonPath("$.interface_messages").doesNotExist());
 
         verify(loggingService, never()).personalDataAccessLogAsync(any());
     }
