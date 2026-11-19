@@ -80,10 +80,10 @@
       "offence_id": 43312,
       "impositions": [
         {
-          "result_id": "FO",
+          "result_id": "FCOMP",
           "amount_imposed": 500,
           "amount_paid": 50,
-          "major_creditor_id": 650000000021,
+          "major_creditor_id": null,
           "minor_creditor": {
             "company_flag": false,
             "title": "Mr",

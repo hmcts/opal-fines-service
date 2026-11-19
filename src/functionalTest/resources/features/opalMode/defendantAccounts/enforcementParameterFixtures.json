@@ -1,0 +1,118 @@
+{
+  "ABDC": {
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    }
+  },
+  "AEO": {
+    "normaldeductionrate": "25.50",
+    "protectedearningsrate": "100.00",
+    "payperiod": "Weekly"
+  },
+  "AEOC": {},
+  "BWTU": {
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    },
+    "_legacy_unreturned_text": [
+      "baildirection",
+      "courtdetails"
+    ]
+  },
+  "CLAMPO": {
+    "effectivedate": "2030-06-15",
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    }
+  },
+  "COLLO": {
+    "collectiontype": "Wages",
+    "_legacy_unreturned_text": [
+      "reserveterms"
+    ]
+  },
+  "CONF": {},
+  "CW": {
+    "commitaldays": "14",
+    "consecconcurrent": "Consecutive",
+    "enforcer": {
+      "opal": "2",
+      "legacy": "780000000001"
+    },
+    "prisonid": "780000000001",
+    "_legacy_unreturned_text": [
+      "detailsconsecutive",
+      "processserver",
+      "basisofcommital",
+      "reasonnoaltused"
+    ]
+  },
+  "DW": {
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    }
+  },
+  "FSN": {},
+  "HTT": {},
+  "INTL": {},
+  "MPSO": {
+    "supervisor": "Other",
+    "prisondetention": "Prison",
+    "_legacy_unreturned_text": [
+      "detailsifother"
+    ]
+  },
+  "NAP": {},
+  "NBWT": {
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    },
+    "_legacy_unreturned_text": [
+      "courtdetails"
+    ]
+  },
+  "NOENF": {},
+  "PRIS": {
+    "earliestreleasedate": {
+      "opal": "2030-06-15T00:00:00",
+      "legacy": "2030-06-15"
+    },
+    "_legacy_unreturned_text": [
+      "prisonandprisonnumber"
+    ]
+  },
+  "REGF": {},
+  "REM": {},
+  "S136": {
+    "enforcer": {
+      "opal": "1",
+      "legacy": "770000000001"
+    },
+    "_legacy_unreturned_text": [
+      "timeofrelease"
+    ]
+  },
+  "SC": {
+    "daysindefault": "14",
+    "totalamount": "100.00",
+    "_legacy_unreturned_text": [
+      "paymentterms"
+    ]
+  },
+  "UPWO": {
+    "noofhours": "14",
+    "consecconcurrent": "Consecutive",
+    "completiondate": "2030-07-15",
+    "supervisor": "Other",
+    "_legacy_unreturned_text": [
+      "detailsifother",
+      "supervisingcourt"
+    ]
+  },
+  "WDN": {}
+}

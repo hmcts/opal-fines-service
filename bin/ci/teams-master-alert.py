@@ -34,10 +34,10 @@ RESULT_TEXT = {
     (False, False, False): "Master remains GREEN after new code was built.",
     (False, True, True): "Rebuild is GREEN; master has recovered.",
     (False, True, False): "Master is GREEN again after new code was built.",
-    (True, False, True): "Master has turned RED on unchanged code.",
-    (True, False, False): "Master has turned RED after new code was built.",
-    (True, True, True): "Rebuild remains RED.",
-    (True, True, False): "Master remains RED after new code was built.",
+    (True, False, True): "Master has turned RED while rebuilding the same commit.",
+    (True, False, False): "Master has turned RED after a new commit was built.",
+    (True, True, True): "Master is still RED after rebuilding the same commit.",
+    (True, True, False): "Master is still RED after a new commit was built.",
 }
 
 
@@ -131,8 +131,7 @@ def message_for(build, previous_numbered, previous_completed, report_all=False):
     failed = build["state"] in ("failure", "error")
     was_red = previous_completed and previous_completed["state"] in ("failure", "error")
     new_code_since_result = previous_completed and build["sha"] != previous_completed["sha"]
-    if not report_all and (failed and was_red and not new_code_since_result or
-                           not failed and not was_red):
+    if not report_all and not failed and not was_red:
         return None
     same_code = previous_numbered and build["sha"] == previous_numbered["sha"]
     if failed:
@@ -146,7 +145,9 @@ def message_for(build, previous_numbered, previous_completed, report_all=False):
     elif previous_numbered["state"] == "pending":
         if not failed and not was_red:
             state = "is GREEN"
-        if failed and new_code_since_result and not same_code:
+        if failed and was_red and same_code:
+            result = "Master is still RED after rebuilding the same commit; the preceding build has no final GitHub status."
+        elif failed and new_code_since_result and not same_code:
             result = f"Master {state} after new code was built; the preceding build has no final GitHub status."
         else:
             result = f"Master {state}; the preceding build has no final GitHub status."
@@ -177,7 +178,7 @@ def merged_pr_for_commit(sha):
         return None
 
 
-def card_for(message, build, merged_pr=None, new_code=False):
+def card_for(message, build, merged_pr=None, new_code=False, recovered=False, not_fixed=False):
     """Build a Teams card with stable Jenkins destinations and status styling.
 
     Teams chooses the actual shades for Good and Attention in each theme. The
@@ -185,17 +186,33 @@ def card_for(message, build, merged_pr=None, new_code=False):
     """
     number = MASTER_BUILD.match(build["target_url"]).group(1)
     failed = build["state"] in ("failure", "error")
-    status = "ABORTED" if is_aborted(build) else build["state"].upper()
+    if is_aborted(build):
+        status = "ABORTED"
+    elif recovered and build["state"] == "success":
+        status = "RECOVERED"
+    elif not_fixed and build["state"] in ("failure", "error"):
+        status = "NOT FIXED"
+    else:
+        status = build["state"].upper()
     actions = jenkins_actions(MASTER_JOB, number, "Latest master", console=failed)
     details = []
     if merged_pr:
         pr_number = merged_pr["number"]
+        author = (merged_pr.get("user") or {}).get("login")
         merged_by = (merged_pr.get("merged_by") or {}).get("login")
         description = f"Merged PR #{pr_number}"
-        if merged_by:
-            description += f" by @{merged_by}"
-        details.append({"type": "TextBlock", "text": description + ".", "wrap": True,
+        if merged_pr.get("title"):
+            description += f": {merged_pr['title']}"
+        details.append({"type": "TextBlock", "text": description, "wrap": True,
                         "size": "Small", "spacing": "Small"})
+        people = []
+        if author:
+            people.append(f"PR author: @{author}")
+        if merged_by:
+            people.append(f"Merged by: @{merged_by}")
+        if people:
+            details.append({"type": "TextBlock", "text": " · ".join(people), "wrap": True,
+                            "size": "Small", "spacing": "Small"})
         actions.append({"type": "Action.OpenUrl", "title": f"PR #{pr_number}",
                         "url": merged_pr["html_url"]})
     elif new_code:
@@ -227,7 +244,6 @@ def main():
     number = int(MASTER_BUILD.match(event_url).group(1))
     previous_numbered, previous_completed = previous_builds(sha, number)
     message = message_for(current, previous_numbered, previous_completed, report_all=True)
-    print(message)
     alerts_webhook = os.environ.get("ALERTS_WEBHOOK_URL")
     builds_webhook = os.environ.get("BUILDS_WEBHOOK_URL")
     webhooks = {"Alerts": alerts_webhook, "Builds": builds_webhook}
@@ -237,7 +253,13 @@ def main():
     merged_pr = merged_pr_for_commit(sha) if new_code else None
     # The webhook accepts a POST before Teams displays the card; inspect its run
     # history if delivery fails after this call succeeds.
-    card = card_for(message, current, merged_pr, new_code)
+    recovered = (current["state"] == "success" and previous_completed
+                 and previous_completed["state"] in ("failure", "error"))
+    not_fixed = (current["state"] in ("failure", "error") and not is_aborted(current)
+                 and previous_completed and previous_completed["state"] in ("failure", "error")
+                 and not is_aborted(previous_completed))
+    card = card_for(message, current, merged_pr, new_code,
+                    recovered=bool(recovered), not_fixed=bool(not_fixed))
     alert_message = message_for(current, previous_numbered, previous_completed, report_all_alerts)
     destinations = [("Builds", builds_webhook)]
     if alert_message:
@@ -245,10 +267,27 @@ def main():
             destinations.insert(0, ("Alerts", alerts_webhook))
         else:
             builds = completed_builds()
-            if builds and builds[0]["id"] == event_id and builds[0]["target_url"] == event_url:
+            is_latest = bool(builds and builds[0]["id"] == event_id
+                             and builds[0]["target_url"] == event_url)
+            if builds and not is_latest:
+                if is_aborted(current):
+                    result = "ABORTED"
+                elif current["state"] in ("failure", "error"):
+                    result = "RED"
+                else:
+                    result = "GREEN"
+                stale_message = (f"Build #{number} ended {result}; a newer master build has completed. "
+                                 "Check the latest master result before routine merges.")
+                message = stale_message
+                card = card_for(message, current, merged_pr, new_code,
+                                not_fixed=bool(not_fixed))
+            if current["state"] in ("failure", "error"):
+                destinations.insert(0, ("Alerts", alerts_webhook))
+            elif is_latest:
                 destinations.insert(0, ("Alerts", alerts_webhook))
             else:
                 print("A newer completed master build superseded this event for Alerts.")
+    print(message)
     failed = [name for name, webhook in webhooks.items() if not webhook]
     for name in failed:
         print(f"{name} webhook is not configured.", file=sys.stderr)
