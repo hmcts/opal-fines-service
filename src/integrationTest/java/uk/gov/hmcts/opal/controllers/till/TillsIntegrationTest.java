@@ -15,9 +15,9 @@ import static uk.gov.hmcts.opal.entity.AssociatedRecordType.MISCELLANEOUS_ACCOUN
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
@@ -32,6 +32,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
 @DisplayName("Tills Integration Tests")
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(scripts = "classpath:db/insertData/insert_into_get_till.sql", executionPhase = BEFORE_TEST_METHOD)
@@ -49,7 +50,6 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
     private final PartyRepository partyRepository;
     private final TillRepository tillRepository;
 
-    @Autowired
     TillsIntegrationTest(PaymentInRepository paymentInRepository,
                          MiscellaneousAccountRepository miscellaneousAccountRepository,
                          PartyRepository partyRepository, TillRepository tillRepository) {
