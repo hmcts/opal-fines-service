@@ -30,7 +30,7 @@ public class LegacyProsecutorService implements ProsecutorServiceInterface {
 
     @Override
     @Transactional(readOnly = true)
-    public ProsecutorsObject getProsecutorByKey(Long prosecutorKey) {
+    public ProsecutorsObject getProsecutorByKey(String prosecutorKey) {
         Short prosecutorId = toProsecutorId(prosecutorKey);
         ProsecutorLegacyEntity entity = prosecutorLegacyRepository.findById(prosecutorId)
             .orElseThrow(() -> prosecutorNotFound(prosecutorKey));
@@ -49,14 +49,15 @@ public class LegacyProsecutorService implements ProsecutorServiceInterface {
         return ProsecutorsReferenceDataResponse.builder().count(refData.size()).refData(refData).build();
     }
 
-    private Short toProsecutorId(Long prosecutorKey) {
-        if (prosecutorKey == null || prosecutorKey < Short.MIN_VALUE || prosecutorKey > Short.MAX_VALUE) {
+    private Short toProsecutorId(String prosecutorKey) {
+        try {
+            return Short.valueOf(prosecutorKey);
+        } catch (NumberFormatException exception) {
             throw prosecutorNotFound(prosecutorKey);
         }
-        return prosecutorKey.shortValue();
     }
 
-    private EntityNotFoundException prosecutorNotFound(Long prosecutorKey) {
+    private EntityNotFoundException prosecutorNotFound(String prosecutorKey) {
         return new EntityNotFoundException("Prosecutor not found with key: " + prosecutorKey);
     }
 }

@@ -24,7 +24,7 @@ public class ProsecutorController implements ProsecutorsApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1A, defaultValueProperty = RELEASE_1A_ENABLED_PROPERTY)
-    public ResponseEntity<ProsecutorsObject> getProsecutorById(Long prosecutorId) {
+    public ResponseEntity<ProsecutorsObject> getProsecutorById(String prosecutorId) {
         log.debug(":GET:getProsecutorById: prosecutorId: {}", prosecutorId);
         return buildResponse(prosecutorServiceProxy.getProsecutorByKey(prosecutorId));
     }

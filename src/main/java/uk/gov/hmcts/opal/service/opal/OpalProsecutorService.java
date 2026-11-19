@@ -30,9 +30,8 @@ public class OpalProsecutorService implements ProsecutorServiceInterface {
 
     @Override
     @Transactional(readOnly = true)
-    public ProsecutorsObject getProsecutorByKey(Long prosecutorKey) {
-        Short prosecutorCode = toProsecutorCode(prosecutorKey);
-        ProsecutorEntity entity = prosecutorRepository.findById(prosecutorCode)
+    public ProsecutorsObject getProsecutorByKey(String prosecutorKey) {
+        ProsecutorEntity entity = prosecutorRepository.findById(prosecutorKey)
             .orElseThrow(() -> prosecutorNotFound(prosecutorKey));
         return prosecutorMapper.toProsecutor(entity);
     }
@@ -49,14 +48,7 @@ public class OpalProsecutorService implements ProsecutorServiceInterface {
         return ProsecutorsReferenceDataResponse.builder().count(refData.size()).refData(refData).build();
     }
 
-    private Short toProsecutorCode(Long prosecutorKey) {
-        if (prosecutorKey == null || prosecutorKey < Short.MIN_VALUE || prosecutorKey > Short.MAX_VALUE) {
-            throw prosecutorNotFound(prosecutorKey);
-        }
-        return prosecutorKey.shortValue();
-    }
-
-    private EntityNotFoundException prosecutorNotFound(Long prosecutorKey) {
+    private EntityNotFoundException prosecutorNotFound(String prosecutorKey) {
         return new EntityNotFoundException("Prosecutor not found with key: " + prosecutorKey);
     }
 }

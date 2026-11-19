@@ -23,7 +23,7 @@ public class ProsecutorServiceProxy implements ProsecutorServiceInterface, Proxy
     }
 
     @Override
-    public ProsecutorsObject getProsecutorByKey(Long prosecutorKey) {
+    public ProsecutorsObject getProsecutorByKey(String prosecutorKey) {
         return getCurrentModeService().getProsecutorByKey(prosecutorKey);
     }
 

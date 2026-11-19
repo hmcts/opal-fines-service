@@ -28,13 +28,13 @@ class ProsecutorControllerTest {
     @Test
     void getProsecutorById_returnsProsecutor() {
         ProsecutorsObject prosecutor = ProsecutorsObject.builder().name("Prosecutor").build();
-        when(prosecutorServiceProxy.getProsecutorByKey(1L)).thenReturn(prosecutor);
+        when(prosecutorServiceProxy.getProsecutorByKey("1")).thenReturn(prosecutor);
 
-        ResponseEntity<ProsecutorsObject> response = prosecutorController.getProsecutorById(1L);
+        ResponseEntity<ProsecutorsObject> response = prosecutorController.getProsecutorById("1");
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(prosecutor, response.getBody());
-        verify(prosecutorServiceProxy).getProsecutorByKey(1L);
+        verify(prosecutorServiceProxy).getProsecutorByKey("1");
     }
 
     @Test
