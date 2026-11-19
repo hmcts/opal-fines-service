@@ -91,6 +91,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
 
     @Test
     @DisplayName("PO-11388 INT.01/INT.04/INT.06 - returns the permitted processed file summary")
+    @JiraStory("PO-2576")
     @JiraStory("PO-11388")
     @JiraEpic("PO-11360")
     void returnsPermittedProcessedFileSummary() throws Exception {
@@ -250,6 +251,7 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("PO-2576 INT.01 - returns a permitted ignored file summary without a till")
     @JiraStory("PO-2576")
+    @JiraStory("PO-11388")
     @JiraEpic("PO-2468")
     void returnsPermittedIgnoredFileSummaryWithoutTill() throws Exception {
 
