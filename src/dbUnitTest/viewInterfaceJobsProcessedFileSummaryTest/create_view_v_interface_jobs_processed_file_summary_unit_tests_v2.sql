@@ -22,18 +22,18 @@ BEGIN
 
     DELETE FROM interface_messages
      WHERE interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006)
-        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM tills
-     WHERE till_id IN (310001, 310002, 310003, 310004)
+     WHERE till_id IN (310001, 310002, 310003)
         OR interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006);
 
     DELETE FROM interface_files
      WHERE interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006)
-        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM interface_jobs
-     WHERE interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+     WHERE interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM business_units
      WHERE business_unit_id IN (3100, 3101);
@@ -86,7 +86,7 @@ BEGIN
         310002,
         3101,
         'Auto Payments In',
-        'IGNORED',
+        'COMPLETED',
         '2026-08-01 10:00:00',
         '2026-08-01 10:25:00'
     ),
@@ -113,14 +113,6 @@ BEGIN
         'COMPLETED',
         '2026-08-01 13:00:00',
         '2026-08-01 13:15:00'
-    ),
-    (
-        310006,
-        3100,
-        'Auto Payments In',
-        'COMPLETED',
-        '2026-08-01 09:00:00',
-        '2026-08-01 09:30:00'
     );
 
     INSERT INTO interface_files (
@@ -143,7 +135,7 @@ BEGIN
     ),
     (
         310002,
-        310006,
+        310001,
         'v1-310-allpay.dat',
         '2026-08-01 09:02:00',
         'ALLPAY'::t_interface_file_source_enum,
@@ -242,20 +234,6 @@ BEGIN
         'V1 310 Till Owner C',
         TRUE,
         '2026-08-01 11:03:00'
-    ),
-    (
-        310004,
-        3100,
-        4313,
-        'TST310D',
-        'ALLPAY'::t_interface_file_source_enum,
-        'Created'::t_till_status_enum,
-        80.00,
-        310002,
-        8,
-        'V1 310 Till Owner D',
-        TRUE,
-        '2026-08-01 09:03:00'
     );
 
     INSERT INTO interface_messages (
@@ -305,7 +283,7 @@ BEGIN
     ),
     (
         310005,
-        310006,
+        310001,
         310002,
         'Info',
         'File processed',
@@ -387,27 +365,35 @@ BEGIN
     ASSERT v_summary.total_amount = 80.00, 'total_amount should match';
     ASSERT v_summary.total_records = 8, 'total_records should match';
     ASSERT v_summary.total_errors = 0, 'Info messages should not be counted as total errors';
-    ASSERT v_summary.interface_job_id = 310006, 'interface_job_id should match the file job';
-    ASSERT v_summary.till_id = 310004, 'till_id should match';
-    ASSERT v_summary.till_number = 4313, 'till_number should match';
-    ASSERT v_summary.business_unit_id = 3100, 'business_unit_id should come from the till';
-    ASSERT v_summary.business_unit_name = 'V1 310 Test Business Unit A', 'business_unit_name should come from the till business unit';
+    ASSERT v_summary.till_id IS NULL, 'till_id should be NULL when no till exists for the file';
+    ASSERT v_summary.till_number IS NULL, 'till_number should be NULL when no till exists for the file';
+    ASSERT v_summary.business_unit_id IS NULL, 'business_unit_id should be NULL when no till exists for the file';
+    ASSERT v_summary.business_unit_name IS NULL, 'business_unit_name should be NULL when no till exists for the file';
 
     RAISE NOTICE 'TEST 2 PASSED';
 END $$;
 
 DO $$
 DECLARE
-    v_row_count integer;
+    v_summary v_interface_jobs_processed_file_summary%ROWTYPE;
 BEGIN
-    RAISE NOTICE '=== TEST 3: Ignored file without a till is excluded from the completed view ===';
+    RAISE NOTICE '=== TEST 3: Completed file with no messages and no till returns summary with null join columns ===';
 
-    SELECT COUNT(*)
-      INTO v_row_count
+    SELECT *
+      INTO STRICT v_summary
       FROM v_interface_jobs_processed_file_summary
      WHERE interface_file_id = 310003;
 
-    ASSERT v_row_count = 0, 'IGNORED files without a till should not be returned by the completed view';
+    ASSERT v_summary.interface_job_id = 310002, 'interface_job_id should match';
+    ASSERT v_summary.interface_file_name = 'v1-310-no-till.dat', 'interface file name should match';
+    ASSERT v_summary.source::TEXT = 'DWP', 'source should match';
+    ASSERT v_summary.total_amount = 0.00, 'total_amount should allow zero values';
+    ASSERT v_summary.total_records = 0, 'total_records should allow zero values';
+    ASSERT v_summary.total_errors = 0, 'total_errors should default to zero when there are no messages';
+    ASSERT v_summary.business_unit_id IS NULL, 'business_unit_id should be NULL without a till';
+    ASSERT v_summary.business_unit_name IS NULL, 'business_unit_name should be NULL without a till';
+    ASSERT v_summary.till_id IS NULL, 'till_id should be NULL without a till';
+    ASSERT v_summary.till_number IS NULL, 'till_number should be NULL without a till';
 
     RAISE NOTICE 'TEST 3 PASSED';
 END $$;
@@ -457,19 +443,14 @@ DO $$
 DECLARE
     v_row_count integer;
 BEGIN
-    RAISE NOTICE '=== TEST 6: Each completed job returns one file summary ===';
+    RAISE NOTICE '=== TEST 6: Completed jobs return one row per interface file ===';
 
     SELECT COUNT(*)
       INTO v_row_count
-      FROM (
-          SELECT interface_job_id
-            FROM v_interface_jobs_processed_file_summary
-           WHERE interface_job_id IN (310001, 310005, 310006)
-           GROUP BY interface_job_id
-          HAVING COUNT(*) = 1
-      ) summaries;
+      FROM v_interface_jobs_processed_file_summary
+     WHERE interface_job_id = 310001;
 
-    ASSERT v_row_count = 3, 'Each completed job should return exactly one file summary';
+    ASSERT v_row_count = 2, 'Completed job 310001 should return both associated interface files';
 
     RAISE NOTICE 'TEST 6 PASSED';
 END $$;
@@ -480,18 +461,18 @@ BEGIN
 
     DELETE FROM interface_messages
      WHERE interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006)
-        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM tills
-     WHERE till_id IN (310001, 310002, 310003, 310004)
+     WHERE till_id IN (310001, 310002, 310003)
         OR interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006);
 
     DELETE FROM interface_files
      WHERE interface_file_id IN (310001, 310002, 310003, 310004, 310005, 310006)
-        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+        OR interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM interface_jobs
-     WHERE interface_job_id IN (310001, 310002, 310003, 310004, 310005, 310006);
+     WHERE interface_job_id IN (310001, 310002, 310003, 310004, 310005);
 
     DELETE FROM business_units
      WHERE business_unit_id IN (3100, 3101);

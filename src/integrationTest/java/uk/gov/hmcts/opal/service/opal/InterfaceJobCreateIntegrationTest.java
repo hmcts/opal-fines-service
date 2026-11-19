@@ -110,7 +110,7 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
         InterfaceJobEntity interfaceJob = interfaceJobRepository.findById(interfaceJobId).orElseThrow();
         InterfaceFileEntity interfaceFile = fileFor(interfaceJobId);
         LocalDateTime completedAt = interfaceJob.getCreatedDateTime().plusMinutes(1);
-        tillRepository.saveAndFlush(TillEntity.builder()
+        TillEntity till = tillRepository.saveAndFlush(TillEntity.builder()
             .businessUnit(interfaceJob.getBusinessUnit())
             .tillNumber((short) 1)
             .ownedBy("interface-jobs")
@@ -119,17 +119,21 @@ class InterfaceJobCreateIntegrationTest extends AbstractIntegrationTest {
             .autoPayment(true)
             .createdDate(completedAt)
             .build());
-        interfaceJob.setStatus(InterfaceJobStatus.COMPLETED);
-        interfaceJobRepository.save(interfaceJob);
+        try {
+            interfaceJob.setStatus(InterfaceJobStatus.COMPLETED);
+            interfaceJobRepository.save(interfaceJob);
 
-        Map<String, Object> summary = jdbcTemplate.queryForMap("""
-            SELECT total_records, total_amount
-            FROM v_interface_jobs_processed_file_summary
-            WHERE interface_job_id = ?
-            """, interfaceJobId);
+            Map<String, Object> summary = jdbcTemplate.queryForMap("""
+                SELECT total_records, total_amount
+                FROM v_interface_jobs_processed_file_summary
+                WHERE interface_job_id = ?
+                """, interfaceJobId);
 
-        assertEquals(1, summary.get("total_records"));
-        assertEquals(new BigDecimal("123.45"), summary.get("total_amount"));
+            assertEquals(1, summary.get("total_records"));
+            assertEquals(new BigDecimal("123.45"), summary.get("total_amount"));
+        } finally {
+            tillRepository.delete(till);
+        }
     }
 
     @Test

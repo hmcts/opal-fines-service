@@ -7,8 +7,8 @@ INSERT INTO business_units (
     opal_domain,
     welsh_language
 ) VALUES (
-    2576, 'Processed Summary BU', 'PSBU', 'Area', 'PS', 'Fines', true
-);
+             2576, 'Processed Summary BU', 'PSBU', 'Area', 'PS', 'Fines', true
+         );
 
 INSERT INTO interface_jobs (
     interface_job_id,
@@ -18,9 +18,9 @@ INSERT INTO interface_jobs (
     created_datetime,
     completed_datetime
 ) VALUES (
-    257601, 2576, 'Auto Payments In', 'COMPLETED',
-    '2026-07-01 10:00:00', '2026-07-01 10:30:00'
-);
+             257601, 2576, 'Auto Payments In', 'COMPLETED',
+             '2026-07-01 10:00:00', '2026-07-01 10:30:00'
+         );
 
 INSERT INTO interface_jobs (
     interface_job_id,
@@ -30,9 +30,9 @@ INSERT INTO interface_jobs (
     created_datetime,
     completed_datetime
 ) VALUES (
-    257602, 2576, 'Auto Payments In', 'IGNORED',
-    '2026-07-01 11:00:00', '2026-07-01 11:30:00'
-);
+             257602, 2576, 'Auto Payments In', 'IGNORED',
+             '2026-07-01 11:00:00', '2026-07-01 11:30:00'
+         );
 
 INSERT INTO interface_jobs (
     interface_job_id,
@@ -42,9 +42,9 @@ INSERT INTO interface_jobs (
     created_datetime,
     completed_datetime
 ) VALUES (
-    257603, 2576, 'Auto Payments In', 'COMPLETED',
-    '2026-07-01 12:00:00', '2026-07-01 12:30:00'
-);
+             257603, 2576, 'Auto Payments In', 'COMPLETED',
+             '2026-07-01 12:00:00', '2026-07-01 12:30:00'
+         );
 
 INSERT INTO interface_files (
     interface_file_id,
@@ -76,7 +76,6 @@ INSERT INTO tills (
     till_id,
     business_unit_id,
     till_number,
-    status,
     owned_by,
     interface_file_id,
     source,
@@ -86,10 +85,10 @@ INSERT INTO tills (
     auto_payment,
     created_date
 ) VALUES (
-    257621, 2576, 901, 'Created'::t_till_status_enum, 'test-user', 257611,
-    'NATWEST'::t_interface_file_source_enum, 123.45, 3, 'Test User', true,
-    '2026-07-01 10:30:00'
-);
+             257621, 2576, 901, 'test-user', 257611,
+             'NATWEST'::t_interface_file_source_enum, 123.45, 3, 'Test User', true,
+             '2026-07-01 10:30:00'
+         );
 
 INSERT INTO interface_messages (
     interface_message_id,
