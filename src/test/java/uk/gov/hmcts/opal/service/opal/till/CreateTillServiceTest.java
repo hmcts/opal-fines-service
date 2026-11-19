@@ -245,7 +245,8 @@ class CreateTillServiceTest {
         verify(partyRepository).save(any(PartyEntity.class));
         verify(miscellaneousAccountRepository).save(any(MiscellaneousAccountEntity.class));
         verify(miscellaneousAccountRepository).getNextAccountNumber(BUSINESS_UNIT_ID);
-        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(persistedTill.getTillId(), 7L, "Test User");
+        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(
+            persistedTill.getTillId(), 7L, "Test User");
     }
 
     @Test
