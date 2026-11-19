@@ -1,0 +1,57 @@
+
+Task 'PostgreSQL script' started at Wed Nov 18 14:23:55 GMT 2026
+BEGIN
+
+NOTICE:  TEST 01 PASS: Positive balance, XP, XFER, zero remainder and version increment
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P0001 - Some information on this page may be out of date.
+
+NOTICE:  Error details: p_transfer_suspense_to_hmcts_other: suspense_item_id=9900000000594904, expected_version=1 - version update affected no rows.
+
+NOTICE:  TEST 02 PASS: Stale version P0001 and no XP persisted
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4105 - Suspense balance must be greater than zero.
+
+NOTICE:  TEST 03 PASS: Negative balance rejected (P4105)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4105 - Suspense balance must be greater than zero.
+
+NOTICE:  TEST 04 PASS: Zero balance rejected (P4105)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4101 - Suspense item ID is required.
+
+NOTICE:  TEST 05 PASS: NULL item ID rejected (P4101)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4102 - Suspense item version is required.
+
+NOTICE:  TEST 06 PASS: NULL version rejected (P4102)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4103 - Posted-by user is required.
+
+NOTICE:  TEST 07 PASS: NULL posted-by rejected (P4103)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4104 - Posted-by name is required.
+
+NOTICE:  TEST 08 PASS: Blank posted-by name rejected (P4104)
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P0002 - query returned no rows
+
+NOTICE:  Error details:
+
+NOTICE:  TEST 09 PASS: Missing CF rejected (P0002); all attempted writes rolled back
+
+NOTICE:  Error in p_transfer_suspense_to_hmcts_other: P4106 - Suspense item does not exist.
+
+NOTICE:  TEST 10 PASS: Missing suspense item rejected (P4106)
+
+NOTICE:  TEST 11 PASS: Negative-balance fixture unchanged
+
+NOTICE:  TEST 12 PASS: Zero-balance fixture unchanged
+
+NOTICE:  PO-10349: 12 tests passed (all fixture changes will be rolled back)
+
+DO
+
+ROLLBACK
+
+Task 'PostgreSQL script' finished at Wed Nov 18 14:23:55 GMT 2026
