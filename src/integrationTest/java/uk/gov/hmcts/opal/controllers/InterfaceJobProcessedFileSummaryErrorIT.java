@@ -25,7 +25,9 @@ import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggleAspect;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CommonGlobalExceptionHandler;
 import uk.gov.hmcts.opal.mapper.InterfaceJobProcessedFileSummaryMapper;
 import uk.gov.hmcts.opal.mapper.InterfaceMessageMapper;
+import uk.gov.hmcts.opal.repository.InterfaceJobsProcessedFileSummaryRepository;
 import uk.gov.hmcts.opal.repository.InterfaceMessageRepository;
+import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobProcessedFileSummaryPdplLoggingService;
@@ -66,6 +68,12 @@ class InterfaceJobProcessedFileSummaryErrorIT extends AbstractWebMvcIntegrationT
 
     @MockitoBean
     private InterfaceMessageRepository interfaceMessageRepository;
+
+    @MockitoBean
+    private InterfaceJobsProcessedFileSummaryRepository summaryViewRepository;
+
+    @MockitoBean
+    private TillRepository tillRepository;
 
     @MockitoBean
     private InterfaceJobProcessedFileSummaryMapper processedFileSummaryMapper;
