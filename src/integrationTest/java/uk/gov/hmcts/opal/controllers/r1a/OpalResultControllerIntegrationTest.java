@@ -15,6 +15,8 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.repository.OpalResultRepository;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestPropertySource(properties = "launchdarkly.default-flag-values.is-legacy-mode=false")
@@ -47,6 +49,8 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
     void getResultById_readsOpalTable() throws Exception {
         mockMvc.perform(get("/results/OPLIT1"))
             .andExpect(status().isOk())
@@ -57,6 +61,8 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
     void getResults_readsAndFiltersOpalTable() throws Exception {
         mockMvc.perform(get("/results").param("result_ids", "OPLIT1")
                 .param("active", "true").param("manual_enforcement_only", "true"))
