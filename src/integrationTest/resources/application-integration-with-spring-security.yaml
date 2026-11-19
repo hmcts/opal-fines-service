@@ -41,6 +41,11 @@ testcontainers:
 legacy-gateway:
   url: http://localhost:4553/opal
 
+opal:
+  ref-data:
+    service-bus:
+      consumer-enabled: false
+
 user:
   service:
     url: http://localhost:4553/opal
