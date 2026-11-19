@@ -231,9 +231,9 @@ paths:
         Get processed file summary information for the supplied interface job ID.
         Results require the Process and Allocate Payments permission in the business unit
         associated with the supplied interface job ID.
-        For completed interface jobs, a Till Summary is available only while the associated
-        Till has a status other than Allocated. The current Till status is checked on each
-        request; an Allocated Till Summary returns 404 Not Found without summary or
+        For completed interface jobs, a Till Summary is available only when an associated
+        Till exists and has a status other than Allocated. The current Till status is checked on each
+        request; a missing or Allocated Till returns 404 Not Found without summary or
         interface-message data. An ignored-file File Summary remains available when
         processing created no Till, subject to the same permission and data-availability checks.
       operationId: get_interface_job_processed_file_summary
@@ -270,7 +270,7 @@ paths:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "404":
-          description: Summary not found or unavailable because its associated Till is Allocated
+          description: Summary not found or unavailable because its associated Till is missing or Allocated
           content:
             application/json+problem:
               schema:
