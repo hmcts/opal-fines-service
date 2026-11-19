@@ -110,7 +110,9 @@ BEGIN
                       associated_record_type= CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
                           associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
                 WHERE business_unit_id =pi_business_unit_id
-                AND item_number =pi_item_amounts[i].item_number;
+                AND item_number =pi_item_amounts[i].item_number
+                AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+                AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
       
               END IF;
           ELSIF (pi_item_amounts[i].control_total_type=c_control_type_wot) THEN	      
@@ -144,7 +146,9 @@ BEGIN
               associated_record_type = CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
               associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
             WHERE business_unit_id = pi_business_unit_id
-            AND item_number = pi_item_amounts[i].item_number;
+            AND item_number = pi_item_amounts[i].item_number
+            AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+            AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
 
                 
           END IF;
@@ -189,7 +193,9 @@ BEGIN
                     associated_record_type = CASE WHEN pi_associated_record_type IS NOT NULL THEN  pi_associated_record_type::t_associated_record_type_enum ELSE associated_record_type END,
                     associated_record_id = CASE WHEN pi_associated_record_id IS NOT NULL THEN  pi_associated_record_id ELSE associated_record_id END
             WHERE business_unit_id = pi_business_unit_id
-            AND item_number = pi_counter_item_number;
+            AND item_number = pi_counter_item_number
+            AND (associated_record_type IS NULL OR associated_record_type=pi_associated_record_type)
+            AND (associated_record_id IS NULL OR associated_record_id=pi_associated_record_id);
             END IF;		         
         END IF;	             
 EXCEPTION
