@@ -298,15 +298,17 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: Exception Message:", method, response.exception);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.body,
+                    response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
-                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
             } else if (response.body == null) {
                 log.info("Account not found");
                 throw new EntityNotFoundException(method + " Account not found");
             }
             log.error(":{}: Legacy Gateway Error: Body:\n{}", method, response.body);
-            throw createGatewayException(response.code, "Legacy gateway error", response.body);
+            throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
@@ -315,13 +317,16 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private static RuntimeException createGatewayException(
         HttpStatusCode status,
         String fallbackStatusText,
-        String responseBody
+        String responseBody,
+        Throwable exception
     ) {
         HttpStatusCode statusCode =
             status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
+        String statusText =
+            exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
         byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
         assert body != null;
-        return HttpServerErrorException.create(statusCode, fallbackStatusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
+        return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
     private boolean isItemTypeFilteringEnabled() {
