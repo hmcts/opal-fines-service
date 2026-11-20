@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 
+import com.github.tomakehurst.wiremock.WireMockServer;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,6 +58,7 @@ public class UserStateStub {
     private UserStateV2 userState;
     private String jwtStr;
     private boolean isStubbed;
+    private final WireMockServer wireMockServer;
 
     private static final String TEST_JWT_SECRET = "SomeVeryGoodAndVeryLongSecretThatNoOneWillEverGuess";
     public static final ObjectMapper USER_STATE_MAPPER = new ObjectMapper()
@@ -68,11 +70,20 @@ public class UserStateStub {
     }
 
     public UserStateStub() {
-        this(generateJwt());
+        this(generateJwt(), null);
+    }
+
+    public UserStateStub(WireMockServer wireMockServer) {
+        this(generateJwt(), wireMockServer);
     }
 
     public UserStateStub(String jwtStr) {
+        this(jwtStr, null);
+    }
+
+    public UserStateStub(String jwtStr, WireMockServer wireMockServer) {
         this.jwtStr = jwtStr;
+        this.wireMockServer = wireMockServer;
         this.userState = getDefaultUserState();
     }
 
@@ -109,7 +120,23 @@ public class UserStateStub {
     }
 
     public void createAuthentication() {
+        if (wireMockServer != null) {
+            createAuthentication(wireMockServer);
+            return;
+        }
         stubFor(get("/v2/users/0/state")
+            .willReturn(
+                aResponse()
+                    .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
+                    .withBody(getUserStateAsJson())
+            )
+        );
+        this.isStubbed = true;
+    }
+
+    public void createAuthentication(WireMockServer wireMockServer) {
+        wireMockServer.stubFor(get("/v2/users/0/state")
+            .atPriority(1)
             .willReturn(
                 aResponse()
                     .withHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
@@ -273,6 +300,11 @@ public class UserStateStub {
 
     public void setupWithNoPermissions() {
         this.userState = getDefaultUserState();
+        getDomainBusinessUnitUsers().getBusinessUnitUsers().clear();
+    }
+
+    public void setupWithNoPermissions(UserStateV2Builder userStateBuilder) {
+        this.userState = userStateBuilder.build();
         getDomainBusinessUnitUsers().getBusinessUnitUsers().clear();
     }
 
