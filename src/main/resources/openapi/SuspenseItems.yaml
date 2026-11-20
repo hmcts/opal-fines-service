@@ -93,6 +93,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /suspense-items/{suspense_item_id}/repay-third-party:
     post:
       tags:
@@ -194,31 +195,11 @@ components:
         - noteText
       properties:
         transactionType:
-          type: string
-          description: Type of transaction to add.
-          enum:
-            - CC
-            - CF
-            - DQ
-            - FA
-            - FB
-            - IN
-            - LA
-            - MA
-            - MB
-            - MC
-            - MS
-            - OM
-            - OC
-            - OF
-            - RP
-            - RV
-            - UN
-            - XF
-            - XP
+          $ref: './CommonStrict.yaml#/components/schemas/transactionTypeCode'
         noteText:
           type: string
           description: Note associated with the transaction.
+
     SuspenseItemTransactionResponse:
       type: object
       additionalProperties: false

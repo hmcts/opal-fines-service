@@ -16,6 +16,9 @@ public final class FeatureFlags {
     public static final String RELEASE_1C_WRITE_OFF_ENABLED_PROPERTY =
         DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_WRITE_OFF;
     public static final String RELEASE_1C_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C;
+    public static final String RELEASE_1C_SUSPENSE = RELEASE_1C + "-suspense";
+    public static final String RELEASE_1C_SUSPENSE_ENABLED_PROPERTY =
+        DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_SUSPENSE;
     public static final String RELEASE_1C_PAYMENT = RELEASE_1C + "-payment";
     public static final String RELEASE_1C_PAYMENT_ENABLED_PROPERTY = DEFAULT_VALUE_PROPERTY_PREFIX + RELEASE_1C_PAYMENT;
     public static final String RELEASE_1C_SUSPENSE = RELEASE_1C + "-suspense";
