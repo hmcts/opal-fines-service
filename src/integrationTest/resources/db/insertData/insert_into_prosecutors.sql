@@ -10,12 +10,14 @@ INSERT INTO prosecutors (
     end_date
 )
 VALUES
-    (1111, 'AA1 Chief Prosecutor', '9 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
+    ('1111', 'AA1 Chief Prosecutor', '9 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
      NULL, NULL, 'PR01 2PR', NULL),
-    (2222, 'AA2 Assistant Prosecutor', '49 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
+    ('2222', 'AA2 Assistant Prosecutor', '49 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
      NULL, NULL, 'PR01 4PR', '2099-11-24 10:00:00'),
-    (3333, 'AA3 Junior Prosecutor', '99 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
+    ('3333', 'AA3 Junior Prosecutor', '99 Prosecutor Street', 'Prosecutorville', 'Prosecutorton',
      NULL, NULL, 'PR01 9PR', '2009-04-16 20:00:00'),
-    (9990, 'AA4 Boundary Prosecutor',
+    ('9990', 'AA4 Boundary Prosecutor',
      '123456789012345678901234567890123456789012345678901234567890',
-     'Boundaryville', 'Boundaryton', NULL, NULL, 'PR06 0PR', NULL);
+     'Boundaryville', 'Boundaryton', NULL, NULL, 'PR06 0PR', NULL),
+    ('001X', 'Alphanumeric Prosecutor', NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+    ('0998', 'Leading Zero Prosecutor', NULL, NULL, NULL, NULL, NULL, NULL, NULL);

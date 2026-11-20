@@ -69,10 +69,9 @@ paths:
         - name: prosecutorId
           in: path
           required: true
-          description: The unique prosecutor identifier. DB Mapping - prosecutors.prosecutor_id
+          description: Opal prosecutor code (prosecutors.prosecutor_code) or legacy prosecutor ID (prosecutors_legacy.prosecutor_id).
           schema:
-            type: integer
-            format: int64
+            type: string
       responses:
         '200':
           description: Prosecutor found
@@ -143,13 +142,12 @@ components:
       additionalProperties: false
       x-json-include: NON_NULL
       required:
-        - prosecutor_id
         - name
       properties:
         prosecutor_id:
           type: integer
           format: int16
-          description: DB Mapping - prosecutors.prosecutor_id
+          description: Legacy prosecutor identifier. DB Mapping - prosecutors_legacy.prosecutor_id
         name:
           type: string
           maxLength: 200
@@ -157,7 +155,7 @@ components:
         prosecutor_code:
           type: string
           maxLength: 4
-          description: DB Mapping - prosecutors.prosecutor_code
+          description: Opal prosecutor code. DB Mapping - prosecutors.prosecutor_code
         address_line_1:
           type: string
           maxLength: 60
