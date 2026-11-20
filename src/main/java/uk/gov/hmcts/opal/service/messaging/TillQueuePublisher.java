@@ -35,15 +35,15 @@ public class TillQueuePublisher {
     /**
      * Publishes one JSON message per till, sharing a Service Bus session ID for ordered processing.
      */
-    public void publish(List<Long> tillIds) {
-        List<String> payloads = tillIds.stream().map(this::toPayload).toList();
+    public void publish(List<TillQueueMessage> messages) {
+        List<String> payloads = messages.stream().map(this::toPayload).toList();
         String sessionId = UUID.randomUUID().toString();
         jmsTemplate.execute(session -> sendBatch(session, payloads, sessionId), true);
     }
 
-    private String toPayload(Long tillId) {
+    private String toPayload(TillQueueMessage message) {
         try {
-            return objectMapper.writeValueAsString(new TillQueueMessage(tillId));
+            return objectMapper.writeValueAsString(message);
         } catch (JacksonException exception) {
             throw new IllegalStateException("Unable to serialize till queue message", exception);
         }

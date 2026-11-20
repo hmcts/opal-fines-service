@@ -19,13 +19,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.user.authorisation.model.DomainBusinessUnitUsers;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.TillsAllocateItem;
 import uk.gov.hmcts.opal.generated.model.TillsAllocateRequest;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
+import uk.gov.hmcts.opal.service.messaging.TillQueueMessage;
 import uk.gov.hmcts.opal.service.messaging.TillQueuePublisher;
+import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class TillAllocationService {
 
     private final TillRepository tillRepository;
     private final UserStateService userStateService;
+    private final BusinessUnitService businessUnitService;
     private final TillQueuePublisher tillQueuePublisher;
 
     /**
@@ -46,24 +50,36 @@ public class TillAllocationService {
         if (requestedTills.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("Tills must not contain null entries");
         }
-        authorise(requestedTills);
+        AllocationUserContext userContext = authoriseAndResolveUserContext(requestedTills);
 
         List<Long> tillIds = requestedTills.stream().map(TillsAllocateItem::getTillId).distinct().toList();
         Map<Long, TillEntity> tillsById = lockTills(tillIds);
         validateTills(requestedTills, tillsById);
+        List<TillQueueMessage> messages = requestedTills.stream()
+            .map(item -> new TillQueueMessage(item.getTillId(), item.getBusinessUnitId(),
+                businessUnitService.getBusinessUnitUserIdForBusinessUnit(
+                    userContext.finesBusinessUnitUsers(), item.getBusinessUnitId(), PROCESS_AND_ALLOCATE_PAYMENTS),
+                userContext.postedByName(), userContext.requestedBy()))
+            .distinct()
+            .toList();
         markProcessing(tillsById.values());
-        tillQueuePublisher.publish(tillIds);
+        tillQueuePublisher.publish(messages);
+    }
+
+    private AllocationUserContext authoriseAndResolveUserContext(List<TillsAllocateItem> requestedTills) {
+        UserStateV2 userState = userStateService.getUserStateFromSecurityContext();
+        DomainBusinessUnitUsers finesBusinessUnitUsers = userState.getDomainBusinessUnitUsers(FINES);
+        authorise(requestedTills, finesBusinessUnitUsers);
+        return new AllocationUserContext(finesBusinessUnitUsers, userState.getName(), userState.getUserId());
     }
 
     /**
      * Uses the shared permission utilities to authorise each distinct requested business unit before loading tills.
      */
-    private void authorise(List<TillsAllocateItem> requestedTills) {
-        DomainBusinessUnitUsers businessUnitUsers = userStateService.getUserStateFromSecurityContext()
-            .getDomainBusinessUnitUsers(FINES);
+    private void authorise(List<TillsAllocateItem> requestedTills, DomainBusinessUnitUsers finesBusinessUnitUsers) {
         requestedTills.stream().map(TillsAllocateItem::getBusinessUnitId).distinct()
             .forEach(id -> checkBusinessUnitUserHasPermission(
-                getRequiredBusinessUnitUser(businessUnitUsers, id), PROCESS_AND_ALLOCATE_PAYMENTS));
+                getRequiredBusinessUnitUser(finesBusinessUnitUsers, id), PROCESS_AND_ALLOCATE_PAYMENTS));
     }
 
     /**
@@ -112,5 +128,9 @@ public class TillAllocationService {
         if (till.getStatus() != Created && till.getStatus() != Failed) {
             throw new ResourceConflictException("Till", till.getTillId(), "Till must be Created or Failed", null);
         }
+    }
+
+    private record AllocationUserContext(DomainBusinessUnitUsers finesBusinessUnitUsers, String postedByName,
+                                         Long requestedBy) {
     }
 }

@@ -1378,6 +1378,8 @@ dependencyUpdates {
 
 dependencyManagement {
   imports {
+    mavenBom 'com.azure.spring:spring-cloud-azure-dependencies:7.4.0'
+    mavenBom 'com.azure:azure-sdk-bom:1.3.9'
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.4'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.2"
     mavenBom "io.netty:netty-bom:4.2.20.Final"
@@ -1429,6 +1431,7 @@ dependencies {
 
   implementation 'com.microsoft.azure:applicationinsights-web:3.7.10'
   implementation 'com.azure:azure-storage-blob:12.37.2'
+  implementation 'com.azure.spring:spring-cloud-azure-starter-servicebus'
   implementation 'org.springframework.boot:spring-boot-flyway'
   implementation "org.springframework.boot:spring-boot-starter-web"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
