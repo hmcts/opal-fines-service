@@ -228,7 +228,7 @@ class FileHandlerAPIServiceTest {
                 null,
                 "Authentication",
                 null,
-                Map.of("Authenticating Service", "opal-filehandler-service",
+                Map.of("Authenticating Service", "opal-file-handler-service",
                     "Target Service", "opal-fines-service"));
     }
 
@@ -239,7 +239,7 @@ class FileHandlerAPIServiceTest {
                 null,
                 "Authentication",
                 null,
-                Map.of("Authenticating Service", "opal-filehandler-service",
+                Map.of("Authenticating Service", "opal-file-handler-service",
                     "Target Service", "opal-fines-service"));
     }
 }
