@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,10 +22,12 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
+import uk.gov.hmcts.opal.config.ObjectMapperConfiguration;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
@@ -42,7 +45,19 @@ class DraftAccountPdplLoggingServiceTest {
 
     private DraftAccountPdplLoggingService serviceWithNow(OffsetDateTime now) {
         Clock fixedClock = Clock.fixed(now.toInstant(), ZoneOffset.UTC);
-        return new DraftAccountPdplLoggingService(loggingService, fixedClock);
+        return new DraftAccountPdplLoggingService(loggingService, fixedClock,
+            new PdplMessageBatcher(new ObjectMapperConfiguration().snakeCaseObjectMapper(), 262144, 65536, "PDPO"));
+    }
+
+    @Test
+    void listConsultationDoesNotIgnoreQueueFailure() {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(false);
+        DraftAccountPdplLoggingService service = serviceWithNow(OffsetDateTime.parse("2026-11-17T12:00:00Z"));
+        DraftAccountEntity entity = makeEntity(1L, "user", "{\"defendant_type\":\"adultOrYouthOnly\"}");
+
+        assertThrows(PdplLoggingException.class, () -> service.logForMultipleGets(List.of(entity), Action.GET,
+            UserState.builder().userId(TEST_USER_ID).build()));
+        verify(loggingService).personalDataAccessLogAsync(any());
     }
 
     private DraftAccountEntity makeEntity(Long draftId, String submittedBy, String accountJson) {

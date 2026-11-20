@@ -1,14 +1,16 @@
 package uk.gov.hmcts.opal.steps.draftaccount;
 
+import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
+
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import static uk.gov.hmcts.opal.config.Constants.DRAFT_ACCOUNTS_URI;
 import uk.gov.hmcts.opal.actions.draftaccount.DraftAccountActions;
 import uk.gov.hmcts.opal.assertions.draftaccount.DraftAccountAssertions;
 import uk.gov.hmcts.opal.steps.BaseStepDef;
@@ -293,6 +295,7 @@ public class DraftAccountGetSteps extends BaseStepDef {
      */
     @When("I request all draft accounts")
     public void requestAllDraftAccounts() {
+        scenarioContext().setDraftAccountListRequestedAt(Instant.now());
         workflow.requestDraftAccounts(Map.of());
     }
 }

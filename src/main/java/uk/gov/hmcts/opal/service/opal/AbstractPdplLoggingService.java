@@ -39,10 +39,17 @@ public abstract class AbstractPdplLoggingService {
         ParticipantIdentifier recipient,
         Long userId) {
 
-        // attempt to resolve createdBy from Spring Security
+        return loggingService.personalDataAccessLogAsync(
+            buildLogDetails(businessIdentifier, category, individuals, recipient, userId));
+    }
+
+    protected PersonalDataProcessingLogDetails buildLogDetails(String businessIdentifier,
+        PersonalDataProcessingCategory category, List<ParticipantIdentifier> individuals,
+        ParticipantIdentifier recipient, Long userId) {
+
         ParticipantIdentifier createdBy = participant(userId.toString(), OPAL_USER_ID);
 
-        PersonalDataProcessingLogDetails logDetails = PersonalDataProcessingLogDetails.builder()
+        return PersonalDataProcessingLogDetails.builder()
             .recipient(recipient)
             .businessIdentifier(businessIdentifier)
             .category(category)
@@ -51,8 +58,6 @@ public abstract class AbstractPdplLoggingService {
             .createdBy(createdBy)
             .individuals(individuals)
             .build();
-
-        return loggingService.personalDataAccessLogAsync(logDetails);
     }
 
     protected void logPdplOrThrow(String businessIdentifier,
