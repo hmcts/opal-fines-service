@@ -52,14 +52,26 @@ class QueueConsumerJmsConfigTest {
     }
 
     @Test
-    void skipsJmsBeansWhenDisabled() {
+    void loadsJmsBeansWhenConsumersDisabled() {
+        when(serviceBusConnectionStringParser.parse(anyString()))
+            .thenReturn(new ServiceBusConnectionStringParser.ConnectionDetails(
+                "example.servicebus.windows.net",
+                "RootManageSharedAccessKey",
+                "key"
+            ));
+
         contextRunner
-            .withPropertyValues("opal.report.service-bus.consumer-enabled=false")
+            .withPropertyValues(
+                "opal.report.service-bus.consumer-enabled=false",
+                "opal.automated-task=",
+                "opal.common.service-bus.connection-string=Endpoint=sb://example.servicebus.windows.net/;"
+                    + "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key")
             .run(context -> {
-                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
+                assertThat(context)
+                    .hasBean("opalFinesConsumerConnection")
+                    .hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).doesNotHaveBean(ReportQueueListener.class);
-                assertThat(context).doesNotHaveBean("reportListenerContainerFactory");
-                assertThat(context).doesNotHaveBean("opalFinesConsumerConnectionFactory");
             });
     }
 
@@ -70,7 +82,7 @@ class QueueConsumerJmsConfigTest {
             .run(context -> {
                 assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ReportQueueListener.class);
-                assertThat(context).doesNotHaveBean("reportListenerContainerFactory");
+                assertThat(context).doesNotHaveBean("opalFinesConsumerConnection");
                 assertThat(context).doesNotHaveBean("opalFinesConsumerConnectionFactory");
             });
     }

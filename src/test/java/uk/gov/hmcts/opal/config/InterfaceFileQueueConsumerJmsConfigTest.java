@@ -73,16 +73,30 @@ class InterfaceFileQueueConsumerJmsConfigTest {
     }
 
     @Test
-    void skipsJmsBeansWhenDisabled() {
+    void loadsJmsBeansWithoutListenersWhenConsumersDisabled() {
+        when(serviceBusConnectionStringParser.parse(anyString()))
+            .thenReturn(new ServiceBusConnectionStringParser.ConnectionDetails(
+                "example.servicebus.windows.net",
+                "RootManageSharedAccessKey",
+                "key"
+            ));
+
         contextRunner
-            .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=false",
-                "opal.report.service-bus.consumer-enabled=false")
+            .withPropertyValues(
+                "opal.interface-file.service-bus.consumer-enabled=false",
+                "opal.report.service-bus.consumer-enabled=false",
+                "opal.automated-task=",
+                "opal.common.service-bus.connection-string=Endpoint=sb://example.servicebus.windows.net/;"
+                    + "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key"
+            )
             .run(context -> {
-                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
-                assertThat(context).doesNotHaveBean(ConnectionFactory.class);
+                assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
+                assertThat(context).hasSingleBean(ConnectionFactory.class);
+                assertThat(context)
+                    .hasBean("opalFinesConsumerConnection")
+                    .hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).doesNotHaveBean(InterfaceFileQueueListener.class);
                 assertThat(context).doesNotHaveBean(ReportQueueListener.class);
-                assertThat(context).doesNotHaveBean("opalFinesConsumerConnectionFactory");
             });
     }
 
