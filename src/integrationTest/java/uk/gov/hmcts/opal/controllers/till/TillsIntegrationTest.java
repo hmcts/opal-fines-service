@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.till;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.PROCESS_AND_ALLOCATE_PAYMENTS;
 import static uk.gov.hmcts.opal.entity.AssociatedRecordType.MISCELLANEOUS_ACCOUNTS;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,9 +21,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
@@ -33,6 +37,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles("integration")
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@MockitoSpyBean(types = MiscellaneousAccountRepository.class)
 @DisplayName("Tills Integration Tests")
 @SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 @Sql(scripts = "classpath:db/insertData/insert_into_get_till.sql", executionPhase = BEFORE_TEST_METHOD)
@@ -113,6 +118,37 @@ class TillsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.title").value("Entity Not Found"));
+    }
+
+    @Test
+    @DisplayName("PO-11366 - Missing durable party returns common not-found response")
+    @JiraStory("PO-11366")
+    @JiraEpic("PO-3635")
+    @Sql(scripts = "classpath:db/insertData/insert_into_get_till_durable.sql", executionPhase = BEFORE_TEST_METHOD)
+    void rejectsMissingDurableParty() throws Exception {
+        when(userStateService.getPermittedBusinessUnitIds(
+            List.of(BUSINESS_UNIT_ID), PROCESS_AND_ALLOCATE_PAYMENTS)).thenReturn(List.of(BUSINESS_UNIT_ID));
+        List<Long> accountIds = List.of(99000000836280L, 99000000836281L);
+        List<MiscellaneousAccountEntity> accounts = miscellaneousAccountRepository
+            .findWithPartyByMiscellaneousAccountIdIn(accountIds);
+        MiscellaneousAccountEntity account = accounts.stream()
+            .filter(candidate -> candidate.getMiscellaneousAccountId().equals(99000000836280L))
+            .findFirst().orElseThrow();
+
+        // The schema requires a Party. Simulate an incomplete repository result without changing persisted data.
+        account.setParty(null);
+        doReturn(accounts).when(miscellaneousAccountRepository).findWithPartyByMiscellaneousAccountIdIn(accountIds);
+
+        mockMvc.perform(get(URL))
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.title").value("Entity Not Found"))
+            .andExpect(jsonPath("$.detail").value("The requested entity could not be found"))
+            .andExpect(jsonPath("$.payments_in").doesNotExist())
+            .andExpect(result -> assertThat(result.getResolvedException())
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessage("Party not found for miscellaneous_account_id: 99000000836280"));
     }
 
     @Test
