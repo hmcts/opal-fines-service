@@ -8,6 +8,11 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.ActionOutcome;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventDataKey;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventDataValue;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventName;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLogging.EventOpType;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
@@ -19,19 +24,9 @@ import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 @Slf4j(topic = "opal.FileHandlerAPIService")
 public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
 
-    private static final String SECURITY_LOGGING_EVENT_NAME = "Service to Service Authentication";
-    private static final String SECURITY_LOGGING_EVENT_OP_TYPE = "Authentication";
-    private static final String SECURITY_LOGGING_ACTION_OUTCOME_PASS = "Pass";
-    private static final String SECURITY_LOGGING_ACTION_OUTCOME_FAIL = "Fail";
-
-    private static final String SECURITY_LOGGING_EVENT_DATA_AUTHENTICATING_SERVICE_KEY = "Authenticating Service";
-    private static final String SECURITY_LOGGING_EVENT_DATA_TARGET_SERVICE_KEY = "Target Service";
-    private static final String FILE_HANDLER_SERVICE_NAME = "opal-filehandler-service";
-    private static final String FINES_SERVICE_NAME = "opal-fines-service";
-
     private static final Map<String, Object> SECURITY_LOGGING_EVENT_DATA = Map.of(
-        SECURITY_LOGGING_EVENT_DATA_AUTHENTICATING_SERVICE_KEY, FILE_HANDLER_SERVICE_NAME,
-        SECURITY_LOGGING_EVENT_DATA_TARGET_SERVICE_KEY, FINES_SERVICE_NAME);
+        EventDataKey.AUTHENTICATING_SERVICE, EventDataValue.FILE_HANDLER_SERVICE_NAME,
+        EventDataKey.TARGET_SERVICE, EventDataValue.FINES_SERVICE_NAME);
 
     private final FileHandlerClient client;
     private final FileHandlerSystemUserContext systemUserContext;
@@ -140,21 +135,21 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
     }
 
     private void logSuccessfulAuthentication() {
-        logAuthentication(SECURITY_LOGGING_ACTION_OUTCOME_PASS);
+        logAuthentication(ActionOutcome.PASS);
     }
 
     private void logIfUnsuccessfulAuthentication(FeignException exception) {
         if (exception instanceof FeignException.Forbidden || exception instanceof FeignException.Unauthorized) {
-            logAuthentication(SECURITY_LOGGING_ACTION_OUTCOME_FAIL);
+            logAuthentication(ActionOutcome.FAIL);
         }
     }
 
     private void logAuthentication(String outcome) {
         securityEventLoggingService.logEvent(
-            SECURITY_LOGGING_EVENT_NAME,
+            EventName.SERVICE_TO_SERVICE_AUTH,
             outcome,
             null,
-            SECURITY_LOGGING_EVENT_OP_TYPE,
+            EventOpType.AUTHENTICATION,
             null, // the logging service populates this internally
             SECURITY_LOGGING_EVENT_DATA);
     }

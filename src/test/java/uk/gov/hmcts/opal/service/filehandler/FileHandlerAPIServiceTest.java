@@ -135,7 +135,8 @@ class FileHandlerAPIServiceTest {
     @Test
     void getInterfaceFiles_unauthorisedSecurityEventIsLogged() {
         FeignException.Unauthorized unauthorized = (FeignException.Unauthorized) feignException(401, "Unauthorised");
-        when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null)).thenThrow(unauthorized);
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null))
+            .thenThrow(unauthorized);
 
         assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
             .isInstanceOf(DownstreamServiceUnavailableException.class)
