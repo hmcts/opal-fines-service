@@ -7,6 +7,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.Named;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
@@ -53,7 +54,26 @@ public interface ResultRefDataMapper {
     }
 
     default String parameters(JsonNode parameters) {
-        return parameters != null && parameters.isArray() ? parameters.toString() : null;
+        if (parameters == null || parameters.isNull()) {
+            return null;
+        }
+        if (!parameters.isArray()) {
+            throw new IllegalArgumentException("result_parameters must be an array or null");
+        }
+        JsonNode copy = parameters.deepCopy();
+        for (JsonNode parameter : copy) {
+            if (!parameter.isObject()) {
+                throw new IllegalArgumentException("Each result parameter must be an object");
+            }
+            ObjectNode object = (ObjectNode) parameter;
+            if (object.has("language_dependent")) {
+                if (object.has("languageDependent")) {
+                    throw new IllegalArgumentException("Both language_dependent and languageDependent are present");
+                }
+                object.set("languageDependent", object.remove("language_dependent"));
+            }
+        }
+        return copy.toString();
     }
 
     default String actions(ResultsRecord dto) {

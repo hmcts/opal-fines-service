@@ -74,6 +74,28 @@ class ResultMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void persistsResultParametersWithRenamedLanguageDependentAttribute() {
+        // Given
+        ObjectNode result = result(RESULT_ID, "Parameters", "Fines", "CF");
+        ObjectNode parameter = result.putArray("result_parameters").addObject();
+        parameter.put("name", "reason");
+        parameter.put("type", "text-60");
+        parameter.put("prompt", "Reason");
+        parameter.put("mandatory", true);
+        parameter.put("min", 1);
+        parameter.put("max", 60);
+        parameter.put("language_dependent", true);
+
+        // When
+        processor.processMessage(message(result));
+
+        // Then
+        String stored = repository.findById(RESULT_ID).orElseThrow().getResultParameters();
+        assertThat(objectMapper.readTree(stored)).isEqualTo(objectMapper.readTree(
+            "[{\"name\":\"reason\",\"type\":\"text-60\",\"prompt\":\"Reason\",\"mandatory\":true,\"min\":1,\"max\":60,\"languageDependent\":true}]"));
+    }
+
+    @Test
     void updatesExistingResultAndClearsNullableFields() {
         // Given
         repository.saveAndFlush(ResultEntity.builder().resultId(RESULT_ID).resultTitle("Old title")

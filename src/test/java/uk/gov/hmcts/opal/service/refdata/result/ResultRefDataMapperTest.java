@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mapstruct.factory.Mappers;
+import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
@@ -88,6 +89,22 @@ class ResultRefDataMapperTest {
         // Then
         assertThat(entity.getEnfNextPermittedActions()).isEqualTo("All");
         assertThat(entity.getResultParameters()).isNull();
+    }
+
+    @Test
+    void renamesLanguageDependentAndValidatesParameters() {
+        JsonNode input = jsonMapper.readTree("[{\"language_dependent\":null},{\"languageDependent\":true}]");
+        assertThat(jsonMapper.readTree(mapper.parameters(input)))
+            .isEqualTo(jsonMapper.readTree("[{\"languageDependent\":null},{\"languageDependent\":true}]"));
+        assertThat(input.get(0).has("language_dependent")).isTrue();
+        assertThat(mapper.parameters(jsonMapper.readTree("null"))).isNull();
+        assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree("{}")))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree("[null]")))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree(
+            "[{\"language_dependent\":false,\"languageDependent\":true}]")))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
