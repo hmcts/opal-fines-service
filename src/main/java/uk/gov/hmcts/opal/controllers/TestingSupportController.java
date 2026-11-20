@@ -45,6 +45,7 @@ import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
+import uk.gov.hmcts.opal.service.opal.SuspenseItemDeletionService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
 import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 
@@ -76,6 +77,7 @@ public class TestingSupportController {
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
     private final ReportInstanceDeletionService reportInstanceDeletionService;
     private final TestingSupportTillService testingSupportTillService;
+    private final SuspenseItemDeletionService suspenseItemDeletionService;
 
     @GetMapping("/testing-support/is-legacy-mode")
     @Operation(summary = "Retrieves whether legacy mode is enabled.")
@@ -172,6 +174,15 @@ public class TestingSupportController {
 
         return ResponseEntity.ok().build();
     }
+
+    @Hidden
+    @DeleteMapping("/testing-support/suspense-items/{suspenseItemId}")
+    public ResponseEntity<Void> deleteSuspenseItem(@PathVariable Long suspenseItemId) {
+        log.warn("TEST ENDPOINT: Request to delete suspense item with id: {}", suspenseItemId);
+        suspenseItemDeletionService.deleteSuspenseItem(suspenseItemId);
+        return ResponseEntity.noContent().build();
+    }
+
 
     /**
      * From {@link MajorCreditorController}.
