@@ -10,8 +10,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
@@ -232,6 +235,9 @@ class LegacyMinorCreditorServiceTest {
                 null,
                 new RuntimeException("Gateway error")
             );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
@@ -244,13 +250,14 @@ class LegacyMinorCreditorServiceTest {
             FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters)
+        );
 
-        // Assert
-        assertEquals("500 Gateway error", exception.getMessage());
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        //Assert
         verify(minorCreditorHistoryMapper, never()).toOpal(any());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
     }
 
     @Test
@@ -270,6 +277,9 @@ class LegacyMinorCreditorServiceTest {
                 "<legacy-failure/>",
                 null
             );
+        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
+            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
+            .build();
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(
@@ -282,13 +292,14 @@ class LegacyMinorCreditorServiceTest {
             FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorHistory(101L, filters)
+        );
 
-        // Assert
-        assertEquals("500 Legacy gateway returned failure", exception.getMessage());
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        //Assert
         verify(minorCreditorHistoryMapper, never()).toOpal(any());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
     }
 
     @Test
@@ -502,12 +513,13 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(responseWithException);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.searchMinorCreditors(search));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.searchMinorCreditors(search)
+        );
 
-        // Assert
-        assertEquals("500 Gateway error", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verify(minorCreditorMapper, never()).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
@@ -526,16 +538,17 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any()))
             .thenReturn(response);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.searchMinorCreditors(search));
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyMinorCreditorService.searchMinorCreditors(search)
+        );
 
-        // Assert
-        assertEquals("400 Legacy gateway error", exception.getMessage());
+        verify(minorCreditorMapper, never())
+            .toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
-    void searchMinorCreditors_shouldLogLegacyFailureEntity() {
+    void searchMinorCreditors_shouldThrowOnLegacyFailureEntity() {
         MinorCreditorSearchRequest search = MinorCreditorSearchRequest.builder()
             .activeAccountsOnly(true)
             .build();
@@ -555,12 +568,13 @@ class LegacyMinorCreditorServiceTest {
             any())
         ).thenReturn(response);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.searchMinorCreditors(search));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.searchMinorCreditors(search)
+        );
 
-        // Assert
-        assertEquals("500 Legacy gateway returned failure", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verify(minorCreditorMapper, never()).toCreditor(any(MinorCreditorAccountSearchCreditor.class));
     }
 
     @Test
@@ -608,12 +622,20 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
             any(), any())).thenReturn(responseWithException);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L)
+        );
 
-        // Assert
-        assertEquals("500 Gateway error", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any()
+        );
+        verifyNoInteractions(atAGlanceResponseMapper);
     }
 
     @Test
@@ -631,12 +653,20 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
             any(), any())).thenReturn(responseWithFailure);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getMinorCreditorAtAGlance(101L)
+        );
 
-        // Assert
-        assertEquals("500 Legacy gateway returned failure", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verifyNoInteractions(atAGlanceResponseMapper);
+
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(LegacyGetMinorCreditorAccountAtAGlanceResponse.class),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -758,12 +788,27 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithException);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getHeaderSummary(101L));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getHeaderSummary(101L)
+        );
 
-        // Assert
-        assertEquals("500 Gateway error", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            any()
+        );
+        verifyNoInteractions(headerSummaryResponseMapper);
+
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            any()
+        );
     }
 
     @Test
@@ -780,12 +825,20 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(any(), eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
             any(), any())).thenReturn(responseWithFailure);
 
-        // Act
-        RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> legacyMinorCreditorService.getHeaderSummary(101L));
+        HttpServerErrorException exception = assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMinorCreditorService.getHeaderSummary(101L)
+        );
 
-        // Assert
-        assertEquals("500 Legacy gateway returned failure", exception.getMessage());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
+        verifyNoInteractions(headerSummaryResponseMapper);
+
+        verify(gatewayService, times(1)).postToGateway(
+            any(),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            any()
+        );
     }
 
     @Test
