@@ -16,12 +16,6 @@
       "allowedVersions": "7.23.0"
     },
     {
-      "description": "Keep com.networknt:json-schema-validator on v1 because JsonSchemaValidationService and DefendantDto still depend on the pre-v2 API removed in later major versions",
-      "matchManagers": ["gradle"],
-      "matchPackageNames": ["com.networknt:json-schema-validator", "com.networknt{/,}**"],
-      "allowedVersions": "<2.0.0"
-    },
-    {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres"],
       "enabled": false
