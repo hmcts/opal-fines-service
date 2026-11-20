@@ -10,6 +10,7 @@ import java.util.List;
 import org.springframework.boot.test.context.TestConfiguration;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
 import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.service.opal.OpalLocalJusticeAreaService;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -72,6 +74,19 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     private final RefDataMessageProcessor processor;
     private final LocalJusticeAreaRepository repository;
     private final LocalJusticeAreaRefDataHandler handler;
+    private final CacheManager cacheManager;
+    private final OpalLocalJusticeAreaService ljaService;
+
+    @Test
+    void handlerTargetsCacheUsedByOpalLjaReferenceData() throws NoSuchMethodException {
+        clearCaches();
+        ljaService.getLocalJusticeAreaRefData("8104", null);
+
+        Cacheable cacheable = OpalLocalJusticeAreaService.class
+            .getMethod("getLocalJusticeAreaRefData", String.class, List.class).getAnnotation(Cacheable.class);
+        assertThat(handler.cachesToClear()).containsExactly(cacheable.cacheNames());
+        assertThat(cacheManager.getCacheNames()).containsAll(handler.cachesToClear());
+    }
 
     @Test
     @JiraStory("PO-10709")
