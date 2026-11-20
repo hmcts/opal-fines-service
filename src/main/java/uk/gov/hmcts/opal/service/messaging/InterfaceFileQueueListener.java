@@ -3,8 +3,10 @@ package uk.gov.hmcts.opal.service.messaging;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import jakarta.jms.TextMessage;
+import java.nio.charset.StandardCharsets;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.qpid.jms.message.JmsBytesMessage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
@@ -32,9 +34,12 @@ public class InterfaceFileQueueListener {
     public void onMessage(Message message) throws JMSException {
         if (message instanceof TextMessage textMessage) {
             consume(textMessage.getText());
+        } else if (message instanceof JmsBytesMessage bytesMessage) {
+            byte[] body = bytesMessage.getBody(byte[].class);
+            consume(body == null ? null : new String(body, StandardCharsets.UTF_8));
         } else {
             throw new IllegalArgumentException(
-                "Message must be of type TextMessage"
+                "Message must be of type TextMessage or JmsBytesMessage"
             );
         }
     }
