@@ -41,6 +41,18 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Report not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "406":
+          description: Not acceptable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
           description: Internal server error
           content:
@@ -89,6 +101,18 @@ paths:
           description: Forbidden
           content:
             application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Report definition not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "422":
+          description: Report parameters cannot be processed
+          content:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
@@ -160,6 +184,18 @@ paths:
             application/json+problem:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Report definition not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "406":
+          description: Invalid query parameter or unsupported response media type
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
           description: Internal server error
           content:
@@ -209,6 +245,18 @@ paths:
           description: Forbidden
           content:
             application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Report instance not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "406":
+          description: Invalid path parameter or unsupported response media type
+          content:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
@@ -269,6 +317,24 @@ paths:
           description: Forbidden
           content:
             application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Report instance or stored content not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "406":
+          description: Invalid path parameter or unsupported response media type
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "422":
+          description: Requested report content type is not supported
+          content:
+            application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "500":
