@@ -48,7 +48,7 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     static final String URL_BASE = "/draft-accounts";
     static final int VALID_FINE_ORIGINATOR_ID = 32001;
     static final String VALID_FINE_ORIGINATOR_NAME = "Draft Account Validation LJA";
-    static final long VALID_PROSECUTOR_ORIGINATOR_ID = 32010L;
+    static final long VALID_PROSECUTOR_ORIGINATOR_ID = 9210L;
     static final String VALID_PROSECUTOR_ORIGINATOR_NAME = "Draft Account Validation Prosecutor";
     static final String GET_DRAFT_ACCOUNT_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountResponse.json";
     static final String GET_DRAFT_ACCOUNTS_RESPONSE = SchemaPaths.DRAFT_ACCOUNT + "/getDraftAccountsResponse.json";

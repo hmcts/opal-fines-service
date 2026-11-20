@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.controllers.r1a;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.clearInvocations;
+import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -29,7 +30,20 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration"})
 @Slf4j(topic = "opal.ProsecutorControllerIntegrationTest")
-@Sql(scripts = "classpath:db/insertData/insert_into_prosecutors.sql", executionPhase = BEFORE_TEST_CLASS)
+@Sql(
+    scripts = {
+        "classpath:db/insertData/insert_into_prosecutors_legacy.sql",
+        "classpath:db/insertData/insert_into_prosecutors.sql"
+    },
+    executionPhase = BEFORE_TEST_CLASS
+)
+@Sql(
+    scripts = {
+        "classpath:db/deleteData/delete_from_prosecutors.sql",
+        "classpath:db/deleteData/delete_from_prosecutors_legacy.sql"
+    },
+    executionPhase = AFTER_TEST_CLASS
+)
 @DisplayName("Prosecutor Controller Integration Test")
 @Isolated
 class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
@@ -56,9 +70,9 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.prosecutor_id").value(1111L))
-            .andExpect(jsonPath("$.prosecutor_code").value("AA01"))
-            .andExpect(jsonPath("$.name").value("AA1 Chief Prosecutor"))
-            .andExpect(jsonPath("$.address_line_1").value("9 Prosecutor Street"))
+            .andExpect(jsonPath("$.prosecutor_code").doesNotExist())
+            .andExpect(jsonPath("$.name").value("Legacy AA1 Chief Prosecutor"))
+            .andExpect(jsonPath("$.address_line_1").value("9 Legacy Prosecutor Street"))
             .andExpect(jsonPath("$.address_line_2").value("Prosecutorville"))
             .andExpect(jsonPath("$.address_line_3").value("Prosecutorton"))
             .andExpect(jsonPath("$.postcode").value("PR01 2PR"));
@@ -105,8 +119,8 @@ class ProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.prosecutor_id").value(9990L))
-            .andExpect(jsonPath("$.prosecutor_code").value("AA04"))
-            .andExpect(jsonPath("$.name").value("AA4 Boundary Prosecutor"))
+            .andExpect(jsonPath("$.prosecutor_code").doesNotExist())
+            .andExpect(jsonPath("$.name").value("Legacy AA4 Boundary Prosecutor"))
             .andExpect(jsonPath("$.address_line_1").value(expected))
             .andExpect(jsonPath("$.address_line_2").value("Boundaryville"))
             .andExpect(jsonPath("$.address_line_3").value("Boundaryton"));

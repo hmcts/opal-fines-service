@@ -561,7 +561,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequestWithoutStatus(
-                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 9210 does not exist"),
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
     }
@@ -585,7 +585,7 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
             .andExpect(status().isBadRequest())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(expectBadRequestWithoutStatus(
-                expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
+                expectedSingleReferenceValidationError("$.originator_id: local justice area id 9210 does not exist"),
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
     }
