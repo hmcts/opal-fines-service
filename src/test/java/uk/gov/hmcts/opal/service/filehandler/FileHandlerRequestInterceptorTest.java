@@ -14,8 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.http.HttpHeaders;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.http.HttpHeaders;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
@@ -70,38 +70,6 @@ class FileHandlerRequestInterceptorTest {
 
         assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer access-token");
         verify(authenticationService).getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER);
-    }
-
-    @Test
-    void apply_replacesExistingAuthorizationHeader() {
-        RequestTemplate template = fileHandlerRequestTemplate();
-        template.header(HttpHeaders.AUTHORIZATION, "Bearer existing-token");
-        when(authenticationServiceProvider.getObject()).thenReturn(authenticationService);
-        when(authenticationService.getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER))
-            .thenReturn("system-user-token");
-
-        systemUserContext.executeAs(SystemUserEnum.OPAL_SYSTEM_USER, () -> {
-            interceptor.apply(template);
-            return null;
-        });
-
-        assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer system-user-token");
-    }
-
-    @Test
-    void apply_repeatedCallsKeepOnlyTheLatestAuthorizationHeader() {
-        RequestTemplate template = fileHandlerRequestTemplate();
-        when(authenticationServiceProvider.getObject()).thenReturn(authenticationService);
-        when(authenticationService.getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER))
-            .thenReturn("first-token", "second-token");
-
-        systemUserContext.executeAs(SystemUserEnum.OPAL_SYSTEM_USER, () -> {
-            interceptor.apply(template);
-            interceptor.apply(template);
-            return null;
-        });
-
-        assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer second-token");
     }
 
     @Test

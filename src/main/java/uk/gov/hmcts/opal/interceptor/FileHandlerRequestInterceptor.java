@@ -25,7 +25,6 @@ public class FileHandlerRequestInterceptor implements RequestInterceptor {
         var systemUser = systemUserContext.getRequiredSystemUser();
         var token = authenticationServiceProvider.getObject().getSystemUserAuthenticationToken(systemUser);
 
-        template.removeHeader(HttpHeaders.AUTHORIZATION);
         template.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 
