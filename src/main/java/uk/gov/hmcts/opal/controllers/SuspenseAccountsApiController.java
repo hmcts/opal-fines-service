@@ -10,9 +10,11 @@ import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.http.api.SuspenseAccountsApi;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
@@ -35,14 +37,14 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
         log.debug("GET: getSuspenseItemSummary: businessUnitId: {}, suspenseItemNumber: {}",
             businessUnitId, suspenseItemNumber);
 
-        SuspenseItemSummaryCommonStrict response = suspenseAccountsSummaryService
+        VersionedResponse<SuspenseItemSummaryCommonStrict> response = suspenseAccountsSummaryService
             .getSuspenseAccountsSummary(businessUnitId, BigInteger.valueOf(suspenseItemNumber));
 
         if (response == null) {
             throw new EntityNotFoundException("Suspense item summary not found");
         }
 
-        return buildResponse(response);
+        return response.toResponseEntity(HttpStatus.OK);
     }
 
     @Override
