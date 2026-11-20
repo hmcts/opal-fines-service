@@ -1,14 +1,16 @@
 package uk.gov.hmcts.opal.steps;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import io.cucumber.datatable.DataTable;
+import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
-import net.serenitybdd.rest.SerenityRest;
-import uk.gov.hmcts.opal.dto.PdplIdentifierType;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +18,12 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import net.serenitybdd.rest.SerenityRest;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 
 /**
  * Defines Cucumber steps and helper logic for PDPO logging assertions.
@@ -50,6 +51,7 @@ public class LoggingSteps extends BaseStepDef {
             .orElse(1000);
 
     private JsonNode latestPdpoSearchResponse;
+    private Set<String> existingMinorCreditorPdpoLogIds = Set.of();
 
     /**
      * Stores an invalid bearer token in the Serenity session for the current scenario.
@@ -143,7 +145,25 @@ public class LoggingSteps extends BaseStepDef {
     }
 
     /**
-     * Checks for unwanted logs throughout the asynchronous logging observation window.
+     * Records retained logs so account IDs reused after a database reset do not fail the current update check.
+     *
+     * @param businessIdentifier operation whose existing log IDs must be remembered before the update.
+     */
+    @Given("existing {string} logs for the created minor creditor account are recorded")
+    public void recordExistingMinorCreditorLogs(String businessIdentifier) {
+        Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
+            scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
+            PdplIdentifierType.MINOR_CREDITOR.name());
+        JsonNode response = searchPdpoLogs(criteria);
+        assertTrue(response.isArray(), "Expected a PDPO search response array but received: " + response);
+        existingMinorCreditorPdpoLogIds = response.valueStream().map(log -> {
+            assertTrue(log.path("pdpo_log_id").isIntegralNumber(), "Expected a numeric PDPO log ID: " + log);
+            return log.path("pdpo_log_id").asString();
+        }).collect(Collectors.toSet());
+    }
+
+    /**
+     * Checks for new unwanted logs throughout the asynchronous logging observation window.
      *
      * @param businessIdentifier operation that must not be recorded for the scenario's company account.
      */
@@ -152,7 +172,9 @@ public class LoggingSteps extends BaseStepDef {
         Map<String, Object> criteria = pdpoSearchCriteria(businessIdentifier,
             scenarioContext().getCreatedMinorCreditorAccountIdOrFail().toString(),
             PdplIdentifierType.MINOR_CREDITOR.name());
-        assertNoPdpoLogs(criteria);
+        observePdpoLogs(criteria, response -> response.valueStream()
+            .allMatch(log -> existingMinorCreditorPdpoLogIds.contains(log.path("pdpo_log_id").asString())),
+            "Unexpected new PDPO logs matching ");
     }
 
     /**
