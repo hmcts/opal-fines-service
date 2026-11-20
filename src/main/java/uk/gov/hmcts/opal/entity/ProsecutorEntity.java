@@ -35,7 +35,7 @@ public class ProsecutorEntity {
     @JsonProperty("prosecutor_code")
     private String prosecutorCode;
 
-    @Column(name = "name", length = 200)
+    @Column(name = "name", nullable = false, length = 200)
     private String name;
 
     @Column(name = "address_line_1", length = 60)
