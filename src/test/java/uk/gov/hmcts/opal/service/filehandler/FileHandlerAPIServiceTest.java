@@ -2,6 +2,9 @@ package uk.gov.hmcts.opal.service.filehandler;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import feign.FeignException;
@@ -20,6 +23,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 import uk.gov.hmcts.opal.common.exception.DownstreamServiceUnavailableException;
+import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.AddInterfaceFileRequestMetadata;
 import uk.gov.hmcts.opal.filehandler.generated.InterfaceFile.model.GetInterfaceFiles200Response;
@@ -35,6 +39,9 @@ class FileHandlerAPIServiceTest {
     private FileHandlerClient client;
 
     @Mock
+    private SecurityEventLoggingService securityEventLoggingService;
+
+    @Mock
     MultipartFile file;
 
     @Mock
@@ -48,7 +55,7 @@ class FileHandlerAPIServiceTest {
     void setUp() {
         params = GetInterfaceFilesParams.builder().build();
         systemUserContext = new FileHandlerSystemUserContext();
-        service = new FileHandlerAPIService(client, systemUserContext);
+        service = new FileHandlerAPIService(client, systemUserContext, securityEventLoggingService);
     }
 
     @Test
@@ -65,6 +72,7 @@ class FileHandlerAPIServiceTest {
 
         assertThat(actual).isSameAs(expected);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyAuthSecurityLogging();
     }
 
     @Test
@@ -79,6 +87,7 @@ class FileHandlerAPIServiceTest {
 
         assertThat(actual).isSameAs(expected);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyAuthSecurityLogging();
     }
 
     @Test
@@ -93,6 +102,7 @@ class FileHandlerAPIServiceTest {
 
         assertThat(actual).isSameAs(expected);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyAuthSecurityLogging();
     }
 
     @Test
@@ -107,6 +117,7 @@ class FileHandlerAPIServiceTest {
 
         assertThat(actual).isSameAs(expected);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyAuthSecurityLogging();
     }
 
     @Test
@@ -117,6 +128,19 @@ class FileHandlerAPIServiceTest {
         assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
             .isSameAs(notFound);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(securityEventLoggingService);
+    }
+
+
+    @Test
+    void getInterfaceFiles_authorisedSecurityEventIsLogged() {
+        FeignException.Unauthorized unauthorized = (FeignException.Unauthorized) feignException(401, "Unauthorised");
+        when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null)).thenThrow(unauthorized);
+
+        assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
+            .isInstanceOf(DownstreamServiceUnavailableException.class)
+            .hasCause(unauthorized);
+        verifyFailedAuthSecurityLogging();
     }
 
     @Test
@@ -128,6 +152,18 @@ class FileHandlerAPIServiceTest {
             .isSameAs(notFound);
 
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(securityEventLoggingService);
+    }
+
+    @Test
+    void getInterfaceFile_forbiddenSecurityEventIsLogged() {
+        FeignException.Forbidden forbidden = (FeignException.Forbidden) feignException(403, "Forbidden");
+        when(client.getInterfaceFile(INTERFACE_FILE_ID)).thenThrow(forbidden);
+
+        assertThatThrownBy(() -> service.getInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, INTERFACE_FILE_ID))
+            .isInstanceOf(DownstreamServiceUnavailableException.class)
+            .hasCause(forbidden);
+        verifyFailedAuthSecurityLogging();
     }
 
     @Test
@@ -140,6 +176,7 @@ class FileHandlerAPIServiceTest {
             .hasMessageContaining("file content")
             .hasCause(failure);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(securityEventLoggingService);
     }
 
     @Test
@@ -152,6 +189,18 @@ class FileHandlerAPIServiceTest {
             .hasCause(failure);
 
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
+        verifyNoInteractions(securityEventLoggingService);
+    }
+
+    @Test
+    void addInterfaceFile_forbiddenSecurityEventIsLogged() {
+        FeignException.Forbidden forbidden = (FeignException.Forbidden) feignException(403, "Forbidden");
+        when(client.addInterfaceFile(file, metadata)).thenThrow(forbidden);
+
+        assertThatThrownBy(() -> service.addInterfaceFile(SystemUserEnum.OPAL_SYSTEM_USER, file, metadata))
+            .isInstanceOf(DownstreamServiceUnavailableException.class)
+            .hasCause(forbidden);
+        verifyFailedAuthSecurityLogging();
     }
 
     private FeignException feignException(int status, String reason) {
@@ -169,5 +218,27 @@ class FileHandlerAPIServiceTest {
             .request(request)
             .build();
         return FeignException.errorStatus("file-handler", response);
+    }
+
+    private void verifyAuthSecurityLogging() {
+        verify(securityEventLoggingService, times(1))
+            .logEvent("Service to Service Authentication",
+                "Pass",
+                null,
+                "Authentication",
+                null,
+                Map.of("Authenticating Service", "opal-filehandler-service",
+                    "Target Service", "opal-fines-service"));
+    }
+
+    private void verifyFailedAuthSecurityLogging() {
+        verify(securityEventLoggingService, times(1))
+            .logEvent("Service to Service Authentication",
+                "Fail",
+                null,
+                "Authentication",
+                null,
+                Map.of("Authenticating Service", "opal-filehandler-service",
+                    "Target Service", "opal-fines-service"));
     }
 }
