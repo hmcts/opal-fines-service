@@ -30,7 +30,7 @@ INSERT INTO interface_jobs (
     created_datetime,
     completed_datetime
 ) VALUES (
-    257602, 2576, 'Auto Payments In', 'COMPLETED',
+    257602, 2576, 'Auto Payments In', 'IGNORED',
     '2026-07-01 11:00:00', '2026-07-01 11:30:00'
 );
 

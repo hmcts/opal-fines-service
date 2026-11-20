@@ -33,6 +33,9 @@ public class InterfaceJobProcessedFileSummaryEntity {
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 
+    @Column(name = "till_number")
+    private Short tillNumber;
+
     @Column(name = "total_records")
     private Short totalRecords;
 
