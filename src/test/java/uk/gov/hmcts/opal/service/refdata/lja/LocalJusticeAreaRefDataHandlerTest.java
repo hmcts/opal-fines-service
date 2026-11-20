@@ -37,7 +37,7 @@ class LocalJusticeAreaRefDataHandlerTest {
 
         // Then
         assertThat(handler.payloadType()).isEqualTo(LjaRecord.class);
-        assertThat(handler.cachesToClear()).containsExactly("ljaReferenceDataCache");
+        assertThat(handler.cachesToClear()).containsExactly("opalLjaReferenceDataCache");
     }
 
     @Test
