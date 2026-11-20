@@ -268,6 +268,13 @@ sourceSets {
   }
 }
 
+// Unit-test the publication template without loading functional-suite configuration.
+tasks.named('processTestResources') {
+  from('src/functionalTest/resources') {
+    include 'refdata/lja/publication.json'
+  }
+}
+
 configurations {
   openapiImplementation.extendsFrom implementation
   openapiRuntimeOnly.extendsFrom runtimeOnly
@@ -701,6 +708,7 @@ tasks.register('checkTestJiraAnnotations', JavaExec) {
 }
 
 tasks.register('functionalOpal', Test) {
+  systemProperty 'cucumber.execution.dry-run', System.getenv('CUCUMBER_EXECUTION_DRY_RUN') ?: System.getProperty('cucumber.execution.dry-run', 'false')
 
   description = "Runs functional tests against Opal mode"
   group = "Verification"
@@ -737,6 +745,8 @@ tasks.register('copyOpalCucumberJson', Copy) {
 }
 
 tasks.register('functionalOpalTags', Test) {
+  // Opt-in dry run reaches the test worker; no hooks or fixture side effects execute.
+  systemProperty 'cucumber.execution.dry-run', System.getenv('CUCUMBER_EXECUTION_DRY_RUN') ?: System.getProperty('cucumber.execution.dry-run', 'false')
   description = "Runs tagged Opal functional tests"
   group = "Verification"
   testClassesDirs = sourceSets.functionalTest.output.classesDirs
