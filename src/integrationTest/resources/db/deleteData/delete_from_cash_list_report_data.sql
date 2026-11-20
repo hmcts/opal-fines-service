@@ -24,6 +24,3 @@ WHERE till_id = 99000000343100;
 
 DELETE FROM business_units
 WHERE business_unit_id = 1777;
-
-DELETE FROM tills WHERE business_unit_id = 1778;
-DELETE FROM business_units WHERE business_unit_id = 1778;

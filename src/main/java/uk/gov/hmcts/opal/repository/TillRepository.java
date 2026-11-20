@@ -3,7 +3,6 @@ package uk.gov.hmcts.opal.repository;
 import jakarta.persistence.LockModeType;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -35,6 +34,4 @@ public interface TillRepository extends JpaRepository<TillEntity, Long> {
         @Param("pi_posted_by") String postedBy,
         @Param("pi_posted_by_name") String postedByName,
         @Param("pi_business_unit_id") Short businessUnitId);
-
-    Optional<TillEntity> findByBusinessUnit_BusinessUnitIdAndTillNumber(Short businessUnitId, Short tillNumber);
 }

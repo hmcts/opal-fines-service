@@ -39,7 +39,7 @@ public class TillAllocationReportService {
 
     private void createCashListReport(TillEntity till, Long requestedBy, String requestedByName) {
         CreateReportInstanceRequestReports request = reportRequest(till, ReportId.CASH_LIST,
-            Map.of("till_number", till.getTillNumber().intValue()),
+            Map.of("till_id", till.getTillId()),
             cashListTitle(till));
         genericReportService.addReportInstance(request, requestedBy, requestedByName, false);
     }

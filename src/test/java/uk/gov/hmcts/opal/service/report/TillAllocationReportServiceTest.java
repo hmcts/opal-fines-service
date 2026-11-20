@@ -64,7 +64,7 @@ class TillAllocationReportServiceTest {
                 "Cash till report - Allocated (1)")),
             eq(REQUESTER_USER_ID), eq(REQUESTER_NAME), eq(false));
 
-        order.verify(reportService).addReportInstance(eq(request("cash_list", Map.of("till_number", 1), title)),
+        order.verify(reportService).addReportInstance(eq(request("cash_list", Map.of("till_id", TILL_ID), title)),
             eq(REQUESTER_USER_ID), eq(REQUESTER_NAME), eq(false));
     }
 
