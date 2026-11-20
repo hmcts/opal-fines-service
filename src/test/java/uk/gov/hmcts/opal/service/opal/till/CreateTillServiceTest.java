@@ -34,19 +34,27 @@ import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserStateV2;
+import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentReceivedFrom;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.TransferSource;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.TillsCreateAdditionalInformation;
+import uk.gov.hmcts.opal.generated.model.TillsCreateIndividualPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreateOrganisationPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreatePayerDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePayerType;
 import uk.gov.hmcts.opal.generated.model.TillsCreateRequest;
 import uk.gov.hmcts.opal.mapper.till.CreateTillMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.MiscellaneousAccountRepository;
 import uk.gov.hmcts.opal.repository.PaymentInRepository;
+import uk.gov.hmcts.opal.repository.PartyRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.report.PreAllocatedCashTillService;
@@ -66,6 +74,12 @@ class CreateTillServiceTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
+
+    @Mock
+    private PartyRepository partyRepository;
+
+    @Mock
+    private MiscellaneousAccountRepository miscellaneousAccountRepository;
 
     @Mock
     private PreAllocatedCashTillService preAllocatedCashTillService;
@@ -92,6 +106,8 @@ class CreateTillServiceTest {
             tillRepository,
             paymentInRepository,
             businessUnitRepository,
+            partyRepository,
+            miscellaneousAccountRepository,
             preAllocatedCashTillService,
             userStateService,
             createTillMapper,
@@ -194,15 +210,145 @@ class CreateTillServiceTest {
 
     @ParameterizedTest
     @EnumSource(value = TillsCreatePaymentDetails.DestinationTypeEnum.class, names = {"SUSPENSE", "COURT_FEE"})
-    void createTill_rejectsOutOfScopePaymentDestination(
+    void createTill_supportsCourtFeeAndQualifyingSuspenseDestinations(
         TillsCreatePaymentDetails.DestinationTypeEnum destinationType) {
-        final TillsCreateRequest request = request(payment(destinationType, null));
+        final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
+        final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+        final ArgumentCaptor<String> additionalInformationCaptor = ArgumentCaptor.forClass(String.class);
+        final TillsCreateRequest request = request(
+            suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINES_OVERPAYMENT),
+            payment(destinationType, null));
+
+        givenPermission();
+        givenUserDetails();
+        when(businessUnitRepository.findById(BUSINESS_UNIT_ID)).thenReturn(Optional.of(businessUnit));
+        when(tillRepository.getNextTillNumber(BUSINESS_UNIT_ID)).thenReturn(42L);
+        when(createTillMapper.toTillEntity(any(), anyString(), anyString(), any(), any(), any(), any()))
+            .thenReturn(persistedTill);
+        when(tillRepository.save(persistedTill)).thenReturn(persistedTill);
+        when(createTillMapper.toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), any(), any()))
+            .thenReturn(PaymentInEntity.builder().build());
+        when(createTillMapper.toPaymentReceivedFrom(
+            TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(miscellaneousAccountRepository.save(any())).thenReturn(
+            MiscellaneousAccountEntity.builder().miscellaneousAccountId(456L).build());
+        when(miscellaneousAccountRepository.getNextAccountNumber(BUSINESS_UNIT_ID)).thenReturn("M123456A");
+
+        service.createTill(request);
+
+        verify(createTillMapper).toPaymentIn(any(), eq(persistedTill), eq(NOW), additionalInformationCaptor.capture(),
+            eq(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS), eq("456"));
+        assertThat(additionalInformationCaptor.getValue())
+            .doesNotContain("\"payer_type\"")
+            .doesNotContain("\"payer_details\"");
+        verify(partyRepository).save(any(PartyEntity.class));
+        verify(miscellaneousAccountRepository).save(any(MiscellaneousAccountEntity.class));
+        verify(miscellaneousAccountRepository).getNextAccountNumber(BUSINESS_UNIT_ID);
+        verify(preAllocatedCashTillService).createPreAllocatedReportInstance(
+            persistedTill.getTillId(), 7L, "Test User");
+    }
+
+    @Test
+    void createTill_doesNotCreateDurablePayerRecordsForFinesOnlyPayments() {
+        final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
+        final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+
+        givenPermission();
+        givenUserDetails();
+        when(businessUnitRepository.findById(BUSINESS_UNIT_ID)).thenReturn(Optional.of(businessUnit));
+        when(tillRepository.getNextTillNumber(BUSINESS_UNIT_ID)).thenReturn(42L);
+        when(createTillMapper.toTillEntity(any(), anyString(), anyString(), any(), any(), any(), any()))
+            .thenReturn(persistedTill);
+        when(tillRepository.save(persistedTill)).thenReturn(persistedTill);
+        when(createTillMapper.toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), any(), any()))
+            .thenReturn(PaymentInEntity.builder().build());
+        when(createTillMapper.toPaymentReceivedFrom(
+            TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+
+        service.createTill(request(finesPayment(99L)));
+
+        verify(partyRepository, never()).save(any());
+        verify(miscellaneousAccountRepository, never()).save(any());
+        verify(miscellaneousAccountRepository, never()).getNextAccountNumber(any());
+    }
+
+    @Test
+    void createTill_associatesCourtFeeAndOverpaymentPairToSameMiscellaneousAccount() {
+        final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
+        final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+        final TillsCreateRequest request = request(
+            suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.FINES_OVERPAYMENT),
+            payment(TillsCreatePaymentDetails.DestinationTypeEnum.COURT_FEE, null),
+            payment(TillsCreatePaymentDetails.DestinationTypeEnum.SUSPENSE, null));
+
+        givenPermission();
+        givenUserDetails();
+        when(businessUnitRepository.findById(BUSINESS_UNIT_ID)).thenReturn(Optional.of(businessUnit));
+        when(tillRepository.getNextTillNumber(BUSINESS_UNIT_ID)).thenReturn(42L);
+        when(createTillMapper.toTillEntity(any(), anyString(), anyString(), any(), any(), any(), any()))
+            .thenReturn(persistedTill);
+        when(tillRepository.save(persistedTill)).thenReturn(persistedTill);
+        when(createTillMapper.toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), any(), any()))
+            .thenReturn(PaymentInEntity.builder().build());
+        when(createTillMapper.toPaymentReceivedFrom(
+            TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(miscellaneousAccountRepository.save(any())).thenReturn(
+            MiscellaneousAccountEntity.builder().miscellaneousAccountId(456L).build());
+        when(miscellaneousAccountRepository.getNextAccountNumber(BUSINESS_UNIT_ID)).thenReturn("M123456A");
+
+        service.createTill(request);
+
+        verify(createTillMapper, times(2)).toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(),
+            eq(AssociatedRecordType.MISCELLANEOUS_ACCOUNTS), eq("456"));
+    }
+
+    @Test
+    void createTill_createsOrganisationPartyWithoutIndividualNames() {
+        final BusinessUnitEntity businessUnit = BusinessUnitEntity.builder().businessUnitId(BUSINESS_UNIT_ID).build();
+        final TillEntity persistedTill = TillEntity.builder().tillId(123L).businessUnit(businessUnit).build();
+        final TillsCreateRequest request = request(organisationAdditionalInformation(),
+            payment(TillsCreatePaymentDetails.DestinationTypeEnum.COURT_FEE, null));
+        final ArgumentCaptor<PartyEntity> partyCaptor = ArgumentCaptor.forClass(PartyEntity.class);
+
+        givenPermission();
+        givenUserDetails();
+        when(businessUnitRepository.findById(BUSINESS_UNIT_ID)).thenReturn(Optional.of(businessUnit));
+        when(tillRepository.getNextTillNumber(BUSINESS_UNIT_ID)).thenReturn(42L);
+        when(createTillMapper.toTillEntity(any(), anyString(), anyString(), any(), any(), any(), any()))
+            .thenReturn(persistedTill);
+        when(tillRepository.save(persistedTill)).thenReturn(persistedTill);
+        when(createTillMapper.toPaymentIn(any(), eq(persistedTill), eq(NOW), anyString(), any(), any()))
+            .thenReturn(PaymentInEntity.builder().build());
+        when(createTillMapper.toPaymentReceivedFrom(
+            TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(miscellaneousAccountRepository.save(any())).thenReturn(
+            MiscellaneousAccountEntity.builder().miscellaneousAccountId(789L).build());
+        when(miscellaneousAccountRepository.getNextAccountNumber(BUSINESS_UNIT_ID)).thenReturn("M123456A");
+
+        service.createTill(request);
+
+        verify(partyRepository).save(partyCaptor.capture());
+        PartyEntity createdParty = partyCaptor.getValue();
+        assertThat(createdParty.isOrganisation()).isTrue();
+        assertThat(createdParty.getOrganisationName()).isEqualTo("Acme Corp");
+        assertThat(createdParty.getForenames()).isNull();
+        assertThat(createdParty.getSurname()).isNull();
+    }
+
+    @Test
+    void createTill_rejectsSuspensePaymentWithUnidentifiedReason() {
+        final TillsCreateRequest request = request(
+            suspenseAdditionalInformation(TillsCreateAdditionalInformation.SuspenseReasonCodeEnum.UNIDENTIFIED_AMOUNT),
+            payment(TillsCreatePaymentDetails.DestinationTypeEnum.SUSPENSE, null));
 
         givenPermission();
 
         assertThatThrownBy(() -> service.createTill(request))
             .isInstanceOf(ResponseStatusException.class)
-            .hasMessageContaining("Only fines payments are supported");
+            .hasMessageContaining("Only suspense payments with reason OF, FA or MS are supported");
 
         verifyNoPersistence();
     }
@@ -241,6 +387,9 @@ class CreateTillServiceTest {
         verify(tillRepository, never()).getNextTillNumber(any());
         verify(tillRepository, never()).save(any());
         verify(paymentInRepository, never()).saveAll(any());
+        verify(partyRepository, never()).save(any());
+        verify(miscellaneousAccountRepository, never()).save(any());
+        verify(miscellaneousAccountRepository, never()).getNextAccountNumber(any());
         verify(preAllocatedCashTillService, never()).createPreAllocatedReportInstance(any(), any(), any());
     }
 
@@ -283,6 +432,36 @@ class CreateTillServiceTest {
                 .destinationType(destinationType)
                 .allocationType("FULL")
                 .additionalInformation(TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)
+                .build())
+            .build();
+    }
+
+    private static TillsCreateAdditionalInformation suspenseAdditionalInformation(
+        TillsCreateAdditionalInformation.SuspenseReasonCodeEnum suspenseReasonCode) {
+        return TillsCreateAdditionalInformation.builder()
+            .payerType(TillsCreatePayerType.INDIVIDUAL)
+            .payerDetails(TillsCreatePayerDetails.builder()
+                .individual(TillsCreateIndividualPayer.builder()
+                    .forenames("Jane")
+                    .surname("Doe")
+                    .title("Ms")
+                    .build())
+                .addressLine1("10 Sample Street")
+                .postcode("AB1 2CD")
+                .build())
+            .suspenseReasonCode(suspenseReasonCode)
+            .build();
+    }
+
+    private static TillsCreateAdditionalInformation organisationAdditionalInformation() {
+        return TillsCreateAdditionalInformation.builder()
+            .payerType(TillsCreatePayerType.ORGANISATION)
+            .payerDetails(TillsCreatePayerDetails.builder()
+                .organisation(TillsCreateOrganisationPayer.builder()
+                    .organisationName("Acme Corp")
+                    .build())
+                .addressLine1("20 Example Road")
+                .postcode("CD3 4EF")
                 .build())
             .build();
     }
