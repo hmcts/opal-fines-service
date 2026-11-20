@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,6 +20,7 @@ class QueueConsumerJmsConfigTest {
         mock(ServiceBusConnectionStringParser.class);
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+        .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=false")
         .withBean(ServiceBusConnectionStringParser.class, () -> serviceBusConnectionStringParser)
         .withBean(ReportQueueConsumerService.class, () -> mock(ReportQueueConsumerService.class))
         .withUserConfiguration(QueueConsumerJmsConfig.class, ReportQueueListener.class);
