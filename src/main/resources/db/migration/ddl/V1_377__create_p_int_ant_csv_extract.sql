@@ -1,5 +1,5 @@
 CREATE OR REPLACE PROCEDURE p_int_ant_csv_extract(
-    OUT po_apr_details_json JSON[]
+    OUT po_apr_details_json JSON
 )
 LANGUAGE plpgsql
 AS $$
@@ -10,7 +10,7 @@ AS $$
 *
 * DESCRIPTION : Return ANT CSV APR data grouped by business unit and create interface jobs
 *
-* PARAMETERS  : po_apr_details_json - JSON array containing interface job IDs, business unit IDs, and APR records
+* PARAMETERS  : po_apr_details_json - JSON value containing an array of interface job IDs, business unit IDs, and APR records
 *
 * VERSION HISTORY:
 *
@@ -83,7 +83,7 @@ BEGIN
     )
     -- Build one output object per BU, ordered by BU ID.
     SELECT COALESCE(
-               array_agg(
+               json_agg(
                    json_build_object(
                        'interface_job_id', jobs.interface_job_id,
                        'business_unit_id', apr.business_unit_id,
@@ -91,7 +91,7 @@ BEGIN
                    )
                    ORDER BY apr.business_unit_id
                ),
-               ARRAY[]::JSON[]
+               '[]'::JSON
            )
     INTO po_apr_details_json
     FROM aggregated_apr apr

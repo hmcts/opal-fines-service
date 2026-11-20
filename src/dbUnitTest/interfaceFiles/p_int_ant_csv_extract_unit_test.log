@@ -1,16 +1,18 @@
 BEGIN
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === Setting up p_int_ant_csv_extract test data ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === Test data setup completed ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === TEST 1: Procedure exists with the required OUT signature ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  TEST 1 PASSED
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === TEST 2: Qualifying APR groups, filtering, and ordering ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  TEST 2 PASSED
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === TEST 3: APR field mappings and date formats ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  TEST 3 PASSED
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === TEST 4: Interface-job rows and zero-balance exclusion ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  TEST 4 PASSED
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  === TEST 5: APR records are ordered by account number, then APR ID ===
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  TEST 5 PASSED
-psql:p_int_ant_csv_extract_unit_test.sql:421: NOTICE:  All p_int_ant_csv_extract unit tests passed
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === Setting up p_int_ant_csv_extract test data ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === Test data setup completed ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 1: Procedure exists with the required OUT signature ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 1 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 2: Qualifying APR groups, filtering, and ordering ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 2 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 3: APR field mappings and date formats ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 3 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 4: Interface-job rows and zero-balance exclusion ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 4 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 5: APR records are ordered by account number, then APR ID ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 5 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  === TEST 6: No qualifying APRs returns an empty JSON array without creating jobs ===
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  TEST 6 PASSED
+psql:p_int_ant_csv_extract_unit_test.sql:458: NOTICE:  All p_int_ant_csv_extract unit tests passed
 DO
 ROLLBACK
