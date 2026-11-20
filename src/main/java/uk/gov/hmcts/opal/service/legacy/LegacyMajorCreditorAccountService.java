@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +37,8 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyMajorCreditorAccountService")
 public class LegacyMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
+
+    private static final String LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE = "-6502";
 
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE =
         "getMajorCreditorAccountAtAGlance";
@@ -106,6 +109,11 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             gatewayService.postToGateway(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 LegacyMajorCreditorHistoryResponse.class, majorCreditorAccountHistoryRequest, null);
 
+        if (isLegacyHistoryAccountNotFound(response)) {
+            log.info(":getHistory: Legacy reports major creditor account history not found");
+            throw new EntityNotFoundException("Major creditor account history not found");
+        }
+
         checkResponseForError(response, "getHistory");
 
         return historyResponseMapper.toOpal(response.responseEntity);
@@ -142,6 +150,14 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
+    }
+
+    private static boolean isLegacyHistoryAccountNotFound(
+        Response<LegacyMajorCreditorHistoryResponse> response
+    ) {
+        return response.hasErrorResponse()
+            && LEGACY_HISTORY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode());
     }
 
     private static RuntimeException createGatewayException(
