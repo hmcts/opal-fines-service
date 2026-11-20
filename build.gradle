@@ -1519,7 +1519,7 @@ dependencies {
   testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
   testImplementation 'org.testcontainers:testcontainers-postgresql'
   testImplementation 'com.redis:testcontainers-redis'
-  testImplementation 'io.rest-assured:rest-assured:6.2.0'
+  testImplementation 'io.rest-assured:rest-assured:6.3.0'
   integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.5'
   testImplementation 'org.junit.platform:junit-platform-launcher'
   testImplementation 'junit:junit:4.13.2'
