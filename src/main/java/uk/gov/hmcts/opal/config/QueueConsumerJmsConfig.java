@@ -15,9 +15,7 @@ import uk.gov.hmcts.opal.common.config.ServiceBusConnectionStringParser;
 
 @EnableJms
 @Configuration
-@ConditionalOnExpression("(${opal.report.service-bus.consumer-enabled} == true "
-    + "or ${opal.interface-file.service-bus.consumer-enabled} == true) "
-    + "and '${opal.automated-task:}' == ''")
+@ConditionalOnExpression("'${opal.automated-task:}' == ''")
 @EnableConfigurationProperties(ServiceBusProperties.class)
 @RequiredArgsConstructor
 public class QueueConsumerJmsConfig {
