@@ -27,3 +27,38 @@ Feature: Local Justice Areas Reference Data
     When I make a request to the LJA ref data api with lja_type "LJA,CRWCRT"
     Then the request succeeds
     And all returned LJAs have lja_type in "LJA,CRWCRT"
+
+  @LjaMessageConsumption @JIRA-STORY:PO-10823 @JIRA-EPIC:PO-9031
+  Scenario: Create an LJA from the JSON fixture
+    Given a new LJA request is loaded from the publication JSON fixture
+    When I POST the LJA request to the reference data topic
+    Then the LJA publication response status is 202
+    And the LJA GET response contains the expected values
+
+  @LjaMessageConsumption @JIRA-STORY:PO-10823 @JIRA-EPIC:PO-9031
+  Scenario: Update an LJA created by this scenario
+    Given an LJA from the publication JSON fixture has been created and verified
+    When I POST these changes to the same LJA
+      | field          | value                 |
+      | lja_name       | <unique:updated:name> |
+      | address_line_1 | Updated Court Address |
+    Then the LJA publication response status is 202
+    And the LJA GET response contains the expected values
+
+  @LjaMessageConsumption @JIRA-STORY:PO-10823 @JIRA-EPIC:PO-9031
+  Scenario: A supplied LJA end date is ignored
+    Given an LJA from the publication JSON fixture has been created and verified
+    When I POST these changes to the same LJA
+      | field    | value               |
+      | lja_name | <unique:dated:name> |
+      | end_date | 2027-03-10          |
+    Then the LJA publication response status is 202
+    And the LJA GET response contains the expected values
+    And the LJA GET response end date is null
+
+  @LjaMessageConsumption @JIRA-STORY:PO-10823 @JIRA-EPIC:PO-9031
+  Scenario: Reject an LJA request with a null name
+    Given a new LJA request is loaded from the publication JSON fixture
+    When I POST the LJA request with lja_name set to null
+    Then the LJA publication response status is 400
+    And no LJAs exist for "owned"
