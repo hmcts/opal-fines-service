@@ -37,7 +37,11 @@ import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.generated.http.api.TestingSupportApi;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateRequestTestingSupport;
+import uk.gov.hmcts.opal.generated.model.InterfaceJobsCreateResponseTestingSupport;
 import uk.gov.hmcts.opal.service.DraftAccountService;
+import uk.gov.hmcts.opal.service.TestingSupportInterfaceJobService;
 import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
@@ -59,7 +63,7 @@ import uk.gov.hmcts.opal.service.opal.till.TestingSupportTillService;
 @Tag(name = "Testing Support Controller")
 @ConditionalOnProperty(prefix = "opal.testing-support-endpoints", name = "enabled", havingValue = "true")
 @SuppressWarnings("java:S1874")
-public class TestingSupportController {
+public class TestingSupportController implements TestingSupportApi {
     private static final long CURRENT_USER_ID = 0L;
 
     private final DynamicConfigService dynamicConfigService;
@@ -76,6 +80,7 @@ public class TestingSupportController {
     private final LocalJusticeAreaService opalLocalJusticeAreaService;
     private final ReportInstanceDeletionService reportInstanceDeletionService;
     private final TestingSupportTillService testingSupportTillService;
+    private final TestingSupportInterfaceJobService testingSupportInterfaceJobService;
 
     @GetMapping("/testing-support/is-legacy-mode")
     @Operation(summary = "Retrieves whether legacy mode is enabled.")
@@ -283,6 +288,14 @@ public class TestingSupportController {
 
         List<LocalJusticeAreaEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
 
+        return buildResponse(response);
+    }
+
+    @Override
+    public ResponseEntity<InterfaceJobsCreateResponseTestingSupport> testSupportPostInterfaceJobs(
+        InterfaceJobsCreateRequestTestingSupport request) {
+        InterfaceJobsCreateResponseTestingSupport response = testingSupportInterfaceJobService
+            .createInterfaceJobs(request);
         return buildResponse(response);
     }
 }
