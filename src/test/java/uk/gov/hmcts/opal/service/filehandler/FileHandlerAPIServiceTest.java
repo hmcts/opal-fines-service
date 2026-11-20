@@ -133,7 +133,7 @@ class FileHandlerAPIServiceTest {
 
 
     @Test
-    void getInterfaceFiles_authorisedSecurityEventIsLogged() {
+    void getInterfaceFiles_unauthorisedSecurityEventIsLogged() {
         FeignException.Unauthorized unauthorized = (FeignException.Unauthorized) feignException(401, "Unauthorised");
         when(client.getInterfaceFiles(null, null, null, null, null, null, null, null, null, null)).thenThrow(unauthorized);
 
