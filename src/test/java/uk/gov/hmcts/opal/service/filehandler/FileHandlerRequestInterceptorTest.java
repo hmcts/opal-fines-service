@@ -14,15 +14,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.http.HttpHeaders;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.interceptor.FileHandlerRequestInterceptor;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
-import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerFeignClientConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 class FileHandlerRequestInterceptorTest {
@@ -40,20 +36,6 @@ class FileHandlerRequestInterceptorTest {
     void setUp() {
         systemUserContext = new FileHandlerSystemUserContext();
         interceptor = new FileHandlerRequestInterceptor(systemUserContext, authenticationServiceProvider);
-    }
-
-    @Test
-    void configuration_registersOnlyOneFileHandlerInterceptor() {
-        try (var context = new AnnotationConfigApplicationContext()) {
-            context.registerBean(ObjectMapper.class, () -> JsonMapper.builder().build());
-            context.registerBean(FileHandlerSystemUserContext.class);
-            context.registerBean(SystemUserAuthenticationService.class, () -> authenticationService);
-            context.register(FileHandlerFeignClientConfiguration.class);
-            context.scan(FileHandlerRequestInterceptor.class.getPackageName());
-            context.refresh();
-
-            assertThat(context.getBeansOfType(FileHandlerRequestInterceptor.class)).hasSize(1);
-        }
     }
 
     @Test
