@@ -15,10 +15,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserEnum;
 import uk.gov.hmcts.opal.interceptor.FileHandlerRequestInterceptor;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
+import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerFeignClientConfiguration;
 
 @ExtendWith(MockitoExtension.class)
 class FileHandlerRequestInterceptorTest {
@@ -39,6 +43,20 @@ class FileHandlerRequestInterceptorTest {
     }
 
     @Test
+    void configuration_registersOnlyOneFileHandlerInterceptor() {
+        try (var context = new AnnotationConfigApplicationContext()) {
+            context.registerBean(ObjectMapper.class, () -> JsonMapper.builder().build());
+            context.registerBean(FileHandlerSystemUserContext.class);
+            context.registerBean(SystemUserAuthenticationService.class, () -> authenticationService);
+            context.register(FileHandlerFeignClientConfiguration.class);
+            context.scan(FileHandlerRequestInterceptor.class.getPackageName());
+            context.refresh();
+
+            assertThat(context.getBeansOfType(FileHandlerRequestInterceptor.class)).hasSize(1);
+        }
+    }
+
+    @Test
     void apply_addsSystemUserBearerTokenToFileHandlerRequest() {
         RequestTemplate template = fileHandlerRequestTemplate();
         when(authenticationServiceProvider.getObject()).thenReturn(authenticationService);
@@ -52,6 +70,38 @@ class FileHandlerRequestInterceptorTest {
 
         assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer access-token");
         verify(authenticationService).getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER);
+    }
+
+    @Test
+    void apply_replacesExistingAuthorizationHeader() {
+        RequestTemplate template = fileHandlerRequestTemplate();
+        template.header(HttpHeaders.AUTHORIZATION, "Bearer existing-token");
+        when(authenticationServiceProvider.getObject()).thenReturn(authenticationService);
+        when(authenticationService.getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER))
+            .thenReturn("system-user-token");
+
+        systemUserContext.executeAs(SystemUserEnum.OPAL_SYSTEM_USER, () -> {
+            interceptor.apply(template);
+            return null;
+        });
+
+        assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer system-user-token");
+    }
+
+    @Test
+    void apply_repeatedCallsKeepOnlyTheLatestAuthorizationHeader() {
+        RequestTemplate template = fileHandlerRequestTemplate();
+        when(authenticationServiceProvider.getObject()).thenReturn(authenticationService);
+        when(authenticationService.getSystemUserAuthenticationToken(SystemUserEnum.OPAL_SYSTEM_USER))
+            .thenReturn("first-token", "second-token");
+
+        systemUserContext.executeAs(SystemUserEnum.OPAL_SYSTEM_USER, () -> {
+            interceptor.apply(template);
+            interceptor.apply(template);
+            return null;
+        });
+
+        assertThat(template.headers().get(HttpHeaders.AUTHORIZATION)).containsExactly("Bearer second-token");
     }
 
     @Test
