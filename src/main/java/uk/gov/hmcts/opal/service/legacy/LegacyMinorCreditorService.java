@@ -300,29 +300,27 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 log.error(":{}: Exception Message:", method, response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
-                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body);
             } else if (response.body == null) {
                 log.info("Account not found");
                 throw new EntityNotFoundException(method + " Account not found");
             }
-            throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
+            throw createGatewayException(response.code, "Legacy gateway error", response.body);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
     }
-    
+
     private static RuntimeException createGatewayException(
         HttpStatusCode status,
         String fallbackStatusText,
-        String responseBody,
-        Throwable exception
+        String responseBody
     ) {
         HttpStatusCode statusCode =
             status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
-        String statusText =
-            exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
         byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
-        return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
+        assert body != null;
+        return HttpServerErrorException.create(statusCode, fallbackStatusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
     private boolean isItemTypeFilteringEnabled() {
