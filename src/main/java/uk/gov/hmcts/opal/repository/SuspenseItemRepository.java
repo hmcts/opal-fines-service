@@ -1,6 +1,9 @@
 package uk.gov.hmcts.opal.repository;
 
+import jakarta.persistence.LockModeType;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import java.util.Optional;
@@ -21,4 +24,6 @@ public interface SuspenseItemRepository extends JpaRepository<SuspenseItemEntity
         @Param("suspenseItemId") Long suspenseItemId,
         @Param("businessUnitId") Long businessUnitId);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<SuspenseItemEntity> findBySuspenseItemId(Long suspenseItemId);
 }
