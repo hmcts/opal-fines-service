@@ -8,7 +8,7 @@
 * DESCRIPTION : Unit tests for the p_int_ant_csv_extract stored procedure.
 *               These tests cover the procedure signature, APR filtering,
 *               output mapping and ordering, negative balances, completed dates,
-*               accounts without APRs, and a single-element APR array.
+*               accounts without APRs, a single-element APR array, and an empty JSON array.
 *
 * APR TEST DATA :
 *   EI8-901-A      - Positive-balance account; null completed_date and standard APR mapping.
@@ -53,7 +53,7 @@ DECLARE
     c_second_apr_text             CONSTANT VARCHAR := 'EI8-901-B';
     c_single_apr_text             CONSTANT VARCHAR := 'EI8-902-A';
     c_zero_apr_text               CONSTANT VARCHAR := 'EI8-903-ZERO';
-    v_procedure_output            JSON[];
+    v_procedure_output            JSON;
     v_item                        JSON;
     v_apr_a                       JSON;
     v_apr_b                       JSON;
@@ -197,9 +197,9 @@ BEGIN
               AND p.prokind = 'p'
               AND p.pronargs = 0
               AND array_length(p.proallargtypes, 1) = 1
-              AND p.proallargtypes[1] = 'json[]'::regtype::oid
+              AND p.proallargtypes[1] = 'json'::regtype::oid
               AND p.proargnames[1] = 'po_apr_details_json'
-        ), 'procedure signature is not no-input OUT po_apr_details_json JSON[]';
+        ), 'procedure signature is not no-input OUT po_apr_details_json JSON';
 
         RAISE NOTICE 'TEST 1 PASSED';
     EXCEPTION
@@ -215,9 +215,12 @@ BEGIN
     BEGIN
         CALL p_int_ant_csv_extract(v_procedure_output);
 
+        ASSERT json_typeof(v_procedure_output) = 'array',
+            'Expected the procedure output to be a JSON array of business-unit entries';
+
         ASSERT (
             SELECT count(*)
-            FROM unnest(v_procedure_output) AS result(item)
+            FROM json_array_elements(v_procedure_output) AS result(item)
             WHERE result.item->>'business_unit_id' IN (
                 c_first_business_unit_id::text,
                 c_single_apr_business_unit_id::text,
@@ -229,7 +232,7 @@ BEGIN
         SELECT min(result.ordinality) FILTER (WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text),
                min(result.ordinality) FILTER (WHERE result.item->>'business_unit_id' = c_single_apr_business_unit_id::text)
         INTO v_first_bu_ordinal, v_second_bu_ordinal
-        FROM unnest(v_procedure_output) WITH ORDINALITY AS result(item, ordinality);
+        FROM json_array_elements(v_procedure_output) WITH ORDINALITY AS result(item, ordinality);
         ASSERT v_first_bu_ordinal IS NOT NULL
            AND v_second_bu_ordinal IS NOT NULL
            AND v_first_bu_ordinal < v_second_bu_ordinal,
@@ -237,13 +240,13 @@ BEGIN
 
         ASSERT NOT EXISTS (
             SELECT 1
-            FROM unnest(v_procedure_output) AS result(item)
+            FROM json_array_elements(v_procedure_output) AS result(item)
             WHERE result.item->>'business_unit_id' = c_zero_business_unit_id::text
         ), 'A zero-balance-only business unit was returned';
 
         SELECT result.item
         INTO v_item
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text;
         ASSERT json_array_length(v_item->'apr_records') = 3,
             'BU 901 should contain three APR records across two APR-linked defendant accounts';
@@ -256,7 +259,7 @@ BEGIN
 
         SELECT result.item
         INTO v_item
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         WHERE result.item->>'business_unit_id' = c_single_apr_business_unit_id::text;
         ASSERT json_array_length(v_item->'apr_records') = 1,
             'BU 902 should contain a single-element APR array';
@@ -275,7 +278,7 @@ BEGIN
     BEGIN
         SELECT apr.record
         INTO v_apr_a
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         CROSS JOIN LATERAL json_array_elements(result.item->'apr_records') AS apr(record)
         WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text
           AND apr.record->>'child_account_or_apr' = c_first_apr_text;
@@ -295,7 +298,7 @@ BEGIN
 
         SELECT apr.record
         INTO v_apr_b
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         CROSS JOIN LATERAL json_array_elements(result.item->'apr_records') AS apr(record)
         WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text
           AND apr.record->>'child_account_or_apr' = c_second_apr_text;
@@ -307,7 +310,7 @@ BEGIN
 
         SELECT apr.record
         INTO v_negative_balance_apr
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         CROSS JOIN LATERAL json_array_elements(result.item->'apr_records') AS apr(record)
         WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text
           AND apr.record->>'child_account_or_apr' = c_second_da_apr_text;
@@ -321,7 +324,7 @@ BEGIN
 
         SELECT apr.record
         INTO v_single_apr
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         CROSS JOIN LATERAL json_array_elements(result.item->'apr_records') AS apr(record)
         WHERE result.item->>'business_unit_id' = c_single_apr_business_unit_id::text
           AND apr.record->>'child_account_or_apr' = c_single_apr_text;
@@ -365,7 +368,7 @@ BEGIN
 
         ASSERT NOT EXISTS (
             SELECT 1
-            FROM unnest(v_procedure_output) AS result(item)
+            FROM json_array_elements(v_procedure_output) AS result(item)
             WHERE result.item->>'interface_job_id' IS NULL
                OR NOT EXISTS (
                    SELECT 1
@@ -392,7 +395,7 @@ BEGIN
                min(apr.ordinality) FILTER (WHERE apr.record->>'child_account_or_apr' = c_second_apr_text),
                min(apr.ordinality) FILTER (WHERE apr.record->>'child_account_or_apr' = c_second_da_apr_text)
         INTO v_first_apr_ordinal, v_second_apr_ordinal, v_third_apr_ordinal
-        FROM unnest(v_procedure_output) AS result(item)
+        FROM json_array_elements(v_procedure_output) AS result(item)
         CROSS JOIN LATERAL json_array_elements(result.item->'apr_records') WITH ORDINALITY AS apr(record, ordinality)
         WHERE result.item->>'business_unit_id' = c_first_business_unit_id::text;
         ASSERT v_first_apr_ordinal IS NOT NULL
@@ -410,6 +413,40 @@ BEGIN
                 v_error_message = MESSAGE_TEXT;
             v_failed_test_count := v_failed_test_count + 1;
             RAISE WARNING 'TEST 5 FAILED [%]: %', v_error_state, v_error_message;
+    END;
+
+    RAISE NOTICE '=== TEST 6: No qualifying APRs returns an empty JSON array without creating jobs ===';
+    BEGIN
+        UPDATE defendant_accounts
+        SET account_balance = 0
+        WHERE defendant_account_id IN (
+            c_first_account_id,
+            c_second_account_id,
+            c_single_apr_account_id
+        );
+
+        CALL p_int_ant_csv_extract(v_procedure_output);
+
+        ASSERT json_typeof(v_procedure_output) = 'array'
+           AND json_array_length(v_procedure_output) = 0,
+            'No qualifying APR rows should return an empty JSON array';
+
+        SELECT count(*)
+        INTO v_count
+        FROM interface_jobs jobs
+        WHERE jobs.business_unit_id IN (c_first_business_unit_id, c_single_apr_business_unit_id)
+          AND jobs.interface_name = 'ant_csv';
+        ASSERT v_count = 2,
+            'The empty-result call should not create additional interface_jobs rows';
+
+        RAISE NOTICE 'TEST 6 PASSED';
+    EXCEPTION
+        WHEN ASSERT_FAILURE OR OTHERS THEN
+            GET STACKED DIAGNOSTICS
+                v_error_state = RETURNED_SQLSTATE,
+                v_error_message = MESSAGE_TEXT;
+            v_failed_test_count := v_failed_test_count + 1;
+            RAISE WARNING 'TEST 6 FAILED [%]: %', v_error_state, v_error_message;
     END;
 
     IF v_failed_test_count > 0 THEN
