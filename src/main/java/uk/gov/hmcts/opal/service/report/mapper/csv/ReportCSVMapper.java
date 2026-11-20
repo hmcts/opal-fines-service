@@ -6,6 +6,7 @@ import static uk.gov.hmcts.opal.service.report.CommonReportStringConstants.NEW_L
 
 import java.util.List;
 import java.util.stream.Collectors;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.service.report.CommonReportHelper;
 import uk.gov.hmcts.opal.service.report.ReportCSVMapperRegistry;
 import uk.gov.hmcts.opal.service.report.ReportDataInterface;
@@ -20,7 +21,7 @@ public interface ReportCSVMapper<RDIT extends ReportDataInterface> {
 
     Class<RDIT> getReportDataType();
 
-    String reportToCSVString(RDIT rdi);
+    String reportToCSVString(ReportInstanceEntity instanceEntity, RDIT rdi);
 
     default String dataListToFullCSVRow(List<String> dataRow) {
         return dataRow.stream().map(CommonReportHelper::escapeCsv).collect(Collectors.joining(COMMA))

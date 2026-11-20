@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.mapper.csv.ReportCSVMapper;
 
@@ -29,6 +30,9 @@ class ReportCSVServiceTest {
     @Mock
     ReportCSVMapperRegistry reportCSVMapperRegistry;
 
+    @Mock
+    ReportInstanceEntity reportInstanceEntity;
+
     @InjectMocks
     private ReportCSVService reportCSVService;
 
@@ -36,18 +40,18 @@ class ReportCSVServiceTest {
     void convertReportDtoToCSV_returnsCsvBytesWhenMapperExists() {
         String csv = "HEADER1,HEADER2\n";
         doReturn(reportCSVMapper).when(reportCSVMapperRegistry).get(reportDataInterface.getClass());
-        when(reportCSVMapper.reportToCSVString(reportDataInterface)).thenReturn(csv);
+        when(reportCSVMapper.reportToCSVString(reportInstanceEntity, reportDataInterface)).thenReturn(csv);
 
-        byte[] result = reportCSVService.convertReportDtoToCSV(reportDataInterface);
+        byte[] result = reportCSVService.convertReportDtoToCSV(reportInstanceEntity, reportDataInterface);
 
         assertArrayEquals(csv.getBytes(StandardCharsets.UTF_8), result);
-        verify(reportCSVMapper).reportToCSVString(reportDataInterface);
+        verify(reportCSVMapper).reportToCSVString(reportInstanceEntity, reportDataInterface);
     }
 
     @Test
     void convertReportDtoToCSV_throwsWhenMapperMissing() {
         UnprocessableException exception = assertThrows(UnprocessableException.class,
-            () -> reportCSVService.convertReportDtoToCSV(reportDataInterface));
+            () -> reportCSVService.convertReportDtoToCSV(reportInstanceEntity, reportDataInterface));
 
         assertEquals("Report cannot be converted to CSV format.", exception.getDetailedReason());
         verifyNoInteractions(reportCSVMapper);

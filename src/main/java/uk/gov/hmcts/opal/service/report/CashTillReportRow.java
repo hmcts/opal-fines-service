@@ -18,9 +18,6 @@ import lombok.extern.jackson.Jacksonized;
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CashTillReportRow {
 
-    private String businessUnit;
-    private String cashTillNumber;
-    private String cashier;
     private LocalDateTime paymentDateTime;
     private CashTillDestinationType destinationType;
     private String details;
