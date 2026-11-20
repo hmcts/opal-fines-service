@@ -268,6 +268,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Get draft accounts - Restrict to count returns only count without PDPL")
     @JiraStory("PO-10561")
     @JiraEpic("PO-8256")
+    @JiraTestKey("PO-11244")
     void testGetDraftAccounts_restrictCounts_returnsOnlyCountWithoutPdpl() throws Exception {
         // Act
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)
@@ -294,6 +295,7 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
     @DisplayName("Get draft accounts - Invalid restriction returns bad request")
     @JiraStory("PO-10561")
     @JiraEpic("PO-8256")
+    @JiraTestKey("PO-11245")
     void testGetDraftAccounts_invalidRestriction_returnsBadRequest() throws Exception {
         // Act
         ResultActions resultActions = mockMvc.perform(get(URL_BASE)

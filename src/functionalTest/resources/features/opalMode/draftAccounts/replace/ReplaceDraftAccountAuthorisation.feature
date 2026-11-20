@@ -5,6 +5,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -23,12 +24,13 @@ Feature: Replace Draft Account Authorisation
 
     Then the request is rejected as unauthorized
 
-    #    And no PDPO logs exist for created_by id "invalidToken", type "OPAL_USER_ID" and business_identifier "Update Draft Account - Defendant"
+    And no PDPO logs exist for the created draft account and business_identifier "Update Draft Account - Defendant"
 
   @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-5672
   Scenario: Replace draft account - user with no permissions
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -59,6 +61,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Replace draft account - user with permissions in different business unit - bu 73 to 26
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -89,6 +92,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Replace draft account - user with permissions in different business unit - bu 26 to 73
     Given I am testing as the "opal-test-3@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 26                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -118,6 +122,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Replace draft account - user with permissions in same business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -148,6 +153,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Replace draft account - user with permissions in same business unit - updating business unit
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                     |
       | business_unit_id  | 73                                      |
       | account           | draftAccounts/accountJson/account.json  |
       | account_type      | Fine                                    |
@@ -175,6 +181,7 @@ Feature: Replace Draft Account Authorisation
   Scenario: Invalid token replacement attempts are rejected and do not create PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

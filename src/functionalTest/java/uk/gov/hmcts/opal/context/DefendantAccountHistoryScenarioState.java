@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.context;
 import io.restassured.response.Response;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 /**
  * Holds the mutable history-related state for a single defendant-account scenario.
@@ -16,6 +17,15 @@ public class DefendantAccountHistoryScenarioState {
     private LocalDate rememberedDateFrom;
     private LocalDate rememberedDateTo;
     private Long lastRequestedAccountId;
+    private Map<String, Long> minimumHistoryItemCounts;
+
+    public Map<String, Long> getMinimumHistoryItemCounts() {
+        return minimumHistoryItemCounts;
+    }
+
+    public void setMinimumHistoryItemCounts(Map<String, Long> minimumHistoryItemCounts) {
+        this.minimumHistoryItemCounts = minimumHistoryItemCounts;
+    }
 
     public Response getFirstResponse() {
         return firstResponse;

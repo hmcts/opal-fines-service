@@ -1,0 +1,379 @@
+openapi: 3.1.1
+
+info:
+  title: Opal Fines Service - Offences
+  version: 1.0.0
+  description: APIs for retrieving and searching offence reference data.
+
+paths:
+  /offences:
+    get:
+      tags:
+        - Offences
+      summary: Get offences
+      description: Returns offence reference data using the supplied optional filters.
+      operationId: getOffenceRefData
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Case-insensitive partial match against CJS code, English title, or Welsh title. Blank is ignored.
+          schema:
+            type: string
+        - name: business_unit_id
+          in: query
+          required: false
+          description: >-
+            Filters local offences by business unit. When absent, global offences are returned; zero returns all
+            local offences; any other value returns local offences for that business unit.
+          schema:
+            type: integer
+            format: int16
+        - name: cjs_code
+          in: query
+          required: false
+          description: CJS codes to match exactly.
+          style: form
+          explode: true
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        '200':
+          description: Offences retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffencesReferenceDataResponse'
+        '400':
+          description: Invalid query parameter
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /offences/{offenceId}:
+    get:
+      tags:
+        - Offences
+      summary: Get offence by ID
+      description: Returns the offence for the supplied offence identifier.
+      operationId: getOffenceById
+      parameters:
+        - name: offenceId
+          in: path
+          required: true
+          description: The unique offence identifier. DB Mapping - offences.offence_id
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Offence found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffencesOffence'
+        '400':
+          description: Invalid offence identifier
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '404':
+          description: Offence not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+  /offences/search:
+    post:
+      tags:
+        - Offences
+      summary: Search offences
+      description: Searches offences using the criteria supplied in the request body.
+      operationId: postOffencesSearch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OffencesSearchRequest'
+      responses:
+        '200':
+          description: Offence search completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OffencesSearchResponse'
+        '400':
+          description: Invalid search request
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '401':
+          description: Unauthorized
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '403':
+          description: Forbidden
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '503':
+          description: Service unavailable
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+components:
+  schemas:
+    OffencesReferenceDataResponse:
+      title: Get offences response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - refData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The number of offences returned in refData.
+        refData:
+          type: array
+          description: Offences sorted by CJS code in ascending order.
+          items:
+            $ref: '#/components/schemas/OffencesOffenceSummary'
+
+    OffencesOffenceSummary:
+      title: Offence summary
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - offence_id
+        - cjs_code
+      properties:
+        offence_id:
+          type: integer
+          format: int64
+          description: DB Mapping - offences.offence_id
+        cjs_code:
+          type: string
+          maxLength: 10
+          description: DB Mapping - offences.cjs_code
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - offences.business_unit_id. Present only for local offences.
+        offence_title:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title
+        offence_title_cy:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title_cy
+        date_used_from:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_from
+        date_used_to:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_to
+        offence_oas:
+          type: string
+          description: DB Mapping - offences.offence_oas
+        offence_oas_cy:
+          type: string
+          description: DB Mapping - offences.offence_oas_cy
+
+    OffencesSearchRequest:
+      title: Search offences request
+      type: object
+      additionalProperties: false
+      properties:
+        offence_id:
+          type: string
+          description: Search criterion mapped to offences.offence_id.
+        cjs_code:
+          type: string
+          description: Search criterion mapped to offences.cjs_code.
+        title:
+          type: string
+          description: Search criterion mapped to offences.offence_title and offences.offence_title_cy.
+        act_and_section:
+          type: string
+          description: Search criterion mapped to offences.offence_oas and offences.offence_oas_cy.
+        active_date:
+          type: string
+          format: date-time
+          description: Active date criterion mapped to offences.date_used_from and offences.date_used_to.
+        max_results:
+          type: integer
+          format: int32
+          description: Maximum number of offences to return.
+
+    OffencesSearchResponse:
+      title: Search offences response
+      type: object
+      additionalProperties: false
+      required:
+        - count
+        - searchData
+      properties:
+        count:
+          type: integer
+          format: int32
+          description: The number of offences returned in searchData.
+        searchData:
+          type: array
+          items:
+            $ref: '#/components/schemas/OffencesSearchResult'
+
+    OffencesSearchResult:
+      title: Offence search result
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - offence_id
+        - cjs_code
+      properties:
+        offence_id:
+          type: integer
+          format: int64
+          description: DB Mapping - offences.offence_id
+        cjs_code:
+          type: string
+          maxLength: 10
+          description: DB Mapping - offences.cjs_code
+        offence_title:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title
+        offence_title_cy:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title_cy
+        date_used_from:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_from
+        date_used_to:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_to
+        offence_oas:
+          type: string
+          description: DB Mapping - offences.offence_oas
+        offence_oas_cy:
+          type: string
+          description: DB Mapping - offences.offence_oas_cy
+
+    OffencesOffence:
+      title: Offence
+      type: object
+      additionalProperties: false
+      x-json-include: NON_NULL
+      required:
+        - offenceId
+        - cjsCode
+      properties:
+        offenceId:
+          type: integer
+          format: int64
+          description: DB Mapping - offences.offence_id
+        cjsCode:
+          type: string
+          maxLength: 10
+          description: DB Mapping - offences.cjs_code
+        businessUnitId:
+          type: integer
+          format: int16
+          description: DB Mapping - offences.business_unit_id. Present only for local offences.
+        offenceTitle:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title
+        offenceTitleCy:
+          type: string
+          maxLength: 1000
+          description: DB Mapping - offences.offence_title_cy
+        dateUsedFrom:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_from
+        dateUsedTo:
+          type: string
+          format: date-time
+          description: DB Mapping - offences.date_used_to
+        offenceOas:
+          type: string
+          description: DB Mapping - offences.offence_oas
+        offenceOasCy:
+          type: string
+          description: DB Mapping - offences.offence_oas_cy

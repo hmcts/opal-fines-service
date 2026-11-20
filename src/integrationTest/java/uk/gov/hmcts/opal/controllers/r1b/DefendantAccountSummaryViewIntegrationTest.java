@@ -1,6 +1,10 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -23,7 +27,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2334 INT.01 - Get header summary returns has consolidated accounts true")
     @JiraTestKey("PO-8761")
     void int01_getHeaderSummary_returnsHasConsolidatedAccountsTrue() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/990001/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -46,6 +50,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.parent_guardian_party_id").value("990002"))
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("FPN990001"))
             .andExpect(jsonPath("$.prosecutor_case_reference").value("PCR990001"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -54,6 +59,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @DisplayName("PO-2334 INT.02 - Get header summary returns has consolidated accounts false")
     @JiraTestKey("PO-8763")
     void int02_getHeaderSummary_returnsHasConsolidatedAccountsFalse() throws Exception {
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
 
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/77/header-summary")
@@ -80,6 +86,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.parent_guardian_party_id").isEmpty())
             .andExpect(jsonPath("$.fixed_penalty_ticket_number").value("888"))
             .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -87,7 +94,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.03 - Get header summary returns TFO originator fields and collection order")
     void int03_getHeaderSummary_returnsTfoOriginatorFieldsAndCollectionOrder() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/77/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -103,6 +110,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.prosecutor_case_reference").value("090A"))
             .andExpect(jsonPath("$.payment_state_summary").exists())
             .andExpect(jsonPath("$.party_details").exists());
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test
@@ -110,7 +118,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
     @JiraStory("PO-2969")
     @DisplayName("PO-2969 INT.04 - Get header summary returns NEW originator fields and collection order")
     void int04_getHeaderSummary_returnsNewOriginatorFieldsAndCollectionOrder() throws Exception {
-
+        doNothing().when(loggingService).logHeaderSummary(any(), any());
         ResultActions resultActions = mockMvc.perform(
             get("/defendant-accounts/990001/header-summary")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor())
@@ -124,6 +132,7 @@ class DefendantAccountSummaryViewIntegrationTest extends AbstractOpalDefendantsI
             .andExpect(jsonPath("$.originator_name").value("Header Summary New Originator"))
             .andExpect(jsonPath("$.collection_order").value(false))
             .andExpect(jsonPath("$.has_consolidated_accounts").value(true));
+        verify(loggingService).logHeaderSummary(any(), eq(userStateStub.getUserState().getUserId()));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -8,7 +9,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -23,6 +27,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,26 +40,45 @@ import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountResponseMinorCreditorPayment;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorSearchRequest;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PatchMinorCreditorAccountRequest;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
-import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountHeaderSummaryResponse;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorHistoryPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSearchPdplLoggingService;
+import uk.gov.hmcts.opal.service.opal.MinorCreditorSummaryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MinorCreditorSearchProxy;
 
 @ExtendWith(MockitoExtension.class)
 class MinorCreditorServiceTest {
 
     @Mock
-    UserStateService userStateService;
+    private UserStateService userStateService;
 
     @Mock
-    MinorCreditorSearchProxy minorCreditorSearchProxy;
+    private MinorCreditorSearchProxy minorCreditorSearchProxy;
+
+    @Mock
+    private MinorCreditorSummaryPdplLoggingService minorCreditorSummaryPdplLoggingService;
+
+    @Mock
+    MinorCreditorHistoryPdplLoggingService historyPdplLoggingService;
+
+    @Mock
+    MinorCreditorPdplLoggingService pdplLoggingService;
+
+    @Mock
+    MinorCreditorSearchPdplLoggingService searchPdplLoggingService;
 
     @InjectMocks
     private MinorCreditorService minorCreditorService;
@@ -63,7 +87,8 @@ class MinorCreditorServiceTest {
     void testPostSearchMinorCreditors() {
         // Arrange
         MinorCreditorAccountsSearchResponse minorCreditorAccountsSearchResponse = MinorCreditorAccountsSearchResponse
-            .builder().build();
+            .builder().count(1).creditorAccounts(List.of(MinorCreditorAccountSearchResultMinorCreditor.builder()
+                .creditorAccountId("101").organisation(false).surname("SearchCreditor").build())).build();
 
         when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(minorCreditorAccountsSearchResponse);
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
@@ -73,7 +98,50 @@ class MinorCreditorServiceTest {
             .searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
 
         // Assert
-        assertNotNull(result);
+        assertSame(minorCreditorAccountsSearchResponse, result);
+        assertThat(result.getCount()).isEqualTo(1);
+        assertThat(result.getCreditorAccounts().getFirst().getSurname()).isEqualTo("SearchCreditor");
+        InOrder order = inOrder(minorCreditorSearchProxy, searchPdplLoggingService);
+        order.verify(minorCreditorSearchProxy).searchMinorCreditors(any());
+        order.verify(searchPdplLoggingService).logSearchResults(any(), eq(result));
+    }
+
+    @Test
+    void searchLoggingFailurePropagates() {
+        MinorCreditorAccountsSearchResponse response = MinorCreditorAccountsSearchResponse.builder().count(1).build();
+        UserState userState = UserStateUtil.allFinesPermissionUser();
+        PdplLoggingException failure = new PdplLoggingException("Queue unavailable");
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
+        when(minorCreditorSearchProxy.searchMinorCreditors(any())).thenReturn(response);
+        doThrow(failure).when(searchPdplLoggingService).logSearchResults(userState, response);
+
+        assertSame(failure, assertThrows(PdplLoggingException.class,
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearchRequest.builder().build())));
+    }
+
+    @Test
+    void failedSearchDoesNotLog() {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        when(minorCreditorSearchProxy.searchMinorCreditors(any()))
+            .thenThrow(new IllegalStateException("Search failed"));
+
+        assertThrows(IllegalStateException.class,
+            () -> minorCreditorService.searchMinorCreditors(MinorCreditorSearchRequest.builder().build()));
+
+        verifyNoInteractions(searchPdplLoggingService);
+    }
+
+    @Test
+    void invalidSearchDoesNotSearchOrLog() {
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        MinorCreditorSearchRequest request = MinorCreditorSearchRequest.builder()
+            .accountNumber("12345678")
+            .creditor(MinorCreditorAccountSearchCreditor.builder().surname("Smith").build())
+            .build();
+
+        assertThrows(IllegalArgumentException.class, () -> minorCreditorService.searchMinorCreditors(request));
+
+        verifyNoInteractions(minorCreditorSearchProxy, searchPdplLoggingService);
     }
 
     @Test
@@ -112,6 +180,62 @@ class MinorCreditorServiceTest {
     }
 
     @Test
+    void testGetMinorCreditorAccountHeaderSummary_organisationDoesNotTriggerLogging() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(true)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
+
+        verify(minorCreditorSummaryPdplLoggingService, never()).logIndividualMinorCreditorSummary(123L,
+            UserState.builder().build(), response);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_logsIndividualMinorCreditorAccounts() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(false)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+
+        minorCreditorService.getMinorCreditorAccountHeaderSummary(id);
+
+        verify(minorCreditorSearchProxy).getHeaderSummary(id);
+        verify(minorCreditorSummaryPdplLoggingService).logIndividualMinorCreditorSummary(123L,
+            UserStateUtil.allFinesPermissionUser(), response);
+    }
+
+    @Test
+    void testGetMinorCreditorAccountHeaderSummary_propagatesFailure() {
+        long id = 123L;
+        MinorCreditorAccountHeaderSummaryResponse response = MinorCreditorAccountHeaderSummaryResponse.builder()
+            .party(PartyDetailsCommon.builder()
+                .organisationFlag(false)
+                .build())
+            .build();
+
+        when(minorCreditorSearchProxy.getHeaderSummary(id)).thenReturn(response);
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(UserStateUtil.allFinesPermissionUser());
+        doThrow(new PdplLoggingException("BOOM")).when(minorCreditorSummaryPdplLoggingService)
+            .logIndividualMinorCreditorSummary(123L, UserStateUtil.allFinesPermissionUser(), response);
+
+        assertThatThrownBy(() -> minorCreditorService.getMinorCreditorAccountHeaderSummary(id))
+            .isInstanceOf(PdplLoggingException.class)
+            .hasMessageContaining("BOOM");
+    }
+
+    @Test
     void testGetMinorCreditorAccount() {
         // Arrange
         Long id = 123L;
@@ -134,6 +258,7 @@ class MinorCreditorServiceTest {
         assertEquals(true, result.getPayment().getPayByBacs());
         assertEquals("123456", result.getPayment().getSortCode());
         verify(minorCreditorSearchProxy).getMinorCreditorAccount(id);
+        verify(pdplLoggingService).logIndividualMinorCreditor(userState, response);
     }
 
     @Test
@@ -150,7 +275,7 @@ class MinorCreditorServiceTest {
             () -> minorCreditorService.getMinorCreditorAccount(123L)
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        verifyNoInteractions(minorCreditorSearchProxy);
+        verifyNoInteractions(minorCreditorSearchProxy, pdplLoggingService);
     }
 
     @Test
@@ -163,9 +288,10 @@ class MinorCreditorServiceTest {
         GetMinorCreditorHistoryResponse response = GetMinorCreditorHistoryResponse.builder()
             .version(BigInteger.ONE)
             .build();
+        UserState userState = UserStateUtil.permissionUser(
+            (short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
 
-        when(userStateService.getUserStateV1FromSecurityContext())
-            .thenReturn(UserStateUtil.permissionUser((short) 10, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS));
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(minorCreditorSearchProxy.getMinorCreditorHistory(eq(id), any(MinorCreditorHistoryFilters.class)))
             .thenReturn(response);
 
@@ -177,8 +303,10 @@ class MinorCreditorServiceTest {
         assertEquals(response, result);
         ArgumentCaptor<MinorCreditorHistoryFilters> filtersCaptor =
             ArgumentCaptor.forClass(MinorCreditorHistoryFilters.class);
+        InOrder responseOrder = inOrder(minorCreditorSearchProxy, historyPdplLoggingService);
         verify(userStateService).getUserStateV1FromSecurityContext();
-        verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        responseOrder.verify(minorCreditorSearchProxy).getMinorCreditorHistory(eq(id), filtersCaptor.capture());
+        responseOrder.verify(historyPdplLoggingService).logHistoryItems(userState, response);
         assertEquals(LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0),
             filtersCaptor.getValue().postedFromInclusive());
         assertEquals(LocalDateTime.of(2026, Month.FEBRUARY, 1, 0, 0),
@@ -436,6 +564,7 @@ class MinorCreditorServiceTest {
                 .builder().build())
         );
         assertThat(ex.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+        verifyNoInteractions(minorCreditorSearchProxy, searchPdplLoggingService);
     }
 
     @Test

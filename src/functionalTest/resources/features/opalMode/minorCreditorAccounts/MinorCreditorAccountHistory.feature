@@ -1,5 +1,11 @@
-@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
+@Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory @ExcludeFromDemoNightlyAsNotLegacy
 Feature: Minor Creditor Account History
+
+  @cleanUpData @JIRA-STORY:PO-10763 @JIRA-EPIC:PO-10729
+  Scenario: An individual minor creditor summary read emits a PDPO consultation without changing the response
+    Given a minor creditor account with representative history exists for submitted by "MCSUM001"
+    When I request the header summary twice for the created minor creditor account
+    Then the logging service contains an individual minor creditor summary consultation
 
   @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-TEST-KEY:PO-9546
   Scenario: Minor creditor account history - E2E.01 Happy path history retrieval
@@ -11,6 +17,16 @@ Feature: Minor Creditor Account History
       | Financial | 3 |
       | Note      | 3 |
     And the minor creditor account history is ordered newest first
+
+  @cleanUpData @JIRA-STORY:PO-10762 @JIRA-EPIC:PO-10729
+  Scenario: Returned minor creditor history users are recorded in a PDPO consultation
+    Given a minor creditor account with representative history exists for submitted by "MCPDPO001"
+    When I request minor creditor account history for the created minor creditor account
+    Then the minor creditor account history response is returned as documented
+    And the logging service contains a minor creditor history consultation for these users
+      | MCHAMD  |
+      | MCHFIN  |
+      | MCHNOTE |
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653 @JIRA-NFR:PO-2507 @JIRA-TEST-KEY:PO-9547
   Scenario: E2E.02 Authentication
@@ -75,3 +91,17 @@ Feature: Minor Creditor Account History
     When I request minor creditor account history for the created minor creditor account using the remembered dateTo
     Then the minor creditor account history response is returned as documented
     And the minor creditor account history response contains only items on or before the remembered dateTo
+
+  @cleanUpData @JIRA-STORY:PO-11203 @JIRA-EPIC:PO-2621
+  Scenario: Minor creditor history shows the business-unit user ID when Release 1B 1.2 is enabled
+    Given a minor creditor account with representative history exists for submitted by "MCHIST112"
+    When I add a note to the created minor creditor account
+    And I request minor creditor account history for the created minor creditor account
+    Then the new minor creditor history note shows the current business-unit user ID and display name
+
+  @cleanUpData @JIRA-STORY:PO-11203 @JIRA-EPIC:PO-2621 @R1B12Off
+  Scenario: Minor creditor history shows the numeric business-unit ID when Release 1B 1.2 is disabled
+    Given a minor creditor account with representative history exists for submitted by "MCHIST113"
+    When I add a note to the created minor creditor account
+    And I request minor creditor account history for the created minor creditor account
+    Then the new minor creditor history note shows the numeric business-unit ID and display name

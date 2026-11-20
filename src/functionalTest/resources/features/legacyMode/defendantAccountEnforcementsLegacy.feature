@@ -5,6 +5,7 @@ Feature: Defendant Account Enforcement Overrides API In Legacy Mode
   Scenario: Legacy enforcement override can be applied to an enforceable defendant account
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
+      | source                       | MAC                                         |
       | business_unit_id             | 77                                          |
       | account                      | draftAccounts/accountJson/adultAccount.json |
       | account_type                 | Fine                                        |
@@ -20,3 +21,21 @@ Feature: Defendant Account Enforcement Overrides API In Legacy Mode
     Then the created defendant account enforcement status contains the following data
       | enforcement_override.enforcement_override_result.enforcement_override_result_id | NBWT         |
       | enforcement_override.enforcer.enforcer_id                                       | 770000000001 |
+      | enforcement_overview.enforcement_court.court_id                                 | 770000000001 |
+
+  @DemoOnly @JIRA-STORY:PO-11108 @JIRA-EPIC:PO-2063
+  Scenario: Enforcement status remains available when Legacy omits the enforcement court
+    # Requires pre-prod Legacy account 1300000008894 to retain the missing-court data reported in PO-11108.
+    # No equivalent missing-court fixture is available on JCDE yet.
+    # Selected by the demo R1A/R1B stages; excluded from the regular functional stage, including nightly runs.
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request legacy enforcement status for defendant account "1300000008894"
+    Then the request succeeds
+    And the enforcement status includes an explicitly null enforcement court
+    And the enforcement status response contains the following data
+      | enforcement_overview.days_in_default                                              | 0                  |
+      | enforcement_overview.collection_order.collection_order_flag                       | false              |
+      | enforcement_override.enforcement_override_result.enforcement_override_result_id   | MAN                |
+      | enforcement_override.enforcement_override_result.enforcement_override_result_name | MANUAL ENFORCEMENT |
+      | last_enforcement_action.enforcement_action.result_id                              | NOENF              |
+      | last_enforcement_action.enforcement_action.result_title                           | ENFORCEMENT HELD   |

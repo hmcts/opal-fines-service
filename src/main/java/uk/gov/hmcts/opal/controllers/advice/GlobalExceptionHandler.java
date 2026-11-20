@@ -11,11 +11,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.dao.QueryTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.ResponseEntity.BodyBuilder;
+import org.springframework.jms.JmsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -26,17 +28,17 @@ import uk.gov.hmcts.common.exceptions.standard.UnauthorizedException;
 import uk.gov.hmcts.opal.common.controllers.advice.OpalProblemDetailFactory;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.exception.DefendantAccountNotFoundException;
-import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.InterfaceJobQueueException;
+import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException.JsonSchemaValidationError;
 import uk.gov.hmcts.opal.exception.MissingMappingTypeException;
 import uk.gov.hmcts.opal.exception.MissingReportServiceException;
 import uk.gov.hmcts.opal.exception.MissingStoredReportContentException;
 import uk.gov.hmcts.opal.exception.PdplLoggingException;
+import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.RequiredPermissionException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
-import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.exception.SchemaConfigurationException;
 import uk.gov.hmcts.opal.exception.SubmitterDeniedException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
@@ -145,14 +147,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ReportGenerationException.class)
     public ResponseEntity<ProblemDetail> handleReportGenerationException(ReportGenerationException ex) {
-        ProblemDetail problemDetail = createProblemDetail(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            "Report Generation Failed",
-            "Unable to generate the requested report",
-            "report-generation-failed",
-            true,
-            ex
-        );
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Report Generation Failed",
+            "Unable to generate the requested report", "report-generation-failed", true, ex);
         return responseWithProblemDetail(HttpStatus.INTERNAL_SERVER_ERROR, problemDetail);
     }
 
@@ -180,6 +176,22 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
             "The interface job queue is currently unavailable",
             "interface-job-queue-unavailable", true, ex);
+        return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
+    }
+
+    // Common-lib handles JPA timeouts but not Spring's translated repository exception.
+    @ExceptionHandler(QueryTimeoutException.class)
+    public ResponseEntity<ProblemDetail> handleQueryTimeoutException(QueryTimeoutException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.REQUEST_TIMEOUT, "Request Timeout",
+            "The request did not receive a response from the database within the timeout period",
+            "query-timeout", true, ex);
+        return responseWithProblemDetail(HttpStatus.REQUEST_TIMEOUT, problemDetail);
+    }
+
+    @ExceptionHandler(JmsException.class)
+    public ResponseEntity<ProblemDetail> handleJmsException(JmsException ex) {
+        ProblemDetail problemDetail = createProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, "Service Unavailable",
+            "The message queue is currently unavailable", "message-queue-unavailable", true, ex);
         return responseWithProblemDetail(HttpStatus.SERVICE_UNAVAILABLE, problemDetail);
     }
 

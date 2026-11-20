@@ -262,6 +262,7 @@ components:
             - defendant_accounts
             - creditor_accounts
             - suspense_accounts
+            - suspense_items
             - report_instances
         record_id:
           type: string
@@ -306,12 +307,14 @@ components:
         court_id:
           type: integer
           format: int64
+          nullable: true
         court_code:
           type: integer
           format: int16
           x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         court_name:
           type: string
+          nullable: true
       required:
         - court_id
         - court_name
@@ -1021,17 +1024,17 @@ components:
     courtFee:
       type: object
       required:
-        - courtFeeId
-        - courtFeeCode
+        - court_fee_id
+        - court_fee_code
         - description
         - amount
       additionalProperties: false
       properties:
-        courtFeeId:
+        court_fee_id:
           type: integer
           format: int64
           description: DB Mapping - court_fees.court_fee_id
-        courtFeeCode:
+        court_fee_code:
           type: string
           maxLength: 10
           description: DB Mapping - court_fees.court_fee_code

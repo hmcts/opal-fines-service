@@ -41,6 +41,8 @@ java:
           alias: SERVICEBUS_REPORT_QUEUE_NAME
         - name: servicebus-auto-payments-process-interface-files-queue-name
           alias: SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME
+        - name: servicebus-allocate-tills-queue-name
+          alias: SERVICEBUS_ALLOCATE_TILLS_QUEUE_NAME
         - name: storage-connection-string
           alias: AZURE_STORAGE_CONNECTION_STRING
         - name: reports-storage-container-name
@@ -57,6 +59,10 @@ java:
           alias: OPAL_SYSTEM_USER_CLIENT_ID
         - name: opal-system-user-client-secret
           alias: OPAL_SYSTEM_USER_CLIENT_SECRET
+        - name: docmosis-api-key
+          alias: DOCMOSIS_API_KEY
+        - name: docmosis-endpoint
+          alias: DOCMOSIS_ENDPOINT
   environment:
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: https://opal-frontend.{{ .Values.global.environment }}.apps.hmcts.net
@@ -65,7 +71,9 @@ java:
     OPAL_REDIS_ENABLED: true
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-{{ .Values.global.environment }}.platform.hmcts.net/opal
     OPAL_USER_SERVICE_API_URL: https://opal-user-service.{{ .Values.global.environment }}.platform.hmcts.net
-    OPAL_FILE_HANDLER_SERVICE_API_URL: https://opal-file-handler-service.{{ .Values.global.environment }}.platform.hmcts.net
+    OPAL_FILE_HANDLER_SERVICE_API_URL: https://opal-file-handler-service.{{ ternary `staging` .Values.global.environment (eq .Values.global.environment `stg`) }}.platform.hmcts.net
+    INTERFACE_FILE_CONSUMER_ENABLED: '{{ eq .Values.global.environment `stg` }}'
+    REPORT_CONSUMER_ENABLED: '{{ eq .Values.global.environment `stg` }}'
     FLYWAY_LOCATIONS: classpath:db/migration/ddl,classpath:db/migration/data/allEnvs
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps

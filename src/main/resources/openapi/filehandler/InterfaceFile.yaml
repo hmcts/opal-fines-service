@@ -59,8 +59,9 @@ paths:
                               const: TRANSFORMED_JSON
                       then:
                         properties:
-                          business_unit_code:
+                          business_unit_id:
                             const: null
+
                   properties:
                     related_interface_file_id:
                       $ref: './types.yaml/#/components/schemas/BigInt'
@@ -84,12 +85,9 @@ paths:
                       type: string
                       maxLength: 200
                       description: DB Mapping - interface_files.file_name
-                    business_unit_code:
-                      type:
-                        - string
-                        - 'null'
-                      maxLength: 4
-                      description: DB Mapping - interface_files.business_unit_code. Must be null or omitted unless type = 'TRANSFORMED_JSON'
+                    business_unit_id:
+                      $ref: '../types.yaml#/components/schemas/BusinessUnitId'
+                      description: DB Mapping - interface_files.business_unit_id. Must be null or omitted unless type = 'TRANSFORMED_JSON'
       responses:
         '201':
           description: Created
@@ -145,10 +143,18 @@ paths:
           schema:
             $ref: '#/components/schemas/interfaceFileEnum'
         - in: query
+          name: not_target
+          description: DB Mapping - interface_files.target
+          schema:
+            $ref: '#/components/schemas/interfaceFileEnum'
+        - in: query
           name: type
+          explode: false
           description: DB Mapping - interface_files.type
           schema:
-            $ref: '#/components/schemas/interfaceFileTypeEnum'
+            type: array
+            items:
+              $ref: '#/components/schemas/interfaceFileTypeEnum'
         - in: query
           name: domain
           description: DB Mapping - interface_files.domain
@@ -159,6 +165,19 @@ paths:
           description: DB Mapping - interface_files.status
           schema:
             $ref: '#/components/schemas/statusEnum'
+        - in: query
+          name: not_status
+          explode: false
+          description: DB Mapping - interface_files.status
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/statusEnum'
+        - in: query
+          name: business_unit_id
+          description: DB Mapping - interface_files.business_unit_id
+          schema:
+            $ref: '../types.yaml#/components/schemas/BusinessUnitId'
         - in: query
           name: from_date
           description: DB Mapping - interface_files.created_datetime
@@ -379,6 +398,11 @@ components:
           type: string
           maxLength: 32
           description: DB Mapping - interface_files.checksum (MD5 checksum)
+        business_unit_ids:
+          type: array
+          description: DB Mapping - interface_files.business_unit_id
+          items:
+            $ref: '../types.yaml#/components/schemas/BusinessUnitId'
         source:
           $ref: '#/components/schemas/interfaceFileEnum'
         target:
@@ -408,6 +432,7 @@ components:
         - CDER
         - JACOBS
         - MARSTON
+        - VARIANT_BANKING
         - BTECKOH_REPORT
         - CAPS_REPORT
         - OPAL

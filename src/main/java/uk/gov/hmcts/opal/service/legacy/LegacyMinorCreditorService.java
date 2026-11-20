@@ -2,11 +2,17 @@ package uk.gov.hmcts.opal.service.legacy;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
@@ -18,7 +24,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountAtAGlanceRespon
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryResponse;
+import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsRequest;
@@ -42,19 +48,20 @@ import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
+import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyMinorCreditorService")
 public class LegacyMinorCreditorService implements MinorCreditorServiceInterface {
 
-    private static final String SEARCH_MINOR_CREDITORS = "getMinorCreditorAccount";
-    private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "GET_MINOR_CREDITOR_ACCOUNT_PARTY";
+    private static final String SEARCH_MINOR_CREDITORS = "searchMinorCreditorAccounts";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_PARTY = "getMinorCreditorAccount";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_AT_A_GLANCE =
-        "LIBRA.get_minor_creditors_account_at_a_glance";
+        "getMinorCreditorAccountAtAGlance";
     private static final String GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY =
-        "LIBRA.get_minor_creditors_account_header_summary";
-    private static final String GET_MINOR_CREDITOR_ACCOUNT_HISTORY = "LIBRA.get_minor_creditor_account_history";
+        "getMinorCreditorAccountHeaderSummary";
+    private static final String GET_MINOR_CREDITOR_ACCOUNT_HISTORY = "getMinorCreditorAccountHistory";
     private static final String UPDATE_MINOR_CREDITOR_ACCOUNT = "updateMinorCreditorAccount";
 
     private final GatewayService gatewayService;
@@ -67,6 +74,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
     private final MinorCreditorMapper minorCreditorMapper;
     private final LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest minorCreditorEntity) {
@@ -179,13 +187,15 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
         MinorCreditorHistoryFilters filters) {
-        LegacyGetMinorCreditorAccountHistoryRequest request =
-            minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters);
+        boolean release1b11Enabled = isItemTypeFilteringEnabled();
 
-        Response<LegacyGetMinorCreditorAccountHistoryResponse> response =
+        LegacyGetMinorCreditorAccountHistoryRequest request =
+            minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters, release1b11Enabled);
+
+        Response<MinorCreditorHistoryLegacyResponse> response =
             gatewayService.postToGateway(
                 GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
-                LegacyGetMinorCreditorAccountHistoryResponse.class,
+                MinorCreditorHistoryLegacyResponse.class,
                 request,
                 null
             );
@@ -287,11 +297,39 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
             if (response.isException()) {
                 log.error(":{}: Exception Message:", method, response.exception);
+                throw createGatewayException(response.code, "Legacy gateway exception", response.body,
+                    response.exception);
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
+                throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
             }
+            log.error(":{}: Generic Legacy gateway error occurred", method);
+            throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
+    }
+
+    private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,
+        String responseBody, Throwable exception) {
+        HttpStatusCode statusCode =
+            status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
+
+        String statusText =
+            exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
+
+        byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
+
+        return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
+    }
+
+    private boolean isItemTypeFilteringEnabled() {
+        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+        if (!enabled) {
+            log.debug(":isItemTypeFilteringEnabled: default item type filtering is being used because {} is disabled",
+                FeatureFlags.RELEASE_1B_1_1);
+        }
+        return enabled;
     }
 }

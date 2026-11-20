@@ -51,6 +51,14 @@ public class DefendantAccountRepositoryService {
     }
 
     @Transactional
+    public void incrementVersionNumber(DefendantAccountEntity defendantAccountEntity) {
+        incrementVersionNumber(
+            defendantAccountEntity.getDefendantAccountId(),
+            defendantAccountEntity.getVersion());
+        entityManager.refresh(defendantAccountEntity);
+    }
+
+    @Transactional
     public BigInteger incrementVersionNumber(long defendantAccountId, BigInteger expectedVersion) {
         entityManager.flush();
 
@@ -73,8 +81,8 @@ public class DefendantAccountRepositoryService {
     }
 
     /**
-     * Convenience method to validate that a given DefendantAccountEntity is associated with the specified
-     * business unit id.
+     * Convenience method to validate that a given DefendantAccountEntity is associated with the specified business unit
+     * id.
      */
     public void validateAccountExistsInBusinessUnit(DefendantAccountEntity account, String buId) {
         BusinessUnitEntity businessUnit = account.getBusinessUnit();

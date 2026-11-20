@@ -116,7 +116,6 @@ public class DefendantAccountApiController implements DefendantAccountApi {
     @FeatureToggle(feature = RELEASE_1B, defaultValueProperty = RELEASE_1B_ENABLED_PROPERTY)
     public ResponseEntity<GetDefendantAccountHeaderSummary200Response> getDefendantAccountHeaderSummary(Long id) {
         log.debug(":GET:getDefendantAccountHeaderSummary: for defendant id: {}", id);
-
         DefendantAccountHeaderSummary summary = defendantAccountService.getHeaderSummary(id);
 
         return buildResponse(summary, summary.getResponse());

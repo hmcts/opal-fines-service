@@ -44,8 +44,7 @@
         }
       },
       "required": [
-        "collection_order",
-        "enforcement_court"
+        "collection_order"
       ]
     },
     "enforcement_action": {

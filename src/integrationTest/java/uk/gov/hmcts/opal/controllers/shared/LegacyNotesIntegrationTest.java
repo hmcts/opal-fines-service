@@ -55,6 +55,7 @@ public class LegacyNotesIntegrationTest extends NotesIntegrationTest {
     @JiraStory("PO-10341")
     @JiraEpic("PO-812")
     void testPostAddNoteThenFetchHeaderSummaryForLegacyOnlyAccount() throws Exception {
+        when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
         super.legacyOnlyAccountAddNoteThenFetchHeaderSummary(log);
     }
 

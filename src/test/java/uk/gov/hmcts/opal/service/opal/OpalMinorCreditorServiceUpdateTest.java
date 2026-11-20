@@ -7,22 +7,29 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.OptimisticLockException;
 import java.math.BigInteger;
 import java.util.Optional;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.PartyEntity;
@@ -41,6 +48,7 @@ import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorAccountHeaderRepository;
 import uk.gov.hmcts.opal.repository.MinorCreditorRepository;
 import uk.gov.hmcts.opal.repository.PartyRepository;
+import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -70,8 +78,19 @@ class OpalMinorCreditorServiceUpdateTest {
     @Mock
     private EntityManager em;
 
+    @Mock
+    private MinorCreditorPdplLoggingService pdplLoggingService;
+
+    @Mock
+    private UserStateService userStateService;
+
     @InjectMocks
     private OpalMinorCreditorService service;
+
+    @AfterEach
+    void noUnexpectedPdpoLogging() {
+        verifyNoMoreInteractions(pdplLoggingService, userStateService);
+    }
 
     @Test
     void updateMinorCreditorAccount_success_updatesHoldAndVersionAndReturnsResponse() {
@@ -151,6 +170,8 @@ class OpalMinorCreditorServiceUpdateTest {
         }).when(minorCreditorAccountUpdateMapper).updateParty(any(), any(), any());
 
         // Act
+        UserState userState = UserState.builder().userId(42L).build();
+        when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         MinorCreditorAccountResponse response;
         try (MockedStatic<VersionUtils> versionUtils = mockStatic(VersionUtils.class)) {
             response = service.updateMinorCreditorAccount(
@@ -165,6 +186,14 @@ class OpalMinorCreditorServiceUpdateTest {
         assertNotNull(response.getPayment());
         assertEquals(true, response.getPayment().getHoldPayment());
         assertEquals(BigInteger.valueOf(5L), response.getVersion());
+        InOrder order = inOrder(em, amendmentService, minorCreditorAccountResponseMapper,
+            userStateService, pdplLoggingService);
+        order.verify(em).flush();
+        order.verify(amendmentService).auditFinaliseStoredProc(accountId, AssociatedRecordType.CREDITOR_ACCOUNTS,
+            businessUnitId, postedBy, "Tester Name", null, "ACCOUNT_ENQUIRY");
+        order.verify(minorCreditorAccountResponseMapper).toMinorCreditorAccountResponse(account, party);
+        order.verify(userStateService).getUserStateV1FromSecurityContext();
+        order.verify(pdplLoggingService).logUpdate(accountId, userState);
         ArgumentCaptor<CreditorAccountEntity> entityCaptor =
             ArgumentCaptor.forClass(CreditorAccountEntity.class);
         verify(creditorAccountRepository).save(entityCaptor.capture());
@@ -195,6 +224,28 @@ class OpalMinorCreditorServiceUpdateTest {
         verify(amendmentService).auditFinaliseStoredProc(
             accountId, AssociatedRecordType.CREDITOR_ACCOUNTS, businessUnitId, postedBy,
             "Tester Name", null, "ACCOUNT_ENQUIRY");
+    }
+
+    @Test
+    void updateMinorCreditorAccount_whenFlushDetectsConcurrentUpdate_doesNotLogSuccess() {
+        CreditorAccountEntity account = CreditorAccountEntity.builder()
+            .creditorAccountId(101L)
+            .creditorAccountType(CreditorAccountType.MN)
+            .minorCreditorPartyId(201L)
+            .versionNumber(1L)
+            .build();
+        PartyEntity party = PartyEntity.builder().partyId(201L).organisation(false).build();
+        final PatchMinorCreditorAccountRequest request = new PatchMinorCreditorAccountRequest()
+            .partyDetails(new PartyDetailsCommon().partyId("201").organisationFlag(false))
+            .address(new AddressDetailsCommon())
+            .payment(new CreditorAccountPaymentDetailsCommon().holdPayment(false).payByBacs(false));
+        when(creditorAccountRepository.findByCreditorAccountIdAndBusinessUnitId(101L, (short) 77))
+            .thenReturn(Optional.of(account));
+        when(partyRepository.findById(201L)).thenReturn(Optional.of(party));
+        doThrow(new OptimisticLockException("Concurrent update")).when(em).flush();
+
+        assertThrows(OptimisticLockException.class, () -> service.updateMinorCreditorAccount(
+            101L, request, BigInteger.ONE, "test.user", "Test User", (short) 77));
     }
 
     @Test

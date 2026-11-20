@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper.legacy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import jakarta.xml.bind.JAXBException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyPostedDetails;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict.InstalmentPeriodCodeEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountInstalmentPeriodCommonStrict.InstalmentPeriodDisplayNameEnum;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
 class DefendantAccountPaymentTermsLegacyResponseMapperTest {
 
@@ -106,6 +108,68 @@ class DefendantAccountPaymentTermsLegacyResponseMapperTest {
             defendantAccountPaymentTerms.getPostedDetails().get().getPostedDate());
         assertEquals("John Doe", defendantAccountPaymentTerms.getPostedDetails().get().getPostedBy().get());
         assertEquals("j.doe", defendantAccountPaymentTerms.getPostedDetails().get().getPostedByName().get());
+    }
+
+    @Test
+    void shouldMapBritishInstalmentXmlResponse() throws JAXBException {
+        var response = unmarshalXmlResponse("instalment_period", "instalment_period_code", "instalment_amount");
+
+        assertMappedInstalmentPaymentTerms(response);
+    }
+
+    @Test
+    void shouldMapAmericanInstalmentXmlResponseForBackwardCompatibility() throws JAXBException {
+        var response = unmarshalXmlResponse("installment_period", "installment_period_code", "installment_amount");
+
+        assertMappedInstalmentPaymentTerms(response);
+    }
+
+    private void assertMappedInstalmentPaymentTerms(LegacyGetDefendantAccountPaymentTermsResponse response) {
+        var mappedResponse = mapper.toResponse(response);
+
+        assertNotNull(mappedResponse);
+        assertEquals(LocalDate.of(2026, 1, 15), mappedResponse.getPaymentCardLastRequested());
+
+        var paymentTerms = mappedResponse.getPaymentTerms();
+        assertNotNull(paymentTerms);
+        assertEquals("Updated instalments", paymentTerms.getReasonForExtension().get());
+        assertEquals(LocalDate.of(2026, 1, 15), paymentTerms.getEffectiveDate().get());
+        assertEquals(PaymentTermsTypeCodeEnum.I,
+            paymentTerms.getPaymentTermsType().getPaymentTermsTypeCode());
+        assertEquals(new BigDecimal("45.00"), paymentTerms.getInstalmentAmount().get());
+        assertEquals(InstalmentPeriodCodeEnum.M,
+            paymentTerms.getInstalmentPeriod().get().getInstalmentPeriodCode());
+        assertEquals(InstalmentPeriodDisplayNameEnum.MONTHLY,
+            paymentTerms.getInstalmentPeriod().get().getInstalmentPeriodDisplayName());
+    }
+
+    private LegacyGetDefendantAccountPaymentTermsResponse unmarshalXmlResponse(
+        String instalmentPeriodElement,
+        String instalmentPeriodCodeElement,
+        String instalmentAmountElement) throws JAXBException {
+        return XmlUtil.unmarshalXmlString("""
+            <response>
+              <version>9223372036854775808</version>
+              <payment_terms>
+                <reason_for_extension>Updated instalments</reason_for_extension>
+                <payment_terms_type>
+                  <payment_terms_type_code>I</payment_terms_type_code>
+                </payment_terms_type>
+                <effective_date>2026-01-15</effective_date>
+                <%s>
+                  <%s>M</%s>
+                </%s>
+                <%s>45.00</%s>
+              </payment_terms>
+              <payment_card_last_requested>2026-01-15</payment_card_last_requested>
+            </response>
+            """.formatted(
+            instalmentPeriodElement,
+            instalmentPeriodCodeElement,
+            instalmentPeriodCodeElement,
+            instalmentPeriodElement,
+            instalmentAmountElement,
+            instalmentAmountElement), LegacyGetDefendantAccountPaymentTermsResponse.class);
     }
 
     private static @NonNull LegacyPaymentTerms getLegacyPaymentTerms() {

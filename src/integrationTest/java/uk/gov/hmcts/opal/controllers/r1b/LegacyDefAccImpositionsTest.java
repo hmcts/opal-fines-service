@@ -29,7 +29,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
@@ -57,10 +56,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
 @DisplayName("Legacy Defendant Account Impositions Integration Tests")
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/defendant-accounts";
@@ -182,6 +177,34 @@ class LegacyDefAccImpositionsTest extends AbstractIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
             .andExpect(jsonPath("$.status").value(404));
+    }
+
+    @Test
+    @JiraEpic("PO-979")
+    @JiraStory("PO-11114")
+    @DisplayName("LEGACY: Get Defendant Account Impositions returns null imposing court details")
+    void getImpositions_whenImposingCourtIsMissing_returnsNullCourtDetails() throws Exception {
+        GetDefendantAccountImpositionsLegacyResponse legacyResponse = legacyResponse();
+        legacyResponse.getImpositions().getFirst().setImposingCourt(null);
+
+        when(gatewayService.postToGateway(
+            eq(LegacyImpositionService.GET_IMPOSITIONS),
+            eq(GetDefendantAccountImpositionsLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        MvcResult result = performGetImpositions(12345L)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.impositions[0].imposed_by").isMap())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_id").value(nullValue()))
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_code").doesNotExist())
+            .andExpect(jsonPath("$.impositions[0].imposed_by.court_name").value(nullValue()))
+            .andReturn();
+
+        assertGet200JsonResponseMatchesBundledSpec(ToJsonString.toJsonNode(result.getResponse().getContentAsString()),
+            "/defendant-accounts/{id}/impositions");
     }
 
     private ResultActions performGetImpositions(Long defendantAccountId) throws Exception {

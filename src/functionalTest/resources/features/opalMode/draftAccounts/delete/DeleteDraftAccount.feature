@@ -7,6 +7,7 @@ Feature: Delete Draft Account
   @cleanUpData @JIRA-TEST-KEY:PO-5635
   Scenario: A draft account can be deleted using optimistic locking
     Given a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |
@@ -20,6 +21,7 @@ Feature: Delete Draft Account
   @cleanUpData @JIRA-TEST-KEY:PO-5636
   Scenario: Cleanup ignores a draft account that has already been deleted
     Given a draft account exists with the following details
+      | source            | MAC                                         |
       | business_unit_id  | 73                                          |
       | account           | draftAccounts/accountJson/adultAccount.json |
       | account_type      | Fine                                        |

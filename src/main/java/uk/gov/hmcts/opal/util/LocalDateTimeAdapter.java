@@ -6,29 +6,30 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
-import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 
 public class LocalDateTimeAdapter extends XmlAdapter<String, LocalDateTime> {
 
-    private static final DateTimeFormatter LEGACY_DATE_TIME =
-        new DateTimeFormatterBuilder()
-            .appendPattern("yyyy-MM-dd HH:mm:ss")
-            .optionalStart()
-            .appendFraction(ChronoField.NANO_OF_SECOND, 1, 9, true)
-            .optionalEnd()
-            .toFormatter();
+    private static final DateTimeFormatter DATE_OR_DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
+        .append(DateTimeFormatter.ISO_LOCAL_DATE)
+        .optionalStart()
+        .appendLiteral('T')
+        .append(DateTimeFormatter.ISO_LOCAL_TIME)
+        .optionalEnd()
+        .toFormatter();
 
     @Override
     public LocalDateTime unmarshal(String v) throws Exception {
         if (v == null || v.isBlank()) {
             return null;
         }
-        try {
-            return LocalDateTime.parse(v, LEGACY_DATE_TIME);
-        } catch (DateTimeParseException e) {
-            return LocalDate.parse(v).atStartOfDay();
-        }
+
+        String normalizedValue = v.trim().replace(' ', 'T');
+
+        TemporalAccessor parsedValue = DATE_OR_DATE_TIME_FORMATTER
+            .parseBest(normalizedValue, LocalDateTime::from, LocalDate::from);
+
+        return parsedValue instanceof LocalDateTime dateTime ? dateTime : ((LocalDate) parsedValue).atStartOfDay();
     }
 
     @Override

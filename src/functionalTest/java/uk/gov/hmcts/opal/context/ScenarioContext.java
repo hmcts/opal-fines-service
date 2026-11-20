@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -21,6 +22,8 @@ public class ScenarioContext {
     private final Map<String, String> draftAccountCreators = new LinkedHashMap<>();
     private final Map<String, String> rememberedEtags = new LinkedHashMap<>();
     private final Map<String, String> queuedHeaders = new LinkedHashMap<>();
+    private final Map<String, String> partyIds = new LinkedHashMap<>();
+    private final Map<String, String> featureVariables = new LinkedHashMap<>();
 
     private String draftAccountCreatedAtTime = "";
     private String initialAccountStatusDate = "";
@@ -28,6 +31,7 @@ public class ScenarioContext {
     private TestHttpResponse latestHttpResponse;
     private String createdDefendantAccountId;
     private String defendantAccountEtag;
+    private Long createdMinorCreditorAccountId;
 
     /**
      * Resets the scenario context to a clean state.
@@ -38,12 +42,34 @@ public class ScenarioContext {
         draftAccountCreators.clear();
         rememberedEtags.clear();
         queuedHeaders.clear();
+        partyIds.clear();
+        featureVariables.clear();
         draftAccountCreatedAtTime = "";
         initialAccountStatusDate = "";
         currentUser = "";
         latestHttpResponse = null;
         createdDefendantAccountId = null;
         defendantAccountEtag = null;
+        createdMinorCreditorAccountId = null;
+    }
+
+    /**
+     * Records the minor-creditor account created for the current scenario.
+     *
+     * @param id created minor-creditor account identifier.
+     */
+    public void setCreatedMinorCreditorAccountId(Long id) {
+        this.createdMinorCreditorAccountId = id;
+    }
+
+    /**
+     * Returns the minor-creditor account created for the current scenario.
+     *
+     * @return created minor-creditor account identifier.
+     */
+    public Long getCreatedMinorCreditorAccountIdOrFail() {
+        assertNotNull(createdMinorCreditorAccountId, "No created minor-creditor account ID found");
+        return createdMinorCreditorAccountId;
     }
 
     /**
@@ -81,6 +107,35 @@ public class ScenarioContext {
      */
     public void addCreatedDefendantAccountId(String id) {
         createdDefendantAccountIds.add(id);
+        featureVariables.putIfAbsent("createdDefendantAccountId", id);
+        featureVariables.put("latestCreatedDefendantAccountId", id);
+    }
+
+    /**
+     * Stores a named value that can be referenced from a feature-file expectation.
+     *
+     * @param name variable name.
+     * @param value variable value.
+     */
+    public void setFeatureVariable(String name, String value) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Feature variable name must not be blank");
+        }
+        featureVariables.put(name, Objects.requireNonNull(value, "Feature variable value must not be null"));
+    }
+
+    /**
+     * Returns a named feature-file variable, failing when it has not been registered.
+     *
+     * @param name variable name.
+     * @return registered variable value.
+     */
+    public String getFeatureVariableOrFail(String name) {
+        String value = featureVariables.get(name);
+        if (value == null) {
+            throw new IllegalArgumentException("No feature variable registered for ${" + name + "}");
+        }
+        return value;
     }
 
     /**
@@ -292,5 +347,29 @@ public class ScenarioContext {
      */
     public String getDefendantAccountEtag() {
         return defendantAccountEtag;
+    }
+
+    /**
+     * Remembers a party identifier for later logging assertions, including after guardian removal.
+     *
+     * @param partyType role of the party in the defendant account.
+     * @param partyId identifier returned by the party API.
+     */
+    public void rememberPartyId(String partyType, String partyId) {
+        assertNotNull(partyId, "Expected party ID for " + partyType);
+        assertFalse(partyId.isBlank(), "Party ID is blank for " + partyType);
+        partyIds.put(partyType, partyId);
+    }
+
+    /**
+     * Returns the scenario's remembered party identifier for the supplied role.
+     *
+     * @param partyType role of the party in the defendant account.
+     * @return remembered party identifier.
+     */
+    public String getPartyIdOrFail(String partyType) {
+        String partyId = partyIds.get(partyType);
+        assertNotNull(partyId, "No recorded party ID for " + partyType);
+        return partyId;
     }
 }

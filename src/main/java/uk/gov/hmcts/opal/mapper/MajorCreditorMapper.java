@@ -4,9 +4,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.generated.model.MajorCreditorObject;
 
 @Mapper(componentModel = "spring")
 public interface MajorCreditorMapper {
+
+    MajorCreditorObject toObject(MajorCreditorEntity entity);
 
     @Mapping(ignore = true, target = "fromSuspense")
     @Mapping(source = "creditorAccountEntity.creditorAccountId", target = "creditorAccountId")

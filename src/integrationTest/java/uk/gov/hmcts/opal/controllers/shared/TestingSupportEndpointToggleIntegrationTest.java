@@ -4,6 +4,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.args;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.withAuth;
+import static uk.gov.hmcts.opal.controllers.shared.AbstractFeatureToggleIntegrationTest.withAuthAndJson;
 
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
@@ -23,7 +26,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 public class TestingSupportEndpointToggleIntegrationTest extends AbstractFeatureToggleIntegrationTest {
     static Stream<Arguments> testingSupportEndpoints() {
         return Stream.of(
-            // TestingSupportController
+            args("DELETE /testing-support/tills",
+                withAuth(delete("/testing-support/tills").queryParam("ids", "1"))),
             args("GET /testing-support/is-legacy-mode",
                 withAuth(get("/testing-support/is-legacy-mode"))),
             args("GET /testing-support/launchdarkly/bool/{featureKey}",

@@ -1,10 +1,13 @@
 package uk.gov.hmcts.opal.mapper.legacy;
 
+import static org.mapstruct.NullValueMappingStrategy.RETURN_DEFAULT;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -43,6 +46,7 @@ public interface DefendantAccountImpositionsLegacyResponseMapper {
     @Mapping(target = "creditorAccountTypeReference", source = ".")
     CreditorSummaryCommon toOpal(Creditor legacy);
 
+    @BeanMapping(nullValueMappingStrategy = RETURN_DEFAULT)
     CourtReferenceCommon toOpal(CourtReference legacy);
 
     @Mapping(target = "offenceId", source = "offenceId")
