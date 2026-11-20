@@ -19,12 +19,13 @@ import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
@@ -35,8 +36,8 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
-import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,8 +50,10 @@ class LegacyNotesServiceTest {
 
     @InjectMocks private LegacyNotesService service;
 
-    @Test
-    void addNote_success_returnsRecordId_andBuildsRequest() {
+    @ParameterizedTest
+    @EnumSource(value = NoteCommon.RecordTypeEnum.class,
+        names = {"DEFENDANT_ACCOUNTS", "CREDITOR_ACCOUNTS", "SUSPENSE_ITEMS"})
+    void addNote_success_returnsRecordId_andBuildsRequest(NoteCommon.RecordTypeEnum recordType) {
 
         LegacyAddNoteResponse entity = legacyRespWithNote("77", "hello");
 
@@ -71,6 +74,7 @@ class LegacyNotesServiceTest {
         )).thenReturn(resp);
 
         AddNoteRequestNotes req = addReq("77", "hello");
+        req.getActivityNote().setRecordType(recordType);
         givenBusinessUnitUser((short) 1, "L001JG");
 
         String id = service.addNote(req, "1", user, (short) 1);
@@ -86,7 +90,7 @@ class LegacyNotesServiceTest {
         assertEquals("77", sentNote.getRecordId());
         assertEquals("hello", sentNote.getNoteText());
         assertEquals("AA", sentNote.getNoteType());
-        assertEquals(RecordType.DEFENDANT_ACCOUNTS, sentNote.getRecordType());
+        assertEquals(RecordType.valueOf(recordType.name()), sentNote.getRecordType());
 
         verify(gatewayService).postToGateway(
             eq("addNote"),

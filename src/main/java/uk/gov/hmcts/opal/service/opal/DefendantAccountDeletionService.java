@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
+import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
@@ -38,6 +39,7 @@ public class DefendantAccountDeletionService {
 
     // Level 1 - Parent
     private final DefendantAccountRepository defendantAccountRepository;
+    private final AlternatePaymentReferenceRepository alternatePaymentReferenceRepository;
 
     // Level 2 - Direct children
     private final DefendantAccountPartiesRepository defendantAccountPartiesRepository;
@@ -68,6 +70,8 @@ public class DefendantAccountDeletionService {
         validateAccountExists(defendantAccountId);
         List<Long> impositionIds = impositionRepository.findImpositionIdsByDefendantAccountId(defendantAccountId);
 
+        alternatePaymentReferenceRepository.deleteAll(
+            alternatePaymentReferenceRepository.findByDefendantAccount_defendantAccountId(defendantAccountId));
         deleteLevel3Data(defendantAccountId);
         deleteLevel2Data(defendantAccountId, impositionIds);
         deleteLevel1Data(defendantAccountId);

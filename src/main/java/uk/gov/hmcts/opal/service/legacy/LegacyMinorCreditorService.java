@@ -292,7 +292,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .creditorAccounts(mappedAccounts)
             .build();
     }
-
+  
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
@@ -305,6 +305,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 log.info("Account not found");
                 throw new EntityNotFoundException(method + " Account not found");
             }
+            log.error(":{}: Legacy Gateway Error: Body:\n{}", method, response.body);
             throw createGatewayException(response.code, "Legacy gateway error", response.body);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);

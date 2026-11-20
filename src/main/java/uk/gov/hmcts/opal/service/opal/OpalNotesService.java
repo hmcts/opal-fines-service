@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationToken;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
@@ -19,11 +20,13 @@ import uk.gov.hmcts.opal.common.util.SecurityUtil;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
+import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
+import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 import uk.gov.hmcts.opal.service.AccountNoteContext;
 import uk.gov.hmcts.opal.service.AccountNoteContextFactory;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
@@ -41,6 +44,7 @@ public class OpalNotesService implements NotesServiceInterface {
     private final NoteRepository repository;
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
     private final CreditorAccountRepository creditorAccountRepository;
+    private final SuspenseItemRepository suspenseItemRepository;
     private final AccountNoteContextFactory accountNoteContextFactory;
     private final Clock clock;
     private final FeatureToggleApi featureToggleApi;
@@ -49,6 +53,10 @@ public class OpalNotesService implements NotesServiceInterface {
     @Transactional
     public String addNote(AddNoteRequestNotes req, String ifMatch, UserState user, Short businessUnitId) {
         AccountNoteContext target = accountNoteContextFactory.from(req.getActivityNote());
+        if (target.associatedRecordType() == AssociatedRecordType.SUSPENSE_ITEMS
+            && !target.businessUnitId().equals(businessUnitId)) {
+            throw new AccessDeniedException("Suspense item does not belong to the provided business unit");
+        }
         return addNote(req, ifMatch, user, target);
     }
 
@@ -85,9 +93,15 @@ public class OpalNotesService implements NotesServiceInterface {
 
         NoteCommon requestNote = req.getActivityNote();
 
-        String businessUnitUserId = isPostingUserIdEnabled()
-            ? getBusinessUnitUserId(user, target.businessUnitId())
-            : target.businessUnitId().toString();
+        String businessUnitUserId;
+        if (target.associatedRecordType() == AssociatedRecordType.SUSPENSE_ITEMS) {
+            businessUnitUserId = PermissionUtil.getRequiredBusinessUnitUser(user, target.businessUnitId())
+                .getBusinessUnitUserId();
+        } else {
+            businessUnitUserId = isPostingUserIdEnabled()
+                ? getBusinessUnitUserId(user, target.businessUnitId())
+                : target.businessUnitId().toString();
+        }
 
         NoteEntity note = new NoteEntity();
         note.setNoteText(requestNote.getNoteText());
@@ -107,6 +121,8 @@ public class OpalNotesService implements NotesServiceInterface {
     private void incrementAccountVersion(AccountNoteContext target, Versioned account) {
         if (target.associatedRecordType() == AssociatedRecordType.DEFENDANT_ACCOUNTS) {
             defendantAccountRepositoryService.incrementVersionNumber(target.accountId(), account.getVersion());
+        } else if (account instanceof SuspenseItemEntity item) {
+            item.setVersionNumber(item.getVersion().longValueExact() + 1);
         }
     }
 
@@ -116,6 +132,9 @@ public class OpalNotesService implements NotesServiceInterface {
                 .getDefendantAccountByIdForUpdate(target.accountId());
             case CREDITOR_ACCOUNTS -> creditorAccountRepository.findByCreditorAccountIdForUpdate(target.accountId())
                 .orElseThrow(() -> accountNotFound(target.accountId()));
+            case SUSPENSE_ITEMS -> suspenseItemRepository.findBySuspenseItemId(target.accountId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                    "Suspense item %s not found".formatted(target.accountId())));
             default -> throw new IllegalArgumentException(
                 "Record type %s is not supported".formatted(target.associatedRecordType())
             );
