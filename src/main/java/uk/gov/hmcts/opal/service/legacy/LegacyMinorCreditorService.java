@@ -310,6 +310,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
     }
+    
     private static RuntimeException createGatewayException(
         HttpStatusCode status,
         String fallbackStatusText,
