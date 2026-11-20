@@ -47,7 +47,7 @@ public class LegacyMinorCreditorIntegrationTest extends MinorCreditorControllerI
     @JiraEpic("PO-812")
     @JiraTestKey("PO-5956")
     void testGetMinorCreditorAtAGlanceSuccess() throws Exception {
-        super.getMinorCreditorAtAGlanceImpl_Success(log, "Speed Camera Services Ltd");
+        super.getMinorCreditorAtAGlanceImpl_Success(log, "Parking Enforcement Corp");
     }
 
     @Test

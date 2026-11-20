@@ -155,7 +155,7 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[3].type").value("Enforcement"));
+            .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);
