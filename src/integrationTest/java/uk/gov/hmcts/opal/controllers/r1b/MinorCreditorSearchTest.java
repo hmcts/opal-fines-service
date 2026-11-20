@@ -160,7 +160,7 @@ public class MinorCreditorSearchTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.creditor_accounts[0].creditor_account_id").value("999950"))
             .andExpect(jsonPath("$.creditor_accounts[0].account_number").value("JS987654"))
-            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value("10"))
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value(10))
             .andExpect(jsonPath("$.creditor_accounts[0].firstnames").value("John"))
             .andExpect(jsonPath("$.creditor_accounts[0].surname").value("Smith"));
     }

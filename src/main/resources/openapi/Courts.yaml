@@ -25,8 +25,7 @@ paths:
           required: false
           description: The business unit identifier used to filter courts. DB Mapping - courts.business_unit_id
           schema:
-            type: integer
-            format: int16
+            $ref: './types.yaml#/components/schemas/BusinessUnitId'
       responses:
         '200':
           description: Courts retrieved
@@ -210,8 +209,7 @@ components:
           format: int64
           description: DB Mapping - courts.court_id
         business_unit_id:
-          type: integer
-          format: int16
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
           description: DB Mapping - courts.business_unit_id
         court_code:
           type: integer
@@ -243,7 +241,7 @@ components:
           type: string
           description: Exact match against courts.court_id.
         businessUnitId:
-          type: string
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
           description: Exact match against courts.business_unit_id.
         courtCode:
           type: string
@@ -305,8 +303,7 @@ components:
           format: int64
           description: DB Mapping - courts.court_id
         businessUnitId:
-          type: integer
-          format: int16
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
           description: DB Mapping - courts.business_unit_id
         courtCode:
           type: integer

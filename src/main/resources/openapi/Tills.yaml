@@ -104,8 +104,7 @@ paths:
             type: array
             minItems: 1
             items:
-              type: integer
-              format: int16
+              $ref: './types.yaml#/components/schemas/BusinessUnitId'
       responses:
         "200":
           description: OK
@@ -552,8 +551,7 @@ components:
           format: int16
           description: DB Mapping - tills.till_number
         business_unit_id:
-          type: integer
-          format: int16
+          $ref: './types.yaml#/components/schemas/BusinessUnitId'
           description: DB Mapping - tills.business_unit_id
         created_by:
           type: string

@@ -271,7 +271,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 .addressLine1(legacy.getAddressLine1())
                 .postcode(legacy.getPostcode())
                 .businessUnitName(legacy.getBusinessUnitName())
-                .businessUnitId(legacy.getBusinessUnitId())
+                .businessUnitId(Short.valueOf(legacy.getBusinessUnitId()))
                 .accountBalance(BigDecimal.valueOf(legacy.getAccountBalance()))
                 .defendant(
                     legacy.getDefendant() == null ? null :

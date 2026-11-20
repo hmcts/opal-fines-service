@@ -57,7 +57,7 @@
         "address_line_1": { "type": "string" },
         "postcode": { "type": ["string", "null"] },
         "business_unit_name": { "type": "string" },
-        "business_unit_id": { "type": "string" },
+        "business_unit_id": { "type": "integer" },
         "prosecutor_case_reference": { "type": ["string", "null"] },
         "last_enforcement_action": { "type": ["string", "null"] },
         "account_balance": { "type": "number" },

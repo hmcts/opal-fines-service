@@ -116,7 +116,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[0].address_line_1").value("Acme House"))
             .andExpect(jsonPath("$.creditor_accounts[0].postcode").value("MA4 1AL"))
             .andExpect(jsonPath("$.creditor_accounts[0].business_unit_name").value("Derbyshire"))
-            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value("10"))
+            .andExpect(jsonPath("$.creditor_accounts[0].business_unit_id").value(10))
             .andExpect(jsonPath("$.creditor_accounts[0].account_balance").value(150.0))
 
             // defendant object (first account)
@@ -136,7 +136,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[1].address_line_1").value("Acme House"))
             .andExpect(jsonPath("$.creditor_accounts[1].postcode").value("MA4 1AL"))
             .andExpect(jsonPath("$.creditor_accounts[1].business_unit_name").value("Derbyshire"))
-            .andExpect(jsonPath("$.creditor_accounts[1].business_unit_id").value("10"))
+            .andExpect(jsonPath("$.creditor_accounts[1].business_unit_id").value(10))
             .andExpect(jsonPath("$.creditor_accounts[1].account_balance").value(0.0))
 
             // defendant object (second account)
@@ -962,8 +962,8 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.creditor_accounts[*].business_unit_id")
                 .value(org.hamcrest.Matchers.everyItem(
                     org.hamcrest.Matchers.anyOf(
-                        org.hamcrest.Matchers.equalTo("10"),
-                        org.hamcrest.Matchers.equalTo("11")
+                        org.hamcrest.Matchers.equalTo(10),
+                        org.hamcrest.Matchers.equalTo(11)
                     )
                 )));
     }
@@ -1278,7 +1278,7 @@ abstract class MinorCreditorControllerIntegrationTest extends AbstractIntegratio
 
             .andExpect(header().string("ETag", minorCreditorVersionEtag()))
 
-            .andExpect(jsonPath("$.business_unit.business_unit_id").value("77"))
+            .andExpect(jsonPath("$.business_unit.business_unit_id").value(77))
             .andExpect(jsonPath("$.business_unit.business_unit_code").value("0046"))
             .andExpect(jsonPath("$.business_unit.business_unit_name").value("Camberwell Green"))
             .andExpect(jsonPath("$.business_unit.welsh_speaking").value(matchesPattern("Y|N")))

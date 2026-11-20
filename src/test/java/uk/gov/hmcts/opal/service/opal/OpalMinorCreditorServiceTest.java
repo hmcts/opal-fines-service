@@ -184,7 +184,7 @@ class OpalMinorCreditorServiceTest {
         assertEquals("Acme House", a0.getAddressLine1());
         assertEquals("MA4 1AL", a0.getPostcode());
         assertEquals("Derbyshire", a0.getBusinessUnitName());
-        assertEquals("10", a0.getBusinessUnitId());
+        assertEquals((short) 10, a0.getBusinessUnitId());
         assertEquals(new java.math.BigDecimal("150"), a0.getAccountBalance());
 
         MinorCreditorAccountSearchDefendant d0 = a0.getDefendant();
@@ -205,7 +205,7 @@ class OpalMinorCreditorServiceTest {
         assertEquals("Acme House", a1.getAddressLine1());
         assertEquals("MA4 1AL", a1.getPostcode());
         assertEquals("Derbyshire", a1.getBusinessUnitName());
-        assertEquals("10", a1.getBusinessUnitId());
+        assertEquals((short) 10, a1.getBusinessUnitId());
         assertEquals(BigDecimal.ZERO, a1.getAccountBalance());
 
         MinorCreditorAccountSearchDefendant d1 = a1.getDefendant();

@@ -171,7 +171,7 @@ public class MinorCreditorAccountSearchRestrictionsStepDef extends BaseStepDef {
             .body("creditor_accounts.account_number", hasItem(fixture.accountNumber()))
             .body("creditor_accounts.firstnames", hasItem(fixture.forenames()))
             .body("creditor_accounts.surname", hasItem(fixture.surname()))
-            .body("creditor_accounts.business_unit_id", hasItem(String.valueOf(fixture.businessUnitId())))
+            .body("creditor_accounts.business_unit_id", hasItem((int) fixture.businessUnitId()))
             .body("creditor_accounts.creditor_account_id", not(hasItem(containsString("PO2971"))));
     }
 
