@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDraftAccountReferenceValidationServiceTest {
@@ -47,7 +47,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private OffenceRepository offenceRepository;
 
     @Mock
-    private ResultRepository resultRepository;
+    private ResultOpalRepository resultRepository;
 
     @Mock
     private CreditorAccountRepository creditorAccountRepository;
@@ -378,7 +378,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private void stubResult(String resultId, ImpositionCreditor impositionCreditor) {
         when(resultRepository.findById(resultId)).thenReturn(
             Optional.of(
-                ResultEntity.builder()
+                ResultOpalEntity.builder()
                     .resultId(resultId)
                     .active(true)
                     .imposition(true)
@@ -392,7 +392,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsNotAnEnforcement_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultOpalEntity.builder()
             .resultId("COLLO")
             .enforcement(false)
             .active(true)
@@ -413,7 +413,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsInactive_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultOpalEntity.builder()
             .resultId("COLLO")
             .enforcement(true)
             .active(false)
@@ -767,32 +767,32 @@ class OpalDraftAccountReferenceValidationServiceTest {
             """.formatted(resultId, majorCreditorValue, minorCreditorValue);
     }
 
-    private static ResultEntity activeImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultOpalEntity activeImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(true)
             .build();
     }
 
-    private static ResultEntity activeNonImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultOpalEntity activeNonImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(false)
             .build();
     }
 
-    private static ResultEntity inactiveImpositionResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultOpalEntity inactiveImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(false)
             .imposition(true)
             .build();
     }
 
-    private static ResultEntity activeEnforcementResult(String resultId) {
-        return ResultEntity.builder()
+    private static ResultOpalEntity activeEnforcementResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .enforcement(true)

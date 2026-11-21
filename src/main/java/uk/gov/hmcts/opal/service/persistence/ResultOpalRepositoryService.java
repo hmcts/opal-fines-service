@@ -4,20 +4,20 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 
 import java.util.Optional;
 
 @Service
-@Slf4j(topic = "opal.ResultRepositoryService")
+@Slf4j(topic = "opal.ResultOpalRepositoryService")
 @RequiredArgsConstructor
-public class ResultRepositoryService {
+public class ResultOpalRepositoryService {
 
-    private final ResultRepository resultRepository;
+    private final ResultOpalRepository resultRepository;
 
     @Transactional(readOnly = true)
-    public Optional<ResultEntity> getResultById(String resultId) {
+    public Optional<ResultOpalEntity> getResultById(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById);
     }
 }

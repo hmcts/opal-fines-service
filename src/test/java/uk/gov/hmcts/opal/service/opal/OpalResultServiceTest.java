@@ -28,27 +28,27 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
-import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
+import uk.gov.hmcts.opal.mapper.ResultOpalMapper;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
+import uk.gov.hmcts.opal.repository.jpa.ResultOpalSpecs;
 
 @ExtendWith(MockitoExtension.class)
 class OpalResultServiceTest {
     @Mock
-    private ResultRepository repository;
+    private ResultOpalRepository repository;
     @Mock
-    private ResultSpecs specs;
+    private ResultOpalSpecs specs;
     @Mock
-    private SpecificationFluentQuery<ResultEntity> query;
+    private SpecificationFluentQuery<ResultOpalEntity> query;
 
     private OpalResultService service;
 
     @BeforeEach
     void setUp() {
-        service = new OpalResultService(repository, Mappers.getMapper(ResultMapper.class), specs);
+        service = new OpalResultService(repository, Mappers.getMapper(ResultOpalMapper.class), specs);
     }
 
     @ParameterizedTest
@@ -134,14 +134,14 @@ class OpalResultServiceTest {
     @SuppressWarnings("unchecked")
     void getResultsByIds_passesFiltersAndMapsResults(List<String> ids, Optional<List<String>> expectedIds) {
         // Given
-        ResultEntity entity = ResultEntity.builder().resultId("ABC").resultTitle("Result").active(true).build();
-        Specification<ResultEntity> specification = (root, criteria, builder) -> builder.conjunction();
+        ResultOpalEntity entity = ResultOpalEntity.builder().resultId("ABC").resultTitle("Result").active(true).build();
+        Specification<ResultOpalEntity> specification = (root, criteria, builder) -> builder.conjunction();
         when(specs.referenceDataByIds(expectedIds, true, false, true, false, true)).thenReturn(specification);
         when(query.sortBy(Sort.by(Sort.Direction.ASC, "resultId"))).thenReturn(query);
-        Page<ResultEntity> page = new PageImpl<>(List.of(entity));
+        Page<ResultOpalEntity> page = new PageImpl<>(List.of(entity));
         when(query.page(Pageable.unpaged())).thenReturn(page);
         when(repository.findBy(any(Specification.class), any(Function.class))).thenAnswer(invocation ->
-            ((Function<SpecificationFluentQuery<ResultEntity>, Page<ResultEntity>>) invocation.getArgument(1))
+            ((Function<SpecificationFluentQuery<ResultOpalEntity>, Page<ResultOpalEntity>>) invocation.getArgument(1))
                 .apply(query));
 
         // When
@@ -164,7 +164,7 @@ class OpalResultServiceTest {
     }
 
     private void givenResult(String parameters) {
-        ResultEntity entity = ResultEntity.builder().resultId("ABC").resultParameters(parameters).build();
+        ResultOpalEntity entity = ResultOpalEntity.builder().resultId("ABC").resultParameters(parameters).build();
         when(repository.findWithFullGraphByResultId("ABC")).thenReturn(Optional.of(entity));
     }
 }

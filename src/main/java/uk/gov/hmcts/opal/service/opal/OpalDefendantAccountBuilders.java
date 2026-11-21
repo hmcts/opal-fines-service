@@ -66,7 +66,7 @@ import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.Language;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.NoteType;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
@@ -735,7 +735,7 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static EnforcementOverrideResult buildEnforcementOverrideResult(ResultEntity entity) {
+    static EnforcementOverrideResult buildEnforcementOverrideResult(ResultOpalEntity entity) {
         return Optional.ofNullable(entity).map(r -> EnforcementOverrideResult.builder()
                 .enforcementOverrideId(r.getResultId())
                 .enforcementOverrideTitle(r.getResultTitle())
@@ -744,7 +744,7 @@ public class OpalDefendantAccountBuilders {
     }
 
     static EnforcementOverrideResultDefendantAccount buildEnforcementOverrideResultDefendantAccount(
-        ResultEntity entity) {
+        ResultOpalEntity entity) {
         return Optional.ofNullable(entity).map(r -> EnforcementOverrideResultDefendantAccount.builder()
                 .enforcementOverrideResultId(r.getResultId())
                 .build())
@@ -781,7 +781,7 @@ public class OpalDefendantAccountBuilders {
 
     static EnforcementStatus buildEnforcementStatus(DefendantAccountEntity defendantEntity,
         DefendantAccountPartiesEntity defendantParty, DebtorDetailEntity debtDetails,
-        ResultEntity recentResult, EnforcementOverride override,
+        ResultOpalEntity recentResult, EnforcementOverride override,
         EnforcementActionDefendantAccount enfActDefAcc) {
 
         return EnforcementStatus.builder()
@@ -803,7 +803,7 @@ public class OpalDefendantAccountBuilders {
             return null;
         }
 
-        ResultEntity recentResult = recentEnforcement.getResult();
+        ResultOpalEntity recentResult = recentEnforcement.getResult();
 
         return EnforcementActionDefendantAccount.builder()
             .enforcementAction(ResultReferenceCommon.builder()

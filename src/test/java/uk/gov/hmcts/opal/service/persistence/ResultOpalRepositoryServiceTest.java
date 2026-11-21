@@ -11,28 +11,28 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 
 @ExtendWith(MockitoExtension.class)
-class ResultRepositoryServiceTest {
+class ResultOpalRepositoryServiceTest {
 
     @Mock
-    private ResultRepository resultRepository;
+    private ResultOpalRepository resultRepository;
 
     @InjectMocks
-    private ResultRepositoryService resultRepositoryService;
+    private ResultOpalRepositoryService resultRepositoryService;
 
     @Test
     void shouldReturnResultWhenIdIsProvidedAndResultExists() {
         // given
         String resultId = "RESULT_123";
-        ResultEntity lite = ResultEntity.builder().resultId(resultId).resultTitle("Result title").build();
+        ResultOpalEntity lite = ResultOpalEntity.builder().resultId(resultId).resultTitle("Result title").build();
 
         when(resultRepository.findById(resultId)).thenReturn(Optional.of(lite));
 
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultOpalEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isPresent();
@@ -49,7 +49,7 @@ class ResultRepositoryServiceTest {
         when(resultRepository.findById(resultId)).thenReturn(Optional.empty());
 
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultOpalEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isEmpty();
@@ -59,7 +59,7 @@ class ResultRepositoryServiceTest {
     @Test
     void shouldReturnEmptyAndNotCallRepositoryWhenIdIsNull() {
         // when
-        Optional<ResultEntity> result = resultRepositoryService.getResultById(null);
+        Optional<ResultOpalEntity> result = resultRepositoryService.getResultById(null);
 
         // then
         assertThat(result).isEmpty();

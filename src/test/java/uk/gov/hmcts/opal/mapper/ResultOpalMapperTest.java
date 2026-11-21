@@ -5,7 +5,7 @@ import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
@@ -15,14 +15,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ResultMapperTest {
+class ResultOpalMapperTest {
 
-    private final ResultMapper resultMapper = Mappers.getMapper(ResultMapper.class);
+    private final ResultOpalMapper resultMapper = Mappers.getMapper(ResultOpalMapper.class);
 
     @Test
     void toRefData_shouldMapLiteEntityToDto() {
         // Given
-        ResultEntity entity = ResultEntity.builder()
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R123")
             .resultTitle("Test Result")
             .resultTitleCy("Test Result Welsh")
@@ -49,7 +49,7 @@ class ResultMapperTest {
     @Test
     void toRefDataFromFull_shouldMapFullEntityToDto() {
         // Given
-        ResultEntity entity = ResultEntity.builder()
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R456")
             .resultTitle("Full Result")
             .resultTitleCy("Full Result Welsh")
@@ -80,7 +80,7 @@ class ResultMapperTest {
     @Test
     void toReferenceDataResponse_shouldConvertListToResponse() {
         // Given
-        ResultEntity entity1 = ResultEntity.builder()
+        ResultOpalEntity entity1 = ResultOpalEntity.builder()
             .resultId("R1")
             .resultTitle("Result 1")
             .resultTitleCy("Result 1 Welsh")
@@ -90,7 +90,7 @@ class ResultMapperTest {
             .impositionCreditor(ImpositionCreditor.NOT_CPS)
             .build();
 
-        ResultEntity entity2 = ResultEntity.builder()
+        ResultOpalEntity entity2 = ResultOpalEntity.builder()
             .resultId("R2")
             .resultTitle("Result 2")
             .resultTitleCy("Result 2 Welsh")
@@ -98,7 +98,7 @@ class ResultMapperTest {
             .active(false)
             .build();
 
-        List<ResultEntity> entities = List.of(entity1, entity2);
+        List<ResultOpalEntity> entities = List.of(entity1, entity2);
 
         // When
         ResultsRefDataResponse response = resultMapper.toReferenceDataResponse(entities);
@@ -121,7 +121,7 @@ class ResultMapperTest {
     @Test
     void toDto_mapsFullEntityToGeneratedResponse() {
         // Given
-        ResultEntity entity = ResultEntity.builder()
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R999")
             .resultTitle("Full Title")
             .resultTitleCy("Teitl Llawn")

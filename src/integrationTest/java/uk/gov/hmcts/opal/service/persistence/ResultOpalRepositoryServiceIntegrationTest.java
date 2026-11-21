@@ -12,10 +12,10 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 @Sql(scripts = {"classpath:db/insertData/insert_into_result_entity_graph.sql",
     "classpath:db/insertData/update_legacy_result_override_title.sql"}, executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_result_entity_graph.sql", executionPhase = AFTER_TEST_METHOD)
-class ResultRepositoryServiceIntegrationTest extends AbstractIntegrationTest {
+class ResultOpalRepositoryServiceIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ResultRepositoryService service;
+    private ResultOpalRepositoryService service;
 
     @Test
     void getResultById_readsOpalResult() {

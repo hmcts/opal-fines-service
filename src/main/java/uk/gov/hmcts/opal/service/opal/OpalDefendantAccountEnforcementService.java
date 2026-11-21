@@ -48,7 +48,7 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultOpalRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -84,7 +84,7 @@ public class OpalDefendantAccountEnforcementService
 
     private final DebtorDetailRepositoryService debtorDetailRepositoryService;
 
-    private final ResultRepositoryService resultRepositoryService;
+    private final ResultOpalRepositoryService resultRepositoryService;
 
     private final NotesProxy notesProxy;
 

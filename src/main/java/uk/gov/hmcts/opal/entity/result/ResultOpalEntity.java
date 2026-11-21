@@ -31,9 +31,9 @@ import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 @Entity
 @Table(name = "results")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-@NamedEntityGraph(name = ResultEntity.ENTITY_GRAPH_LITE)
-@NamedEntityGraph(name = ResultEntity.ENTITY_GRAPH_FULL, attributeNodes = @NamedAttributeNode("enforcements"))
-public class ResultEntity {
+@NamedEntityGraph(name = ResultOpalEntity.ENTITY_GRAPH_LITE)
+@NamedEntityGraph(name = ResultOpalEntity.ENTITY_GRAPH_FULL, attributeNodes = @NamedAttributeNode("enforcements"))
+public class ResultOpalEntity {
 
     public static final String ENTITY_GRAPH_LITE = "ResultEntity.lite";
     public static final String ENTITY_GRAPH_FULL = "ResultEntity.full";

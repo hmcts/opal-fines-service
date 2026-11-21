@@ -19,9 +19,9 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -33,11 +33,11 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String RESULT_ID = "OPLIT1";
 
     @Autowired
-    private ResultRepository resultRepository;
+    private ResultOpalRepository resultRepository;
 
     @BeforeEach
     void createResult() {
-        resultRepository.saveAndFlush(ResultEntity.builder()
+        resultRepository.saveAndFlush(ResultOpalEntity.builder()
             .resultId(RESULT_ID)
             .resultTitle("Opal mode result")
             .resultType(ResultType.RESULT)
@@ -51,9 +51,9 @@ class OpalResultControllerIntegrationTest extends AbstractIntegrationTest {
             .manualEnforcement(true)
             .build());
         resultRepository.saveAllAndFlush(List.of(
-            ResultEntity.builder().resultId("OPLIT2").resultTitle("Inactive result")
+            ResultOpalEntity.builder().resultId("OPLIT2").resultTitle("Inactive result")
                 .resultType(ResultType.RESULT).manualEnforcement(false).build(),
-            ResultEntity.builder().resultId("OPLIT3").resultTitle("Mixed result")
+            ResultOpalEntity.builder().resultId("OPLIT3").resultTitle("Mixed result")
                 .resultType(ResultType.RESULT).active(true).manualEnforcement(false)
                 .generatesHearing(true).enforcementOverride(true).build()
         ));

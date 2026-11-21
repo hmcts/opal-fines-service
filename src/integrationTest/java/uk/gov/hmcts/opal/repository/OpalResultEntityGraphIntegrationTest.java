@@ -12,14 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 
 @Sql(scripts = "classpath:db/insertData/insert_into_result_entity_graph.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_result_entity_graph.sql", executionPhase = AFTER_TEST_METHOD)
 class OpalResultEntityGraphIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private ResultRepository repository;
+    private ResultOpalRepository repository;
 
     @Autowired
     private EntityManager entityManager;
@@ -30,14 +30,14 @@ class OpalResultEntityGraphIntegrationTest extends AbstractIntegrationTest {
     @Test
     void findById_keepsEnforcementsLazy() {
         entityManager.clear();
-        ResultEntity result = repository.findById("RG9200").orElseThrow();
+        ResultOpalEntity result = repository.findById("RG9200").orElseThrow();
         assertFalse(entityManagerFactory.getPersistenceUnitUtil().isLoaded(result, "enforcements"));
     }
 
     @Test
     void fullGraph_loadsEnforcements() {
         entityManager.clear();
-        ResultEntity result = repository.findWithFullGraphByResultId("RG9200").orElseThrow();
+        ResultOpalEntity result = repository.findWithFullGraphByResultId("RG9200").orElseThrow();
         assertTrue(entityManagerFactory.getPersistenceUnitUtil().isLoaded(result, "enforcements"));
         assertEquals(1, result.getEnforcements().size());
         assertEquals(920001L, result.getEnforcements().get(0).getEnforcementId());

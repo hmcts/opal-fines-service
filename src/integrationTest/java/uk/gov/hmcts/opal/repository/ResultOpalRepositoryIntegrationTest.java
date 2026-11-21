@@ -20,17 +20,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
-import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
+import uk.gov.hmcts.opal.repository.jpa.ResultOpalSpecs;
 
-class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
+class ResultOpalRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     private static final String RESULT_ID = "ORIT01";
     private static final String OTHER_ID = "ORIT02";
 
     @Autowired
-    private ResultRepository repository;
+    private ResultOpalRepository repository;
 
     @Autowired
     private EntityManager entityManager;
@@ -41,9 +41,9 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @BeforeEach
     void setUp() {
         repository.saveAllAndFlush(List.of(
-            ResultEntity.builder().resultId(RESULT_ID).resultTitle("Active result")
+            ResultOpalEntity.builder().resultId(RESULT_ID).resultTitle("Active result")
                 .resultType(ResultType.RESULT).active(true).build(),
-            ResultEntity.builder().resultId(OTHER_ID).resultTitle("Inactive result")
+            ResultOpalEntity.builder().resultId(OTHER_ID).resultTitle("Inactive result")
                 .resultType(ResultType.RESULT).manualEnforcement(false).build()
         ));
     }
@@ -55,7 +55,7 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void findById_preservesNullableFlags() {
-        ResultEntity result = repository.findById(RESULT_ID).orElseThrow();
+        ResultOpalEntity result = repository.findById(RESULT_ID).orElseThrow();
         assertTrue(result.isActive());
         assertNull(result.getManualEnforcement());
         assertNull(result.getRequiresEmploymentData());
@@ -71,16 +71,16 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void specification_filtersResults() {
-        var spec = ResultSpecs.equalsAnyResultId(List.of(RESULT_ID, OTHER_ID))
-            .and(ResultSpecs.hasActive(true));
+        var spec = ResultOpalSpecs.equalsAnyResultId(List.of(RESULT_ID, OTHER_ID))
+            .and(ResultOpalSpecs.hasActive(true));
         var page = repository.findBy(spec, query -> query.page(Pageable.unpaged()));
-        assertEquals(List.of(RESULT_ID), page.getContent().stream().map(ResultEntity::getResultId).toList());
+        assertEquals(List.of(RESULT_ID), page.getContent().stream().map(ResultOpalEntity::getResultId).toList());
     }
 
     @Test
     void findByResultIdIn_returnsMatchingResults() {
         assertEquals(List.of(RESULT_ID), repository.findByResultIdIn(List.of(RESULT_ID, "NOPE99"))
-            .stream().map(ResultEntity::getResultId).toList());
+            .stream().map(ResultOpalEntity::getResultId).toList());
     }
 
     @Test
@@ -88,9 +88,9 @@ class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
     @Sql(scripts = "classpath:db/deleteData/delete_from_result_entity_graph.sql", executionPhase = AFTER_TEST_METHOD)
     void shouldLoadFullEntityGraphWhenRequestedExplicitly() {
         entityManager.clear();
-        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultEntity.ENTITY_GRAPH_FULL);
-        ResultEntity result = entityManager.find(
-            ResultEntity.class,
+        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultOpalEntity.ENTITY_GRAPH_FULL);
+        ResultOpalEntity result = entityManager.find(
+            ResultOpalEntity.class,
             "RG9200",
             Map.of("jakarta.persistence.fetchgraph", fullGraph)
         );

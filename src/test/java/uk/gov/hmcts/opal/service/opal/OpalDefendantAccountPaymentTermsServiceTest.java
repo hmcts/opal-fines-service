@@ -25,7 +25,7 @@ import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
@@ -122,7 +122,7 @@ class OpalDefendantAccountPaymentTermsServiceTest {
         when(enforcementRepository.findFirstByDefendantAccountIdAndResultIdOrderByPostedDateDesc(any(Long.class),
             any(String.class))).thenReturn(Optional.of(enforcementLite));
 
-        ResultEntity resultEntity = new ResultEntity();
+        ResultOpalEntity resultEntity = new ResultOpalEntity();
         resultEntity.setResultId(String.valueOf(55L));
         resultEntity.setExtendTtpPreserveLastEnf(Boolean.FALSE);
 
