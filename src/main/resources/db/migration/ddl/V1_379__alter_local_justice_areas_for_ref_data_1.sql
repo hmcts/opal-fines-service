@@ -17,6 +17,6 @@
 ALTER TYPE t_lja_type_enum ADD VALUE IF NOT EXISTS 'SCDCRT';
 ALTER TYPE t_lja_type_enum ADD VALUE IF NOT EXISTS 'YCT';
 
-ALTER TABLE local_justice_areas 
+ALTER TABLE local_justice_areas
     DROP COLUMN lja_code,
     ALTER COLUMN lja_type SET NOT NULL;  --Existing data does not contain NULLS
