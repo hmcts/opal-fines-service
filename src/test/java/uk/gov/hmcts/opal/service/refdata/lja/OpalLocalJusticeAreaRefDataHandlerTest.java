@@ -13,21 +13,21 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 @ExtendWith(MockitoExtension.class)
-class LocalJusticeAreaRefDataHandlerTest {
+class OpalLocalJusticeAreaRefDataHandlerTest {
 
     @Mock
-    private LocalJusticeAreaRepository repository;
+    private OpalLocalJusticeAreaRepository repository;
 
     @Mock
-    private LocalJusticeAreaRefDataMapper mapper;
+    private OpalLocalJusticeAreaRefDataMapper mapper;
 
     @InjectMocks
-    private LocalJusticeAreaRefDataHandler handler;
+    private OpalLocalJusticeAreaRefDataHandler handler;
 
     @Test
     void exposesReferenceDataHandlerMetadata() {
@@ -36,15 +36,15 @@ class LocalJusticeAreaRefDataHandlerTest {
         assertThat(handler.refDataType()).isEqualTo("LJA");
 
         // Then
-        assertThat(handler.payloadType()).isEqualTo(LjaRecord.class);
+        assertThat(handler.payloadType()).isEqualTo(OpalLjaRecord.class);
         assertThat(handler.cachesToClear()).containsExactly("opalLjaReferenceDataCache");
     }
 
     @Test
     void findsEntityUsingLjaCode() {
         // Given
-        LjaRecord record = validRecord();
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+        OpalLjaRecord record = validRecord();
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
         when(repository.findById((short) 1234)).thenReturn(Optional.of(entity));
 
         // When
@@ -57,10 +57,10 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void createsEntityAndDelegatesMapping() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
 
         // When
-        LocalJusticeAreaEntity entity = handler.createEntityFromDto(record);
+        OpalLocalJusticeAreaEntity entity = handler.createEntityFromDto(record);
 
         // Then
         assertThat(entity.getLocalJusticeAreaId()).isEqualTo((short) 1234);
@@ -70,7 +70,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void savesEntity() {
         // Given
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
         when(repository.save(entity)).thenReturn(entity);
 
         // When
@@ -106,8 +106,8 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void updatesEntityUsingMapper() {
         // Given
-        LjaRecord record = validRecord();
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+        OpalLjaRecord record = validRecord();
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
 
         // When
         handler.updateEntityFromDto(record, entity);
@@ -119,7 +119,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void returnsLjaCodeAsBusinessKey() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
 
         // When
         String businessKey = handler.getBusinessKey(record);
@@ -131,7 +131,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void validateDto_acceptsValidLjaRecord() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
 
         // When / Then
         assertThatCode(() -> handler.validateDto(record)).doesNotThrowAnyException();
@@ -140,7 +140,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void validateDto_rejectsLjaCodeThatIsNotFourDigits() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
         record.setLjaCode("12A4");
 
         // When / Then
@@ -152,7 +152,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void validateDto_rejectsAddressLineThatExceedsMaximumLength() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
         record.getAddresses().getFirst().setAddressLine1("A".repeat(36));
 
         // When / Then
@@ -164,7 +164,7 @@ class LocalJusticeAreaRefDataHandlerTest {
     @Test
     void validateDto_requiresExactlyOneCourtAddress() {
         // Given
-        LjaRecord record = validRecord();
+        OpalLjaRecord record = validRecord();
         record.getAddresses().getFirst().setAddressType("Financial Office Address");
 
         // When / Then
@@ -173,8 +173,8 @@ class LocalJusticeAreaRefDataHandlerTest {
             .hasMessage("addresses must contain exactly one Court Address");
     }
 
-    private static LjaRecord validRecord() {
-        return LjaRecord.builder()
+    private static OpalLjaRecord validRecord() {
+        return OpalLjaRecord.builder()
             .ljaCode("1234")
             .ljaName("Test LJA")
             .addresses(List.of(Address.builder()

@@ -5,14 +5,14 @@ import java.util.UUID;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 
-public final class LjaMessageBuilder {
+public final class OpalLjaMessageBuilder {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String DEFAULT_START_DATE = "2026-01-01";
 
-    private LjaMessageBuilder() {
+    private OpalLjaMessageBuilder() {
     }
 
     public static String buildRefDataLjaMessage(String dataProduct, int ignoredRecordCount, boolean includeLjaName,
@@ -69,11 +69,11 @@ public final class LjaMessageBuilder {
                 "GIR 0AA")))));
     }
 
-    public static LocalJusticeAreaEntity entity(short id) {
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+    public static OpalLocalJusticeAreaEntity entity(short id) {
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
         entity.setLocalJusticeAreaId(id);
         entity.setName("Test LJA");
-        entity.setLjaType(LocalJusticeAreaType.CRWCRT);
+        entity.setLjaType(OpalLocalJusticeAreaType.CRWCRT);
         entity.setAddressLine1("Test address");
         entity.setPostcode("GIR 0AA");
         return entity;

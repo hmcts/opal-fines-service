@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.service.refdata.common.Address;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class LjaRecord implements ToJsonString {
+public class OpalLjaRecord implements ToJsonString {
 
     public static final String COURT_ADDRESS_TYPE = "Court Address";
 

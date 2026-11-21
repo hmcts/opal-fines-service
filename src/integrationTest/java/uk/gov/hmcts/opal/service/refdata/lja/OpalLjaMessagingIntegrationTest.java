@@ -26,10 +26,10 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataServiceBusSessionPuller;
 import uk.gov.hmcts.opal.refdata.schemavalidation.JsonSchemaValidationException;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.EmulatorUtil;
 
 /**
@@ -44,13 +44,13 @@ import uk.gov.hmcts.opal.service.refdata.EmulatorUtil;
 @EnabledIfEnvironmentVariable(named = "REF_DATA_SERVICE_BUS_EMULATOR_TEST_ENABLED", matches = "true")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
+class OpalLjaMessagingIntegrationTest extends AbstractIntegrationTest {
 
     public static final String SESSION_ID = "ref-data-session-id";
     private static final String CONNECTION_STRING =
         "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;"
             + "SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
-    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final OpalLocalJusticeAreaRepository localJusticeAreaRepository;
 
     private EmulatorUtil emulatorUtil;
 
@@ -102,7 +102,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
 
         final Short localJusticeAreaId = (short)401;
 
-        String payload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String payload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             String.format("%04d", localJusticeAreaId),
             "Updated LJA", "2027-03-04",
             "New address line 171",
@@ -131,7 +131,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
                 assertThat(updated.getAddressLine5()).isEqualTo("New address line 5");
                 assertThat(updated.getPostcode()).isEqualTo("NE1 2BB");
                 assertThat(updated.getEndDate()).isNull();
-                assertThat(updated.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+                assertThat(updated.getLjaType()).isEqualTo(OpalLocalJusticeAreaType.CRWCRT);
             });
 
         //check queues looks good
@@ -153,7 +153,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
 
         assertThat(localJusticeAreaRepository.findById(localJusticeAreaId)).isEmpty();
 
-        String payload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String payload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             String.format("%04d", localJusticeAreaId), "Inserted LJA", null,
             "Inserted address line 1", "Inserted address line 2", "Inserted address line 3",
             "Inserted address line 4", "Inserted address line 5", "IN1 2BB");
@@ -175,7 +175,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
                 assertThat(inserted.getAddressLine4()).isEqualTo("Inserted address line 4");
                 assertThat(inserted.getAddressLine5()).isEqualTo("Inserted address line 5");
                 assertThat(inserted.getPostcode()).isEqualTo("IN1 2BB");
-                assertThat(inserted.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+                assertThat(inserted.getLjaType()).isEqualTo(OpalLocalJusticeAreaType.CRWCRT);
                 assertThat(inserted.getEndDate()).isNull();
             });
 
@@ -194,7 +194,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     void processMessage_ignoresValidUnsupportedReferenceDataType() {
 
         final Short localJusticeAreaId = (short)9997;
-        String payload = LjaMessageBuilder.validUnsupportedReferenceDataMessage();
+        String payload = OpalLjaMessageBuilder.validUnsupportedReferenceDataMessage();
 
         assertThat(localJusticeAreaRepository.findById(localJusticeAreaId)).isEmpty();
 
@@ -225,7 +225,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
 
         final Short firstLocalJusticeAreaId = (short)9996;
         final Short failingLocalJusticeAreaId = (short)9995;
-        String payload = LjaMessageBuilder.messageWithProcessingFailure(
+        String payload = OpalLjaMessageBuilder.messageWithProcessingFailure(
             firstLocalJusticeAreaId, failingLocalJusticeAreaId);
 
         assertThat(localJusticeAreaRepository.findById(firstLocalJusticeAreaId)).isEmpty();
@@ -258,8 +258,8 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
     // AC4: A repeatedly failing message remains at the front of the queue and is never dead-lettered.
     void processMessage_keepsFailingMessageAtFrontOfQueueAcrossRetries() {
 
-        String payload = LjaMessageBuilder.messageWithProcessingFailure((short)9994, (short)9993);
-        String followingPayload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String payload = OpalLjaMessageBuilder.messageWithProcessingFailure((short)9994, (short)9993);
+        String followingPayload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             "9992", "Following LJA", null,
             "Following address line 1", "Following address line 2", "Following address line 3",
             "Following address line 4", "Following address line 5", "IN2 2BB");
@@ -311,7 +311,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
         final Short localJusticeAreaId = (short)402;
         final Short unprocessedLocalJusticeAreaId = (short)403;
 
-        String processedPayload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String processedPayload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             String.format("%04d", localJusticeAreaId), "Updated LJA before invalid payload", "2027-03-04",
             "New address line before invalid",
             "New address line 2",
@@ -320,7 +320,7 @@ class LjaMessagingIntegrationTest extends AbstractIntegrationTest {
             "New address line 5",
             "NE1 2BB");
         String invalidPayload = "{}";
-        String unprocessedPayload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String unprocessedPayload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             String.format("%04d", unprocessedLocalJusticeAreaId),
             "Updated LJA after invalid payload", "2027-03-04",
             "New address line after invalid",

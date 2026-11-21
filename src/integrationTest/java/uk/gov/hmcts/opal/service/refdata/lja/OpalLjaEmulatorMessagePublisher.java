@@ -10,19 +10,19 @@ import uk.gov.hmcts.opal.service.refdata.EmulatorUtil;
  *   ./gradlew publishServiceBusMessage --args='topic.refdata "{\"hello\":\"world\"}" session-1'
  *   ./gradlew publishServiceBusMessage --args='topic.refdata @message.json session-1'
  */
-public final class EmulatorMessagePublisher {
+public final class OpalLjaEmulatorMessagePublisher {
 
     private static final String DEFAULT_CONNECTION_STRING =
         "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;"
             + "SharedAccessKey=SAS_KEY_VALUE;UseDevelopmentEmulator=true;";
 
-    private EmulatorMessagePublisher() {
+    private OpalLjaEmulatorMessagePublisher() {
     }
 
     public static void main(String[] args) throws Exception {
 
         final Short localJusticeAreaId = (short)401;
-        String payload = LjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
+        String payload = OpalLjaMessageBuilder.buildRefDataLjaMessage("LJA", 1, true,
             String.format("%04d", localJusticeAreaId),
             "Updated LJA", "2027-03-04",
             "New address NovaChips 171",
