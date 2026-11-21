@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
@@ -53,7 +53,7 @@ abstract class AbstractDraftAccountReferenceValidationService implements DraftAc
 
     abstract void validatePaymentTermsEnforcements(JsonPathUtil.DocContext docContext,
         List<String> failures,
-        Map<String, Optional<ResultEntity>> resultCache);
+        Map<String, Optional<ResultLegacyEntity>> resultCache);
 
     abstract void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures);
 }
