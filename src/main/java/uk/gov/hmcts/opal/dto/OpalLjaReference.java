@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonInclude(JsonInclude.Include.ALWAYS)
-public class LjaReference implements ToJsonString {
+public class OpalLjaReference implements ToJsonString {
 
     @JsonProperty("lja_id")
     private Short ljaId;

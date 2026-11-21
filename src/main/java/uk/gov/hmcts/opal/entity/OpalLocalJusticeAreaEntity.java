@@ -13,6 +13,7 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,8 +23,6 @@ import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
-
-import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -37,7 +36,7 @@ import java.time.LocalDateTime;
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "localJusticeAreaId")
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LocalJusticeAreaEntity extends AddressEntity {
+public class OpalLocalJusticeAreaEntity extends AddressEntity {
 
     @Id
     @Column(name = "local_justice_area_id", nullable = false)
@@ -46,7 +45,7 @@ public class LocalJusticeAreaEntity extends AddressEntity {
     @Column(name = "lja_type", length = 50)
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private LocalJusticeAreaType ljaType;
+    private OpalLocalJusticeAreaType ljaType;
 
     @Column(name = "address_line_4", length = 35)
     private String addressLine4;

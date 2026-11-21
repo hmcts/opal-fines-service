@@ -35,5 +35,5 @@ public class EnforcementOverride implements ToXmlString {
 
     @JsonProperty("lja")
     @XmlElement(name = "lja")
-    private LjaReference lja;
+    private LegacyLjaReference lja;
 }

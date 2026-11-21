@@ -63,7 +63,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateDefendantAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.ResultResponsesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyLjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
@@ -139,7 +139,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final GatewayService gatewayService;
     private final LegacyGatewayProperties legacyGatewayProperties;
     private final CourtService courtService;
-    private final LegacyLocalJusticeAreaService ljaService;
+    private final LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
     private final HistoryItemOrderingService historyItemOrderingService;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
@@ -1025,8 +1025,9 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
             .map(eo -> eo.getLja()).ifPresent(this::populateLjaCode);
     }
 
-    private void populateLjaCode(LjaReference ljaRef) {
-        ljaRef.setLjaCode(ljaService.getLocalJusticeAreaEntityById(ljaRef.getLjaId()).getLjaCode());
+    private void populateLjaCode(LegacyLjaReference ljaRef) {
+        ljaRef.setLjaCode(legacyLocalJusticeAreaService.getLocalJusticeAreaEntityById(ljaRef.getLjaId())
+            .getLjaCode());
     }
 
     private String toWelshSpeaking(String welshSpeaking) {

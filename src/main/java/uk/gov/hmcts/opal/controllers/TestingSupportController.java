@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -278,7 +278,7 @@ public class TestingSupportController {
     @PostMapping(value = "/local-justice-areas/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches LocalJusticeAreas based upon criteria in request body")
     public ResponseEntity<List<LocalJusticeAreaLegacyEntity>> postLocalJusticeAreasSearch(
-        @RequestBody LocalJusticeAreaSearchDto criteria) {
+        @RequestBody LegacyLocalJusticeAreaSearchDto criteria) {
         log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
         List<LocalJusticeAreaLegacyEntity> response = legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
