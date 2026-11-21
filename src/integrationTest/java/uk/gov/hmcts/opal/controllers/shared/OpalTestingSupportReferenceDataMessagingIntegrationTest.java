@@ -22,8 +22,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.refdata.RefDataServiceBusSessionPuller;
 import uk.gov.hmcts.opal.service.refdata.EmulatorUtil;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -32,7 +32,7 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @EnabledIfEnvironmentVariable(named = "REF_DATA_SERVICE_BUS_EMULATOR_TEST_ENABLED", matches = "true")
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegrationTest {
+class OpalTestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegrationTest {
 
     private static final String CONNECTION_STRING =
         "Endpoint=sb://localhost;SharedAccessKeyName=RootManageSharedAccessKey;"
@@ -73,7 +73,7 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
         """;
 
     private final MockMvc mockMvc;
-    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @Autowired
     private RefDataServiceBusSessionPuller puller;
@@ -99,14 +99,14 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
     @BeforeEach
     void setUp() {
         emulatorUtil = new EmulatorUtil(CONNECTION_STRING);
-        localJusticeAreaRepository.deleteById(LJA_ID);
-        localJusticeAreaRepository.flush();
+        opalLocalJusticeAreaRepository.deleteById(LJA_ID);
+        opalLocalJusticeAreaRepository.flush();
     }
 
     @AfterEach
     void cleanUp() {
-        localJusticeAreaRepository.deleteById(LJA_ID);
-        localJusticeAreaRepository.flush();
+        opalLocalJusticeAreaRepository.deleteById(LJA_ID);
+        opalLocalJusticeAreaRepository.flush();
         try (EmulatorUtil client = emulatorUtil) {
             client.clearSessionMessages(SESSION_ID);
         }
@@ -137,7 +137,7 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
 
         // Wait the message LJA record to be created in the database
         await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            LocalJusticeAreaEntity inserted = localJusticeAreaRepository.findById(LJA_ID).orElseThrow();
+            OpalLocalJusticeAreaEntity inserted = opalLocalJusticeAreaRepository.findById(LJA_ID).orElseThrow();
             assertThat(inserted.getName()).isEqualTo("Messaging test LJA");
         });
 
@@ -146,6 +146,6 @@ class TestingSupportReferenceDataMessagingIntegrationTest extends AbstractIntegr
             .andExpect(status().isNoContent());
 
         // Check the new LJA record has gone from the database
-        assertThat(localJusticeAreaRepository.findById(LJA_ID)).isEmpty();
+        assertThat(opalLocalJusticeAreaRepository.findById(LJA_ID)).isEmpty();
     }
 }

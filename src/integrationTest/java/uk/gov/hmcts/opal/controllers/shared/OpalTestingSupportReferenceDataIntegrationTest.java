@@ -31,18 +31,18 @@ import tools.jackson.databind.ObjectMapper;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 
-@Import(TestingSupportReferenceDataIntegrationTest.RefDataProcessingTestConfiguration.class)
+@Import(OpalTestingSupportReferenceDataIntegrationTest.RefDataProcessingTestConfiguration.class)
 @ActiveProfiles({"integration", "testing-support-reference-data"})
-class TestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest {
+class OpalTestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/testing-support/ref-data";
     private static final Short DELETED_LJA_ID = (short) 9980;
@@ -86,30 +86,30 @@ class TestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest
     private RefDataMessageProcessor refDataMessageProcessor;
 
     @Autowired
-    private LocalJusticeAreaRepository localJusticeAreaRepository;
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @BeforeEach
     @AfterEach
     void cleanUpReferenceData() {
-        localJusticeAreaRepository.deleteAllById(List.of(DELETED_LJA_ID, PUBLISHED_LJA_ID));
-        localJusticeAreaRepository.flush();
+        opalLocalJusticeAreaRepository.deleteAllById(List.of(DELETED_LJA_ID, PUBLISHED_LJA_ID));
+        opalLocalJusticeAreaRepository.flush();
     }
 
     @Test
     @JiraStory("PO-10705")
     @JiraEpic("PO-9031")
     void deleteReferenceData_deletesFromDatabaseUsingMatchingHandler() throws Exception {
-        localJusticeAreaRepository.saveAndFlush(LocalJusticeAreaEntity.builder()
+        opalLocalJusticeAreaRepository.saveAndFlush(OpalLocalJusticeAreaEntity.builder()
             .localJusticeAreaId(DELETED_LJA_ID)
             .name("LJA to delete")
             .addressLine1("Test address")
-            .ljaType(LocalJusticeAreaType.CRWCRT)
+            .ljaType(OpalLocalJusticeAreaType.CRWCRT)
             .build());
 
         mockMvc.perform(delete(URL_BASE + "/LJA/" + DELETED_LJA_ID))
             .andExpect(status().isNoContent());
 
-        assertThat(localJusticeAreaRepository.findById(DELETED_LJA_ID)).isEmpty();
+        assertThat(opalLocalJusticeAreaRepository.findById(DELETED_LJA_ID)).isEmpty();
     }
 
     @Test
@@ -163,7 +163,8 @@ class TestingSupportReferenceDataIntegrationTest extends AbstractIntegrationTest
 
         refDataMessageProcessor.processMessage(messageCaptor.getValue().getBody().toString());
 
-        LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(PUBLISHED_LJA_ID).orElseThrow();
+        OpalLocalJusticeAreaEntity localJusticeArea =
+            opalLocalJusticeAreaRepository.findById(PUBLISHED_LJA_ID).orElseThrow();
         assertThat(localJusticeArea.getName()).isEqualTo("Test LJA");
         assertThat(localJusticeArea.getAddressLine1()).isEqualTo("Test address");
         assertThat(localJusticeArea.getPostcode()).isEqualTo("GIR 0AA");
