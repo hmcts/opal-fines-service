@@ -15,23 +15,23 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
 import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=false")
-@Import(ProsecutorMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
+@Import(OpalProsecutorMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest {
+class OpalProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest {
 
     private static final String VALID_CODE = "9971";
     private static final String UPDATE_CODE = "9972";
@@ -39,7 +39,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
     private static final String ROLLBACK_INVALID_CODE = "9974";
 
     private final RefDataMessageProcessor processor;
-    private final ProsecutorRepository repository;
+    private final OpalProsecutorRepository repository;
 
     @TestConfiguration
     static class TestRefDataConfiguration {
@@ -73,7 +73,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
     @JiraTestKey("PO-11021")
     void processesValidProsecutorMessageUsingProsecutorAddress() {
         try {
-            processor.processMessage(ProsecutorMessageBuilder.messageWithAddresses(Integer.parseInt(VALID_CODE)));
+            processor.processMessage(OpalProsecutorMessageBuilder.messageWithAddresses(Integer.parseInt(VALID_CODE)));
 
             assertThat(repository.findById(VALID_CODE))
                 .get()
@@ -99,7 +99,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
     @JiraTestKey("PO-11021")
     void updatesExistingProsecutorWithoutUpdatingEndDateAndClearsNullableAddress() {
         LocalDateTime existingEndDate = LocalDateTime.of(2027, 3, 4, 0, 0);
-        ProsecutorEntity existing = ProsecutorEntity.builder()
+        OpalProsecutorEntity existing = OpalProsecutorEntity.builder()
             .prosecutorCode(UPDATE_CODE)
             .name("Existing Prosecutor")
             .addressLine1("Existing address")
@@ -109,7 +109,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
         repository.saveAndFlush(existing);
 
         try {
-            processor.processMessage(ProsecutorMessageBuilder.messageWithEndDateAndNoAddresses(
+            processor.processMessage(OpalProsecutorMessageBuilder.messageWithEndDateAndNoAddresses(
                 Integer.parseInt(UPDATE_CODE), "2028-03-04"));
 
             assertThat(repository.findById(UPDATE_CODE))
@@ -133,7 +133,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
         String invalidCode = "99715";
 
         assertThatThrownBy(() -> processor.processMessage(
-            ProsecutorMessageBuilder.validMessage(Integer.parseInt(invalidCode))))
+            OpalProsecutorMessageBuilder.validMessage(Integer.parseInt(invalidCode))))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("prosecutor_code must not exceed 4 characters");
 
@@ -147,7 +147,7 @@ class ProsecutorMessageProcessingIntegrationTest extends AbstractIntegrationTest
     void rollsBackAllUpdatesWhenOneProsecutorRecordFails() {
         try {
             assertThatThrownBy(() -> processor.processMessage(
-                ProsecutorMessageBuilder.messageWithProcessingFailure(
+                OpalProsecutorMessageBuilder.messageWithProcessingFailure(
                     Integer.parseInt(ROLLBACK_VALID_CODE), Integer.parseInt(ROLLBACK_INVALID_CODE))))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("addresses must contain exactly one Prosecutor address");

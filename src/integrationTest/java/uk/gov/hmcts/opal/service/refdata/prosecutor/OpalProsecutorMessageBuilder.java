@@ -6,12 +6,12 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 
-final class ProsecutorMessageBuilder {
+final class OpalProsecutorMessageBuilder {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String DEFAULT_START_DATE = "2026-01-01";
 
-    private ProsecutorMessageBuilder() {
+    private OpalProsecutorMessageBuilder() {
     }
 
     static String messageWithAddresses(int prosecutorCode) {

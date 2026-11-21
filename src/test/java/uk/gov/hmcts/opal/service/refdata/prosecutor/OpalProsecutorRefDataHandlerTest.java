@@ -13,35 +13,35 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 @ExtendWith(MockitoExtension.class)
-class ProsecutorRefDataHandlerTest {
+class OpalProsecutorRefDataHandlerTest {
 
     @Mock
-    private ProsecutorRepository repository;
+    private OpalProsecutorRepository repository;
 
     @Mock
-    private ProsecutorRefDataMapper mapper;
+    private OpalProsecutorRefDataMapper mapper;
 
     @InjectMocks
-    private ProsecutorRefDataHandler handler;
+    private OpalProsecutorRefDataHandler handler;
 
     @Test
     void exposesReferenceDataHandlerMetadata() {
         // When / Then
         assertThat(handler.refDataType()).isEqualTo("Prosecutor");
-        assertThat(handler.payloadType()).isEqualTo(ProsecutorRecord.class);
+        assertThat(handler.payloadType()).isEqualTo(OpalProsecutorRecord.class);
         assertThat(handler.cachesToClear()).containsExactly("opalProsecutorReferenceDataCache");
     }
 
     @Test
     void findsEntityUsingProsecutorCode() {
         // Given
-        ProsecutorRecord record = validRecord();
-        ProsecutorEntity entity = new ProsecutorEntity();
+        OpalProsecutorRecord record = validRecord();
+        OpalProsecutorEntity entity = new OpalProsecutorEntity();
         when(repository.findById("1234")).thenReturn(Optional.of(entity));
 
         // When
@@ -54,10 +54,10 @@ class ProsecutorRefDataHandlerTest {
     @Test
     void createsEntityAndDelegatesMapping() {
         // Given
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
 
         // When
-        ProsecutorEntity entity = handler.createEntityFromDto(record);
+        OpalProsecutorEntity entity = handler.createEntityFromDto(record);
 
         // Then
         assertThat(entity.getProsecutorCode()).isEqualTo("1234");
@@ -67,8 +67,8 @@ class ProsecutorRefDataHandlerTest {
     @Test
     void updatesEntityUsingMapper() {
         // Given
-        ProsecutorRecord record = validRecord();
-        ProsecutorEntity entity = new ProsecutorEntity();
+        OpalProsecutorRecord record = validRecord();
+        OpalProsecutorEntity entity = new OpalProsecutorEntity();
 
         // When
         handler.updateEntityFromDto(record, entity);
@@ -80,7 +80,7 @@ class ProsecutorRefDataHandlerTest {
     @Test
     void savesEntity() {
         // Given
-        ProsecutorEntity entity = new ProsecutorEntity();
+        OpalProsecutorEntity entity = new OpalProsecutorEntity();
         when(repository.save(entity)).thenReturn(entity);
 
         // When
@@ -120,7 +120,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void getBusinessKey_rejectsMissingProsecutorCode() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setProsecutorCode(null);
 
         assertThatThrownBy(() -> handler.getBusinessKey(record))
@@ -135,7 +135,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_acceptsMissingAddresses() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setAddresses(null);
 
         assertThatCode(() -> handler.validateDto(record)).doesNotThrowAnyException();
@@ -143,7 +143,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsProsecutorCodeThatExceedsDatabaseLength() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setProsecutorCode(12345);
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -153,7 +153,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsMissingName() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setName(null);
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -163,7 +163,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsNameThatExceedsDatabaseLength() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setName("A".repeat(201));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -173,7 +173,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_requiresExactlyOneProsecutorAddressWhenAddressesAreProvided() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setAddresses(List.of(Address.builder().addressType("Court Address").build()));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -183,7 +183,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsMultipleProsecutorAddresses() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.setAddresses(List.of(prosecutorAddress(), prosecutorAddress()));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -193,7 +193,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsAddressLineOneThatExceedsDatabaseLength() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.getAddresses().getFirst().setAddressLine1("A".repeat(61));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -203,7 +203,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsOtherAddressLineThatExceedsDatabaseLength() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.getAddresses().getFirst().setAddressLine2("A".repeat(36));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -213,7 +213,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_rejectsPostcodeThatExceedsDatabaseLength() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         record.getAddresses().getFirst().setPostCode("A".repeat(9));
 
         assertThatThrownBy(() -> handler.validateDto(record))
@@ -223,7 +223,7 @@ class ProsecutorRefDataHandlerTest {
 
     @Test
     void validateDto_ignoresNonProsecutorAddressFields() {
-        ProsecutorRecord record = validRecord();
+        OpalProsecutorRecord record = validRecord();
         Address otherAddress = Address.builder()
             .addressType("Court Address")
             .addressLine1("A".repeat(61))
@@ -234,8 +234,8 @@ class ProsecutorRefDataHandlerTest {
         assertThatCode(() -> handler.validateDto(record)).doesNotThrowAnyException();
     }
 
-    private static ProsecutorRecord validRecord() {
-        return ProsecutorRecord.builder()
+    private static OpalProsecutorRecord validRecord() {
+        return OpalProsecutorRecord.builder()
             .prosecutorCode(1234)
             .name("Test Prosecutor")
             .addresses(List.of(prosecutorAddress()))
@@ -244,7 +244,7 @@ class ProsecutorRefDataHandlerTest {
 
     private static Address prosecutorAddress() {
         return Address.builder()
-            .addressType(ProsecutorRecord.PROSECUTOR_ADDRESS_TYPE)
+            .addressType(OpalProsecutorRecord.PROSECUTOR_ADDRESS_TYPE)
             .addressLine1("Prosecutor address")
             .postCode("GIR 0AA")
             .build();

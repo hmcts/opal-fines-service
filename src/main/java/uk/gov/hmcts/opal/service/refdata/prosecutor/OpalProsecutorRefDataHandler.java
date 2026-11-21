@@ -3,7 +3,7 @@ package uk.gov.hmcts.opal.service.refdata.prosecutor;
 import static uk.gov.hmcts.opal.service.refdata.common.Address.MAX_ADDRESS_LINE_LENGTH;
 import static uk.gov.hmcts.opal.service.refdata.common.ValidationUtils.invalid;
 import static uk.gov.hmcts.opal.service.refdata.common.ValidationUtils.validateLength;
-import static uk.gov.hmcts.opal.service.refdata.prosecutor.ProsecutorRecord.PROSECUTOR_ADDRESS_TYPE;
+import static uk.gov.hmcts.opal.service.refdata.prosecutor.OpalProsecutorRecord.PROSECUTOR_ADDRESS_TYPE;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 @Component
 @RequiredArgsConstructor
-public class ProsecutorRefDataHandler implements RefDataUpdateHandler<ProsecutorRecord, ProsecutorOpalEntity> {
+public class OpalProsecutorRefDataHandler implements RefDataUpdateHandler<OpalProsecutorRecord, ProsecutorOpalEntity> {
 
     private static final int MAX_PROSECUTOR_CODE_LENGTH = 4;
     private static final int MAX_PROSECUTOR_NAME_LENGTH = 200;
@@ -25,7 +25,7 @@ public class ProsecutorRefDataHandler implements RefDataUpdateHandler<Prosecutor
     private static final int MAX_POSTCODE_LENGTH = 8;
 
     private final OpalProsecutorRepository repository;
-    private final ProsecutorRefDataMapper mapper;
+    private final OpalProsecutorRefDataMapper mapper;
 
     @Override
     public String refDataType() {
@@ -33,17 +33,17 @@ public class ProsecutorRefDataHandler implements RefDataUpdateHandler<Prosecutor
     }
 
     @Override
-    public Class<ProsecutorRecord> payloadType() {
-        return ProsecutorRecord.class;
+    public Class<OpalProsecutorRecord> payloadType() {
+        return OpalProsecutorRecord.class;
     }
 
     @Override
-    public Optional<ProsecutorOpalEntity> findEntity(ProsecutorRecord dto) {
+    public Optional<ProsecutorOpalEntity> findEntity(OpalProsecutorRecord dto) {
         return repository.findById(getBusinessKey(dto));
     }
 
     @Override
-    public ProsecutorOpalEntity createEntityFromDto(ProsecutorRecord dto) {
+    public ProsecutorOpalEntity createEntityFromDto(OpalProsecutorRecord dto) {
         ProsecutorOpalEntity entity = new ProsecutorOpalEntity();
         entity.setProsecutorCode(getBusinessKey(dto));
         updateEntityFromDto(dto, entity);
@@ -51,7 +51,7 @@ public class ProsecutorRefDataHandler implements RefDataUpdateHandler<Prosecutor
     }
 
     @Override
-    public void updateEntityFromDto(ProsecutorRecord dto, ProsecutorOpalEntity entity) {
+    public void updateEntityFromDto(OpalProsecutorRecord dto, ProsecutorOpalEntity entity) {
         mapper.updateEntityFromDto(dto, entity);
     }
 
@@ -72,7 +72,7 @@ public class ProsecutorRefDataHandler implements RefDataUpdateHandler<Prosecutor
     }
 
     @Override
-    public String getBusinessKey(ProsecutorRecord dto) {
+    public String getBusinessKey(OpalProsecutorRecord dto) {
         if (dto == null || dto.getProsecutorCode() == null) {
             throw invalid("prosecutor_code", "must not be null");
         }
@@ -80,7 +80,7 @@ public class ProsecutorRefDataHandler implements RefDataUpdateHandler<Prosecutor
     }
 
     @Override
-    public void validateDto(ProsecutorRecord dto) {
+    public void validateDto(OpalProsecutorRecord dto) {
         String businessKey = getBusinessKey(dto);
         validateBusinessKey(businessKey);
 

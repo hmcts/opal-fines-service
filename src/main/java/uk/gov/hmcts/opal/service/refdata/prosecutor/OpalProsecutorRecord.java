@@ -16,7 +16,7 @@ import uk.gov.hmcts.opal.service.refdata.common.Address;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ProsecutorRecord implements ToJsonString {
+public class OpalProsecutorRecord implements ToJsonString {
 
     public static final String PROSECUTOR_ADDRESS_TYPE = "Prosecutor";
 
