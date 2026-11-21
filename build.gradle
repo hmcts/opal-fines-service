@@ -1416,6 +1416,7 @@ ext['postgresql.version'] = '42.7.13'
 dependencies {
 
   implementation 'uk.gov.hmcts:opal-common-lib:0.3.40'
+  implementation 'uk.gov.hmcts:opal-refdata-common-lib:0.0.4'
 
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.2'
@@ -1475,6 +1476,7 @@ dependencies {
   implementation 'tools.jackson.core:jackson-databind'
   compileOnly 'org.projectlombok:lombok:1.18.48'
   annotationProcessor 'org.projectlombok:lombok:1.18.48'
+  annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
   annotationProcessor 'org.hibernate.orm:hibernate-processor:7.4.16.Final'
 
   implementation('uk.gov.hmcts:spring-exception-handler:1.0.3') {
