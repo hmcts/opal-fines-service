@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
-import uk.gov.hmcts.opal.repository.OpalResultRepository;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=true")
 @ActiveProfiles("integration")
@@ -43,7 +43,7 @@ class ResultMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private RefDataMessageProcessor processor;
     @Autowired
-    private OpalResultRepository repository;
+    private ResultRepository repository;
     @Autowired
     private ResultRefDataHandler handler;
 

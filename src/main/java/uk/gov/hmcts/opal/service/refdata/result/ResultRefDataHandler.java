@@ -13,12 +13,12 @@ import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
-import uk.gov.hmcts.opal.repository.OpalResultRepository;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @Component
 @RequiredArgsConstructor
 public class ResultRefDataHandler implements RefDataUpdateHandler<ResultsRecord, ResultEntity> {
-    private final OpalResultRepository repository;
+    private final ResultRepository repository;
     private final ResultRefDataMapper mapper;
 
     @Override

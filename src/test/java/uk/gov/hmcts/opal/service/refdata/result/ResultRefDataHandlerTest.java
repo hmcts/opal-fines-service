@@ -17,11 +17,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.entity.result.ResultEntity;
-import uk.gov.hmcts.opal.repository.OpalResultRepository;
+import uk.gov.hmcts.opal.repository.ResultRepository;
 
 class ResultRefDataHandlerTest {
     private final JsonMapper mapper = new JsonMapper();
-    private final OpalResultRepository repository = mock(OpalResultRepository.class);
+    private final ResultRepository repository = mock(ResultRepository.class);
     private final ResultRefDataHandler handler = new ResultRefDataHandler(repository,
         Mappers.getMapper(ResultRefDataMapper.class));
 

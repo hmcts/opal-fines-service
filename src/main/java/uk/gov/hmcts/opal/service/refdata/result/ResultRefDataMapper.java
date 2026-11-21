@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.entity.result.ResultEntity;
 @Mapper(componentModel = "spring")
 public interface ResultRefDataMapper {
     @Mapping(target = "resultId", ignore = true)
+    @Mapping(target = "enforcements", ignore = true)
     @Mapping(target = "resultTitleCy", source = "resultTitleWelsh")
     @Mapping(target = "active", expression = "java(isActive(dto.getPublishingStatus()))")
     @Mapping(target = "impositionCategory", expression = "java(category(dto.getImpositionCategory()))")
