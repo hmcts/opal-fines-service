@@ -4,6 +4,8 @@ DO $fixture$
 DECLARE
     fixture_account_id CONSTANT bigint := 99109060000001;
     fixture_party_id CONSTANT bigint := 99109060000101;
+    fixture_account_party_id CONSTANT bigint := 99109060000501;
+    fixture_payment_terms_id CONSTANT bigint := 99109060000601;
     fixture_unit CONSTANT smallint := 77;
     fixture_court CONSTANT bigint := 770000000001;
 BEGIN
@@ -37,14 +39,27 @@ BEGIN
 
     INSERT INTO public.defendant_account_parties (
         defendant_account_party_id, defendant_account_id, party_id, association_type, debtor
-    ) VALUES (99109060000501, fixture_account_id, fixture_party_id, 'Defendant', true)
+    ) VALUES (fixture_account_party_id, fixture_account_id, fixture_party_id, 'Defendant', true)
     ON CONFLICT (defendant_account_party_id) DO NOTHING;
 
     INSERT INTO public.payment_terms (
         payment_terms_id, defendant_account_id, posted_date, terms_type_code,
         effective_date, extension, account_balance, active
-    ) VALUES (99109060000601, fixture_account_id, CURRENT_TIMESTAMP, 'B', CURRENT_DATE, false, 100.00, true)
+    ) VALUES (fixture_payment_terms_id, fixture_account_id, CURRENT_TIMESTAMP, 'B', CURRENT_DATE, false, 100.00, true)
     ON CONFLICT (payment_terms_id) DO NOTHING;
+
+    IF NOT EXISTS (
+        SELECT 1 FROM public.defendant_account_parties
+        WHERE defendant_account_party_id = fixture_account_party_id
+          AND defendant_account_id = fixture_account_id AND party_id = fixture_party_id
+          AND association_type = 'Defendant' AND debtor
+    ) OR NOT EXISTS (
+        SELECT 1 FROM public.payment_terms
+        WHERE payment_terms_id = fixture_payment_terms_id
+          AND defendant_account_id = fixture_account_id AND active
+    ) THEN
+        RAISE EXCEPTION 'PO-10906 synthetic defendant link or active payment terms are missing';
+    END IF;
 
     INSERT INTO public.alternate_payment_references (
         defendant_account_id, business_unit_id, relationship, category, apr_text, updated_datetime, version_number
