@@ -57,7 +57,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
@@ -91,7 +91,7 @@ import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.ResultOpalRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
 
@@ -120,7 +120,7 @@ class OpalDefendantAccountEnforcementServiceTest {
     private DebtorDetailRepositoryService debtorDetailRepositoryService;
 
     @Mock
-    private ResultRepositoryService resultRepositoryService;
+    private ResultOpalRepositoryService resultRepositoryService;
 
     @Mock
     private EnforcerRepositoryService enforcerRepositoryService;
@@ -176,7 +176,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             .enforcementOverrideTfoLjaId((short) 66)
             .build();
 
-        ResultLegacyEntity result = ResultLegacyEntity.builder()
+        ResultOpalEntity result = ResultOpalEntity.builder()
             .resultId("FWEC")
             .resultTitle("Witness Expenses")
             .build();

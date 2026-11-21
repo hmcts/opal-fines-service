@@ -10,7 +10,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.NamedAttributeNode;
 import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,12 +17,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnTransformer;
-import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.converter.ImpositionCreditorConverter;
 import uk.gov.hmcts.opal.entity.converter.ResultTypeConverter;
 import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 
-import java.util.List;
 
 @Getter
 @Setter
@@ -37,7 +34,6 @@ import java.util.List;
 @NamedEntityGraph(
     name = ResultLegacyEntity.ENTITY_GRAPH_FULL,
     attributeNodes = {
-        @NamedAttributeNode("enforcements"),
         @NamedAttributeNode("impositionCategory")
     }
 )
@@ -142,7 +138,4 @@ public class ResultLegacyEntity {
 
     @Column(name = "enf_next_permitted_actions")
     private String enfNextPermittedActions;
-
-    @OneToMany(mappedBy = "result", fetch = FetchType.LAZY)
-    private List<EnforcementEntity> enforcements;
 }

@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
 import uk.gov.hmcts.opal.service.UserStateService;
 import uk.gov.hmcts.opal.service.opal.CourtService;
 import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
@@ -46,7 +46,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
     protected BusinessUnitRepository businessUnitRepository;
 
     @Mock
-    protected ResultRepository resultRepository;
+    protected ResultLegacyRepository resultRepository;
 
     @Mock
     protected FeatureToggleApi featureToggleApi;

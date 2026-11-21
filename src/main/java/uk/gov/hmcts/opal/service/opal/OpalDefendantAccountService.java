@@ -55,7 +55,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntit
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
@@ -77,7 +77,7 @@ import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.repository.FixedPenaltyOffenceRepository;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantBasicRepository;
 import uk.gov.hmcts.opal.repository.SearchDefendantConsolidatedRepository;
 import uk.gov.hmcts.opal.repository.jpa.SearchBasicEntitySpecs;
@@ -126,7 +126,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
 
     private final DebtorDetailRepository debtorDetailRepository;
 
-    private final ResultRepository resultRepository;
+    private final ResultOpalRepository resultRepository;
 
     // Services
     private final DefendantAccountHistoryService defendantAccountHistoryService;
@@ -494,7 +494,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 
-    private ResultLegacyEntity fetchResultEntity(String resultId) {
+    private ResultOpalEntity fetchResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById).orElse(null);
     }
 

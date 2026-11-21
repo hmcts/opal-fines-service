@@ -29,7 +29,7 @@ import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeExtendedConverter;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Getter
@@ -84,7 +84,7 @@ public class EnforcementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "result_id", insertable = false, updatable = false)
-    private ResultLegacyEntity result;
+    private ResultOpalEntity result;
 
     @Column(name = "reason", length = 50)
     private String reason;

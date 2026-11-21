@@ -18,23 +18,24 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
+import uk.gov.hmcts.opal.service.iface.ResultsServiceInterface;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
-import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
+import uk.gov.hmcts.opal.mapper.ResultOpalMapper;
+import uk.gov.hmcts.opal.repository.jpa.ResultOpalSpecs;
 
 @Service
 @RequiredArgsConstructor
-@Qualifier("resultService")
-public class ResultService {
+@Qualifier("opalResultService")
+public class OpalResultService implements ResultsServiceInterface {
 
-    private final ResultRepository resultRepository;
-    private final ResultMapper resultMapper;
-    private final ResultSpecs resultSpecs;
+    private final ResultOpalRepository resultRepository;
+    private final ResultOpalMapper resultMapper;
+    private final ResultOpalSpecs resultSpecs;
     private static final String WELSH_PARAMETER_PREFIX = "cy_";
     private static final String WELSH_PARAMETER_HINT = "Provide a welsh version for the defendant";
     private static final Set<String> WELSH_PARAMETER_TYPES = Set.of(
@@ -51,7 +52,7 @@ public class ResultService {
     );
 
     @Transactional(readOnly = true)
-    public ResultLegacyEntity getResultById(String resultId) {
+    public ResultOpalEntity getResultById(String resultId) {
         return resultRepository.findById(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
     }
@@ -61,10 +62,10 @@ public class ResultService {
         return resultMapper.toRefData(getResultById(resultId));
     }
 
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
+    @Cacheable(value = "opalResultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
     @Transactional(readOnly = true)
     public GetResultByIdResponseResults getResult(String resultId, boolean includeWelsh) {
-        ResultLegacyEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
+        ResultOpalEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
             .orElseThrow(() -> new EntityNotFoundException("'Result' not found with id: " + resultId));
 
         GetResultByIdResponseResults result = resultMapper.toDto(entity);
@@ -120,7 +121,7 @@ public class ResultService {
         Optional<List<String>> resultIdsFilter = Optional.ofNullable(resultIds)
             .filter(ids -> ids.stream().anyMatch(id -> !id.isBlank()));
 
-        Page<ResultLegacyEntity> page = resultRepository.findBy(
+        Page<ResultOpalEntity> page = resultRepository.findBy(
             resultSpecs.referenceDataByIds(resultIdsFilter, active, manualEnforcement, generatesHearing,
                 enforcement,
                 enforcementOverride),
@@ -132,8 +133,8 @@ public class ResultService {
         return resultMapper.toReferenceDataResponse(page.getContent());
     }
 
-    public List<ResultLegacyEntity> searchResults(ResultSearchDto criteria) {
-        Page<ResultLegacyEntity> page = resultRepository
+    public List<ResultOpalEntity> searchResults(ResultSearchDto criteria) {
+        Page<ResultOpalEntity> page = resultRepository
             .findBy(
                 resultSpecs.findBySearchCriteria(criteria),
                 ffq -> ffq.page(Pageable.unpaged()));
@@ -141,12 +142,12 @@ public class ResultService {
         return page.getContent();
     }
 
-    @Cacheable(cacheNames = "resultReferenceDataCache", key = "#filter.orElse('noFilter')")
+    @Cacheable(cacheNames = "opalResultReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<ResultReferenceData> getReferenceData(Optional<String> filter) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, "resultTitle");
 
-        Page<ResultLegacyEntity> page = resultRepository
+        Page<ResultOpalEntity> page = resultRepository
             .findBy(
                 resultSpecs.referenceDataFilter(filter),
                 ffq -> ffq
