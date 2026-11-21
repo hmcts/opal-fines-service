@@ -58,25 +58,22 @@ INSERT INTO local_justice_areas_legacy (
     local_justice_area_id,
     lja_code,
     name,
-    address_line_1,
-    lja_type
+    address_line_1
 )
 VALUES (
-           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1', 'LJA'
+           230, 'L240', 'Tyne & Wear LJA', 'Test LJA Address Line 1'
        )
 ON CONFLICT (local_justice_area_id) DO UPDATE
     SET lja_code = EXCLUDED.lja_code,
         name = EXCLUDED.name,
-        address_line_1 = EXCLUDED.address_line_1,
-        lja_type = EXCLUDED.lja_type;
+        address_line_1 = EXCLUDED.address_line_1;
 
 INSERT INTO local_justice_areas (
     local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
-    postcode, address_line_4, address_line_5, end_date, lja_type
+    postcode, lja_type, address_line_4, address_line_5, end_date
 )
-SELECT
-    local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
-    postcode, address_line_4, address_line_5, end_date, lja_type
+SELECT local_justice_area_id, name, address_line_1, address_line_2, address_line_3,
+       postcode, COALESCE(lja_type, 'LJA'), address_line_4, address_line_5, end_date
 FROM local_justice_areas_legacy WHERE local_justice_area_id = 230
 ON CONFLICT (local_justice_area_id) DO NOTHING;
 

@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class LjaReferenceData {
+public class LegacyLjaReferenceData {
 
     @JsonProperty("local_justice_area_id")
     private Short localJusticeAreaId;

@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
@@ -96,7 +96,7 @@ class TestingSupportControllerTest {
     private DraftAccountService draftAccountService;
 
     @MockitoBean
-    private LocalJusticeAreaService localJusticeAreaService;
+    private LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
 
     @MockitoBean
     private ReportInstanceDeletionService reportInstanceDeletionService;
@@ -281,13 +281,13 @@ class TestingSupportControllerTest {
     @Test
     void postLocalJusticeAreasSearch() {
         List<LocalJusticeAreaLegacyEntity> localJusticeAreas = List.of(LocalJusticeAreaLegacyEntity.builder().build());
-        LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
-        when(localJusticeAreaService.searchLocalJusticeAreas(criteria)).thenReturn(localJusticeAreas);
+        LegacyLocalJusticeAreaSearchDto criteria = LegacyLocalJusticeAreaSearchDto.builder().build();
+        when(legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria)).thenReturn(localJusticeAreas);
 
         ResponseEntity<List<LocalJusticeAreaLegacyEntity>> response = controller.postLocalJusticeAreasSearch(criteria);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(localJusticeAreas, response.getBody());
-        verify(localJusticeAreaService).searchLocalJusticeAreas(criteria);
+        verify(legacyLocalJusticeAreaService).searchLocalJusticeAreas(criteria);
     }
 }
