@@ -1,18 +1,18 @@
 package uk.gov.hmcts.opal.service.refdata.lja;
 
-import static uk.gov.hmcts.opal.service.refdata.lja.LjaRecord.COURT_ADDRESS_TYPE;
+import static uk.gov.hmcts.opal.service.refdata.lja.OpalLjaRecord.COURT_ADDRESS_TYPE;
 
 import java.util.Objects;
 import java.util.function.Function;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 @Mapper(componentModel = "spring")
-public interface LocalJusticeAreaRefDataMapper {
+public interface OpalLocalJusticeAreaRefDataMapper {
 
     // This is the business key - we don't update this
     @Mapping(target = "localJusticeAreaId", ignore = true)
@@ -31,16 +31,16 @@ public interface LocalJusticeAreaRefDataMapper {
     @Mapping(target = "postcode", expression = "java(courtAddressLine(dto, address -> address.getPostCode()))")
 
 
-    void updateEntityFromDto(LjaRecord dto, @MappingTarget LocalJusticeAreaEntity entity);
+    void updateEntityFromDto(OpalLjaRecord dto, @MappingTarget OpalLocalJusticeAreaEntity entity);
 
-    default LocalJusticeAreaType toLocalJusticeAreaType(String ljaType) {
+    default OpalLocalJusticeAreaType toLocalJusticeAreaType(String ljaType) {
         if (ljaType == null) {
             return null;
         }
-        return "PSA".equals(ljaType) ? LocalJusticeAreaType.LJA : LocalJusticeAreaType.valueOf(ljaType);
+        return "PSA".equals(ljaType) ? OpalLocalJusticeAreaType.LJA : OpalLocalJusticeAreaType.valueOf(ljaType);
     }
 
-    default Address courtAddress(LjaRecord dto) {
+    default Address courtAddress(OpalLjaRecord dto) {
         if (dto == null || dto.getAddresses() == null || dto.getAddresses().isEmpty()) {
             return null;
         }
@@ -51,7 +51,7 @@ public interface LocalJusticeAreaRefDataMapper {
             .orElse(null);
     }
 
-    default String courtAddressLine(LjaRecord dto, Function<Address, String> getter) {
+    default String courtAddressLine(OpalLjaRecord dto, Function<Address, String> getter) {
         Address address = courtAddress(dto);
         return address == null ? null : getter.apply(address);
     }

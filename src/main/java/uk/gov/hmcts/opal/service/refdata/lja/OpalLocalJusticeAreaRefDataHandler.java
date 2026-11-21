@@ -3,24 +3,24 @@ package uk.gov.hmcts.opal.service.refdata.lja;
 import static uk.gov.hmcts.opal.service.refdata.common.Address.MAX_ADDRESS_LINE_LENGTH;
 import static uk.gov.hmcts.opal.service.refdata.common.ValidationUtils.invalid;
 import static uk.gov.hmcts.opal.service.refdata.common.ValidationUtils.validateLength;
-import static uk.gov.hmcts.opal.service.refdata.lja.LjaRecord.COURT_ADDRESS_TYPE;
+import static uk.gov.hmcts.opal.service.refdata.lja.OpalLjaRecord.COURT_ADDRESS_TYPE;
 
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 @Component
 @RequiredArgsConstructor
-public class LocalJusticeAreaRefDataHandler
-    implements RefDataUpdateHandler<LjaRecord, LocalJusticeAreaEntity> {
+public class OpalLocalJusticeAreaRefDataHandler
+    implements RefDataUpdateHandler<OpalLjaRecord, OpalLocalJusticeAreaEntity> {
 
-    private final LocalJusticeAreaRepository repository;
-    private final LocalJusticeAreaRefDataMapper mapper;
+    private final OpalLocalJusticeAreaRepository repository;
+    private final OpalLocalJusticeAreaRefDataMapper mapper;
 
     @Override
     public String refDataType() {
@@ -28,19 +28,19 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public Class<LjaRecord> payloadType() {
-        return LjaRecord.class;
+    public Class<OpalLjaRecord> payloadType() {
+        return OpalLjaRecord.class;
     }
 
     @Override
-    public Optional<LocalJusticeAreaEntity> findEntity(LjaRecord dto) {
+    public Optional<OpalLocalJusticeAreaEntity> findEntity(OpalLjaRecord dto) {
         Short localJusticeAreaId = Short.parseShort(dto.getLjaCode());
         return repository.findById(localJusticeAreaId);
     }
 
     @Override
-    public LocalJusticeAreaEntity createEntityFromDto(LjaRecord dto) {
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+    public OpalLocalJusticeAreaEntity createEntityFromDto(OpalLjaRecord dto) {
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
 
         Short localJusticeAreaId;
         try {
@@ -55,7 +55,7 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public LocalJusticeAreaEntity saveEntity(LocalJusticeAreaEntity entity) {
+    public OpalLocalJusticeAreaEntity saveEntity(OpalLocalJusticeAreaEntity entity) {
         return repository.save(entity);
     }
 
@@ -69,7 +69,7 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public void updateEntityFromDto(LjaRecord dto, LocalJusticeAreaEntity entity) {
+    public void updateEntityFromDto(OpalLjaRecord dto, OpalLocalJusticeAreaEntity entity) {
         mapper.updateEntityFromDto(dto, entity);
     }
 
@@ -79,12 +79,12 @@ public class LocalJusticeAreaRefDataHandler
     }
 
     @Override
-    public String getBusinessKey(LjaRecord dto) {
+    public String getBusinessKey(OpalLjaRecord dto) {
         return dto.getLjaCode();
     }
 
     @Override
-    public void validateDto(LjaRecord dto) {
+    public void validateDto(OpalLjaRecord dto) {
 
         if (!"LJA".equals(refDataType())) {
             return;

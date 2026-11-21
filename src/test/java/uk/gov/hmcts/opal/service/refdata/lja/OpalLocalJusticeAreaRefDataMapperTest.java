@@ -7,25 +7,25 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
-class LocalJusticeAreaRefDataMapperTest {
+class OpalLocalJusticeAreaRefDataMapperTest {
 
-    private final LocalJusticeAreaRefDataMapper mapper = Mappers.getMapper(LocalJusticeAreaRefDataMapper.class);
+    private final OpalLocalJusticeAreaRefDataMapper mapper = Mappers.getMapper(OpalLocalJusticeAreaRefDataMapper.class);
 
     @Test
     void updateEntityFromDto_mapsLjaFieldsAndCourtAddress() {
         // Given
-        LjaRecord record = LjaRecord.builder()
+        OpalLjaRecord record = OpalLjaRecord.builder()
             .ljaCode("1234")
             .ljaName("Test LJA")
             .ljaType("CRWCRT")
             .addresses(List.of(
                 Address.builder().addressType("Financial Office Address").addressLine1("Financial line").build(),
                 Address.builder()
-                    .addressType(LjaRecord.COURT_ADDRESS_TYPE)
+                    .addressType(OpalLjaRecord.COURT_ADDRESS_TYPE)
                     .addressLine1("Court line 1")
                     .addressLine2("Court line 2")
                     .addressLine3("Court line 3")
@@ -34,7 +34,7 @@ class LocalJusticeAreaRefDataMapperTest {
                     .postCode("GIR 0AA")
                     .build()))
             .build();
-        LocalJusticeAreaEntity entity = new LocalJusticeAreaEntity();
+        OpalLocalJusticeAreaEntity entity = new OpalLocalJusticeAreaEntity();
         entity.setLocalJusticeAreaId((short) 9999);
         entity.setEndDate(LocalDateTime.of(2026, 1, 1, 0, 0));
 
@@ -44,7 +44,7 @@ class LocalJusticeAreaRefDataMapperTest {
         // Then
         assertThat(entity.getLocalJusticeAreaId()).isEqualTo((short) 9999);
         assertThat(entity.getName()).isEqualTo("Test LJA");
-        assertThat(entity.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+        assertThat(entity.getLjaType()).isEqualTo(OpalLocalJusticeAreaType.CRWCRT);
         assertThat(entity.getAddressLine1()).isEqualTo("Court line 1");
         assertThat(entity.getAddressLine2()).isEqualTo("Court line 2");
         assertThat(entity.getAddressLine3()).isEqualTo("Court line 3");
@@ -60,10 +60,10 @@ class LocalJusticeAreaRefDataMapperTest {
         String ljaType = "PSA";
 
         // When
-        LocalJusticeAreaType result = mapper.toLocalJusticeAreaType(ljaType);
+        OpalLocalJusticeAreaType result = mapper.toLocalJusticeAreaType(ljaType);
 
         // Then
-        assertThat(result).isEqualTo(LocalJusticeAreaType.LJA);
+        assertThat(result).isEqualTo(OpalLocalJusticeAreaType.LJA);
     }
 
     @Test
@@ -79,7 +79,7 @@ class LocalJusticeAreaRefDataMapperTest {
     @Test
     void courtAddress_returnsNullWhenNoCourtAddressExists() {
         // Given
-        LjaRecord record = LjaRecord.builder()
+        OpalLjaRecord record = OpalLjaRecord.builder()
             .addresses(List.of(Address.builder().addressType("Financial Office Address").build()))
             .build();
 

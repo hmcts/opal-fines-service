@@ -7,36 +7,36 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import org.springframework.boot.test.context.TestConfiguration;
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.Test;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestConstructor;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
-import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
+import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
 import uk.gov.hmcts.opal.refdata.RefDataRefDataMessageProcessorImpl;
 import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
-import uk.gov.hmcts.opal.service.opal.OpalLocalJusticeAreaService;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.service.opal.OpalLocalJusticeAreaService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=false")
-@Import(LjaMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
+@Import(OpalLjaMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
 @RequiredArgsConstructor
 @TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
-class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
+class OpalLjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
 
     @TestConfiguration
     static class TestRefDataConfiguration {
@@ -72,12 +72,15 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     private static final short TEST_ID_START = 8000;
 
     private final RefDataMessageProcessor processor;
-    private final LocalJusticeAreaRepository repository;
-    private final LocalJusticeAreaRefDataHandler handler;
+    private final OpalLocalJusticeAreaRepository repository;
+    private final OpalLocalJusticeAreaRefDataHandler handler;
     private final CacheManager cacheManager;
     private final OpalLocalJusticeAreaService ljaService;
 
     @Test
+    @JiraStory("PO-10709")
+    @JiraEpic("PO-9031")
+    @JiraTestKey("PO-10709")
     void handlerTargetsCacheUsedByOpalLjaReferenceData() throws NoSuchMethodException {
         clearCaches();
         ljaService.getLocalJusticeAreaRefData("8104", null);
@@ -95,7 +98,7 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     void processesValidLjaMessage() {
         short localJusticeAreaId = 8102;
 
-        processor.processMessage(LjaMessageBuilder.messageWithAddresses(localJusticeAreaId));
+        processor.processMessage(OpalLjaMessageBuilder.messageWithAddresses(localJusticeAreaId));
 
         try {
             assertThat(repository.findById(localJusticeAreaId))
@@ -103,7 +106,7 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
                 .satisfies(entity -> {
                     assertThat(entity.getLocalJusticeAreaId()).isEqualTo(localJusticeAreaId);
                     assertThat(entity.getName()).isEqualTo("Test LJA");
-                    assertThat(entity.getLjaType()).isEqualTo(LocalJusticeAreaType.CRWCRT);
+                    assertThat(entity.getLjaType()).isEqualTo(OpalLocalJusticeAreaType.CRWCRT);
                     assertThat(entity.getAddressLine1()).isEqualTo("Court line 1");
                     assertThat(entity.getAddressLine2()).isEqualTo("Court line 2");
                     assertThat(entity.getAddressLine3()).isEqualTo("Court line 3");
@@ -127,11 +130,11 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
             for (int index = 0; index < ljaTypes.size(); index++) {
                 String ljaType = ljaTypes.get(index);
                 short localJusticeAreaId = (short) (TEST_ID_START + index);
-                processor.processMessage(LjaMessageBuilder.validMessage(localJusticeAreaId, ljaType));
+                processor.processMessage(OpalLjaMessageBuilder.validMessage(localJusticeAreaId, ljaType));
 
                 assertThat(repository.findById(localJusticeAreaId))
                     .get()
-                    .extracting(LocalJusticeAreaEntity::getLjaType)
+                    .extracting(OpalLocalJusticeAreaEntity::getLjaType)
                     .isEqualTo(expectedLocalJusticeAreaType(ljaType));
             }
         } finally {
@@ -148,7 +151,7 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     void usesCourtAddressWhenItIsNotTheFirstAddress() {
         short localJusticeAreaId = 8100;
 
-        processor.processMessage(LjaMessageBuilder.messageWithAddresses(localJusticeAreaId));
+        processor.processMessage(OpalLjaMessageBuilder.messageWithAddresses(localJusticeAreaId));
 
         try {
             assertThat(repository.findById(localJusticeAreaId))
@@ -173,21 +176,21 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     void doesNotUpdateEndDateWhenMessageIsProcessed() {
         short localJusticeAreaId = 8101;
 
-        LocalJusticeAreaEntity existing = new LocalJusticeAreaEntity();
+        OpalLocalJusticeAreaEntity existing = new OpalLocalJusticeAreaEntity();
         existing.setLocalJusticeAreaId(localJusticeAreaId);
         existing.setName("Existing LJA");
-        existing.setLjaType(LocalJusticeAreaType.CRWCRT);
+        existing.setLjaType(OpalLocalJusticeAreaType.CRWCRT);
         existing.setEndDate(LocalDateTime.of(2027, 3, 4, 0, 0));
         existing.setAddressLine1("Existing address");
         existing.setPostcode("GIR 0AA");
         repository.saveAndFlush(existing);
 
         try {
-            processor.processMessage(LjaMessageBuilder.messageWithEndDate(localJusticeAreaId, "2028-03-04"));
+            processor.processMessage(OpalLjaMessageBuilder.messageWithEndDate(localJusticeAreaId, "2028-03-04"));
 
             assertThat(repository.findById(localJusticeAreaId))
                 .get()
-                .extracting(LocalJusticeAreaEntity::getEndDate)
+                .extracting(OpalLocalJusticeAreaEntity::getEndDate)
                 .isEqualTo(LocalDateTime.of(2027, 3, 4, 0, 0));
         } finally {
             repository.deleteById(localJusticeAreaId);
@@ -200,7 +203,7 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-10709")
     void deleteEntityDeletesLjaUsingBusinessKeyWithLeadingZeros() {
         short localJusticeAreaId = 8103;
-        repository.saveAndFlush(LjaMessageBuilder.entity(localJusticeAreaId));
+        repository.saveAndFlush(OpalLjaMessageBuilder.entity(localJusticeAreaId));
 
         try {
             handler.deleteEntity("08103");
@@ -225,8 +228,8 @@ class LjaMessageProcessingIntegrationTest extends AbstractIntegrationTest {
             .hasMessage("Invalid business key received: 32768");
     }
 
-    private LocalJusticeAreaType expectedLocalJusticeAreaType(String ljaType) {
-        return "PSA".equals(ljaType) ? LocalJusticeAreaType.LJA : LocalJusticeAreaType.valueOf(ljaType);
+    private OpalLocalJusticeAreaType expectedLocalJusticeAreaType(String ljaType) {
+        return "PSA".equals(ljaType) ? OpalLocalJusticeAreaType.LJA : OpalLocalJusticeAreaType.valueOf(ljaType);
     }
 
     private List<String> ljaTypesFromSchema() {
