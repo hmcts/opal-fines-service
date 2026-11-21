@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity_;
 import uk.gov.hmcts.opal.generated.model.LocalJusticeArea;
@@ -48,7 +48,7 @@ public class LegacyLocalJusticeAreaService implements LocalJusticeAreaServiceInt
     }
 
     @Transactional(readOnly = true)
-    public List<LocalJusticeAreaLegacyEntity> searchLocalJusticeAreas(LocalJusticeAreaSearchDto criteria) {
+    public List<LocalJusticeAreaLegacyEntity> searchLocalJusticeAreas(LegacyLocalJusticeAreaSearchDto criteria) {
         Sort nameSort = Sort.by(Sort.Direction.ASC, LocalJusticeAreaLegacyEntity_.NAME);
         Page<LocalJusticeAreaLegacyEntity> page = localJusticeAreaLegacyRepository.findBy(
             specs.findBySearchCriteria(criteria),

@@ -11,33 +11,33 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 
 @ExtendWith(MockitoExtension.class)
-class LocalJusticeAreaRepositoryServiceTest {
+class OpalLocalJusticeAreaRepositoryServiceTest {
 
     @Mock
-    private LocalJusticeAreaRepository localJusticeAreaRepository;
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @InjectMocks
-    private LocalJusticeAreaRepositoryService service;
+    private OpalLocalJusticeAreaRepositoryService service;
 
     @Test
     void shouldReturnLocalJusticeAreaWhenIdExists() {
         // given
         short id = 10;
-        LocalJusticeAreaEntity entity = mock(LocalJusticeAreaEntity.class);
+        OpalLocalJusticeAreaEntity entity = mock(OpalLocalJusticeAreaEntity.class);
 
-        when(localJusticeAreaRepository.findById(id)).thenReturn(Optional.of(entity));
+        when(opalLocalJusticeAreaRepository.findById(id)).thenReturn(Optional.of(entity));
 
         // when
-        Optional<LocalJusticeAreaEntity> result = service.getLjaById(id);
+        Optional<OpalLocalJusticeAreaEntity> result = service.getLjaById(id);
 
         // then
         assertThat(result).isPresent();
         assertThat(result.get()).isSameAs(entity);
-        verify(localJusticeAreaRepository).findById(id);
+        verify(opalLocalJusticeAreaRepository).findById(id);
     }
 
     @Test
@@ -45,13 +45,13 @@ class LocalJusticeAreaRepositoryServiceTest {
         // given
         short id = 99;
 
-        when(localJusticeAreaRepository.findById(id)).thenReturn(Optional.empty());
+        when(opalLocalJusticeAreaRepository.findById(id)).thenReturn(Optional.empty());
 
         // when
-        Optional<LocalJusticeAreaEntity> result = service.getLjaById(id);
+        Optional<OpalLocalJusticeAreaEntity> result = service.getLjaById(id);
 
         // then
         assertThat(result).isEmpty();
-        verify(localJusticeAreaRepository).findById(id);
+        verify(opalLocalJusticeAreaRepository).findById(id);
     }
 }

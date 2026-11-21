@@ -34,7 +34,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyLjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
@@ -392,7 +392,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
                     .accountStatusDisplayName("Alive")
                     .build())
             .enforcementOverride(full ? EnforcementOverride.builder()  // Optional
-                .lja(LjaReference.builder()
+                .lja(LegacyLjaReference.builder()
                     .ljaId((short)1).ljaName("England").build())
                 .enforcer(EnforcerReference.builder()
                     .enforcerId(2L).enforcerName("Arthur").build())

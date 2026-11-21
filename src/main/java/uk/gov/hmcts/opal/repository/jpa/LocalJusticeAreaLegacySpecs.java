@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import org.hibernate.query.criteria.JpaExpression;
 import org.springframework.data.jpa.domain.Specification;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity_;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaTypeLegacy;
@@ -17,7 +17,8 @@ import uk.gov.hmcts.opal.generated.model.LocalJusticeAreaType;
 
 public class LocalJusticeAreaLegacySpecs extends AddressSpecs<LocalJusticeAreaLegacyEntity> {
 
-    public Specification<LocalJusticeAreaLegacyEntity> findBySearchCriteria(LocalJusticeAreaSearchDto criteria) {
+    public Specification<LocalJusticeAreaLegacyEntity> findBySearchCriteria(
+        LegacyLocalJusticeAreaSearchDto criteria) {
         return Specification.allOf(specificationList(
             findByAddressCriteria(criteria),
             notBlank(criteria.getLjaCode()).map(LocalJusticeAreaLegacySpecs::likeLjaCode),

@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 @ToString(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocalJusticeAreaSearchDto extends AddressSearch implements ToJsonString {
+public class LegacyLocalJusticeAreaSearchDto extends AddressSearch implements ToJsonString {
 
     private String localJusticeAreaId;
     private String ljaCode;

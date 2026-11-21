@@ -21,7 +21,7 @@ import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -281,7 +281,7 @@ class TestingSupportControllerTest {
     @Test
     void postLocalJusticeAreasSearch() {
         List<LocalJusticeAreaLegacyEntity> localJusticeAreas = List.of(LocalJusticeAreaLegacyEntity.builder().build());
-        LocalJusticeAreaSearchDto criteria = LocalJusticeAreaSearchDto.builder().build();
+        LegacyLocalJusticeAreaSearchDto criteria = LegacyLocalJusticeAreaSearchDto.builder().build();
         when(legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria)).thenReturn(localJusticeAreas);
 
         ResponseEntity<List<LocalJusticeAreaLegacyEntity>> response = controller.postLocalJusticeAreasSearch(criteria);

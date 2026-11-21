@@ -11,15 +11,15 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
@@ -36,14 +36,14 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     private static final String RESULT_ID_PREFIX = ".result_id: result id ";
     private static final String IS_NOT_AN_ENFORCEMENT_RESULT = " is not an enforcement result";
     private static final String IS_NOT_AN_ACTIVE_RESULT = " is not an active result";
-    private static final Set<LocalJusticeAreaType> VALID_ORIGINATOR_LJA_TYPES =
-        Set.of(LocalJusticeAreaType.LJA, LocalJusticeAreaType.CRWCRT);
+    private static final Set<OpalLocalJusticeAreaType> VALID_ORIGINATOR_LJA_TYPES =
+        Set.of(OpalLocalJusticeAreaType.LJA, OpalLocalJusticeAreaType.CRWCRT);
 
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
     private final ResultRepository resultRepository;
     private final CreditorAccountRepository creditorAccountRepository;
-    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
     private final ProsecutorRepository prosecutorRepository;
 
 
@@ -267,9 +267,9 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
 
     @Override
     Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
-        return localJusticeAreaRepository.findById(localJusticeAreaId)
+        return opalLocalJusticeAreaRepository.findById(localJusticeAreaId)
             .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
-            .map(LocalJusticeAreaEntity::getName);
+            .map(OpalLocalJusticeAreaEntity::getName);
     }
 
     @Override

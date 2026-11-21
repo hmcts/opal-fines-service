@@ -54,7 +54,7 @@ import uk.gov.hmcts.opal.dto.search.AliasDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.AliasEntity;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -853,7 +853,7 @@ public class OpalDefendantAccountBuilders {
         return Optional.ofNullable(node).flatMap(r -> Optional.ofNullable(r.findValue(key))).map(JsonNode::asText);
     }
 
-    static LJA buildLja(LocalJusticeAreaEntity entity) {
+    static LJA buildLja(OpalLocalJusticeAreaEntity entity) {
         return Optional.ofNullable(entity).map(lja -> LJA.builder()
                 .ljaId(lja.getLocalJusticeAreaId())
                 .ljaName(lja.getName())
@@ -870,7 +870,7 @@ public class OpalDefendantAccountBuilders {
             .orElse(null);
     }
 
-    static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(LocalJusticeAreaEntity entity) {
+    static LocalJusticeAreaDefendantAccount buildLjaDefendantAccount(OpalLocalJusticeAreaEntity entity) {
         return Optional.ofNullable(entity).map(lja -> LocalJusticeAreaDefendantAccount.builder()
                 .ljaId(lja.getLocalJusticeAreaId())
                 .build())

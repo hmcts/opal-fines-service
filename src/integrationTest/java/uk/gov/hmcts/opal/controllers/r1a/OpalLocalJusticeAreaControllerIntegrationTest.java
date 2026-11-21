@@ -31,7 +31,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -54,7 +54,7 @@ class OpalLocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationT
     private CacheManager cacheManager;
 
     @MockitoSpyBean
-    private LocalJusticeAreaRepository localJusticeAreaRepository;
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @MockitoSpyBean
     private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
@@ -202,7 +202,7 @@ class OpalLocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationT
         assertEquals(firstBody, secondBody);
         assertNotNull(firstCache);
         assertEquals(firstCache, secondCache);
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaRepository, "findBy"));
+        assertEquals(1, countInvocationsByMethodName(opalLocalJusticeAreaRepository, "findBy"));
         assertEquals(0, countInvocationsByMethodName(localJusticeAreaLegacyRepository, "findBy"));
     }
 
@@ -233,17 +233,17 @@ class OpalLocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationT
         String secondBody = performReferenceDataRequest("CRWCRT", "SJCRT");
 
         assertEquals(firstBody, secondBody);
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaRepository, "findBy"));
+        assertEquals(1, countInvocationsByMethodName(opalLocalJusticeAreaRepository, "findBy"));
         assertEquals(0, countInvocationsByMethodName(localJusticeAreaLegacyRepository, "findBy"));
     }
 
     private void clearRepositoryInvocations() {
-        clearInvocations(localJusticeAreaRepository);
+        clearInvocations(opalLocalJusticeAreaRepository);
         clearInvocations(localJusticeAreaLegacyRepository);
     }
 
     private void assertOnlyOpalRepositoryUsed(String methodName) {
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaRepository, methodName));
+        assertEquals(1, countInvocationsByMethodName(opalLocalJusticeAreaRepository, methodName));
         assertEquals(0, countInvocationsByMethodName(localJusticeAreaLegacyRepository, methodName));
     }
 
