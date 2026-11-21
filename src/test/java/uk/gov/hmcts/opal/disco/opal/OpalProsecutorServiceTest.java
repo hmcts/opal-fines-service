@@ -21,33 +21,33 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
 import uk.gov.hmcts.opal.generated.model.ProsecutorsObject;
-import uk.gov.hmcts.opal.mapper.ProsecutorMapper;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.mapper.OpalProsecutorMapper;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.service.opal.OpalProsecutorService;
 
 @ExtendWith(MockitoExtension.class)
 class OpalProsecutorServiceTest {
 
     @Mock
-    private ProsecutorRepository prosecutorRepository;
+    private OpalProsecutorRepository opalProsecutorRepository;
 
     @Mock
-    private ProsecutorMapper prosecutorMapper;
+    private OpalProsecutorMapper opalProsecutorMapper;
 
     @InjectMocks
     private OpalProsecutorService prosecutorService;
 
     @Test
     void getProsecutorByKey_usesProsecutorCode() {
-        ProsecutorEntity entity = ProsecutorEntity.builder().prosecutorCode("001X").build();
+        OpalProsecutorEntity entity = OpalProsecutorEntity.builder().prosecutorCode("001X").build();
         ProsecutorsObject expected = ProsecutorsObject.builder().prosecutorCode("001X").name("Opal").build();
-        when(prosecutorRepository.findById("001X")).thenReturn(Optional.of(entity));
-        when(prosecutorMapper.toProsecutor(entity)).thenReturn(expected);
+        when(opalProsecutorRepository.findById("001X")).thenReturn(Optional.of(entity));
+        when(opalProsecutorMapper.toProsecutor(entity)).thenReturn(expected);
 
         assertEquals(expected, prosecutorService.getProsecutorByKey("001X"));
-        verify(prosecutorRepository).findById("001X");
+        verify(opalProsecutorRepository).findById("001X");
     }
 
     @Test
@@ -58,16 +58,16 @@ class OpalProsecutorServiceTest {
     @SuppressWarnings("unchecked")
     @Test
     void getProsecutorsRefData_mapsGeneratedResponse() {
-        SpecificationFluentQuery<ProsecutorEntity> query = mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery<OpalProsecutorEntity> query = mock(SpecificationFluentQuery.class);
         when(query.sortBy(any())).thenReturn(query);
-        ProsecutorEntity entity = ProsecutorEntity.builder().prosecutorCode("001X").build();
-        Page<ProsecutorEntity> page = new PageImpl<>(List.of(entity), Pageable.unpaged(), 1);
-        when(prosecutorRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
+        OpalProsecutorEntity entity = OpalProsecutorEntity.builder().prosecutorCode("001X").build();
+        Page<OpalProsecutorEntity> page = new PageImpl<>(List.of(entity), Pageable.unpaged(), 1);
+        when(opalProsecutorRepository.findBy(any(Specification.class), any())).thenAnswer(invocation -> {
             invocation.getArgument(1, Function.class).apply(query);
             return page;
         });
         ProsecutorsObject mapped = ProsecutorsObject.builder().prosecutorCode("001X").name("Opal").build();
-        when(prosecutorMapper.toProsecutors(List.of(entity))).thenReturn(List.of(mapped));
+        when(opalProsecutorMapper.toProsecutors(List.of(entity))).thenReturn(List.of(mapped));
 
         assertEquals(List.of(mapped), prosecutorService.getProsecutorsRefData(null).getRefData());
     }

@@ -23,7 +23,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.repository.ProsecutorLegacyRepository;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -39,7 +39,7 @@ class LegacyProsecutorControllerIntegrationTest extends AbstractIntegrationTest 
     private static final String URL_BASE = "/prosecutors";
 
     @MockitoSpyBean
-    private ProsecutorRepository prosecutorRepository;
+    private OpalProsecutorRepository opalProsecutorRepository;
 
     @MockitoSpyBean
     private ProsecutorLegacyRepository prosecutorLegacyRepository;
@@ -61,7 +61,7 @@ class LegacyProsecutorControllerIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.name").value("Legacy AA1 Chief Prosecutor"));
 
         assertEquals(1, countInvocationsByMethodName(prosecutorLegacyRepository, "findById"));
-        assertEquals(0, countInvocationsByMethodName(prosecutorRepository, "findById"));
+        assertEquals(0, countInvocationsByMethodName(opalProsecutorRepository, "findById"));
     }
 
     @Test
@@ -81,11 +81,11 @@ class LegacyProsecutorControllerIntegrationTest extends AbstractIntegrationTest 
         jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
 
         assertEquals(1, countInvocationsByMethodName(prosecutorLegacyRepository, "findBy"));
-        assertEquals(0, countInvocationsByMethodName(prosecutorRepository, "findBy"));
+        assertEquals(0, countInvocationsByMethodName(opalProsecutorRepository, "findBy"));
     }
 
     private void clearRepositoryInvocations() {
-        clearInvocations(prosecutorRepository);
+        clearInvocations(opalProsecutorRepository);
         clearInvocations(prosecutorLegacyRepository);
     }
 }

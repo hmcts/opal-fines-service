@@ -25,7 +25,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.repository.ProsecutorLegacyRepository;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -41,7 +41,7 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     private static final String URL_BASE = "/prosecutors";
 
     @MockitoSpyBean
-    private ProsecutorRepository prosecutorRepository;
+    private OpalProsecutorRepository opalProsecutorRepository;
 
     @MockitoSpyBean
     private ProsecutorLegacyRepository prosecutorLegacyRepository;
@@ -62,7 +62,7 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.prosecutor_id").doesNotExist())
             .andExpect(jsonPath("$.name").value("AA1 Chief Prosecutor"));
 
-        assertEquals(1, countInvocationsByMethodName(prosecutorRepository, "findById"));
+        assertEquals(1, countInvocationsByMethodName(opalProsecutorRepository, "findById"));
         assertEquals(0, countInvocationsByMethodName(prosecutorLegacyRepository, "findById"));
     }
 
@@ -82,7 +82,7 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.ref_data[0].prosecutor_id").doesNotExist());
         jsonSchemaValidationService.validateOrError(body, GET_PROSECUTORS_REF_DATA_RESPONSE);
 
-        assertEquals(1, countInvocationsByMethodName(prosecutorRepository, "findBy"));
+        assertEquals(1, countInvocationsByMethodName(opalProsecutorRepository, "findBy"));
         assertEquals(0, countInvocationsByMethodName(prosecutorLegacyRepository, "findBy"));
     }
 
@@ -103,7 +103,7 @@ class OpalProsecutorControllerIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void clearRepositoryInvocations() {
-        clearInvocations(prosecutorRepository);
+        clearInvocations(opalProsecutorRepository);
         clearInvocations(prosecutorLegacyRepository);
     }
 }
