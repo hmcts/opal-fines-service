@@ -1,20 +1,24 @@
 package uk.gov.hmcts.opal.service.reference.validation;
 
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 import uk.gov.hmcts.opal.util.JsonPathUtil.DocContext;
 
@@ -24,6 +28,9 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
 
     @Mock
     private OpalDraftAccountReferenceValidationService delegateService;
+
+    @Mock
+    private ResultLegacyRepository resultRepository;
 
     @InjectMocks
     private LegacyDraftAccountReferenceValidationService validationService;
@@ -42,9 +49,22 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
 
             // Assert
             verify(delegateService, times(1)).validateEnforcementCourt(eq(docContext), anyList());
-            verify(delegateService, times(1)).validateOffences(eq(BUSINESS_UNIT_ID), eq(docContext), anyList());
-            verify(delegateService, times(1)).validatePaymentTermsEnforcements(eq(docContext), anyList(), anyMap());
             verify(delegateService, times(1)).validateOriginator(eq(docContext), anyList());
         }
+    }
+    @Test
+    void validateReferences_usesLegacyResultsForImpositionsAndEnforcements() {
+        when(resultRepository.findById("FINE")).thenReturn(Optional.of(
+            ResultLegacyEntity.builder().active(true).imposition(true).build()));
+        when(resultRepository.findById("ENF")).thenReturn(Optional.of(
+            ResultLegacyEntity.builder().active(true).enforcement(true).build()));
+
+        String account = """
+            {"offences":[{"impositions":[{"result_id":"FINE"}]}],
+             "payment_terms":{"enforcements":[{"result_id":"ENF"}]}}
+            """;
+        assertDoesNotThrow(() -> validationService.validateReferences(BUSINESS_UNIT_ID, account));
+        verify(resultRepository).findById("FINE");
+        verify(resultRepository).findById("ENF");
     }
 }

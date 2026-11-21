@@ -3,12 +3,9 @@ package uk.gov.hmcts.opal.service.reference.validation;
 import static uk.gov.hmcts.opal.util.JsonPathUtil.createDocContext;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
@@ -29,7 +26,7 @@ abstract class AbstractDraftAccountReferenceValidationService implements DraftAc
 
         validateEnforcementCourt(docContext, failures);
         validateOffences(businessUnitId, docContext, failures);
-        validatePaymentTermsEnforcements(docContext, failures, new HashMap<>());
+        validatePaymentTermsEnforcements(docContext, failures);
         validateOriginator(docContext, failures);
 
         if (!failures.isEmpty()) {
@@ -51,9 +48,7 @@ abstract class AbstractDraftAccountReferenceValidationService implements DraftAc
 
     abstract void validateOffences(Short businessUnitId, JsonPathUtil.DocContext docContext, List<String> failures);
 
-    abstract void validatePaymentTermsEnforcements(JsonPathUtil.DocContext docContext,
-        List<String> failures,
-        Map<String, Optional<ResultLegacyEntity>> resultCache);
+    abstract void validatePaymentTermsEnforcements(JsonPathUtil.DocContext docContext, List<String> failures);
 
     abstract void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures);
 }

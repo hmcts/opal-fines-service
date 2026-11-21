@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.disco.opal;
+package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,29 +34,28 @@ import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
 import uk.gov.hmcts.opal.generated.model.ResultsRefData;
-import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
-import uk.gov.hmcts.opal.service.opal.ResultService;
+import uk.gov.hmcts.opal.mapper.ResultLegacyMapper;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.jpa.ResultLegacySpecs;
 
 @ExtendWith(MockitoExtension.class)
-class ResultServiceTest {
+class LegacyResultServiceTest {
 
     @Mock
-    private ResultRepository resultRepository;
+    private ResultLegacyRepository resultRepository;
 
     @Mock
-    private ResultSpecs resultSpecs;
+    private ResultLegacySpecs resultSpecs;
 
     private Specification<ResultLegacyEntity> noOpSpec() {
         return (root, query, builder) -> builder.conjunction();
     }
 
     @Spy
-    private ResultMapper resultMapper;
+    private ResultLegacyMapper resultMapper;
 
     @InjectMocks
-    private ResultService resultService;
+    private LegacyResultService resultService;
 
     @Test
     void testGetResult() {

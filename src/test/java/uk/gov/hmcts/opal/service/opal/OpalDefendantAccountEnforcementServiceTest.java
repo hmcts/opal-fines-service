@@ -57,7 +57,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
@@ -176,7 +176,7 @@ class OpalDefendantAccountEnforcementServiceTest {
             .enforcementOverrideTfoLjaId((short) 66)
             .build();
 
-        ResultLegacyEntity result = ResultLegacyEntity.builder()
+        ResultEntity result = ResultEntity.builder()
             .resultId("FWEC")
             .resultTitle("Witness Expenses")
             .build();

@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.persistence;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,16 +27,17 @@ class ResultRepositoryServiceTest {
     void shouldReturnResultWhenIdIsProvidedAndResultExists() {
         // given
         String resultId = "RESULT_123";
-        ResultLegacyEntity lite = mock(ResultLegacyEntity.class);
+        ResultEntity lite = ResultEntity.builder().resultId(resultId).resultTitle("Result title").build();
 
         when(resultRepository.findById(resultId)).thenReturn(Optional.of(lite));
 
         // when
-        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isPresent();
-        assertThat(result.get()).isSameAs(lite);
+        assertThat(result.get().getResultId()).isEqualTo(resultId);
+        assertThat(result.get().getResultTitle()).isEqualTo("Result title");
         verify(resultRepository).findById(resultId);
     }
 
@@ -49,7 +49,7 @@ class ResultRepositoryServiceTest {
         when(resultRepository.findById(resultId)).thenReturn(Optional.empty());
 
         // when
-        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(resultId);
+        Optional<ResultEntity> result = resultRepositoryService.getResultById(resultId);
 
         // then
         assertThat(result).isEmpty();
@@ -59,7 +59,7 @@ class ResultRepositoryServiceTest {
     @Test
     void shouldReturnEmptyAndNotCallRepositoryWhenIdIsNull() {
         // when
-        Optional<ResultLegacyEntity> result = resultRepositoryService.getResultById(null);
+        Optional<ResultEntity> result = resultRepositoryService.getResultById(null);
 
         // then
         assertThat(result).isEmpty();

@@ -55,7 +55,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntit
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
@@ -494,7 +494,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 
-    private ResultLegacyEntity fetchResultEntity(String resultId) {
+    private ResultEntity fetchResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById).orElse(null);
     }
 

@@ -2,125 +2,104 @@ package uk.gov.hmcts.opal.repository;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_METHOD;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.PersistenceUnitUtil;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultType;
+import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
 
-import java.util.Map;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
-import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
-
-@DisplayName("Result Repository Integration Tests")
-@Sql(
-    scripts = "classpath:db/insertData/insert_into_result_entity_graph.sql",
-    executionPhase = BEFORE_TEST_METHOD
-)
-@Sql(
-    scripts = "classpath:db/deleteData/delete_from_result_entity_graph.sql",
-    executionPhase = AFTER_TEST_METHOD
-)
 class ResultRepositoryIntegrationTest extends AbstractIntegrationTest {
 
-    private static final String RESULT_ID = "RG9200";
-    private static final long ENFORCEMENT_ID = 920001L;
+    private static final String RESULT_ID = "ORIT01";
+    private static final String OTHER_ID = "ORIT02";
 
     @Autowired
-    private ResultRepository resultRepository;
+    private ResultRepository repository;
+
+    @Autowired
+    private EntityManager entityManager;
 
     @Autowired
     private EntityManagerFactory entityManagerFactory;
 
-    @PersistenceContext
-    private EntityManager entityManager;
-
-    private PersistenceUnitUtil unitUtil;
-
     @BeforeEach
     void setUp() {
-        entityManager.clear();
-        unitUtil = entityManagerFactory.getPersistenceUnitUtil();
+        repository.saveAllAndFlush(List.of(
+            ResultEntity.builder().resultId(RESULT_ID).resultTitle("Active result")
+                .resultType(ResultType.RESULT).active(true).build(),
+            ResultEntity.builder().resultId(OTHER_ID).resultTitle("Inactive result")
+                .resultType(ResultType.RESULT).manualEnforcement(false).build()
+        ));
+    }
+
+    @AfterEach
+    void tearDown() {
+        repository.deleteAllById(List.of(RESULT_ID, OTHER_ID));
     }
 
     @Test
-    @JiraStory("PO-2888")
-    @JiraEpic("PO-304")
-    @JiraTestKey("PO-6317")
-    void shouldKeepEnforcementsLazyWhenNoEntityGraphIsUsed() {
-        ResultLegacyEntity result = entityManager.find(ResultLegacyEntity.class, RESULT_ID);
-
-        assertAll(
-            () -> assertNotNull(result),
-            () -> assertFalse(unitUtil.isLoaded(result, "enforcements"))
-        );
+    void findById_preservesNullableFlags() {
+        ResultEntity result = repository.findById(RESULT_ID).orElseThrow();
+        assertTrue(result.isActive());
+        assertNull(result.getManualEnforcement());
+        assertNull(result.getRequiresEmploymentData());
+        assertNull(result.getAllowPaymentTerms());
+        assertNull(result.getAllowAdditionalAction());
+        assertNull(result.getRequiresLja());
     }
 
     @Test
-    @JiraStory("PO-2888")
-    @JiraEpic("PO-304")
-    @JiraTestKey("PO-6318")
-    void shouldKeepEnforcementsLazyForRepositoryFindById() {
-        ResultLegacyEntity result = resultRepository.findById(RESULT_ID).orElseThrow();
-
-        assertAll(
-            () -> assertNotNull(result),
-            () -> assertFalse(unitUtil.isLoaded(result, "enforcements"))
-        );
+    void fullGraph_returnsResult() {
+        assertEquals(RESULT_ID, repository.findWithFullGraphByResultId(RESULT_ID).orElseThrow().getResultId());
     }
 
     @Test
-    @JiraStory("PO-2888")
-    @JiraEpic("PO-304")
-    @JiraTestKey("PO-6315")
+    void specification_filtersResults() {
+        var spec = ResultSpecs.equalsAnyResultId(List.of(RESULT_ID, OTHER_ID))
+            .and(ResultSpecs.hasActive(true));
+        var page = repository.findBy(spec, query -> query.page(Pageable.unpaged()));
+        assertEquals(List.of(RESULT_ID), page.getContent().stream().map(ResultEntity::getResultId).toList());
+    }
+
+    @Test
+    void findByResultIdIn_returnsMatchingResults() {
+        assertEquals(List.of(RESULT_ID), repository.findByResultIdIn(List.of(RESULT_ID, "NOPE99"))
+            .stream().map(ResultEntity::getResultId).toList());
+    }
+
+    @Test
+    @Sql(scripts = "classpath:db/insertData/insert_into_result_entity_graph.sql", executionPhase = BEFORE_TEST_METHOD)
+    @Sql(scripts = "classpath:db/deleteData/delete_from_result_entity_graph.sql", executionPhase = AFTER_TEST_METHOD)
     void shouldLoadFullEntityGraphWhenRequestedExplicitly() {
-        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultLegacyEntity.ENTITY_GRAPH_FULL);
-        ResultLegacyEntity result = entityManager.find(
-            ResultLegacyEntity.class,
-            RESULT_ID,
+        entityManager.clear();
+        EntityGraph<?> fullGraph = entityManager.getEntityGraph(ResultEntity.ENTITY_GRAPH_FULL);
+        ResultEntity result = entityManager.find(
+            ResultEntity.class,
+            "RG9200",
             Map.of("jakarta.persistence.fetchgraph", fullGraph)
         );
 
         assertAll(
             () -> assertNotNull(result),
-            () -> assertTrue(unitUtil.isLoaded(result, "enforcements")),
+            () -> assertTrue(entityManagerFactory.getPersistenceUnitUtil().isLoaded(result, "enforcements")),
             () -> assertEquals(1, result.getEnforcements().size()),
-            () -> assertEquals(ENFORCEMENT_ID, result.getEnforcements().get(0).getEnforcementId())
-        );
-    }
-
-    @Test
-    @JiraStory("PO-2888")
-    @JiraEpic("PO-304")
-    @JiraTestKey("PO-6316")
-    void shouldKeepEnforcementsLazyForSpecificationFetch() {
-        Specification<ResultLegacyEntity> spec =
-            (root, query, builder) -> builder.equal(root.get("resultId"), RESULT_ID);
-
-        Page<ResultLegacyEntity> page = resultRepository.findBy(spec, query -> query.page(Pageable.unpaged()));
-        ResultLegacyEntity result = page.getContent().get(0);
-
-        assertAll(
-            () -> assertEquals(1, page.getTotalElements()),
-            () -> assertNotNull(result),
-            () -> assertFalse(unitUtil.isLoaded(result, "enforcements"))
+            () -> assertEquals(920001L, result.getEnforcements().get(0).getEnforcementId())
         );
     }
 }

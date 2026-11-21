@@ -4,8 +4,9 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
+import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
@@ -16,9 +17,9 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface ResultMapper {
 
-    ResultReferenceData toRefData(ResultLegacyEntity entity);
+    ResultReferenceData toRefData(ResultEntity entity);
 
-    default ResultsRefDataResponse toReferenceDataResponse(List<ResultLegacyEntity> entities) {
+    default ResultsRefDataResponse toReferenceDataResponse(List<ResultEntity> entities) {
         List<ResultsRefData> dtoList = entities.stream()
             .map(this::toResultReferenceData)
             .toList();
@@ -30,13 +31,16 @@ public interface ResultMapper {
     }
 
     @Mapping(target = "impositionAllocationOrder", source = "impositionAllocationPriority")
-    ResultsRefData toResultReferenceData(ResultLegacyEntity entity);
+    ResultsRefData toResultReferenceData(ResultEntity entity);
 
-    @Mapping(target = "impositionCategory", source = "impositionCategory.impositionCategory")
-    GetResultByIdResponseResults toDto(ResultLegacyEntity entity);
+    GetResultByIdResponseResults toDto(ResultEntity entity);
 
     default String map(ResultType resultType) {
         return resultType == null ? null : resultType.getLabel();
+    }
+
+    default String map(ImpositionCategory category) {
+        return category == null ? null : category.getLabel();
     }
 
     default String map(ImpositionCreditor impositionCreditor) {
@@ -49,6 +53,10 @@ public interface ResultMapper {
 
     default JsonNullable<String> mapToJsonNullable(ResultType resultType) {
         return JsonNullable.of(map(resultType));
+    }
+
+    default JsonNullable<String> mapToJsonNullable(ImpositionCategory category) {
+        return JsonNullable.of(map(category));
     }
 
     default JsonNullable<String> mapToJsonNullable(ImpositionCreditor impositionCreditor) {

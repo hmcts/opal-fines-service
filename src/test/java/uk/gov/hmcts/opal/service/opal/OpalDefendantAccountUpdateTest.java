@@ -41,7 +41,7 @@ import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.CollectionOrderCommon;
 import uk.gov.hmcts.opal.generated.model.CommentsAndNotesCommon;
@@ -133,8 +133,7 @@ class OpalDefendantAccountUpdateTest {
         when(courtLiteRepo.findById(100L)).thenReturn(Optional.of(court));
 
         // Reference entities: stub getters so the service can copy IDs onto the account
-        ResultLegacyEntity eor = mock(ResultLegacyEntity.class);
-        when(eor.getResultId()).thenReturn("EO-1");
+        ResultEntity eor = ResultEntity.builder().resultId("EO-1").build();
         when(resultRepo.findById("EO-1")).thenReturn(Optional.of(eor));
 
         EnforcerLegacyEntity enforcer = mock(EnforcerLegacyEntity.class);
