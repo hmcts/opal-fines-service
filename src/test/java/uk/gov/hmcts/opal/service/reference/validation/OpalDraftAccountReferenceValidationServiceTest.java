@@ -498,6 +498,22 @@ class OpalDraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void validateReferences_whenProsecutorCodeHasLeadingZeros_shouldPreserveCode() {
+        when(opalProsecutorRepository.findById("0012"))
+            .thenReturn(Optional.of(prosecutor("0012", "Draft Account Validation Prosecutor")));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.FIXED_PENALTY,
+            "FP",
+            "0012",
+            "Draft Account Validation Prosecutor"
+        )));
+
+        verify(opalProsecutorRepository).findById("0012");
+        verifyNoInteractions(localJusticeAreaRepository);
+    }
+
+    @Test
     void validateReferences_whenTfoFineOriginatorMatchesLja_shouldPass() {
         when(localJusticeAreaRepository.findById((short)32001))
             .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
@@ -810,11 +826,25 @@ class OpalDraftAccountReferenceValidationServiceTest {
                                                 String originatorType,
                                                 Long originatorId,
                                                 String originatorName) {
+        return originatorAccountJson(accountType, originatorType, originatorId.toString(), originatorName);
+    }
+
+    private static String originatorAccountJson(DraftAccountType accountType,
+                                                String originatorType,
+                                                String originatorId,
+                                                String originatorName) {
+        return originatorAccountJson(accountType.getLabel(), originatorType, originatorId, originatorName);
+    }
+
+    private static String originatorAccountJson(String accountType,
+                                                String originatorType,
+                                                String originatorId,
+                                                String originatorName) {
         return """
             {
               "account_type": "%s",
               "originator_type": "%s",
-              "originator_id": %d,
+              "originator_id": "%s",
               "originator_name": "%s"
             }
             """.formatted(accountType, originatorType, originatorId, originatorName);
