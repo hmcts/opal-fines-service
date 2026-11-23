@@ -2,12 +2,12 @@ package uk.gov.hmcts.opal.service.messaging;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
-import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
+import uk.gov.hmcts.opal.util.QueueUtil;
 
 @Component
 @RequiredArgsConstructor
@@ -23,11 +23,7 @@ public class PublishDraftAccountListener {
         containerFactory = "opalFinesConsumerConnectionFactory"
     )
     public void onMessage(Message message) throws JMSException {
-        if (message instanceof TextMessage textMessage) {
-            String payload = textMessage.getText();
-            consumer.consume(payload);
-        } else {
-            throw new IllegalArgumentException("Message must be of type TextMessage");
-        }
+        String payload = QueueUtil.getMessageAsString(message);
+        consumer.consume(payload);
     }
 }

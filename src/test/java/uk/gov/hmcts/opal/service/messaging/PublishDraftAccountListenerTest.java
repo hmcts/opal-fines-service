@@ -46,7 +46,7 @@ public class PublishDraftAccountListenerTest {
 
         assertThatThrownBy(() -> listener.onMessage(message))
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessage("Message must be of type TextMessage");
+            .hasMessage("Message must be of type TextMessage or JmsBytesMessage");
     }
 
 }
