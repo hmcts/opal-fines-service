@@ -730,7 +730,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
             eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenThrow(
-            new RuntimeException("Legacy gateway unavailable"));
+                new RuntimeException("Legacy gateway unavailable"));
 
         MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
 
@@ -746,8 +746,8 @@ class LegacyMinorCreditorServiceTest {
 
         when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
             eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenReturn(
-            new Response<>(HttpStatus.OK, GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder().build(), null,
-                null));
+                new Response<>(HttpStatus.OK, GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder().build(),
+                    null, null));
 
         MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
 
@@ -1005,7 +1005,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT),
             eq(LegacyGetMinorCreditorAccountResponse.class), any(), any())).thenReturn(
-            new Response<>(HttpStatus.OK, legacyResponse, null, null));
+                new Response<>(HttpStatus.OK, legacyResponse, null, null));
 
         when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse)).thenReturn(
             mappedResponse);
