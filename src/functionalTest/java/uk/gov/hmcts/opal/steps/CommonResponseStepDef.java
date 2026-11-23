@@ -1,16 +1,30 @@
 package uk.gov.hmcts.opal.steps;
 
+import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
+import io.restassured.response.Response;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import net.serenitybdd.rest.SerenityRest;
 import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 import static net.serenitybdd.rest.SerenityRest.then;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Defines generic response assertions that can be shared across multiple functional-test API
  * areas.
  */
 public class CommonResponseStepDef extends BaseStepDef {
+    private static final Pattern FEATURE_VARIABLE_PATTERN = Pattern.compile("\\$\\{([^}]+)}");
 
     /**
      * Asserts that the latest API or raw-client response returned the expected HTTP status code.
@@ -20,6 +34,107 @@ public class CommonResponseStepDef extends BaseStepDef {
     @Then("the response status code is {int}")
     public void responseStatusCodeIs(int statusCode) {
         assertLatestResponseStatus(statusCode);
+    }
+
+    /**
+     * Checks selected fields in the latest JSON error response against feature-file expectations.
+     * Supported matchers are {@code equals}, {@code contains}, and {@code present}.
+     *
+     * @param expectedValues table of JSON field, matcher, and expected value rows.
+     */
+    @Then("the error response matches the following values")
+    public void errorResponseMatchesExpectedValues(DataTable expectedValues) {
+        List<Map<String, String>> rows = expectedValues.asMaps(String.class, String.class);
+        assertFalse(rows.isEmpty(), "Expected at least one error response assertion");
+        Set<String> assertedFields = new HashSet<>();
+        List<String> failures = new ArrayList<>();
+
+        Map<String, String> expectedStatus = rows.stream()
+            .filter(row -> "status".equals(row.get("field")))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Expected a status row in the error response assertions"));
+        assertLatestResponseStatus(Integer.parseInt(expectedStatus.get("expected")));
+
+        for (Map<String, String> row : rows) {
+            String field = row.get("field");
+            String configuredMatcher = row.get("matcher");
+            String matcher = configuredMatcher == null || configuredMatcher.isBlank() ? "equals" : configuredMatcher;
+            String expected = resolveExpectedValue(row.getOrDefault("expected", ""));
+            assertAndCollect(failures, () -> assertErrorField(field, matcher, expected));
+            assertedFields.add(field);
+        }
+
+        assertDefaultErrorField(failures, assertedFields, "instance", "present", "");
+        assertDefaultErrorField(failures, assertedFields, "operation_id", "present", "");
+        assertDefaultErrorField(failures, assertedFields, "is_warning", "equals", "false");
+        assertDefaultErrorField(failures, assertedFields, "is_retryable", "equals", "false");
+
+        assertTrue(failures.isEmpty(), "Error response assertions failed:\n" + String.join("\n", failures));
+    }
+
+    private void assertDefaultErrorField(List<String> failures, Set<String> assertedFields, String field,
+                                         String matcher, String expected) {
+        if (!assertedFields.contains(field)) {
+            assertAndCollect(failures, () -> assertErrorField(field, matcher, expected));
+        }
+    }
+
+    private void assertAndCollect(List<String> failures, Runnable assertion) {
+        try {
+            assertion.run();
+        } catch (AssertionError failure) {
+            failures.add(failure.getMessage());
+        }
+    }
+
+    private String resolveExpectedValue(String expected) {
+        Matcher variableMatcher = FEATURE_VARIABLE_PATTERN.matcher(expected);
+        StringBuffer resolved = new StringBuffer();
+        while (variableMatcher.find()) {
+            String value = scenarioContext().getFeatureVariableOrFail(variableMatcher.group(1));
+            variableMatcher.appendReplacement(resolved, Matcher.quoteReplacement(value));
+        }
+        variableMatcher.appendTail(resolved);
+        return resolved.toString();
+    }
+
+    private void assertErrorField(String field, String matcher, String expected) {
+        var response = SerenityRest.lastResponse();
+        Object actualValue = getErrorFieldValue(response, field);
+        if (actualValue == null && "equals".equals(matcher) && "false".equals(expected)
+            && ("is_warning".equals(field) || "is_retryable".equals(field))) {
+            actualValue = false;
+        }
+        String message = "Unexpected error response field '" + field + "'";
+
+        switch (matcher) {
+            case "equals" -> assertEquals(expected, String.valueOf(actualValue), message);
+            case "contains" -> {
+                assertNotNull(actualValue, message + ": value was absent");
+                assertTrue(String.valueOf(actualValue).contains(expected),
+                    message + ": expected '" + expected + "' in '" + actualValue + "'");
+            }
+            case "present" -> {
+                assertNotNull(actualValue, message + ": value was absent");
+                assertFalse(actualValue instanceof String text && text.isBlank(),
+                    message + ": value was blank");
+            }
+            default -> throw new IllegalArgumentException("Unsupported error response matcher: " + matcher);
+        }
+    }
+
+    private Object getErrorFieldValue(Response response, String field) {
+        Object value = response.jsonPath().get(field);
+        if (value == null && "operation_id".equals(field)) {
+            value = response.jsonPath().get("properties.operation_id");
+        }
+        if (value == null && "is_retryable".equals(field)) {
+            value = response.jsonPath().get("retriable");
+            if (value == null) {
+                value = response.jsonPath().get("properties.retriable");
+            }
+        }
+        return value;
     }
 
     /**

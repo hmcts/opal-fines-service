@@ -10,6 +10,7 @@
             <xsd:enumeration value="defendant_accounts"/>
             <xsd:enumeration value="creditor_accounts"/>
             <xsd:enumeration value="suspense_accounts"/>
+            <xsd:enumeration value="suspense_items"/>
             <xsd:enumeration value="report_instances"/>
           </xsd:restriction>
         </xsd:simpleType>

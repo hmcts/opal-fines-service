@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -19,6 +20,7 @@ class QueueConsumerJmsConfigTest {
         mock(ServiceBusConnectionStringParser.class);
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+        .withPropertyValues("opal.interface-file.service-bus.consumer-enabled=false")
         .withBean(ServiceBusConnectionStringParser.class, () -> serviceBusConnectionStringParser)
         .withBean(ReportQueueConsumerService.class, () -> mock(ReportQueueConsumerService.class))
         .withUserConfiguration(QueueConsumerJmsConfig.class, ReportQueueListener.class);
@@ -50,14 +52,26 @@ class QueueConsumerJmsConfigTest {
     }
 
     @Test
-    void skipsJmsBeansWhenDisabled() {
+    void loadsJmsBeansWhenConsumersDisabled() {
+        when(serviceBusConnectionStringParser.parse(anyString()))
+            .thenReturn(new ServiceBusConnectionStringParser.ConnectionDetails(
+                "example.servicebus.windows.net",
+                "RootManageSharedAccessKey",
+                "key"
+            ));
+
         contextRunner
-            .withPropertyValues("opal.report.service-bus.consumer-enabled=false")
+            .withPropertyValues(
+                "opal.report.service-bus.consumer-enabled=false",
+                "opal.automated-task=",
+                "opal.common.service-bus.connection-string=Endpoint=sb://example.servicebus.windows.net/;"
+                    + "SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=key")
             .run(context -> {
-                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).hasSingleBean(QueueConsumerJmsConfig.class);
+                assertThat(context)
+                    .hasBean("opalFinesConsumerConnection")
+                    .hasBean("opalFinesConsumerConnectionFactory");
                 assertThat(context).doesNotHaveBean(ReportQueueListener.class);
-                assertThat(context).doesNotHaveBean("reportListenerContainerFactory");
-                assertThat(context).doesNotHaveBean("opalFinesConsumerConnectionFactory");
             });
     }
 
@@ -68,7 +82,7 @@ class QueueConsumerJmsConfigTest {
             .run(context -> {
                 assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ReportQueueListener.class);
-                assertThat(context).doesNotHaveBean("reportListenerContainerFactory");
+                assertThat(context).doesNotHaveBean("opalFinesConsumerConnection");
                 assertThat(context).doesNotHaveBean("opalFinesConsumerConnectionFactory");
             });
     }

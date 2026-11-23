@@ -5,6 +5,7 @@ import java.util.Map;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
@@ -23,5 +24,6 @@ public abstract class GetTillMapper {
     @Mapping(target = "paymentsIn", source = "payments")
     public abstract TillsGetResponse toResponse(
         TillEntity till, List<PaymentInEntity> payments,
-        @Context Map<Long, DefendantAccountEntity> defendantAccounts);
+        @Context Map<Long, DefendantAccountEntity> defendantAccounts,
+        @Context Map<Long, MiscellaneousAccountEntity> miscellaneousAccounts);
 }
