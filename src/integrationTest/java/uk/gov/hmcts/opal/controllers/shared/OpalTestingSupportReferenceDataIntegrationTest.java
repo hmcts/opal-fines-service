@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -88,6 +89,9 @@ class OpalTestingSupportReferenceDataIntegrationTest extends AbstractIntegration
     @Autowired
     private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
+    @Autowired
+    private CacheManager cacheManager;
+
     @BeforeEach
     @AfterEach
     void cleanUpReferenceData() {
@@ -105,11 +109,15 @@ class OpalTestingSupportReferenceDataIntegrationTest extends AbstractIntegration
             .addressLine1("Test address")
             .ljaType(OpalLocalJusticeAreaType.CRWCRT)
             .build());
+        Cache cache = cacheManager.getCache("opalLjaReferenceDataCache");
+        assertThat(cache).isNotNull();
+        cache.put("delete-test", "cached value");
 
         mockMvc.perform(delete(URL_BASE + "/LJA/" + DELETED_LJA_ID))
             .andExpect(status().isNoContent());
 
         assertThat(opalLocalJusticeAreaRepository.findById(DELETED_LJA_ID)).isEmpty();
+        assertThat(cache.get("delete-test")).isNull();
     }
 
     @Test

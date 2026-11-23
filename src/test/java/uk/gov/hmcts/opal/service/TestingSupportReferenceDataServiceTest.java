@@ -23,6 +23,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
@@ -43,6 +47,10 @@ class TestingSupportReferenceDataServiceTest {
     private JsonSchemaValidationService jsonSchemaValidationService;
     @Mock
     private ServiceBusSenderClient senderClient;
+    @Mock
+    private CacheManager cacheManager;
+    @Mock
+    private Cache cache;
 
     private ObjectMapper objectMapper;
     private TestingSupportReferenceDataService service;
@@ -51,7 +59,7 @@ class TestingSupportReferenceDataServiceTest {
     void setUp() {
         objectMapper = new ObjectMapper();
         service = new TestingSupportReferenceDataService(handlerRegistry, objectMapper,
-            jsonSchemaValidationService, senderClient);
+            jsonSchemaValidationService, senderClient, cacheManager);
     }
 
     @Test
@@ -61,6 +69,58 @@ class TestingSupportReferenceDataServiceTest {
         service.deleteReferenceData("Court", "123");
 
         verify(handler).deleteEntity("123");
+    }
+
+    @Test
+    void deleteReferenceData_clearsDistinctCachesAfterCommit() {
+        when(handlerRegistry.find("LJA")).thenReturn(Optional.of(handler));
+        when(handler.cachesToClear()).thenReturn(List.of("missing", "lja", "lja"));
+        when(cacheManager.getCache("missing")).thenReturn(null);
+        when(cacheManager.getCache("lja")).thenReturn(cache);
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.deleteReferenceData("LJA", "123");
+            verifyNoInteractions(cacheManager, cache);
+            List<TransactionSynchronization> synchronizations = TransactionSynchronizationManager.getSynchronizations();
+            assertThat(synchronizations).hasSize(2);
+            synchronizations.forEach(TransactionSynchronization::afterCommit);
+            verify(cacheManager).getCache("lja");
+            verify(cacheManager).getCache("missing");
+            verify(cache).clear();
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void deleteReferenceData_clearsAllRegisteredCachesAfterCommit() {
+        Cache secondCache = org.mockito.Mockito.mock(Cache.class);
+        when(handlerRegistry.find("LJA")).thenReturn(Optional.of(handler));
+        when(handler.cachesToClear()).thenReturn(List.of("first", "second"));
+        when(cacheManager.getCache("first")).thenReturn(cache);
+        when(cacheManager.getCache("second")).thenReturn(secondCache);
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            service.deleteReferenceData("LJA", "123");
+
+            verifyNoInteractions(cacheManager, cache, secondCache);
+            TransactionSynchronizationManager.getSynchronizations().forEach(TransactionSynchronization::afterCommit);
+            verify(cache).clear();
+            verify(secondCache).clear();
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void deleteReferenceData_clearsCacheImmediatelyWithoutSynchronization() {
+        when(handlerRegistry.find("LJA")).thenReturn(Optional.of(handler));
+        when(handler.cachesToClear()).thenReturn(List.of("lja"));
+        when(cacheManager.getCache("lja")).thenReturn(cache);
+
+        service.deleteReferenceData("LJA", "123");
+
+        verify(cache).clear();
     }
 
     @Test
@@ -84,6 +144,7 @@ class TestingSupportReferenceDataServiceTest {
             .isInstanceOf(InvalidReferenceValidationException.class)
             .hasMessage("Invalid business key received: invalid")
             .hasCause(failure);
+        verifyNoInteractions(cacheManager);
     }
 
     @Test
