@@ -74,6 +74,8 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     @Test
     @Transactional
     @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void getLocalJusticeArea_readsLegacyTableWhenIdsOverlap() throws Exception {
         short id = 1;
         LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();
@@ -105,6 +107,8 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     @Test
     @Transactional
     @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void getLocalJusticeAreaRefData_readsLegacyTableWhenIdsOverlap() throws Exception {
         short id = 1;
         LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();

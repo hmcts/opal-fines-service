@@ -28,6 +28,8 @@ class LegacyDefendantsCommonIntegrationTest extends AbstractCommonDefendantsInte
 
     @Test
     @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void enforcementStatus_readsLjaCodeFromLegacyTable() throws Exception {
         var legacyArea = localJusticeAreaLegacyRepository.findById((short) 240).orElseThrow();
         legacyArea.setLjaCode("T987");

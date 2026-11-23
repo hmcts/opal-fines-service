@@ -605,6 +605,8 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
     @Test
     @Transactional
     @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void replaceDraftAccount_validatesLjaNameAgainstOpalTable() throws Exception {
         short id = 1;
         LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();

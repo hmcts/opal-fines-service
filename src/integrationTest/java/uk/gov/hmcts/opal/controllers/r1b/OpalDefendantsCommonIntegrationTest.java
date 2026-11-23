@@ -28,6 +28,8 @@ class OpalDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegr
 
     @Test
     @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void enforcementStatus_readsLjaFromOpalTable() throws Exception {
         var legacyArea = localJusticeAreaLegacyRepository.findById((short) 240).orElseThrow();
         legacyArea.setName("Legacy-only LJA");

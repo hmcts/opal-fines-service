@@ -86,6 +86,8 @@ class DraftAccountPublishTransactionTest extends AbstractIntegrationTest {
         executionPhase = BEFORE_TEST_METHOD)
     @Sql(scripts = "classpath:db/deleteData/delete_from_draft_account_publish_retry.sql",
         executionPhase = AFTER_TEST_METHOD)
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void publishFixedPenalty_usesOpalLjaForOriginatorAndImposedBy() throws Exception {
         Short originalCourtLjaId = jdbcTemplate.queryForObject(
             "SELECT local_justice_area_id FROM courts WHERE court_id = ?", Short.class, 770000000021L);

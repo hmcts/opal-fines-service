@@ -342,9 +342,10 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
     @JiraStory("PO-1565")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-6024")
     @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void patch_updatesEnforcementOverride() throws Exception {
         short opalLjaId = 32020;
         assertFalse(localJusticeAreaLegacyRepository.existsById(opalLjaId));

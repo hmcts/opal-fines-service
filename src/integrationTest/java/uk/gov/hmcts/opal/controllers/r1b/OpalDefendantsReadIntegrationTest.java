@@ -51,6 +51,8 @@ class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegratio
 
     @Test
     @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void atAGlance_readsLjaNameFromOpalTable() throws Exception {
         short id = 240;
         var legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();

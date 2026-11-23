@@ -72,6 +72,8 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void courtAssociation_readsLjaFromLegacyTable() {
         opalLocalJusticeAreaRepository.saveAndFlush(OpalLocalJusticeAreaEntity.builder()
             .localJusticeAreaId(LOCAL_JUSTICE_AREA_ID)

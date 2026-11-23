@@ -27,6 +27,7 @@ class LegacyReferenceDataSourceIntegrationTest extends ReferenceDataSourceIntegr
     @DisplayName("Local justice area reference data excludes rows held only in the Opal table")
     @JiraStory("PO-11209")
     @JiraEpic("PO-9031")
+    @JiraStory("PO-10738")
     void localJusticeAreaReferenceDataExcludesOpalOnlyRows() throws Exception {
         mockMvc.perform(get("/local-justice-areas")
                 .param("q", "OPAL_ONLY")
