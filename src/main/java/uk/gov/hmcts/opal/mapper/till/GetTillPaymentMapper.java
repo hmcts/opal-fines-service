@@ -1,8 +1,10 @@
 package uk.gov.hmcts.opal.mapper.till;
 
+import static uk.gov.hmcts.opal.entity.AssociatedRecordType.MISCELLANEOUS_ACCOUNTS;
 import static uk.gov.hmcts.opal.entity.DestinationType.C;
 import static uk.gov.hmcts.opal.entity.DestinationType.S;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Map;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Builder;
@@ -17,6 +19,8 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.MiscellaneousAccountEntity;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.TillsPayerName;
@@ -43,14 +47,16 @@ public abstract class GetTillPaymentMapper {
     @Mapping(target = "defendantDetail", source = "payment", qualifiedByName = "resolveDefendantDetail")
     @Mapping(target = "payerName", ignore = true)
     public abstract TillsPaymentIn toPayment(
-        PaymentInEntity payment, @Context Map<Long, DefendantAccountEntity> defendantAccounts);
+        PaymentInEntity payment, @Context Map<Long, DefendantAccountEntity> defendantAccounts,
+        @Context Map<Long, MiscellaneousAccountEntity> miscellaneousAccounts);
 
     @AfterMapping
-    protected void addPaymentDetails(PaymentInEntity payment, @MappingTarget TillsPaymentIn target) {
+    protected void addPaymentDetails(PaymentInEntity payment, @MappingTarget TillsPaymentIn target,
+                                     @Context Map<Long, MiscellaneousAccountEntity> miscellaneousAccounts) {
         AdditionalInformation additionalInformation = parseAdditionalInformation(payment);
         target.setPaymentReceivedFrom(TillsPaymentIn.PaymentReceivedFromEnum.fromValue(
             additionalInformation.paymentReceivedFrom()));
-        target.setPayerName(resolvePayerName(payment, additionalInformation.payerDetails()));
+        target.setPayerName(resolvePayerName(payment, additionalInformation.payerDetails(), miscellaneousAccounts));
     }
 
     @Named("toAssociatedRecordType")
@@ -61,9 +67,25 @@ public abstract class GetTillPaymentMapper {
             : TillsPaymentIn.AssociatedRecordTypeEnum.fromValue(associatedRecordType.getLabel()));
     }
 
-    protected JsonNullable<TillsPayerName> resolvePayerName(PaymentInEntity payment, JsonNode payerDetails) {
+    protected JsonNullable<TillsPayerName> resolvePayerName(
+        PaymentInEntity payment, JsonNode payerDetails, Map<Long, MiscellaneousAccountEntity> miscellaneousAccounts) {
         if (payment.getDestinationType() != S && payment.getDestinationType() != C) {
             return JsonNullable.of(null);
+        }
+        if (payment.getAssociatedRecordType() == MISCELLANEOUS_ACCOUNTS) {
+            Long accountId = Long.valueOf(payment.getAssociatedRecordId());
+            MiscellaneousAccountEntity account = miscellaneousAccounts.get(accountId);
+            if (account == null) {
+                throw new EntityNotFoundException("Miscellaneous account not found for associated_record_id: "
+                    + accountId);
+            }
+            PartyEntity party = account.getParty();
+            if (party == null) {
+                throw new EntityNotFoundException("Party not found for miscellaneous_account_id: " + accountId);
+            }
+            return JsonNullable.of(party.isOrganisation()
+                ? toPayerName(null, null, party.getOrganisationName())
+                : toPayerName(party.getForenames(), party.getSurname(), null));
         }
         if (payerDetails == null || payerDetails.isMissingNode() || payerDetails.isNull()) {
             return JsonNullable.of(null);

@@ -5,12 +5,10 @@ import feign.RequestTemplate;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.HttpHeaders;
-import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.common.user.authentication.service.SystemUserAuthenticationService;
 import uk.gov.hmcts.opal.service.filehandler.FileHandlerSystemUserContext;
 import uk.gov.hmcts.opal.service.filehandler.clients.FileHandlerClient;
 
-@Component
 @AllArgsConstructor
 public class FileHandlerRequestInterceptor implements RequestInterceptor {
 
@@ -27,7 +25,7 @@ public class FileHandlerRequestInterceptor implements RequestInterceptor {
         var systemUser = systemUserContext.getRequiredSystemUser();
         var token = authenticationServiceProvider.getObject().getSystemUserAuthenticationToken(systemUser);
 
-        template.header(HttpHeaders.AUTHORIZATION, "Bearer "  + token);
+        template.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 
 }

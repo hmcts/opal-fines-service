@@ -154,6 +154,7 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
+            .andExpect(jsonPath("$.historyItems.length()").value(2))
             .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
             .andExpect(jsonPath("$.historyItems[1].type").value("Enforcement"));
 
