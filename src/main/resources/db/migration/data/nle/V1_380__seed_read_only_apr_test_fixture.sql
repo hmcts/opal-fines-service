@@ -9,7 +9,7 @@
 *
 * Date          Author         Version     Nature of Change
 * ----------    -----------    --------    ----------------------------------------------------------------------------
-* 23/11/2026    TT             1.0         PO-10754 - create APR test data for PO-10906
+* 23/11/2026    TT             1.0         PO-11754 - create APR test data for PO-10906
 *                                          Based on original script V1_377__seed_read_only_apr_test_fixture.sql (commit b012f062a)
 *                                          Brought in line with database development standard.
 *
