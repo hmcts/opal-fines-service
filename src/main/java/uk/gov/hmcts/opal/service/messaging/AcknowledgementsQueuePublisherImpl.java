@@ -48,9 +48,9 @@ public class AcknowledgementsQueuePublisherImpl implements AcknowledgementsQueue
             String payload = objectMapper.writeValueAsString(message);
             jmsTemplate.execute(session -> sendMessage(session, payload), true);
         } catch (JacksonException ex) {
-            throw new IllegalArgumentException("Unable to serialize report queue message", ex);
+            throw new IllegalArgumentException("Unable to serialize acknowledgements queue message", ex);
         } catch (JmsException ex) {
-            throw new IllegalStateException("Unable to publish report queue message", ex);
+            throw new IllegalStateException("Unable to publish acknowledgements queue message", ex);
         }
     }
 
