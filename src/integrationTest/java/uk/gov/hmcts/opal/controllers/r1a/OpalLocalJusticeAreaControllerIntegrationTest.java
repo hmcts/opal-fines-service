@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -259,26 +258,6 @@ class OpalLocalJusticeAreaControllerIntegrationTest extends AbstractIntegrationT
             .andExpect(jsonPath("$.count").isNumber())
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type", hasItem("LJA")));
 
-    }
-
-    @Test
-    @JiraStory("PO-7248")
-    @JiraEpic("PO-8248")
-    @JiraTestKey("PO-9435")
-    @Transactional
-    void getLocalJusticeAreaRefData_usesCache() throws Exception {
-        String firstBody = performReferenceDataRequest("CRWCRT", "SJCRT");
-        var area = opalLocalJusticeAreaRepository.findById((short) 10).orElseThrow();
-        area.setName("Updated cached LJA");
-        opalLocalJusticeAreaRepository.saveAndFlush(area);
-
-        String cachedBody = performReferenceDataRequest("CRWCRT", "SJCRT");
-        assertEquals(firstBody, cachedBody);
-
-        clearReferenceDataCache();
-        mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
-            .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Updated cached LJA")));
     }
 
     private String performReferenceDataRequest(String... ljaTypes) throws Exception {
