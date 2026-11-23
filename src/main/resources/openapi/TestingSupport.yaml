@@ -1,0 +1,173 @@
+openapi: 3.1.1
+info:
+  title: Opal Fines Service - Testing Support
+  version: 1.0.0
+  description: APIs for supporting testing.
+paths:
+  /testing-support/interface-jobs:
+    post:
+      tags:
+        - Testing Support
+      summary: Create interface jobs
+      description: >
+        Add a list of interface jobs and associated files to the Opal database.
+        Each interface job is created in the requested business unit and requires
+        the Process and Allocate Payments permission for that business unit.
+      operationId: test_support_post_interface_jobs
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InterfaceJobsCreateRequest'
+      responses:
+        "200":
+          description: Interface jobs created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InterfaceJobsCreateResponse'
+        "400":
+          description: Bad request
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "401":
+          description: Unauthorized
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "403":
+          description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "500":
+          description: Internal server error
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "503":
+          description: Service unavailable
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+
+
+components:
+  schemas:
+    InterfaceJobsCreateRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/InterfaceJobsCreateItem'
+
+    InterfaceJobsCreateItem:
+      type: object
+      additionalProperties: false
+      required:
+        - business_unit_id
+        - interface_name
+        - status
+        - interface_file
+        - created_datetime
+      properties:
+        business_unit_id:
+          type: integer
+          format: int16
+          description: DB Mapping - interface_jobs.business_unit_id
+        interface_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_jobs.interface_name
+        status:
+          $ref: './InterfaceJobs.yaml#/components/schemas/InterfaceJobsJobStatus'
+          description: DB Mapping - interface_jobs.status
+        interface_file:
+          $ref: '#/components/schemas/InterfaceJobsCreateFileItem'
+          description: DB Mapping - interface_files.interface_job_id
+        created_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_jobs.created_datetime,interface_files.created_datetime
+        started_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_jobs.started_datetime
+        completed_datetime:
+          type: string
+          format: date-time
+          description: DB Mapping - interface_jobs.completed_datetime
+
+    InterfaceJobsCreateFileItem:
+      type: object
+      additionalProperties: false
+      required:
+        - file_name
+        - source
+        - override_inhibits
+        - record_count
+        - total_amount
+      properties:
+        file_name:
+          type: string
+          minLength: 1
+          description: DB Mapping - interface_files.file_name
+        source:
+          $ref: './InterfaceJobs.yaml#/components/schemas/InterfaceJobsFileSource'
+          description: DB Mapping - interface_files.source
+        override_inhibits:
+          type: boolean
+          description: DB Mapping - interface_files.override_inhibits
+        record_count:
+          type: integer
+          format: int16
+          minimum: 0
+          maximum: 32767
+          description: Number of payment records in the file. DB Mapping - interface_files.record_count
+        total_amount:
+          $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
+          description: Total payment amount in pence. DB Mapping - interface_files.total_amount
+        source_json_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_files.source_json_id
+        transformed_json_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_files.transformed_json_id
+
+    InterfaceJobsCreateResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_jobs
+      properties:
+        interface_jobs:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/InterfaceJobsCreateResponseItem'
+
+    InterfaceJobsCreateResponseItem:
+      type: object
+      additionalProperties: false
+      required:
+        - interface_job_id
+        - interface_file_id
+      properties:
+        interface_job_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_jobs.interface_job_id
+        interface_file_id:
+          $ref: './types.yaml#/components/schemas/BigInt'
+          description: DB Mapping - interface_files.interface_file_id
