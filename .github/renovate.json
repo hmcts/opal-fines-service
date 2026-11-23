@@ -3,6 +3,7 @@
   "extends": [
     "local>hmcts/.github:renovate-config"
   ],
+  "addLabels": ["ExtendedTests"],
   "packageRules": [
     {
       "description": "Keep the build JDK on Java 21 until a newer Java version is deliberately adopted",
@@ -14,12 +15,6 @@
       "matchPackageNames": ["cucumber-core", "cucumber-java", "cucumber-junit", "io.cucumber{/,}**"],
       "rangeStrategy": "pin",
       "allowedVersions": "7.23.0"
-    },
-    {
-      "description": "Keep com.networknt:json-schema-validator on v1 because JsonSchemaValidationService and DefendantDto still depend on the pre-v2 API removed in later major versions",
-      "matchManagers": ["gradle"],
-      "matchPackageNames": ["com.networknt:json-schema-validator", "com.networknt{/,}**"],
-      "allowedVersions": "<2.0.0"
     },
     {
       "matchDatasources": ["docker"],

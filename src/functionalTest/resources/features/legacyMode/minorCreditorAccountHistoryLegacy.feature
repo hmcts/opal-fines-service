@@ -1,15 +1,22 @@
 @Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory
 Feature: Minor Creditor Account History API In Legacy Mode
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
   Scenario: Legacy minor creditor account history - E2E.01 Happy path history retrieval
-    Given a minor creditor account with representative history exists for submitted by "MCHIST101"
-    When I request minor creditor account history for the created minor creditor account
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request minor creditor account history for the seeded legacy minor creditor account
     Then the minor creditor account history response is returned as documented
     And the minor creditor account history contains at least the following item counts
-      | Amendment | 3 |
       | Financial | 3 |
-      | Note      | 3 |
+      | Note      | 1 |
+    And the minor creditor account history is ordered newest first
+
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  Scenario: Legacy minor creditor account history - E2E.01a Happy path history retrieval with filters
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    # Reproduces the nested legacy history detail mapping defect tracked in PO-11461.
+    When I request minor creditor account history for the seeded legacy minor creditor account with query "dateFrom=2025-01-01&dateTo=2026-11-30&itemTypes=amendment,financial,note"
+    Then the minor creditor account history response is returned as documented
     And the minor creditor account history is ordered newest first
 
   @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
@@ -35,16 +42,21 @@ Feature: Minor Creditor Account History API In Legacy Mode
     Then the minor creditor account history error response matches the standard problem detail contract for status 404
     And the minor creditor account history error response contains no account data
 
-  @cleanUpData @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
+  @JIRA-STORY:PO-2642 @JIRA-EPIC:PO-2653
   Scenario: E2E.05 Filter contract and date range behaviour
-    Given a minor creditor account with representative history exists for submitted by "MCHIST105"
-    When I request minor creditor account history for the created minor creditor account
+    Given I am testing as the "opal-test@dev.platform.hmcts.net" user
+    When I request minor creditor account history for the seeded legacy minor creditor account
     Then the minor creditor account history response is returned as documented
-    And the minor creditor account history includes records outside the remembered date range
-    When I request minor creditor account history for the created minor creditor account using the remembered date range and itemTypes "amendment,note"
-    Then the minor creditor account history response contains only items on or after the remembered dateFrom
-    And the minor creditor account history response contains only items on or before the remembered dateTo
-    And the minor creditor account history excludes records outside the remembered date range
+    And the minor creditor account history contains at least the following item counts
+      | Financial | 3 |
+      | Amendment | 2 |
+      | Note      | 1 |
+    # JCDE account 20730000000836 has known history on 2026-11-05.
+    # Out-of-range exclusion coverage requires legacy records on additional dates.
+    When I request minor creditor account history for the seeded legacy minor creditor account with query "dateFrom=2026-11-05&dateTo=2026-11-05&itemTypes=amendment,note"
+    Then the minor creditor account history response is returned as documented
+    And the minor creditor account history response contains only items on or after "2026-11-05"
+    And the minor creditor account history response contains only items on or before "2026-11-05"
     And the minor creditor account history contains only the following item types
       | Amendment |
       | Note      |

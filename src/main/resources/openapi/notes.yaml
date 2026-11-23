@@ -9,6 +9,9 @@ paths:
       tags:
         - notes
       summary: Add a note to an entity
+      description: >-
+        Suspense item notes require Manage Suspense Items permission in the supplied business unit
+        and the release-1c-suspense feature flag. Existing account notes require Add account activity notes.
       operationId: addNote
       parameters:
         - in: header
@@ -20,7 +23,9 @@ paths:
             format: int16
         - in: header
           name: If-Match
-          description: Version of the defendant account. DB Mapping - defendant_accounts.version
+          description: >-
+            Version of the associated defendant account, creditor account or suspense item.
+            An uninitialised suspense item version is treated as 0.
           required: true
           schema:
             type: string
@@ -51,6 +56,18 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         "403":
           description: Forbidden
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "404":
+          description: Associated record not found or feature disabled
+          content:
+            application/json+problem:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        "409":
+          description: Associated record version does not match If-Match
           content:
             application/json+problem:
               schema:

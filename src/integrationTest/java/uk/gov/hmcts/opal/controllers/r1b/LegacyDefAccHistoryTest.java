@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
@@ -23,7 +24,6 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.ResultActions;
@@ -38,10 +38,6 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @DisplayName("Legacy Defendant Account History Integration Tests")
 @Tag("ExtendedTest")
 @Slf4j(topic = "opal.LegacyDefAccHistoryTest")
@@ -154,8 +150,7 @@ class LegacyDefAccHistoryTest extends AbstractLegacyDefendantsIntegrationTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.historyItems[0].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[3].type").value("Enforcement"));
+            .andExpect(jsonPath("$.historyItems[*].type").value(contains("Note", "Enforcement")));
 
         ArgumentCaptor<GetDefendantAccountHistoryLegacyRequest> requestCaptor =
             ArgumentCaptor.forClass(GetDefendantAccountHistoryLegacyRequest.class);

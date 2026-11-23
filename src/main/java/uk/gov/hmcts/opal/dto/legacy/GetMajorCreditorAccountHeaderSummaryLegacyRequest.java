@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
@@ -18,5 +19,6 @@ import lombok.NoArgsConstructor;
 public class GetMajorCreditorAccountHeaderSummaryLegacyRequest {
 
     @XmlElement(name = "creditor_account_id", required = true)
+    @JsonProperty(value = "creditor_account_id")
     private String creditorAccountId;
 }

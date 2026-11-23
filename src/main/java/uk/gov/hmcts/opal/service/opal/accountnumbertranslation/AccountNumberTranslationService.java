@@ -29,6 +29,7 @@ public class AccountNumberTranslationService {
         InterfaceFileCommonDataExtract interfaceFileCommonDataExtract,
         BusinessUnitEntity businessUnit) {
         TransformedInterfaceFileData transformed = new TransformedInterfaceFileData(interfaceFileCommonDataExtract);
+        transformed.setFileName(interfaceFileEntity.getFileName());
 
         for (Transaction transaction : interfaceFileCommonDataExtract.getTransactions()) {
             if (transaction.isCheque()) {

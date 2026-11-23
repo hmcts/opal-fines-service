@@ -2,6 +2,7 @@ package uk.gov.hmcts.opal.service.opal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -14,8 +15,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.alternatepaymentreference.AlternatePaymentReferenceEntity;
 import uk.gov.hmcts.opal.repository.AccountTransferRepository;
 import uk.gov.hmcts.opal.repository.AllocationRepository;
+import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
@@ -39,6 +42,9 @@ class DefendantAccountDeletionServiceTest {
 
     @Mock
     private DefendantAccountRepository defendantAccountRepository;
+
+    @Mock
+    private AlternatePaymentReferenceRepository alternatePaymentReferenceRepository;
 
     @Mock
     private DefendantAccountPartiesRepository defendantAccountPartiesRepository;
@@ -100,7 +106,10 @@ class DefendantAccountDeletionServiceTest {
     @Test
     void deleteDefendantAccountAndAssociatedData_deletesDocumentInstancesAfterAccountTransfers() {
         long defendantAccountId = 1001L;
+        AlternatePaymentReferenceEntity alternatePaymentReference = mock(AlternatePaymentReferenceEntity.class);
         when(defendantAccountRepository.existsById(defendantAccountId)).thenReturn(true);
+        when(alternatePaymentReferenceRepository.findByDefendantAccount_defendantAccountId(defendantAccountId))
+            .thenReturn(List.of(alternatePaymentReference));
         when(impositionRepository.findImpositionIdsByDefendantAccountId(defendantAccountId))
             .thenReturn(List.of(2001L, 2002L));
         when(defendantTransactionRepository.findDefendantAccountTransactionIdsByDefendantAccountId(defendantAccountId))
@@ -109,11 +118,15 @@ class DefendantAccountDeletionServiceTest {
         service.deleteDefendantAccountAndAssociatedData(defendantAccountId);
 
         InOrder inOrder = inOrder(
+            alternatePaymentReferenceRepository,
             accountTransferRepository,
             documentInstanceRepository,
             creditorAccountTransactional,
             defendantAccountRepository
         );
+        inOrder.verify(alternatePaymentReferenceRepository)
+            .findByDefendantAccount_defendantAccountId(defendantAccountId);
+        inOrder.verify(alternatePaymentReferenceRepository).deleteAll(List.of(alternatePaymentReference));
         inOrder.verify(accountTransferRepository).deleteByDefendantAccount_DefendantAccountId(defendantAccountId);
         inOrder.verify(documentInstanceRepository).deleteByAssociatedRecordTypeAndAssociatedRecordId(
             AssociatedRecordType.DEFENDANT_ACCOUNTS.getLabel(),
@@ -142,6 +155,6 @@ class DefendantAccountDeletionServiceTest {
             () -> service.deleteDefendantAccountAndAssociatedData(defendantAccountId)
         );
 
-        verifyNoInteractions(documentInstanceRepository, impositionRepository);
+        verifyNoInteractions(alternatePaymentReferenceRepository, documentInstanceRepository, impositionRepository);
     }
 }

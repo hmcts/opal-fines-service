@@ -18,7 +18,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.SEARCH_AND_VIEW_ACCOUNTS;
-import static uk.gov.hmcts.opal.service.legacy.LegacyMajorCreditorAccountService.GET_MAJOR_CREDITOR_ACCOUNT_HISTORY;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -34,7 +33,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.client.HttpClientErrorException;
@@ -56,15 +54,12 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ActiveProfiles({"integration", "legacy"})
-@TestPropertySource(properties = {
-    "launchdarkly.enabled=false",
-    "launchdarkly.default-flag-values.release-1b=true"
-})
 @DisplayName("Major Creditor History Legacy Integration Tests")
 class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
 
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/major-creditor-accounts/{id}/history";
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY = "getMajorCreditorAccountHistory";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
 
     @MockitoBean

@@ -1,7 +1,7 @@
 #!groovy
 import uk.gov.hmcts.contino.GithubAPI
 
-@Library("Infrastructure@2.13.5")
+@Library("Infrastructure@2.13.6")
 
 def type = "java"
 def product = "opal"
@@ -157,6 +157,16 @@ def publishIntegrationResults() {
   steps.junit allowEmptyResults: true, testResults: '**/test-results/integration/*.xml'
   failBuildOnUnstableResults()
   steps.archiveArtifacts allowEmptyArchive: true, artifacts: 'integration-output/**/*'
+
+  publishHTML target: [
+      allowMissing         : true,
+      alwaysLinkToLastBuild: true,
+      keepAll              : true,
+      reportDir            : "integration-output",
+      reportFiles          : "spring-test-context-cache.json",
+      includes             : "spring-test-context-cache.json",
+      reportName           : "Spring Test Context Cache Report"
+  ]
 
   publishHTML target: [
       allowMissing         : true,
