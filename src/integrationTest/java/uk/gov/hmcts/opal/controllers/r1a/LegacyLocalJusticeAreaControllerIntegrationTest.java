@@ -1,10 +1,11 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.clearInvocations;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,9 +13,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static uk.gov.hmcts.opal.support.SpyInvocationSupport.countInvocationsByMethodName;
 
 import java.util.stream.Stream;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -22,10 +24,14 @@ import org.junit.jupiter.api.parallel.Isolated;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -53,17 +59,71 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     private static final String GET_LJAS_REF_DATA_RESPONSE =
         SchemaPaths.REFERENCE_DATA + "/getLJARefDataResponse.json";
 
-    @MockitoSpyBean
+    @Autowired
     private CacheManager cacheManager;
 
-    @MockitoSpyBean
+    @Autowired
     private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
 
-    @MockitoSpyBean
+    @Autowired
     private JsonSchemaValidationService jsonSchemaValidationService;
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    void getLocalJusticeArea_readsLegacyTableWhenIdsOverlap() throws Exception {
+        short id = 1;
+        LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();
+        legacyArea.setName("Legacy Split LJA");
+        localJusticeAreaLegacyRepository.saveAndFlush(legacyArea);
+        OpalLocalJusticeAreaEntity opalArea = opalLocalJusticeAreaRepository.findById(id).orElseGet(
+            () -> OpalLocalJusticeAreaEntity.builder()
+                .localJusticeAreaId(id)
+                .addressLine1("Split Street")
+                .ljaType(OpalLocalJusticeAreaType.LJA)
+                .build());
+        opalArea.setName("Opal Split LJA");
+        opalLocalJusticeAreaRepository.saveAndFlush(opalArea);
+
+        mockMvc.perform(get(URL_BASE + "/" + id))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name").value("Legacy Split LJA"));
+    }
+
+    @BeforeEach
+    @AfterEach
+    void clearReferenceDataCache() {
+        var cache = cacheManager.getCache("legacyLjaReferenceDataCache");
+        if (cache != null) {
+            cache.clear();
+        }
+    }
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    void getLocalJusticeAreaRefData_readsLegacyTableWhenIdsOverlap() throws Exception {
+        short id = 1;
+        LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();
+        legacyArea.setName("Legacy Split LJA");
+        localJusticeAreaLegacyRepository.saveAndFlush(legacyArea);
+        OpalLocalJusticeAreaEntity opalArea = opalLocalJusticeAreaRepository.findById(id).orElseGet(
+            () -> OpalLocalJusticeAreaEntity.builder()
+                .localJusticeAreaId(id)
+                .addressLine1("Split Street")
+                .ljaType(OpalLocalJusticeAreaType.LJA)
+                .build());
+        opalArea.setName("Opal Split LJA");
+        opalLocalJusticeAreaRepository.saveAndFlush(opalArea);
+
+        mockMvc.perform(get(URL_BASE).param("q", "Split LJA").param(LJA_TYPE_PARAM, "LJA"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].name", hasItem("Legacy Split LJA")))
+            .andExpect(jsonPath("$.refData[*].name", not(hasItem("Opal Split LJA"))));
+    }
 
     private static Stream<Arguments> multipleLjaTypeRequests() {
         return Stream.of(
@@ -78,8 +138,6 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
     void getLocalJusticeAreaById_returnsLocalJusticeAreaFromLegacyTable() throws Exception {
-        clearRepositoryInvocations();
-
         mockMvc.perform(get(URL_BASE + "/1"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -90,7 +148,6 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.addressLine3").value("666 Trial Street"))
             .andExpect(jsonPath("$.postcode").value("TR12 1TR"));
 
-        assertOnlyLegacyRepositoryUsed("findById");
     }
 
     @Test
@@ -98,20 +155,15 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     @JiraStory("PO-304")
     @JiraEpic("PO-304")
     void getLocalJusticeAreaById_returnsNotFound() throws Exception {
-        clearRepositoryInvocations();
-
         mockMvc.perform(get(URL_BASE + "/2"))
             .andExpect(status().isNotFound());
 
-        assertOnlyLegacyRepositoryUsed("findById");
     }
 
     @Test
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
     void getLocalJusticeAreaRefData_returnsAllDataFromLegacyTable() throws Exception {
-        clearRepositoryInvocations();
-
         ResultActions actions = mockMvc.perform(get(URL_BASE));
         String body = actions.andReturn().getResponse().getContentAsString();
 
@@ -125,15 +177,12 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type", hasItem("SJCRT")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
-        assertOnlyLegacyRepositoryUsed("findBy");
     }
 
     @Test
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
     void getLocalJusticeAreaRefData_filtersBySingleType() throws Exception {
-        clearRepositoryInvocations();
-
         ResultActions actions = mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "LJA"));
         String body = actions.andReturn().getResponse().getContentAsString();
 
@@ -142,7 +191,6 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type", hasItem("LJA")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
-        assertOnlyLegacyRepositoryUsed("findBy");
     }
 
     @Test
@@ -168,7 +216,6 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     void getLocalJusticeAreaRefData_filtersByMultipleTypes(MockHttpServletRequestBuilder requestBuilder)
         throws Exception {
 
-        clearRepositoryInvocations();
         ResultActions actions = mockMvc.perform(requestBuilder);
         String body = actions.andReturn().getResponse().getContentAsString();
 
@@ -178,15 +225,12 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 10)].lja_type", hasItem("SJCRT")));
 
         jsonSchemaValidationService.validateOrError(body, GET_LJAS_REF_DATA_RESPONSE);
-        assertOnlyLegacyRepositoryUsed("findBy");
     }
 
     @Test
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
     void getLocalJusticeAreaRefData_returnsStableCachedResults() throws Exception {
-        clearRepositoryInvocations();
-
         String firstBody = performReferenceDataRequest("CRWCRT", "SJCRT");
         Object firstCache = cacheManager.getCache("legacyLjaReferenceDataCache");
         String secondBody = performReferenceDataRequest("SJCRT", "CRWCRT");
@@ -195,37 +239,37 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
         assertEquals(firstBody, secondBody);
         assertNotNull(firstCache);
         assertEquals(firstCache, secondCache);
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaLegacyRepository, "findBy"));
-        assertEquals(0, countInvocationsByMethodName(opalLocalJusticeAreaRepository, "findBy"));
     }
 
     @Test
     @JiraStory("PO-2757")
     @JiraEpic("PO-2750")
     void getLocalJusticeAreaRefData_filtersByQueryAndType() throws Exception {
-        clearRepositoryInvocations();
-
         mockMvc.perform(get(URL_BASE).param("q", "1").param(LJA_TYPE_PARAM, "LJA"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").isNumber())
             .andExpect(jsonPath("$.refData[?(@.local_justice_area_id == 1)].lja_type", hasItem("LJA")));
 
-        assertOnlyLegacyRepositoryUsed("findBy");
     }
 
     @Test
     @JiraStory("PO-7248")
     @JiraEpic("PO-8248")
+    @Transactional
     void getLocalJusticeAreaRefData_usesCache() throws Exception {
-        clearRepositoryInvocations();
-
         String firstBody = performReferenceDataRequest("CRWCRT", "SJCRT");
-        String secondBody = performReferenceDataRequest("CRWCRT", "SJCRT");
+        var area = localJusticeAreaLegacyRepository.findById((short) 10).orElseThrow();
+        area.setName("Updated cached LJA");
+        localJusticeAreaLegacyRepository.saveAndFlush(area);
 
-        assertEquals(firstBody, secondBody);
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaLegacyRepository, "findBy"));
-        assertEquals(0, countInvocationsByMethodName(opalLocalJusticeAreaRepository, "findBy"));
+        String cachedBody = performReferenceDataRequest("CRWCRT", "SJCRT");
+        assertEquals(firstBody, cachedBody);
+
+        clearReferenceDataCache();
+        mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
+            .andExpect(status().isOk())
+            .andExpect(content().string(containsString("Updated cached LJA")));
     }
 
     @Test
@@ -257,16 +301,6 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"criteria\":\"2\"}"))
             .andExpect(status().isOk());
-    }
-
-    private void clearRepositoryInvocations() {
-        clearInvocations(opalLocalJusticeAreaRepository);
-        clearInvocations(localJusticeAreaLegacyRepository);
-    }
-
-    private void assertOnlyLegacyRepositoryUsed(String methodName) {
-        assertEquals(1, countInvocationsByMethodName(localJusticeAreaLegacyRepository, methodName));
-        assertEquals(0, countInvocationsByMethodName(opalLocalJusticeAreaRepository, methodName));
     }
 
     private String performReferenceDataRequest(String... ljaTypes) throws Exception {
