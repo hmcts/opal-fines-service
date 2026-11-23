@@ -725,6 +725,61 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
+    void getMinorCreditorAccount_whenLegacyBusinessUnitLookupThrows_returnsAccountWithNullBusinessUnit() {
+        MinorCreditorAccountResponse mappedResponse = stubAccountForFailedBusinessUnitResolution();
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenThrow(
+            new RuntimeException("Legacy gateway unavailable"));
+
+        MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
+
+        assertSame(mappedResponse, result);
+        assertEquals(101L, result.getCreditorAccountId());
+        assertNull(result.getBusinessUnitId());
+        assertTrue(result.getRepayment());
+    }
+
+    @Test
+    void getMinorCreditorAccount_whenLegacyBusinessUnitIsMissing_returnsAccountWithNullBusinessUnit() {
+        MinorCreditorAccountResponse mappedResponse = stubAccountForFailedBusinessUnitResolution();
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenReturn(
+            new Response<>(HttpStatus.OK, GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder().build(), null,
+                null));
+
+        MinorCreditorAccountResponse result = legacyMinorCreditorService.getMinorCreditorAccount(101L);
+
+        assertSame(mappedResponse, result);
+        assertEquals(101L, result.getCreditorAccountId());
+        assertNull(result.getBusinessUnitId());
+        assertTrue(result.getRepayment());
+    }
+
+    private MinorCreditorAccountResponse stubAccountForFailedBusinessUnitResolution() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        LegacyGetMinorCreditorAccountResponse legacyResponse =
+            LegacyGetMinorCreditorAccountResponse.builder().creditorAccountId(101L).build();
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(101L);
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyGetMinorCreditorAccountResponse.class), any(), any())).thenReturn(
+            new Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse)).thenReturn(
+            mappedResponse);
+
+        when(creditorAccountRepository.findById(101L)).thenReturn(
+            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 10).repayment(true).build()));
+
+        return mappedResponse;
+    }
+
+    @Test
     void getHeaderSummary_shouldCallResponseMapper() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
             GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
