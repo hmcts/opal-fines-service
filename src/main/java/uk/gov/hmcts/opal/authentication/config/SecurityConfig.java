@@ -24,7 +24,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
 import uk.gov.hmcts.opal.common.config.OpalCommonConfiguration;
+import uk.gov.hmcts.opal.common.spring.security.AuthenticationLogging;
 import uk.gov.hmcts.opal.common.spring.security.OpalJwtAuthenticationProvider;
+import uk.gov.hmcts.opal.common.spring.security.OpalJwtIssuerAuthenticationManagerResolver;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CustomAuthenticationExceptions;
 import uk.gov.hmcts.opal.common.user.authentication.exception.CustomOauth2AuthenticationEntryPoint;
 import uk.gov.hmcts.opal.common.user.authorisation.client.service.UserStateClientService;
@@ -39,6 +41,7 @@ public class SecurityConfig {
 
     private final CustomAuthenticationExceptions customAuthenticationExceptions;
     private final CustomOauth2AuthenticationEntryPoint customOauth2AuthenticationEntryPoint;
+    private final AuthenticationLogging authenticationLoggingService;
 
     private static final String[] AUTH_WHITELIST = {
         "/swagger-ui.html",
@@ -81,13 +84,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver(
+    OpalJwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver(
         InternalAuthConfigurationProperties authProps,
         OpalJwtAuthenticationProvider finesJwtAuthenticationProvider) {
 
         AuthenticationManager manager = finesJwtAuthenticationProvider::authenticate;
         Map<String, AuthenticationManager> managers = Map.of(authProps.getIssuerUri(), manager);
-        return new JwtIssuerAuthenticationManagerResolver(managers::get);
+        return new OpalJwtIssuerAuthenticationManagerResolver(managers::get, authenticationLoggingService);
     }
 
     @Bean
