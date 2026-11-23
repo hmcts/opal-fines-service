@@ -26,6 +26,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
+import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
 import uk.gov.hmcts.opal.dto.legacy.Defendant;
@@ -40,6 +41,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
 import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyUpdateMinorCreditorAccountResponse;
+import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyCreditorAccountPaymentDetails;
 import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
@@ -671,6 +673,54 @@ class LegacyMinorCreditorServiceTest {
         assertEquals(101L, result.getCreditorAccountId());
         assertEquals((short) 77, result.getBusinessUnitId());
         assertEquals(true, result.getRepayment());
+
+        verify(gatewayService, never()).postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any());
+
+        verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+    }
+
+    @Test
+    void getMinorCreditorAccount_shouldUseLegacyBusinessUnitWhenR1B11IsEnabled() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        LegacyGetMinorCreditorAccountResponse legacyResponse = LegacyGetMinorCreditorAccountResponse.builder()
+            .creditorAccountId(101L)
+            .accountVersion(BigInteger.valueOf(7L))
+            .partyDetails(LegacyPartyDetails.builder().build())
+            .payment(LegacyCreditorAccountPaymentDetails.builder()
+                .payByBacs(true)
+                .holdPayment(false)
+                .build())
+            .build();
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyGetMinorCreditorAccountResponse.class), any(), any()))
+            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse))
+            .thenReturn(new MinorCreditorAccountResponse());
+
+        when(creditorAccountRepository.findById(101L)).thenReturn(Optional.of(CreditorAccountEntity
+            .builder().businessUnitId((short) 10).repayment(true).build()));
+
+        Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response = new Response<>(HttpStatus.OK,
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .businessUnit(BusinessUnitSummary.builder().businessUnitId("123").build()).build(), null, null);
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenReturn(response);
+
+        MinorCreditorAccountResponse minorCreditorAccountResponse = legacyMinorCreditorService.getMinorCreditorAccount(101L);
+
+        assertEquals((short) 123, minorCreditorAccountResponse.getBusinessUnitId());
+        assertTrue(minorCreditorAccountResponse.getRepayment());
+
+        verify(gatewayService).postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder().creditorAccountId("101").build()), any());
     }
 
     @Test
