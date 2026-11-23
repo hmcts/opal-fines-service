@@ -713,7 +713,8 @@ class LegacyMinorCreditorServiceTest {
         when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
             eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class), any(), any())).thenReturn(response);
 
-        MinorCreditorAccountResponse minorCreditorAccountResponse = legacyMinorCreditorService.getMinorCreditorAccount(101L);
+        MinorCreditorAccountResponse minorCreditorAccountResponse = legacyMinorCreditorService
+            .getMinorCreditorAccount(101L);
 
         assertEquals((short) 123, minorCreditorAccountResponse.getBusinessUnitId());
         assertTrue(minorCreditorAccountResponse.getRepayment());
