@@ -733,17 +733,17 @@ components:
           type:
             - string
             - 'null'
-          description: Derived from payments_in.additional_information.payer_details.individual.forenames
+          description: Derived from parties.forenames via the associated Miscellaneous Account; legacy JSON fallback only without a durable association.
         surname:
           type:
             - string
             - 'null'
-          description: Derived from payments_in.additional_information.payer_details.individual.surname
+          description: Derived from parties.surname via the associated Miscellaneous Account; legacy JSON fallback only without a durable association.
         organisation_name:
           type:
             - string
             - 'null'
-          description: Derived from payments_in.additional_information.payer_details.organisation.organisation_name
+          description: Derived from parties.organisation_name via the associated Miscellaneous Account; legacy JSON fallback only without a durable association.
 
     InterfacePaymentAdditionalInformation:
       type: object
