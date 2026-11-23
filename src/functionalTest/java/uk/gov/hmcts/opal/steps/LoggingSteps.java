@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -100,6 +101,7 @@ public class LoggingSteps extends BaseStepDef {
                 && response.size() == expectedCount
                 && response.valueStream().allMatch(log -> matchesExpectedDraftAccountLog(log, row, individualIds)),
                 "exactly " + expectedCount + " logs containing draft accounts " + individualIds);
+            recordPdpoEvidence(criteria, row.get("business_identifier"));
         }
     }
 
@@ -115,6 +117,7 @@ public class LoggingSteps extends BaseStepDef {
         return row.get("created_by_id").equals(log.path("created_by").path("id").asString())
             && row.get("created_by_type").equals(log.path("created_by").path("type").asString())
             && row.get("business_identifier").equals(log.path("business_identifier").asString())
+            && (!row.containsKey("category") || row.get("category").equals(log.path("category").asString()))
             && log.path("individuals").isArray();
     }
 
@@ -137,7 +140,14 @@ public class LoggingSteps extends BaseStepDef {
             latestPdpoSearchResponse = waitForPdpoLogs(criteria,
                 response -> coversDraftAccountList(response, row, ids, requestedAt),
                 "consultation logs covering each created draft account exactly once: " + ids);
+            recordPdpoEvidence(criteria, row.get("business_identifier"));
         }
+    }
+
+    private void recordPdpoEvidence(Map<String, Object> criteria, String businessIdentifier) {
+        Serenity.recordReportData().withTitle("Persisted PDPO evidence: " + businessIdentifier)
+            .andContents("Search criteria:\n" + writeJson(criteria)
+                + "\nPersisted logging-service response:\n" + latestPdpoSearchResponse.toPrettyString());
     }
 
     private boolean coversDraftAccountList(JsonNode response, Map<String, String> row,

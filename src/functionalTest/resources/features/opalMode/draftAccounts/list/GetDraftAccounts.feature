@@ -119,7 +119,7 @@ Feature: List Draft Accounts
     When I request all draft accounts
     Then the request succeeds
 
-    # Assert that logging has PDPO entries for each created draft id
+    # Assert consultation records cover all created draft IDs; the response is attached to the report.
     Then the logging service contains draft-account PDPO logs covering these operations:
       | created_by_id | created_by_type | business_identifier           |
       | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant |
@@ -138,7 +138,7 @@ Feature: List Draft Accounts
     When I request all draft accounts
     Then the request succeeds
 
-    # Assert that logging has PDPO entries for each created draft id for both Business identifiers
+    # Assert both consultations cover all created draft IDs across records; responses are attached to the report.
     Then the logging service contains draft-account PDPO logs covering these operations:
       | created_by_id | created_by_type | business_identifier                    |
       | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant          |

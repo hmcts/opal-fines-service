@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.steps;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
@@ -19,8 +20,10 @@ import io.restassured.specification.RequestSpecification;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -30,6 +33,14 @@ import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.context.ScenarioContextHolder;
 
 class LoggingStepsTest {
+
+    private MockedStatic<Serenity> serenity;
+
+    @BeforeEach
+    void mockReporting() {
+        serenity = mockStatic(Serenity.class, RETURNS_DEEP_STUBS);
+    }
+
 
     private static final String LOG = """
         {"created_by":{"id":"actor","type":"OPAL_USER_ID"},
@@ -42,6 +53,7 @@ class LoggingStepsTest {
 
     @AfterEach
     void clearContext() {
+        serenity.close();
         ScenarioContextHolder.clear();
         Thread.interrupted();
     }
@@ -223,6 +235,11 @@ class LoggingStepsTest {
             var criteria = new ObjectMapper().readTree(body.getValue());
             assertThat(criteria.has("individual_identifier")).isFalse();
             assertThat(criteria.path("created_after").asString()).isEqualTo("2026-11-17");
+            ArgumentCaptor<String> evidence = ArgumentCaptor.forClass(String.class);
+            verify(Serenity.recordReportData().withTitle(
+                "Persisted PDPO evidence: Get Draft Account - Defendant")).andContents(evidence.capture());
+            assertThat(evidence.getValue()).contains("Search criteria:", "Persisted logging-service response:",
+                "123", "456", "DRAFT_ACCOUNT", "Consultation", "2026-11-17T12:00:01Z");
         }
     }
 
@@ -262,6 +279,28 @@ class LoggingStepsTest {
 
             assertThatThrownBy(() -> new LoggingSteps().loggingServiceCoversDraftAccountList(listOperations()))
                 .isInstanceOf(IllegalStateException.class).hasCauseInstanceOf(InterruptedException.class);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Consultation", "Collection"})
+    void checksRequestedCategory(String actualCategory) {
+        String log = LOG.replace("\"individuals\":", "\"category\":\"" + actualCategory + "\",\"individuals\":");
+        RequestSpecification request = requestReturning("[" + log + "]");
+        DataTable expected = DataTable.create(List.of(
+            List.of("created_by_id", "created_by_type", "business_identifier", "individual_id", "expected_count",
+                "category"),
+            List.of("actor", "OPAL_USER_ID", "Submit Draft Account - Defendant", "123", "1", "Consultation")),
+            new DataTableTypeRegistryTableConverter(new DataTableTypeRegistry(Locale.UK)));
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+            if (actualCategory.equals("Consultation")) {
+                new LoggingSteps().loggingServiceContainsThesePdpoLogs(expected);
+            } else {
+                Thread.currentThread().interrupt();
+                assertThatThrownBy(() -> new LoggingSteps().loggingServiceContainsThesePdpoLogs(expected))
+                    .isInstanceOf(IllegalStateException.class).hasMessageContaining("Interrupted");
+            }
         }
     }
 
