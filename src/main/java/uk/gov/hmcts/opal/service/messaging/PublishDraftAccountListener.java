@@ -12,14 +12,14 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.PublishDraftAccountListener")
-@ConditionalOnExpression("${opal.publish-draft.service-bus.consumer-enabled} == true "
+@ConditionalOnExpression("${opal.publish-draft-accounts.service-bus.consumer-enabled} == true "
     + "and '${opal.automated-task:}' == ''")
 public class PublishDraftAccountListener {
 
     private final PublishDraftAccountConsumerService consumer;
 
     @JmsListener(
-        destination = "${opal.publish-draft.service-bus.queue-name}",
+        destination = "${opal.publish-draft-accounts.service-bus.queue-name}",
         containerFactory = "opalFinesConsumerConnectionFactory"
     )
     public void onMessage(Message message) throws JMSException {

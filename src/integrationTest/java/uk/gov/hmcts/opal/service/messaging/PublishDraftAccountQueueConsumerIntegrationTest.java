@@ -32,10 +32,8 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
 @ActiveProfiles({"integration"})
 @TestPropertySource(properties = {
-    "opal.publish-draft.service-bus.consumer-enabled=false",
-    "opal.publish-draft.service-bus.queue-name=publish-draft-account-queue",
-    "opal.report.service-bus.consumer-enabled=true",
-    "opal.publish-draft.service-bus.consumer-enabled=true",
+    "opal.publish-draft-accounts.service-bus.consumer-enabled=true",
+    "opal.publish-draft-accounts.service-bus.queue-name=publish-draft-account-queue",
     "opal.automated-task=",
 })
 @Sql(scripts = "classpath:db/insertData/insert_into_draft_accounts_vpfpo_publishing.sql",
@@ -92,7 +90,7 @@ class PublishDraftAccountQueueConsumerIntegrationTest extends AbstractIntegratio
     @DisplayName("Fails when draft account cannot be found")
     @JiraStory("PO-10665")
     @JiraEpic("PO-7462")
-    void DraftAccountNotFoundFails() throws Exception {
+    void draftAccountNotFoundFails() throws Exception {
         PublishDraftAccountQueueMessage message = publishDraftAccountQueueMessage(400L);
         assertThatThrownBy(() -> queueMessage(message))
             .isInstanceOf(EntityNotFoundException.class)

@@ -191,6 +191,11 @@ opal:
     service-bus:
       queue-name: ${ACKNOWLEDGEMENTS_QUEUE_NAME:VPFPO-acknowledgements-queue}
 
+  publish-draft-accounts:
+    service-bus:
+      queue-name: ${SERVICEBUS_PUBLISH_DRAFT_ACCOUNT_QUEUE_NAME:publish-draft-account-queue}
+      consumer-enabled: ${PUBLISH_DRAFT_ACCOUNT_CONSUMER_ENABLED:false}
+
   interface-jobs:
     service-bus:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
