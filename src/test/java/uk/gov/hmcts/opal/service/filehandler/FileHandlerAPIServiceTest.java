@@ -153,7 +153,7 @@ class FileHandlerAPIServiceTest {
             .isSameAs(notFound);
 
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
-        verifyNoInteractions(securityEventLoggingService);
+        verifyAuthSecurityLogging();
     }
 
     @Test
@@ -178,6 +178,16 @@ class FileHandlerAPIServiceTest {
             .hasCause(failure);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
         verifyNoInteractions(securityEventLoggingService);
+    }
+
+    @Test
+    void getInterfaceFileContent_notFoundPropogatesFeignNotFoundAndLogsSecurityEvent() {
+        FeignException.NotFound notFound = (FeignException.NotFound) feignException(404, "Not Found");
+        when(client.getInterfaceFileContent(INTERFACE_FILE_ID)).thenThrow(notFound);
+
+        assertThatThrownBy(() -> service.getInterfaceFileContent(SystemUserEnum.OPAL_SYSTEM_USER, INTERFACE_FILE_ID))
+            .isSameAs(notFound);
+        verifyAuthSecurityLogging();
     }
 
     @Test
