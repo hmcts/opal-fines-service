@@ -757,28 +757,6 @@ class LegacyMinorCreditorServiceTest {
         assertTrue(result.getRepayment());
     }
 
-    private MinorCreditorAccountResponse stubAccountForFailedBusinessUnitResolution() {
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
-
-        LegacyGetMinorCreditorAccountResponse legacyResponse =
-            LegacyGetMinorCreditorAccountResponse.builder().creditorAccountId(101L).build();
-        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
-        mappedResponse.setCreditorAccountId(101L);
-
-        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT),
-            eq(LegacyGetMinorCreditorAccountResponse.class), any(), any())).thenReturn(
-            new Response<>(HttpStatus.OK, legacyResponse, null, null));
-
-        when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse)).thenReturn(
-            mappedResponse);
-
-        when(creditorAccountRepository.findById(101L)).thenReturn(
-            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 10).repayment(true).build()));
-
-        return mappedResponse;
-    }
-
     @Test
     void getHeaderSummary_shouldCallResponseMapper() {
         GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyResponse =
@@ -1014,5 +992,27 @@ class LegacyMinorCreditorServiceTest {
             null
         );
         verify(updateMinorCreditorAccountResponseMapper).toMinorCreditorAccountResponse(legacyResponse);
+    }
+
+    private MinorCreditorAccountResponse stubAccountForFailedBusinessUnitResolution() {
+        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
+            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
+
+        LegacyGetMinorCreditorAccountResponse legacyResponse =
+            LegacyGetMinorCreditorAccountResponse.builder().creditorAccountId(101L).build();
+        MinorCreditorAccountResponse mappedResponse = new MinorCreditorAccountResponse();
+        mappedResponse.setCreditorAccountId(101L);
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT),
+            eq(LegacyGetMinorCreditorAccountResponse.class), any(), any())).thenReturn(
+            new Response<>(HttpStatus.OK, legacyResponse, null, null));
+
+        when(minorCreditorAccountResponseMapper.toMinorCreditorAccountResponse(legacyResponse)).thenReturn(
+            mappedResponse);
+
+        when(creditorAccountRepository.findById(101L)).thenReturn(
+            Optional.of(CreditorAccountEntity.builder().businessUnitId((short) 10).repayment(true).build()));
+
+        return mappedResponse;
     }
 }
