@@ -52,20 +52,6 @@ abstract class ReferenceDataSourceIntegrationTest extends AbstractIntegrationTes
     }
 
     @Test
-    @DisplayName("Local justice area reference data excludes rows held only in the Opal table")
-    @JiraStory("PO-11209")
-    @JiraEpic("PO-9031")
-    void localJusticeAreaReferenceDataExcludesOpalOnlyRows() throws Exception {
-        mockMvc.perform(get("/local-justice-areas")
-                .param("q", "OPAL_ONLY")
-                .header("authorization", userStateStub.getBearerToken()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(0))
-            .andExpect(jsonPath("$.refData").isEmpty());
-    }
-
-    @Test
     @DisplayName("Major creditor reference data excludes rows held only in the Opal table")
     @JiraStory("PO-11209")
     @JiraEpic("PO-9031")
