@@ -65,6 +65,7 @@ public class FileHandlerAPIService implements FileHandlerInterfaceFiles {
             logSuccessfulAuthentication();
             return response;
         } catch (FeignException.NotFound exception) {
+            logSuccessfulAuthentication();
             throw exception;
         } catch (FeignException exception) {
             logIfUnsuccessfulAuthentication(exception);

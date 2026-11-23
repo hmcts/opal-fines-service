@@ -128,7 +128,7 @@ class FileHandlerAPIServiceTest {
         assertThatThrownBy(() -> service.getInterfaceFiles(SystemUserEnum.OPAL_SYSTEM_USER, params))
             .isSameAs(notFound);
         assertThat(systemUserContext.getCurrentSystemUser()).isEmpty();
-        verifyNoInteractions(securityEventLoggingService);
+        verifyAuthSecurityLogging();
     }
 
 
