@@ -262,6 +262,7 @@ components:
             - defendant_accounts
             - creditor_accounts
             - suspense_accounts
+            - suspense_items
             - report_instances
         record_id:
           type: string

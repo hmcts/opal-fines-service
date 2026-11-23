@@ -111,7 +111,7 @@ public class CommonResponseAssertions {
      * @param businessUnitId business-unit id to match.
      * @return current user's business-unit user id for the supplied business unit.
      */
-    private String getCurrentUserBusinessUnitUserId(String businessUnitId) {
+    public String getCurrentUserBusinessUnitUserId(String businessUnitId) {
         TestHttpClient.TestHttpResponse response = TestHttpClient.get(
             getTestUrl() + "/testing-support/user-client/0",
             Map.of(

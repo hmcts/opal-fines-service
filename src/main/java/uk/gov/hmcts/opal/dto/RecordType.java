@@ -4,6 +4,7 @@ public enum RecordType {
     DEFENDANT_ACCOUNTS("defendant_accounts"),
     CREDITOR_ACCOUNTS("creditor_accounts"),
     SUSPENSE_ACCOUNTS("suspense_accounts"),
+    SUSPENSE_ITEMS("suspense_items"),
     REPORT_INSTANCES("report_instances");
 
     private final String value;

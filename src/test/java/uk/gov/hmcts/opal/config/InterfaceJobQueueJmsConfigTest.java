@@ -47,9 +47,10 @@ class InterfaceJobQueueJmsConfigTest {
 
     @Test
     void skipsJmsBeansWhenDisabled() {
-        contextRunner.withPropertyValues("opal.interface-jobs.service-bus.consumer-enabled=false")
+        contextRunner.withPropertyValues("opal.interface-jobs.service-bus.consumer-enabled=false",
+            "opal.automated-task=")
             .run(context -> {
-                assertThat(context).doesNotHaveBean(QueueConsumerJmsConfig.class);
+                assertThat(context).doesNotHaveBean(InterfaceJobQueueJmsConfig.class);
                 assertThat(context).doesNotHaveBean(ConnectionFactory.class);
                 assertThat(context).doesNotHaveBean(InterfaceJobQueueListener.class);
             });

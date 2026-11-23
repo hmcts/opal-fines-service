@@ -203,6 +203,54 @@ To build the project execute the following command:
   ./gradlew build
 ```
 
+### Integration context groups
+
+`integration` remains the authoritative full suite, including for CI. Use a family to isolate a failure or
+investigate context-cache/memory behaviour:
+
+| Command | Purpose and example |
+| --- | --- |
+| `./gradlew -PextendedTests=true integrationBase` | Shared/default contexts and non-Spring integration tests: shared controllers, repositories, and services. |
+| `./gradlew -PextendedTests=true integrationOpal` | Explicit Opal-mode contexts: investigate an Opal-specific API or persistence failure. |
+| `./gradlew -PextendedTests=true integrationLegacy` | Fixed legacy-mode contexts, including mode properties: investigate gateway/stub integration. |
+| `./gradlew -PextendedTests=true integrationSecurity` | Real security/JWT contexts: investigate authentication, permissions, or JWKS failures. Security takes precedence over Opal/legacy mode. |
+| `./gradlew -PextendedTests=true integration` | Full integration regression and failures that depend on cross-family ordering or shared state. |
+
+Java 21 and Docker/Testcontainers are required, including the normal integration images and legacy gateway on
+port 4553. All five tasks share the existing test JVM, cache limit, lane rules, and local stub setup. Override
+`extendedTests=false` for a core-only run; the current `--tests` behaviour still includes explicitly selected
+extended tests. Compare runs with the same effective lane and filters.
+
+New or renamed tests are discovered by JUnit. Allocation uses Spring's inherited/merged profiles and inline
+properties rather than class-name prefixes. Nested tests remain with their owning class; classes spanning
+multiple non-security modes belong to base. The default `integration` profile alone belongs to base.
+There is no intentional overlap between the four families. The manual `ReportQueueConnectivityIntegrationTest`
+remains excluded, and existing conditional/disabled tests retain their normal gates. Release-specific tasks
+are a separate grouping and intentionally overlap these families.
+
+Run `./gradlew checkIntegrationContextFamilies` to generate and verify the complete class inventory without
+refreshing Spring contexts. The report lists selection reasons, profiles, and intentional exclusions at
+`build/reports/integration-context-families/inventory.json`. It checks class-selector coverage; use
+`--test-dry-run` for actual JUnit/lane/filter selection, and real execution for invocation counts and outcomes.
+Gradle `--dry-run` only checks the task graph.
+
+Every real family/full run prints test totals, failures, skipped tests, runtime, and a final worker cache/heap
+snapshot. Detailed reports are in `build/reports/integration-context-families/<task>/summary.json` and
+`worker-<pid>.json`, alongside normal `build/reports/tests/<task>/` HTML and `build/test-results/<task>/` XML.
+Full-suite diagnostics are also packaged under `integration-output/diagnostics/` for the existing CI archive.
+The worker listener observes Spring's shared cache directly and adds no context configuration. Cache load
+failures are distinct from failed tests. Unsupported fields are `N/A`; interrupted worker reports are marked
+incomplete. Up-to-date results are labelled and are not fresh measurements. Family Zephyr JSON files use
+separate names under `target/zephyr-reports/` and do not overwrite the full-suite report.
+
+For fresh measurements, add `--rerun-tasks --no-build-cache --console=plain` and retain the reports before
+rerunning. Cache counters are cumulative within each worker: do not sum snapshots or compare summed family
+misses directly with a full-suite cache. Separate family JVMs repeat startup costs and cannot prove the absence
+of full-suite failures. Heap limits are not peak RSS. For command-level memory measurements, use
+`/usr/bin/time -v` on Linux or `/usr/bin/time -l` on macOS; these do not isolate test-worker memory.
+For a Linux worker's peak RSS, capture `VmHWM` from `/proc/<worker-pid>/status` before the worker exits.
+The worker PID is recorded in its diagnostic JSON.
+
 ### Functional test tasks
 
 Use the standard functional suite for normal backend functional coverage:
@@ -335,7 +383,7 @@ This repo-local Jenkinsfile does not declare its own job parameters.
 
 CNP outputs:
 
-- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*`, and publishes the JUnit HTML `Integration Tests Report` from `integration-output/report`.
+- Integration publishes JUnit XML from `build/test-results/integration`, archives `integration-output/**/*` (including `spring-test-context-cache.json`), and publishes the JUnit HTML `Integration Tests Report` from `integration-output/report`.
 - Functional archives `functional-output/**/*` and publishes `Serenity Functional Test Report` from `functional-output/report`.
 - Smoke archives `smoke-output/**/*` and publishes `Serenity Smoke Test Report` from `smoke-output/report`.
 
@@ -343,6 +391,48 @@ CNP failure handling:
 
 - JUnit-reported failures for integration, functional, and smoke are promoted from `UNSTABLE` to `FAILURE`.
 - Functional and smoke publication rebuild `functional-output/report` and `smoke-output/report` from the raw Serenity output if the packaged report directory is missing.
+
+### Spring Test Context cache report
+
+The integration tasks enable DEBUG logging for `org.springframework.test.context.cache`. Spring writes a cache snapshot
+many times during a suite, in this format:
+
+```text
+Spring test ApplicationContext cache statistics: [DefaultContextCache@... size = 4, maxSize = 4, ... hitCount = 920, missCount = 41, failureCount = 0]
+```
+
+After `integration`, `integrationR1A`, `integrationR1B`, or `integrationR1C`, Gradle runs the matching context-cache
+report task. The parser scans the Gradle HTML test output and selects the valid snapshot with the greatest combined
+`hitCount + missCount + failureCount`, so an early snapshot is not reported as the suite result. It reports:
+
+- cache `missCount`, `hitCount`, `failureCount`, `maxSize`, and final observed `size`;
+- valid and malformed snapshot counts;
+- tests found, executed, failed, and skipped from the JUnit XML;
+- summed JUnit suite runtime, Gradle task name, build identifier, and commit identifier.
+
+The human-readable summary appears near the end of the Gradle/Jenkins log. The machine-readable report is archived
+with the existing Jenkins integration artifact at `integration-output/spring-test-context-cache.json`. Release-family
+runs use the corresponding `integration-output-r1a`, `integration-output-r1b`, or `integration-output-r1c` directory,
+and each report identifies its source task.
+
+Run the full suite and generate the report locally with:
+
+```bash
+./gradlew integration
+```
+
+To regenerate a report from existing Gradle test output without rerunning the suite:
+
+```bash
+./gradlew reportIntegrationContextCache
+```
+
+Use the JSON fields to compare two downloaded Jenkins artifacts, especially `cache.missCount`, `cache.hitCount`, and
+`cache.failureCount`; compare like-for-like task names and test counts. The report is informational only and does not
+enforce a regression threshold. Missing or malformed cache output produces a warning and a JSON report with
+`status: "missing"`, without failing the build. The reported runtime is the sum of JUnit suite durations rather than
+the complete Gradle task wall-clock time, and the selected cache snapshot represents the greatest observed activity
+rather than relying on filesystem ordering of HTML report pages.
 
 ### Zephyr tasks
 

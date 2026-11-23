@@ -56,7 +56,7 @@ INSERT INTO interface_files (
     total_amount
 ) VALUES (
     257611, 257601, 'processed-summary.dat', '2026-07-01 10:01:00',
-    'NATWEST'::t_interface_file_source_enum, 3, 123.45
+    'NATWEST'::t_interface_file_source_enum, 3, 12345
 );
 
 INSERT INTO interface_files (
@@ -69,7 +69,7 @@ INSERT INTO interface_files (
     total_amount
 ) VALUES (
     257612, 257602, 'ignored-summary.dat', '2026-07-01 11:01:00',
-    'NATWEST'::t_interface_file_source_enum, 2, 50.00
+    'NATWEST'::t_interface_file_source_enum, 2, 5000
 );
 
 INSERT INTO tills (
@@ -98,7 +98,9 @@ INSERT INTO interface_messages (
     message_text,
     message_data
 ) VALUES
-    (257631, 257601, 257611, 'Info', 'records_read', '{"count": 3}'),
+    (257631, 257601, 257611, 'Info', 'records_read',
+        '{"count": 3, "value": 123.45, "court_amount": 12.34}'),
     (257632, 257601, 257611, 'Warning', 'records_rejected', '{"count": 1}'),
     (257633, 257601, 257611, 'Info', 'records_read', '{"count": 4}'),
-    (257634, 257602, 257612, 'Exception', 'records_ignored', '{"count": 2}');
+    (257634, 257602, 257612, 'Exception', 'records_ignored',
+        '{"count": 2, "value": 50.00, "court_amount": 5.67}');

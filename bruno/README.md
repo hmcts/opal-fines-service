@@ -58,6 +58,9 @@ You can:
 - Run an entire folder as a suite
 - Pass environment variables using {{VAR_NAME}} syntax
 
+The `test endpoints/Defendant Account` folder contains the destructive defendant-account cleanup request. Set
+`defendantAccount_idToDelete` to a disposable account before running it; it removes the account and its associated data.
+
 Example:
 
 ```text

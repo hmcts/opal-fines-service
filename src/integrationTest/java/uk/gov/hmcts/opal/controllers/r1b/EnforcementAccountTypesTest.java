@@ -120,10 +120,6 @@ public class EnforcementAccountTypesTest extends AbstractIntegrationTest {
         }
     }
 
-    @TestPropertySource(properties = {
-        "launchdarkly.enabled=false",
-        "launchdarkly.default-flag-values.release-1c-auto-enforcement-config=false"
-    })
     @Nested
     class FeatureOff {
 
