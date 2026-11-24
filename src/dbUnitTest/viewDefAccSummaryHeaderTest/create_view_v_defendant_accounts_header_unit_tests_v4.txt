@@ -1,0 +1,30 @@
+Timing is on.
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:342: NOTICE:  === Setting up test data for v_defendant_accounts_header tests ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:342: NOTICE:  Test data setup completed: defendant_account_id = 999901, 999902 and 999903
+DO
+Time: 13.008 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:485: NOTICE:  === TEST 1: Comprehensive test for account with parent/guardian ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:485: NOTICE:  TEST 1 PASSED: All information retrieved and validated successfully for account with parent/guardian
+DO
+Time: 11.925 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:604: NOTICE:  === TEST 2: Comprehensive test for account without parent/guardian ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:604: NOTICE:  TEST 2 PASSED: All information retrieved and validated successfully for account without parent/guardian
+DO
+Time: 1.381 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:638: NOTICE:  === TEST 3: PO-11608 NULL welsh_language is preserved ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:638: NOTICE:  TEST 3 PASSED: NULL welsh_language value preserved
+DO
+Time: 1.008 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:676: NOTICE:  === TEST 4: PO-11608 column names, order and welsh_language type ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:676: NOTICE:  TEST 4 PASSED: Existing columns unchanged and welsh_language appended as boolean
+DO
+Time: 22.698 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:696: NOTICE:  === TEST 5: PO-11608 one header row per defendant account ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:696: NOTICE:  TEST 5 PASSED: Each test account returns exactly one header row
+DO
+Time: 1.118 ms
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:719: NOTICE:  === Cleaning up test data ===
+psql:src/dbUnitTest/viewDefAccSummaryHeaderTest/create_view_v_defendant_accounts_header_unit_tests_v4.sql:719: NOTICE:  Test data cleanup completed
+DO
+Time: 15.380 ms
+Timing is off.
