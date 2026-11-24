@@ -100,7 +100,7 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     void clearReferenceDataCache() {
         var cache = cacheManager.getCache("legacyLjaReferenceDataCache");
         if (cache != null) {
-            cache.clear();
+            cache.invalidate();
         }
     }
 
@@ -264,7 +264,7 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
     void getLocalJusticeAreaRefData_usesCache() throws Exception {
         String firstBody = performReferenceDataRequest("CRWCRT", "SJCRT");
         var area = localJusticeAreaLegacyRepository.findById((short) 10).orElseThrow();
-        area.setName("Updated cached LJA");
+        area.setName("Legacy cache test unique LJA");
         localJusticeAreaLegacyRepository.saveAndFlush(area);
 
         String cachedBody = performReferenceDataRequest("CRWCRT", "SJCRT");
@@ -273,7 +273,7 @@ class LegacyLocalJusticeAreaControllerIntegrationTest extends AbstractIntegratio
         clearReferenceDataCache();
         mockMvc.perform(get(URL_BASE).param(LJA_TYPE_PARAM, "CRWCRT", "SJCRT"))
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Updated cached LJA")));
+            .andExpect(content().string(containsString("Legacy cache test unique LJA")));
     }
 
     @Test

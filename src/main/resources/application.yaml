@@ -180,7 +180,7 @@ opal:
       container: ${REPORT_AZURE_STORAGE_CONTAINER:reports}
     service-bus:
       queue-name: ${SERVICEBUS_REPORT_QUEUE_NAME:report}
-      consumer-enabled: ${REPORT_CONSUMER_ENABLED:true}
+      consumer-enabled: ${REPORT_CONSUMER_ENABLED:false}
       publisher-enabled: ${REPORT_PUBLISHER_ENABLED:true}
 
   tills:
@@ -190,16 +190,16 @@ opal:
   interface-jobs:
     service-bus:
       queue-name: ${SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME:auto-payments-process-interface-files}
-      consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:true}
+      consumer-enabled: ${INTERFACE_JOBS_CONSUMER_ENABLED:false}
 
   interface-file:
     service-bus:
       queue-name: ${SERVICEBUS_INTERFACE_FILE_QUEUE_NAME:banking-interfaces-preprocess-interface-file-fines}
-      consumer-enabled: ${INTERFACE_FILE_CONSUMER_ENABLED:true}
+      consumer-enabled: ${INTERFACE_FILE_CONSUMER_ENABLED:false}
 
   ref-data:
     service-bus:
-      consumer-enabled: ${REFDATA_CONSUMER_ENABLED:true}
+      consumer-enabled: ${REFDATA_CONSUMER_ENABLED:false}
       fully-qualified-namespace: ${SERVICEBUS_FULLY_QUALIFIED_NAMESPACE:}
       topic-name: ${SERVICEBUS_REFDATA_TOPIC_NAME:opal-reference-data-topic}
       subscription-name: ${SERVICEBUS_REFDATA_SUBSCRIPTION_NAME:opal-fines-reference-data-subscription}
