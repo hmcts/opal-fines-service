@@ -235,9 +235,6 @@ class LegacyMinorCreditorServiceTest {
                 null,
                 new RuntimeException("Gateway error")
             );
-        GetMinorCreditorHistoryResponse mappedResponse = GetMinorCreditorHistoryResponse.builder()
-            .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
-            .build();
 
         when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
         when(gatewayService.postToGateway(

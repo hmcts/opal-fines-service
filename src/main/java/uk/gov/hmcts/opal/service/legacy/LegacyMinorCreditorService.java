@@ -292,7 +292,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .creditorAccounts(mappedAccounts)
             .build();
     }
-    
+
     private static <T> void checkResponseForError(Response<T> response, String method) {
         if (response.isError()) {
             log.error(":{}: Legacy Gateway response: HTTP Response Code {}", method, response.code);
@@ -325,7 +325,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         String statusText =
             exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
         byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
-        assert body != null;
         return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
