@@ -28,8 +28,6 @@ import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePayerType;
 import uk.gov.hmcts.opal.generated.model.TillsCreateAdditionalInformation;
-import uk.gov.hmcts.opal.generated.model.TillsCreateIndividualPayer;
-import uk.gov.hmcts.opal.generated.model.TillsCreateOrganisationPayer;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePayerDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
@@ -262,8 +260,14 @@ public class CreateTillService {
         TillsCreatePayerDetails payerDetails = requirePayerDetails(additionalInformation);
 
         return switch (payerType) {
-            case INDIVIDUAL -> toIndividualParty(payerDetails);
-            case ORGANISATION -> toOrganisationParty(payerDetails);
+            case INDIVIDUAL -> {
+                validateIndividualPayerDetails(payerDetails);
+                yield createTillMapper.toIndividualParty(payerDetails);
+            }
+            case ORGANISATION -> {
+                validateOrganisationPayerDetails(payerDetails);
+                yield createTillMapper.toOrganisationParty(payerDetails);
+            }
         };
     }
 
@@ -275,46 +279,25 @@ public class CreateTillService {
         return payerDetails.get();
     }
 
-    private PartyEntity toIndividualParty(TillsCreatePayerDetails payerDetails) {
-        TillsCreateIndividualPayer individual = payerDetails.getIndividual();
-        if (individual == null) {
+    private void validateIndividualPayerDetails(TillsCreatePayerDetails payerDetails) {
+        if (payerDetails.getIndividual() == null) {
             throw badRequest("additional_information.payer_details.individual is required for individual payer_type");
         }
 
-        return PartyEntity.builder()
-            .organisation(false)
-            .organisationName(null)
-            .forenames(requiredText(individual.getForenames(),
-                "additional_information.payer_details.individual.forenames"))
-            .surname(requiredText(individual.getSurname(),
-                "additional_information.payer_details.individual.surname"))
-            .title(text(individual.getTitle()))
-            .addressLine1(text(payerDetails.getAddressLine1()))
-            .addressLine2(text(payerDetails.getAddressLine2()))
-            .addressLine3(text(payerDetails.getAddressLine3()))
-            .postcode(text(payerDetails.getPostcode()))
-            .build();
+        requiredText(payerDetails.getIndividual().getForenames(),
+            "additional_information.payer_details.individual.forenames");
+        requiredText(payerDetails.getIndividual().getSurname(),
+            "additional_information.payer_details.individual.surname");
     }
 
-    private PartyEntity toOrganisationParty(TillsCreatePayerDetails payerDetails) {
-        TillsCreateOrganisationPayer organisation = payerDetails.getOrganisation();
-        if (organisation == null) {
+    private void validateOrganisationPayerDetails(TillsCreatePayerDetails payerDetails) {
+        if (payerDetails.getOrganisation() == null) {
             throw badRequest(
                 "additional_information.payer_details.organisation is required for organisation payer_type");
         }
 
-        return PartyEntity.builder()
-            .organisation(true)
-            .organisationName(requiredText(organisation.getOrganisationName(),
-                "additional_information.payer_details.organisation.organisation_name"))
-            .forenames(null)
-            .surname(null)
-            .title(null)
-            .addressLine1(text(payerDetails.getAddressLine1()))
-            .addressLine2(text(payerDetails.getAddressLine2()))
-            .addressLine3(text(payerDetails.getAddressLine3()))
-            .postcode(text(payerDetails.getPostcode()))
-            .build();
+        requiredText(payerDetails.getOrganisation().getOrganisationName(),
+            "additional_information.payer_details.organisation.organisation_name");
     }
 
     private static String requiredText(String value, String fieldPath) {

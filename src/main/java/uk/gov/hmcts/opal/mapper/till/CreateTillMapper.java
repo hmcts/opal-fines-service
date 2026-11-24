@@ -10,10 +10,14 @@ import uk.gov.hmcts.opal.entity.DestinationType;
 import uk.gov.hmcts.opal.entity.PaymentInEntity;
 import uk.gov.hmcts.opal.entity.PaymentMethod;
 import uk.gov.hmcts.opal.entity.PaymentReceivedFrom;
+import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.TillEntity;
 import uk.gov.hmcts.opal.entity.TransferSource;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.generated.model.TillsCreateAdditionalInformation;
+import uk.gov.hmcts.opal.generated.model.TillsCreateIndividualPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreateOrganisationPayer;
+import uk.gov.hmcts.opal.generated.model.TillsCreatePayerDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentDetails;
 import uk.gov.hmcts.opal.generated.model.TillsCreatePaymentIn;
 
@@ -58,4 +62,45 @@ public interface CreateTillMapper {
     PaymentInEntity toPaymentIn(TillsCreatePaymentIn requestPayment, TillEntity till, LocalDateTime paymentDate,
                                 String additionalInformation, AssociatedRecordType associatedRecordType,
                                 String associatedRecordId);
+
+    default PartyEntity toIndividualParty(TillsCreatePayerDetails payerDetails) {
+        TillsCreateIndividualPayer individual = payerDetails.getIndividual();
+
+        return PartyEntity.builder()
+            .organisation(false)
+            .organisationName(null)
+            .forenames(text(individual.getForenames()))
+            .surname(text(individual.getSurname()))
+            .title(text(individual.getTitle()))
+            .addressLine1(text(payerDetails.getAddressLine1()))
+            .addressLine2(text(payerDetails.getAddressLine2()))
+            .addressLine3(text(payerDetails.getAddressLine3()))
+            .postcode(text(payerDetails.getPostcode()))
+            .build();
+    }
+
+    default PartyEntity toOrganisationParty(TillsCreatePayerDetails payerDetails) {
+        TillsCreateOrganisationPayer organisation = payerDetails.getOrganisation();
+
+        return PartyEntity.builder()
+            .organisation(true)
+            .organisationName(text(organisation.getOrganisationName()))
+            .forenames(null)
+            .surname(null)
+            .title(null)
+            .addressLine1(text(payerDetails.getAddressLine1()))
+            .addressLine2(text(payerDetails.getAddressLine2()))
+            .addressLine3(text(payerDetails.getAddressLine3()))
+            .postcode(text(payerDetails.getPostcode()))
+            .build();
+    }
+
+    private static String text(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
+    }
 }

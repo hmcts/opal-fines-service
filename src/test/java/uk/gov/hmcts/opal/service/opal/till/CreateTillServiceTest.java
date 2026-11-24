@@ -230,6 +230,11 @@ class CreateTillServiceTest {
             .thenReturn(PaymentInEntity.builder().build());
         when(createTillMapper.toPaymentReceivedFrom(
             TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(createTillMapper.toIndividualParty(any())).thenReturn(PartyEntity.builder()
+            .organisation(false)
+            .forenames("Jane")
+            .surname("Doe")
+            .build());
         when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(miscellaneousAccountRepository.save(any())).thenReturn(
             MiscellaneousAccountEntity.builder().miscellaneousAccountId(456L).build());
@@ -293,6 +298,11 @@ class CreateTillServiceTest {
             .thenReturn(PaymentInEntity.builder().build());
         when(createTillMapper.toPaymentReceivedFrom(
             TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(createTillMapper.toIndividualParty(any())).thenReturn(PartyEntity.builder()
+            .organisation(false)
+            .forenames("Jane")
+            .surname("Doe")
+            .build());
         when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(miscellaneousAccountRepository.save(any())).thenReturn(
             MiscellaneousAccountEntity.builder().miscellaneousAccountId(456L).build());
@@ -323,6 +333,10 @@ class CreateTillServiceTest {
             .thenReturn(PaymentInEntity.builder().build());
         when(createTillMapper.toPaymentReceivedFrom(
             TillsCreatePaymentDetails.AdditionalInformationEnum.DEFENDANT)).thenReturn(PaymentReceivedFrom.DEFENDANT);
+        when(createTillMapper.toOrganisationParty(any())).thenReturn(PartyEntity.builder()
+            .organisation(true)
+            .organisationName("Acme Corp")
+            .build());
         when(partyRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(miscellaneousAccountRepository.save(any())).thenReturn(
             MiscellaneousAccountEntity.builder().miscellaneousAccountId(789L).build());
