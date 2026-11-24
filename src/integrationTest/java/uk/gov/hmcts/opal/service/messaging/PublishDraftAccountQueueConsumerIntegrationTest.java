@@ -71,6 +71,7 @@ class PublishDraftAccountQueueConsumerIntegrationTest extends AbstractIntegratio
         DraftAccountEntity publishedEntity = assertAccountPublished(VALID_DRAFT_ACCOUNT_ID);
         assertSuccessfullAcknowledgementsMessage(800L, publishedEntity.getAccountId());
         assertNoMoreAcknowledgementsMessages();
+        cleanUpCreatedDefendantAccount(publishedEntity.getAccountId());
     }
 
     @Test
@@ -150,5 +151,9 @@ class PublishDraftAccountQueueConsumerIntegrationTest extends AbstractIntegratio
 
     private PublishDraftAccountQueueMessage publishDraftAccountQueueMessage(long id) {
         return new PublishDraftAccountQueueMessage(id);
+    }
+
+    private void cleanUpCreatedDefendantAccount(long id) {
+        repository.deleteById(id);
     }
 }

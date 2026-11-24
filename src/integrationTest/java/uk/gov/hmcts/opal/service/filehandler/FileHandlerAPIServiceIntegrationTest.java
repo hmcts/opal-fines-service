@@ -15,6 +15,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.matching.StringValuePattern;
 import feign.FeignException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -97,25 +98,25 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
             .willReturn(okJson(objectMapper.writeValueAsString(userAuthToken))));
 
         // Success'
-
+        StringValuePattern matchingToken = matching("^Bearer " + userStateStub.getJwtStr() + "$");
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(okJson(objectMapper.writeValueAsString(getInterfaceFiles200Response))));
 
         wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(okJson(objectMapper.writeValueAsString(interfaceFileObject))));
 
         // Errors
@@ -123,37 +124,37 @@ public class FileHandlerAPIServiceIntegrationTest extends AbstractIntegrationTes
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(badRequest()));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0/content"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(notFound()));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(badRequest()));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files/0"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_NOT_FOUND)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(notFound()));
 
         wireMockServer.stubFor(get(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(badRequest()));
 
         wireMockServer.stubFor(post(urlEqualTo("/interface-files"))
             .inScenario(WIREMOCK_SCENARIO)
             .whenScenarioStateIs(WIREMOCK_STATE_ERROR)
-            .withHeader(HttpHeaders.AUTHORIZATION, matching("^Bearer token-value$"))
+            .withHeader(HttpHeaders.AUTHORIZATION, matchingToken)
             .willReturn(badRequest()));
     }
 

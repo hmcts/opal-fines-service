@@ -32,4 +32,9 @@ public class TestSystemUserAuthenticationService extends SystemUserAuthenticatio
         return auth;
     }
 
+    @Override
+    public String getSystemUserAuthenticationToken(SystemUserEnum systemUserEnum) {
+        return this.userStateStub.getAuthorizationToken();
+    }
+
 }

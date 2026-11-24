@@ -22,6 +22,8 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.support.TestAuthConfig;
+import uk.gov.hmcts.opal.support.TestSystemUserAuthenticationService;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
@@ -29,7 +31,7 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
-@Import(IntegrationSecurityConfiguration.class)
+@Import({IntegrationSecurityConfiguration.class, TestAuthConfig.class})
 @ExtendWith(ZephyrAutomationExtension.class)
 @SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
 public abstract class AbstractIntegrationTest {
@@ -54,6 +56,18 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @Autowired
+    protected TestSystemUserAuthenticationService testSystemUserAuthenticationService;
+
+    @BeforeEach
+    protected void setupAuth() {
+        if (userStateStub == null) {
+            userStateStub = createUserStateStub();
+        }
+        testSystemUserAuthenticationService = new TestSystemUserAuthenticationService();
+        testSystemUserAuthenticationService.testSetupAsSystemUser(userStateStub);
+    }
 
     protected UserStateStub userStateStub;
 
