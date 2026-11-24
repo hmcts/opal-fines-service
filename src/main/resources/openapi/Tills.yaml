@@ -539,7 +539,9 @@ components:
             - integer
             - 'null'
           format: int64
-          description: Originating interface job for an automatic-payment till; null for a manual till.
+          description: >
+            Originating interface job for an automatic-payment till; null for a manual till.
+            DB Mapping - interface_files.interface_job_id via tills.interface_file_id.
         business_unit_name:
           type: string
         processed_by:

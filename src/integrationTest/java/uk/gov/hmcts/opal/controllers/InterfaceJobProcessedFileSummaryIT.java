@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -64,7 +65,6 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
     private static final String URL = "/interface-jobs/" + INTERFACE_JOB_ID + "/processed-file-summary";
     private static final String IGNORED_URL = "/interface-jobs/" + IGNORED_INTERFACE_JOB_ID
         + "/processed-file-summary";
-    private static final int SUMMARY_RESPONSE_FIELD_COUNT = 8;
     private static final int MESSAGE_GROUP_RESPONSE_FIELD_COUNT = 2;
     private static final int MESSAGE_RESPONSE_FIELD_COUNT = 3;
     private static final Instant PDPO_LOGGED_AT = Instant.parse("2026-08-26T12:00:00Z");
@@ -103,10 +103,13 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
         mockMvc.perform(get(URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$", aMapWithSize(SUMMARY_RESPONSE_FIELD_COUNT)))
+            .andExpect(result -> assertGet200JsonResponseMatchesBundledSpec(
+                objectMapper.readTree(result.getResponse().getContentAsString()),
+                "/interface-jobs/{id}/processed-file-summary"))
             .andExpect(jsonPath("$.file_name").value("processed-summary.dat"))
             .andExpect(jsonPath("$.source").value("NATWEST"))
             .andExpect(jsonPath("$.business_unit_name").value("Processed Summary BU"))
+            .andExpect(jsonPath("$.till_number").isNumber())
             .andExpect(jsonPath("$.till_number").value(901))
             .andExpect(jsonPath("$.total_amount").value(123.45))
             .andExpect(jsonPath("$.total_records").value(3))
@@ -261,7 +264,9 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
         mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$", aMapWithSize(SUMMARY_RESPONSE_FIELD_COUNT)))
+            .andExpect(result -> assertGet200JsonResponseMatchesBundledSpec(
+                objectMapper.readTree(result.getResponse().getContentAsString()),
+                "/interface-jobs/{id}/processed-file-summary"))
             .andExpect(jsonPath("$.file_name").value("ignored-summary.dat"))
             .andExpect(jsonPath("$.till_number").doesNotExist())
             .andExpect(jsonPath("$.business_unit_name").value("Processed Summary BU"))

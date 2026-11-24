@@ -416,13 +416,16 @@ components:
       properties:
         file_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.file_name
+          description: DB Mapping - v_interface_jobs_processed_file_summary.interface_file_name
         source:
           type: string
           description: DB Mapping - v_interface_jobs_processed_file_summary.source
         business_unit_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+          description: >
+            Business unit name from the processed-file summary view, falling back to the interface job's business unit
+            when no till was created. DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+            or interface_jobs.business_unit_id joined to business_units.business_unit_name.
         till_number:
           type:
             - integer
@@ -493,7 +496,7 @@ components:
       properties:
         interface_messages_id:
           $ref: './types.yaml#/components/schemas/BigInt'
-          description: DB Mapping - interface_messages.interface_messages_id
+          description: DB Mapping - interface_messages.interface_message_id
         message_data:
           type: object
           additionalProperties: true
