@@ -324,7 +324,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
         String statusText =
             exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
-        byte[] body = responseBody == null ? "null".getBytes(StandardCharsets.UTF_8) : responseBody.getBytes(StandardCharsets.UTF_8);
+        byte[] body = responseBody == null ? "null".getBytes(StandardCharsets.UTF_8)
+            : responseBody.getBytes(StandardCharsets.UTF_8);
         return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
