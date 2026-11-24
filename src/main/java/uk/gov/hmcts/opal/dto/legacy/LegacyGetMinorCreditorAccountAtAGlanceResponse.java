@@ -41,7 +41,7 @@ public class LegacyGetMinorCreditorAccountAtAGlanceResponse implements ToXmlStri
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
 
-    @XmlElement(name = "party_details", required = true)
+    @XmlElement(name = "party", required = true)
     private LegacyPartyDetails party;
 
     @XmlElement(name = "address", required = true)

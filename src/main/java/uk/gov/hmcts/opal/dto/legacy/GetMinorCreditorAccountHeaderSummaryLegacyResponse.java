@@ -28,7 +28,7 @@ public class GetMinorCreditorAccountHeaderSummaryLegacyResponse implements ToXml
     @XmlElement(name = "error_response")
     private ErrorResponse errorResponse;
 
-    @XmlElement(name = "party_details")
+    @XmlElement(name = "party")
     private PartyDetailsLegacy partyDetails;
 
     @XmlElement(name = "business_unit")

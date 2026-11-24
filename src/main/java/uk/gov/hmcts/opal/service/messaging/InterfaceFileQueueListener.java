@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.messaging;
 
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
-import jakarta.jms.TextMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -11,6 +10,7 @@ import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.service.InterfaceFileProcessorService;
+import uk.gov.hmcts.opal.util.QueueUtil;
 
 @Component
 @RequiredArgsConstructor
@@ -30,13 +30,7 @@ public class InterfaceFileQueueListener {
         containerFactory = "opalFinesConsumerConnectionFactory"
     )
     public void onMessage(Message message) throws JMSException {
-        if (message instanceof TextMessage textMessage) {
-            consume(textMessage.getText());
-        } else {
-            throw new IllegalArgumentException(
-                "Message must be of type TextMessage"
-            );
-        }
+        consume(QueueUtil.getMessageAsString(message));
     }
 
     protected void consume(String messagePayload) {
@@ -47,6 +41,8 @@ public class InterfaceFileQueueListener {
 
     }
 
+    //Suppressed as used to managed transactions / queue behaviour
+    @SuppressWarnings("javabugs:S6416")
     private Long parse(String messagePayload) {
         if (messagePayload == null || messagePayload.isBlank()) {
             throw new IllegalArgumentException(
