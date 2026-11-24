@@ -1,3 +1,11 @@
+CREATE OR REPLACE PROCEDURE p_transfer_suspense_to_hmcts_other(
+    IN pi_suspense_item_id      suspense_items.suspense_item_id%TYPE,
+    IN pi_suspense_item_version suspense_items.version_number%TYPE,
+    IN pi_posted_by             suspense_transactions.posted_by%TYPE,
+    IN pi_posted_by_name        suspense_transactions.posted_by_name%TYPE
+)
+LANGUAGE plpgsql
+AS $BODY$
 /**
 * OPAL Program
 *
@@ -19,17 +27,10 @@
 *
 * Date          Author       Version     Nature of Change
 * ----------    -------      --------    --------------------------------------------------------
-* 18/11/2026    I Chandio    1.0         PO-10349-Create p_transfer_suspense_to_hmcts_other stored procedure
+* 18/11/2026    I Chandio    1.0         PO-10349 Create transfer orchestration procedure
+*
 **/
 
-CREATE OR REPLACE PROCEDURE p_transfer_suspense_to_hmcts_other(
-    IN pi_suspense_item_id      suspense_items.suspense_item_id%TYPE,
-    IN pi_suspense_item_version suspense_items.version_number%TYPE,
-    IN pi_posted_by             suspense_transactions.posted_by%TYPE,
-    IN pi_posted_by_name        suspense_transactions.posted_by_name%TYPE
-)
-LANGUAGE plpgsql
-AS $$
 DECLARE
     v_amount_balance          suspense_transactions.amount%TYPE;
     v_creditor_account_id     creditor_accounts.creditor_account_id%TYPE;
@@ -109,17 +110,17 @@ BEGIN
     -- Capture the generated suspense transaction ID for Action 3.
     -- =====================================================================
     CALL p_insert_suspense_transactions_common(
-        pi_suspense_item_id,
-        clock_timestamp()::TIMESTAMP,
-        pi_posted_by,
-        pi_posted_by_name,
-        'XP'::t_suspense_transaction_type_enum,
-        -v_amount_balance,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        v_suspense_transaction_id
+        pi_suspense_item_id => pi_suspense_item_id,
+        pi_posted_date => clock_timestamp()::TIMESTAMP,
+        posted_by => pi_posted_by,
+        posted_by_name => pi_posted_by_name,
+        pi_transaction_type => 'XP'::t_suspense_transaction_type_enum,
+        pi_amount => -v_amount_balance,
+        pi_associated_record_type => NULL,
+        pi_associated_record_id => NULL,
+        pi_text => NULL,
+        pi_reversed => NULL,
+        po_suspense_transaction_id => v_suspense_transaction_id
     );
 
     -- =====================================================================
@@ -143,26 +144,25 @@ BEGIN
     -- Call p_insert_creditor_transactions_common with transaction type XFER.
     -- Credit the full v_amount_balance to the CF creditor account; pass the
     -- posting details, payment_processed = FALSE and specified NULL fields.
-    -- The ticket explicitly requires associated_record_type = suspense_items
-    -- and associated_record_id = the XP suspense transaction ID from Action 2.
-    -- Design clarification: the type names an item while the ID identifies a
-    -- transaction; retain the ticket mapping pending confirmation.
+    -- The corrected Jira ticket requires associated_record_type =
+    -- suspense_transactions and associated_record_id = the generated XP
+    -- suspense_transaction_id returned by the Action 2 common procedure.
     -- =====================================================================
     CALL p_insert_creditor_transactions_common(
-        v_creditor_account_id,
-        clock_timestamp()::TIMESTAMP,
-        pi_posted_by,
-        pi_posted_by_name,
-        'XFER'::t_creditor_transaction_type_enum,
-        v_amount_balance,
-        NULL,
-        FALSE,
-        NULL,
-        NULL,
-        NULL,
-        'suspense_items'::t_associated_record_type_enum,
-        v_suspense_transaction_id::VARCHAR,
-        v_creditor_transaction_id
+        pi_creditor_account_id => v_creditor_account_id,
+        pi_posted_date => clock_timestamp()::TIMESTAMP,
+        pi_posted_by => pi_posted_by,
+        pi_posted_by_name => pi_posted_by_name,
+        pi_transaction_type => 'XFER'::t_creditor_transaction_type_enum,
+        pi_transaction_amount => v_amount_balance,
+        pi_imposition_result_id => NULL,
+        pi_payment_processed => FALSE,
+        pi_payment_reference => NULL,
+        pi_status => NULL,
+        pi_status_date => NULL,
+        pi_associated_record_type => 'suspense_transactions'::t_associated_record_type_enum,
+        pi_associated_record_id => v_suspense_transaction_id::VARCHAR,
+        po_creditor_transaction_id => v_creditor_transaction_id
     );
 
     -- =====================================================================
@@ -223,7 +223,7 @@ EXCEPTION
 
         RAISE;
 END;
-$$;
+$BODY$;
 
 COMMENT ON PROCEDURE p_transfer_suspense_to_hmcts_other(
     BIGINT, BIGINT, VARCHAR, VARCHAR
