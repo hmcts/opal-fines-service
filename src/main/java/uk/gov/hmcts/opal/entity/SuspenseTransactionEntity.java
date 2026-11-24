@@ -13,7 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,7 +42,7 @@ public class SuspenseTransactionEntity {
     private Long suspenseItemId;
 
     @Column(name = "posted_date")
-    private LocalDate postedDate;
+    private LocalDateTime postedDate;
 
     @Column(name = "posted_by")
     private Long postedBy;

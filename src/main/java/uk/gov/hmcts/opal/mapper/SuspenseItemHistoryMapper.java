@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.mapper;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.NoteEntity;
 import uk.gov.hmcts.opal.entity.SuspenseItemType;
@@ -8,6 +9,7 @@ import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.SuspenseNoteCommonStrict;
 import uk.gov.hmcts.opal.generated.model.SuspenseTransactionCommonStrict;
+import uk.gov.hmcts.opal.generated.model.SuspenseTransactionCommonStrictDetails;
 import uk.gov.hmcts.opal.generated.model.TransactionTypeCodeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.TransactionTypeCommonStrict;
 
@@ -48,7 +50,14 @@ public class SuspenseItemHistoryMapper {
                     .transactionTypeDisplayName(SuspenseItemType.valueOf(row.getTransactionType()).getDescription())
                     .build())
             .postedDetails(postedDetails)
+            .details(getTransactionDetails(row))
             .amount(row.getAmount());
+    }
+
+    private @Nullable SuspenseTransactionCommonStrictDetails getTransactionDetails(
+        SuspenseTransactionHistoryProjection row) {
+
+        return null;
     }
 
 }

@@ -876,7 +876,7 @@ components:
       type: object
       additionalProperties: false
       properties:
-        defendent_account_number:
+        defendant_account_number:
           type:
             - integer
             - 'null'
