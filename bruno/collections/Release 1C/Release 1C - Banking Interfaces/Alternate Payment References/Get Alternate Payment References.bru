@@ -1,0 +1,20 @@
+meta {
+  name: Get Alternate Payment References
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseURL}}/defendant-accounts/{{defendantAccount_id}}/alternate-payment-references
+  body: none
+  auth: inherit
+}
+
+headers {
+  Accept: application/json
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
