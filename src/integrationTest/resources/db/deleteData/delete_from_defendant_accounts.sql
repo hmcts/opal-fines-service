@@ -117,9 +117,8 @@ DELETE FROM draft_accounts WHERE business_unit_id = 9999;
 DELETE FROM enforcers_legacy WHERE business_unit_id = 9999;
 DELETE FROM enforcers WHERE business_unit_id = 9999;
 
--- Remove from prisons referencing test BU
+-- Remove legacy prisons referencing test BU
 DELETE FROM prisons_legacy WHERE business_unit_id = 9999;
-DELETE FROM prisons WHERE business_unit_id = 9999;
 
 -- Remove from offences referencing test BU
 DELETE FROM offences_legacy WHERE business_unit_id = 9999;

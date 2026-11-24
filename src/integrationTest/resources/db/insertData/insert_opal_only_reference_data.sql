@@ -29,9 +29,9 @@ INSERT INTO offences (
 );
 
 INSERT INTO prisons (
-    prison_id, business_unit_id, prison_code, name, address_line_1
+    prison_id, name, address_line_1
 ) VALUES (
-    59000000000005, 78, 'OPAL', 'OPAL_ONLY Prison', 'OPAL_ONLY Address'
+    59000000000005, 'OPAL_ONLY Prison', 'OPAL_ONLY Address'
 );
 
 INSERT INTO prosecutors (

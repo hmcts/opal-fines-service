@@ -22,7 +22,6 @@ import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
-import uk.gov.hmcts.opal.repository.CommittalWarrantProgressRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
@@ -63,9 +62,6 @@ class DefendantAccountDeletionServiceTest {
 
     @Mock
     private EnforcementRepository enforcementRepository;
-
-    @Mock
-    private CommittalWarrantProgressRepository committalWarrantProgressRepository;
 
     @Mock
     private DocumentInstanceRepository documentInstanceRepository;
