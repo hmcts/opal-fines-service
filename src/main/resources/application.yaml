@@ -240,6 +240,9 @@ file-handler:
 logging-service:
   pdpl:
     async:
+      max-message-size-bytes: ${SERVICEBUS_LOGGING_PDPL_MAX_MESSAGE_SIZE_BYTES:262144}
+      # Reserve the broker's full 64 KiB property budget, in addition to the serialized JSON envelope.
+      message-overhead-bytes: ${SERVICEBUS_LOGGING_PDPL_MESSAGE_OVERHEAD_BYTES:65536}
       protocol: ${SERVICEBUS_LOGGING_PDPL_PROTOCOL:amqp}
       connection-string: ${SERVICEBUS_CONNECTION_STRING:Endpoint=sb://localhost/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=local;UseDevelopmentEmulator=true}
       queue-name: ${SERVICEBUS_LOGGING_PDPL_QUEUE_NAME:logging-pdpl}

@@ -1,16 +1,16 @@
 package uk.gov.hmcts.opal.context;
 
-import org.junit.jupiter.api.Assertions;
-import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Assertions;
+import uk.gov.hmcts.opal.utils.TestHttpClient.TestHttpResponse;
 
 /**
  * Holds the mutable state for a single functional-test scenario in a typed structure.
@@ -32,6 +32,7 @@ public class ScenarioContext {
     private String createdDefendantAccountId;
     private String defendantAccountEtag;
     private Long createdMinorCreditorAccountId;
+    private Instant draftAccountListRequestedAt;
 
     /**
      * Resets the scenario context to a clean state.
@@ -51,6 +52,16 @@ public class ScenarioContext {
         createdDefendantAccountId = null;
         defendantAccountEtag = null;
         createdMinorCreditorAccountId = null;
+        draftAccountListRequestedAt = null;
+    }
+
+    public void setDraftAccountListRequestedAt(Instant requestedAt) {
+        draftAccountListRequestedAt = requestedAt;
+    }
+
+    public Instant getDraftAccountListRequestedAtOrFail() {
+        assertNotNull(draftAccountListRequestedAt, "No draft-account list request has been recorded");
+        return draftAccountListRequestedAt;
     }
 
     /**

@@ -1,5 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -8,6 +10,7 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
@@ -74,6 +77,11 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
 
     static Clock fixedClock() {
         return FIXED_CLOCK;
+    }
+
+    @BeforeEach
+    void setupDefaults() {
+        lenient().when(loggingService.personalDataAccessLogAsync(any())).thenReturn(true);
     }
 
     protected static String validUpdateRequestBody(String businessUnit, String status, String delta) {
