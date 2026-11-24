@@ -145,7 +145,8 @@ class ResultMessageProcessingIntegrationTest extends AbstractIntegrationTest {
             assertThat(entity.getEnfNextPermittedActions()).isEqualTo("REW,WDN");
             assertThat(objectMapper.readTree(entity.getResultParameters())).isEqualTo(objectMapper.readTree(
                 "[{\"name\":\"reason\",\"type\":\"text-60\",\"prompt\":\"Reason\",\"mandatory\":true,"
-                    + "\"min\":1,\"max\":60,\"languageDependent\":true}]"));
+                    + "\"min\":1,\"max\":60,\"languageDependent\":true,"
+                    + "\"hint\":\"\",\"options\":[],\"apidata\":\"\"}]"));
         });
     }
 
@@ -168,7 +169,8 @@ class ResultMessageProcessingIntegrationTest extends AbstractIntegrationTest {
         // Then
         String stored = repository.findById(RESULT_ID).orElseThrow().getResultParameters();
         assertThat(objectMapper.readTree(stored)).isEqualTo(objectMapper.readTree(
-            "[{\"name\":\"reason\",\"type\":\"text-60\",\"prompt\":\"Reason\",\"mandatory\":true,\"min\":1,\"max\":60,\"languageDependent\":true}]"));
+            "[{\"name\":\"reason\",\"type\":\"text-60\",\"prompt\":\"Reason\",\"mandatory\":true,"
+                + "\"min\":1,\"max\":60,\"languageDependent\":true,\"hint\":\"\",\"options\":[],\"apidata\":\"\"}]"));
     }
 
     @Test

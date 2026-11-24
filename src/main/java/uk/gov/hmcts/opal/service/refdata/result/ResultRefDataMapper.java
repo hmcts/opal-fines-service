@@ -11,13 +11,16 @@ import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
-import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 
 @Mapper(componentModel = "spring")
 public interface ResultRefDataMapper {
 
-    String LANGUAGE_DEPENDENT = "languageDependent";
-    String LANGUAGE_DEPENDENT_FRONTEND = "language_dependent";
+    String LANGUAGE_DEPENDENT_ATTR = "language_dependent";
+    String LANGUAGE_DEPENDENT_FRONTEND_ATTR = "languageDependent";
+    String HINT_ATTR = "hint";
+    String OPTIONS_ATTR = "options";
+    String APIDATA_ATTR = "apidata";
+    String RESULT_CODE_ATTR = "result_code";
 
     @Mapping(target = "resultId", ignore = true)
     @Mapping(target = "enforcements", ignore = true)
@@ -59,6 +62,8 @@ public interface ResultRefDataMapper {
         };
     }
 
+    // The front end expects languageDependent not language_dependent
+    // VALCON may pass null values for hint/options/apidata
     default String parameters(JsonNode parameters) {
         if (parameters == null || parameters.isNull()) {
             return null;
@@ -72,11 +77,17 @@ public interface ResultRefDataMapper {
                 throw new IllegalArgumentException("Each result parameter must be an object");
             }
             ObjectNode object = (ObjectNode) parameter;
-            if (object.has(LANGUAGE_DEPENDENT_FRONTEND)) {
-                if (object.has(LANGUAGE_DEPENDENT)) {
-                    throw new IllegalArgumentException("Both language_dependent and languageDependent are present");
-                }
-                object.set(LANGUAGE_DEPENDENT, object.remove(LANGUAGE_DEPENDENT_FRONTEND));
+            if (object.path(HINT_ATTR).isMissingNode() || object.path(HINT_ATTR).isNull()) {
+                object.put(HINT_ATTR, "");
+            }
+            if (object.path(OPTIONS_ATTR).isMissingNode() || object.path(OPTIONS_ATTR).isNull()) {
+                object.putArray(OPTIONS_ATTR);
+            }
+            if (object.path(APIDATA_ATTR).isMissingNode() || object.path(APIDATA_ATTR).isNull()) {
+                object.put(APIDATA_ATTR, "");
+            }
+            if (object.has(LANGUAGE_DEPENDENT_ATTR)) {
+                object.set(LANGUAGE_DEPENDENT_FRONTEND_ATTR, object.remove(LANGUAGE_DEPENDENT_ATTR));
             }
         }
         return copy.toString();
@@ -89,7 +100,7 @@ public interface ResultRefDataMapper {
         List<String> actions = new ArrayList<>();
         if (dto.getResultNextPermittedActionMappings() != null) {
             dto.getResultNextPermittedActionMappings().forEach(action -> {
-                JsonNode code = action.path("result_code");
+                JsonNode code = action.path(RESULT_CODE_ATTR);
                 if (code.isTextual()) {
                     actions.add(code.asString());
                 }

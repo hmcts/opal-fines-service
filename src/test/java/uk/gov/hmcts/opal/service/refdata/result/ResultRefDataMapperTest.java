@@ -107,9 +107,16 @@ class ResultRefDataMapperTest {
     void mapsActionsAndParameters() {
         // Given
         ResultsRecord dto = ResultsRecord.builder().nextPermittedActionsType("SELECTED")
-            .resultNextPermittedActionMappings(jsonMapper.readTree("[{\"result_code\":\"ONE\"},"
-                + "{\"result_code\":null},{\"result_code\":\"TWO\"}]"))
-            .resultParameters(jsonMapper.readTree("[{\"name\":\"reason\"}]")).build();
+            .resultNextPermittedActionMappings(jsonMapper.readTree("""
+                [
+                  {"result_code": "ONE"},
+                  {"result_code": null},
+                  {"result_code": "TWO"}
+                ]
+                """))
+            .resultParameters(jsonMapper.readTree("""
+                [{"name": "reason"}]
+                """)).build();
         ResultOpalEntity entity = new ResultOpalEntity();
 
         // When
@@ -117,7 +124,14 @@ class ResultRefDataMapperTest {
 
         // Then
         assertThat(entity.getEnfNextPermittedActions()).isEqualTo("ONE,TWO");
-        assertThat(jsonMapper.readTree(entity.getResultParameters())).isEqualTo(dto.getResultParameters());
+        assertThat(jsonMapper.readTree(entity.getResultParameters())).isEqualTo(jsonMapper.readTree("""
+            [{
+              "name": "reason",
+              "hint": "",
+              "options": [],
+              "apidata": ""
+            }]
+            """));
 
         // Given
         dto.setNextPermittedActionsType("ALL");
@@ -133,18 +147,77 @@ class ResultRefDataMapperTest {
 
     @Test
     void renamesLanguageDependentAndValidatesParameters() {
-        JsonNode input = jsonMapper.readTree("[{\"language_dependent\":null},{\"languageDependent\":true}]");
+        JsonNode input = jsonMapper.readTree("""
+            [
+              {"language_dependent": null},
+              {"languageDependent": true}
+            ]
+            """);
         assertThat(jsonMapper.readTree(mapper.parameters(input)))
-            .isEqualTo(jsonMapper.readTree("[{\"languageDependent\":null},{\"languageDependent\":true}]"));
+            .isEqualTo(jsonMapper.readTree("""
+                [
+                  {
+                    "languageDependent": null,
+                    "hint": "",
+                    "options": [],
+                    "apidata": ""
+                  },
+                  {
+                    "languageDependent": true,
+                    "hint": "",
+                    "options": [],
+                    "apidata": ""
+                  }
+                ]
+                """));
         assertThat(input.get(0).has("language_dependent")).isTrue();
         assertThat(mapper.parameters(jsonMapper.readTree("null"))).isNull();
         assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree("{}")))
             .isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree("[null]")))
             .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> mapper.parameters(jsonMapper.readTree(
-            "[{\"language_dependent\":false,\"languageDependent\":true}]")))
-            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void defaultsMissingAndNullParameterAttributesAndPreservesProvidedValues() {
+        JsonNode input = jsonMapper.readTree("""
+            [
+              {"name": "missing"},
+              {
+                "hint": null,
+                "options": null,
+                "apidata": null
+              },
+              {
+                "hint": "Choose",
+                "options": ["one"],
+                "apidata": "courts"
+              }
+            ]
+            """);
+
+        assertThat(jsonMapper.readTree(mapper.parameters(input))).isEqualTo(jsonMapper.readTree("""
+            [
+              {
+                "name": "missing",
+                "hint": "",
+                "options": [],
+                "apidata": ""
+              },
+              {
+                "hint": "",
+                "options": [],
+                "apidata": ""
+              },
+              {
+                "hint": "Choose",
+                "options": ["one"],
+                "apidata": "courts"
+              }
+            ]
+            """));
+        assertThat(input.get(0).has("hint")).isFalse();
+        assertThat(input.get(1).get("hint").isNull()).isTrue();
     }
 
     @Test
