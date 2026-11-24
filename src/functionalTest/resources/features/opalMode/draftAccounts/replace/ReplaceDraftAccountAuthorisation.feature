@@ -1,7 +1,7 @@
 @Opal @JIRA-LABEL:manual-account-creation @JIRA-LABEL:authorisation @R1A
 Feature: Replace Draft Account Authorisation
 
-  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5671
+  @JIRA-STORY:PO-830 @JIRA-EPIC:PO-2220 @cleanUpData @JIRA-TEST-KEY:PO-5671 @ExtendedTest
   Scenario: Update draft account - no auth
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details
@@ -177,7 +177,7 @@ Feature: Replace Draft Account Authorisation
 
 
 
-  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5677
+  @JIRA-STORY:PO-2359 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5677 @ExtendedTest
   Scenario: Invalid token replacement attempts are rejected and do not create PDPO logs
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And a draft account exists with the following details

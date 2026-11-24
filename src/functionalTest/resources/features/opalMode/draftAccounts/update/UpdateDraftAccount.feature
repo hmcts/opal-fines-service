@@ -129,7 +129,7 @@ Feature: Update Draft Accounts
 
     Then the request is rejected as forbidden
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5690
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-5690 @ExtendedTest
   Scenario: Reject updating a draft account with an invalid token
     And a draft account exists with the following details
       | source            | MAC                                         |
@@ -144,7 +144,7 @@ Feature: Update Draft Accounts
 
     Then no PDPO logs exist for the created draft account and business_identifier "Re-submit Draft Account - Defendant"
 
-  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691
+  @JIRA-STORY:PO-2358 @JIRA-LABEL:personal-data-processing-logging @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5691 @ExtendedTest
   Scenario: Reject updating an unknown draft account id
 
     When I patch the "00000000-0000-0000-0000-000000000000" draft account with the following details

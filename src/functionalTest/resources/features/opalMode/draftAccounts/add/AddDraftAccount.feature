@@ -4,7 +4,7 @@ Feature: Create Draft Accounts
   Background:
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5621
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5621 @ExtendedTest
   Scenario: Create an adult fine draft account
     When I create a draft account with the following details
       | source            | MAC                                         |
@@ -30,7 +30,7 @@ Feature: Create Draft Accounts
       | created_by_id | created_by_type | business_identifier                         | individual_id                | expected_count |
       | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant            |<CREATED_DRAFT_ACCOUNT_ID>    | 1              |
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5622
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5622 @ExtendedTest
   Scenario: Create a parent or guardian draft account
     When I create a draft account with the following details
       | source            | MAC                                                    |
@@ -55,7 +55,7 @@ Feature: Create Draft Accounts
       | 500000000     | OPAL_USER_ID    | Submit Draft Account - Defendant          | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
       | 500000000     | OPAL_USER_ID    | Submit Draft Account - Parent or Guardian | <CREATED_DRAFT_ACCOUNT_ID>   | 1              |
 
-  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5623
+  @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5623 @ExtendedTest
   Scenario: Create a minor creditor draft account
     When I create a draft account with the following details
       | source            | MAC                                                 |
@@ -79,7 +79,7 @@ Feature: Create Draft Accounts
       | 500000000        | OPAL_USER_ID    | Submit Draft Account - Defendant            | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
       | 500000000        | OPAL_USER_ID    | Submit Draft Account - Minor Creditor       | <CREATED_DRAFT_ACCOUNT_ID>   |1              |
 
-  @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-7855
+  @JIRA-STORY:PO-2357 @JIRA-NFR:PO-2507 @cleanUpData @JIRA-EPIC:PO-2355 @JIRA-TEST-KEY:PO-7855 @ExtendedTest
   Scenario: Emitted PDPO logs do not expose personal details
     When I create a draft account with the following details
       | source            | MAC                                                    |

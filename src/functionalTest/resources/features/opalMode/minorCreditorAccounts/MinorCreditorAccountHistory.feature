@@ -1,7 +1,7 @@
 @Opal @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorHistory @ExcludeFromDemoNightlyAsNotLegacy
 Feature: Minor Creditor Account History
 
-  @cleanUpData @JIRA-STORY:PO-10763 @JIRA-EPIC:PO-10729
+  @cleanUpData @JIRA-STORY:PO-10763 @JIRA-EPIC:PO-10729 @ExtendedTest
   Scenario: An individual minor creditor summary read emits a PDPO consultation without changing the response
     Given a minor creditor account with representative history exists for submitted by "MCSUM001"
     When I request the header summary twice for the created minor creditor account
@@ -18,7 +18,7 @@ Feature: Minor Creditor Account History
       | Note      | 3 |
     And the minor creditor account history is ordered newest first
 
-  @cleanUpData @JIRA-STORY:PO-10762 @JIRA-EPIC:PO-10729
+  @cleanUpData @JIRA-STORY:PO-10762 @JIRA-EPIC:PO-10729 @ExtendedTest
   Scenario: Returned minor creditor history users are recorded in a PDPO consultation
     Given a minor creditor account with representative history exists for submitted by "MCPDPO001"
     When I request minor creditor account history for the created minor creditor account
