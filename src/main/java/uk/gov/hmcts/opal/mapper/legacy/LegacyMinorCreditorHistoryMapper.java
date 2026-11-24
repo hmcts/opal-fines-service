@@ -15,6 +15,7 @@ import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMin
 import uk.gov.hmcts.opal.dto.legacy.MinorCreditorHistoryLegacyResponse.LegacyMinorCreditorHistoryPostedDetails;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetMinorCreditorAccountHistoryRequest;
 import uk.gov.hmcts.opal.dto.response.GetMinorCreditorHistoryResponse;
+import uk.gov.hmcts.opal.entity.CreditorTransactionType;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryFilters;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItem;
 import uk.gov.hmcts.opal.entity.minorcreditor.MinorCreditorHistoryItemType;
@@ -133,10 +134,10 @@ public class LegacyMinorCreditorHistoryMapper {
     private LegacyMinorCreditorHistoryDetails unwrapDetails(MinorCreditorHistoryItemType minorCreditorHistoryItemType,
         LegacyMinorCreditorHistoryDetails details) {
         return switch (minorCreditorHistoryItemType) {
+            case AMENDMENT -> Optional.ofNullable(details.getAmendmentDetails()).orElse(details);
             case FINANCIAL -> Optional.ofNullable(details.getCreditorTransactionDetails())
                 .orElse(details);
             case NOTE -> Optional.ofNullable(details.getNoteDetails()).orElse(details);
-            case AMENDMENT -> details;
         };
     }
 
@@ -147,10 +148,14 @@ public class LegacyMinorCreditorHistoryMapper {
             return null;
         }
 
+        String code = transactionType.getTransactionType();
+        CreditorTransactionTypeReferenceCommon.TransactionTypeEnum apiType =
+            CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(code);
+        String displayName = transactionType.getTransactionTypeDisplayName();
         return new CreditorTransactionTypeReferenceCommon()
-            .transactionType(CreditorTransactionTypeReferenceCommon.TransactionTypeEnum.fromValue(
-                transactionType.getTransactionType()))
-            .transactionTypeDisplayName(transactionType.getTransactionTypeDisplayName());
+            .transactionType(apiType)
+            .transactionTypeDisplayName(displayName == null || displayName.isBlank()
+                ? CreditorTransactionType.valueOf(code).getDisplayName() : displayName);
     }
 
     private CreditorTransactionStatusReferenceCommon toCreditorTransactionStatus(
