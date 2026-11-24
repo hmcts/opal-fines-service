@@ -1,33 +1,4 @@
 
-/**
- * OPAL Program
- *
- * MODULE      : V1_1__create_p_reverse_suspense_function.sql
- *
- * DESCRIPTION : Reverse the balance of a suspense item by inserting
- *               an RV or DQ suspense transaction, creating an entry
- *               in the Reversed Payments report, and incrementing
- *               the suspense item version number using optimistic
- *               concurrency control.
- *
- * PARAMETERS  : pi_suspense_item_id       - Suspense item whose balance
- *                                          is being reversed
- *               pi_suspense_item_version  - Current version number of the
- *                                          suspense item for concurrency control
- *               pi_posted_by              - User identifier performing
- *                                          the reversal
- *               pi_posted_by_name         - Name of the user performing
- *                                          the reversal
- *               pi_is_dishonoured_cheque  - TRUE for a dishonoured cheque
- *                                          reversal (DQ), FALSE for a
- *                                          standard reversal (RV)
- *
- * VERSION HISTORY:
- *
- * Date        Author      Version  Nature of Change
- * 18/11/2026  I Chandio   1.0      PO-10350- Initial implementation -  Create p_reverse_suspense_function stored procedure
- **/
-
 CREATE OR REPLACE PROCEDURE p_reverse_suspense_function(
     IN pi_suspense_item_id suspense_items.suspense_item_id%TYPE,
     IN pi_suspense_item_version suspense_items.version_number%TYPE,
@@ -36,7 +7,38 @@ CREATE OR REPLACE PROCEDURE p_reverse_suspense_function(
     IN pi_is_dishonoured_cheque BOOLEAN
 )
 LANGUAGE plpgsql
-AS $procedure$
+AS $BODY$
+
+/**
+* OPAL Program
+*
+* MODULE      : create_p_reverse_suspense_function.sql
+*
+* DESCRIPTION : Reverse a positive suspense item balance using
+*               standard (RV) or dishonoured cheque (DQ) transactions.
+*               Validate inputs and balance, create the reversal
+*               transaction and Reversed Payments report entry,
+*               then apply optimistic concurrency control.
+*
+* PARAMETERS  : pi_suspense_item_id       - Suspense item whose balance
+*                                          is being reversed
+*               pi_suspense_item_version  - Expected suspense item version
+*                                          for concurrency control
+*               pi_posted_by              - User identifier performing
+*                                          the reversal
+*               pi_posted_by_name         - Name of the user performing
+*                                          the reversal
+*               pi_is_dishonoured_cheque  - TRUE for dishonoured cheque
+*                                          reversal (DQ), FALSE for
+*                                          standard reversal (RV)
+*
+* VERSION HISTORY:
+*
+* Date        Author      Version  Nature of Change
+* ----------  ----------  -------  --------------------------------------------
+* 18/11/2026  I Chandio   1.0      PO-10350 - Create p_reverse_suspense_function
+*
+**/
 
 DECLARE
     v_amount_balance suspense_transactions.amount%TYPE;
@@ -84,7 +86,7 @@ BEGIN
     END IF;
 
     --------------------------------------------------------------------
-    -- Step 2: Calculate and validate the suspense item balance.
+    -- Step 2: Calculate suspense item balance.
     --------------------------------------------------------------------
 
     SELECT COALESCE(SUM(st.amount), 0)
@@ -92,7 +94,10 @@ BEGIN
       FROM suspense_transactions st
      WHERE st.suspense_item_id = pi_suspense_item_id;
 
-    -- Only positive balances can be reversed.
+    --------------------------------------------------------------------
+    -- Step 3: Validate suspense item balance.
+    --------------------------------------------------------------------
+
     IF v_amount_balance <= 0 THEN
         RAISE EXCEPTION
             'Suspense item % must have a positive balance. Current balance: %',
@@ -103,7 +108,7 @@ BEGIN
     END IF;
 
     --------------------------------------------------------------------
-    -- Step 3: Identify the business unit.
+    -- Step 4: Retrieve the business unit.
     --------------------------------------------------------------------
 
     SELECT sa.business_unit_id
@@ -114,10 +119,7 @@ BEGIN
      WHERE si.suspense_item_id = pi_suspense_item_id;
 
     --------------------------------------------------------------------
-    -- Step 4: Determine the reversal transaction type.
-    --
-    -- DQ = Dishonoured Cheque
-    -- RV = Standard Reversal
+    -- Step 5: Determine the reversal transaction type.
     --------------------------------------------------------------------
 
     v_transaction_type :=
@@ -129,40 +131,42 @@ BEGIN
         END;
 
     --------------------------------------------------------------------
-    -- Step 5: Insert the suspense reversal transaction.
+    -- Step 6: Insert the suspense reversal transaction.
+    --         Named parameters as requested in code review.
     --------------------------------------------------------------------
 
     CALL p_insert_suspense_transactions_common(
-        pi_suspense_item_id,
-        clock_timestamp()::TIMESTAMP,
-        pi_posted_by,
-        pi_posted_by_name,
-        v_transaction_type,
-        -v_amount_balance,
-        NULL::t_associated_record_type_enum,
-        NULL::VARCHAR,
-        NULL::VARCHAR,
-        NULL::t_reversed_enum,
-        v_suspense_transaction_id
+        pi_suspense_item_id        => pi_suspense_item_id,
+        pi_posted_date             => clock_timestamp()::TIMESTAMP,
+        posted_by                  => pi_posted_by,
+        posted_by_name             => pi_posted_by_name,
+        pi_transaction_type        => v_transaction_type,
+        pi_amount                  => -v_amount_balance,
+        pi_associated_record_type  => NULL,
+        pi_associated_record_id    => NULL,
+        pi_text                    => NULL,
+        pi_reversed                => NULL,
+        po_suspense_transaction_id => v_suspense_transaction_id
     );
 
     --------------------------------------------------------------------
-    -- Step 6: Create the Reversed Payments report entry.
+    -- Step 7: Create an entry in the Reversed Payments report.
+    --         Named parameters as requested in code review.
     --------------------------------------------------------------------
 
     CALL p_insert_report_entries_common(
-        v_business_unit_id,
-        'reversed_payments_report'::VARCHAR,
-        clock_timestamp()::TIMESTAMP,
-        NULL::TIMESTAMP,
-        'suspense_transactions'::t_associated_record_type_enum,
-        v_suspense_transaction_id::VARCHAR,
-        NULL::BIGINT,
-        v_report_entry_id
+        pi_business_unit_id       => v_business_unit_id,
+        pi_report_id              => 'reversed_payments_report',
+        pi_entry_timestamp        => clock_timestamp()::TIMESTAMP,
+        pi_reported_timestamp     => NULL,
+        pi_associated_record_type => 'suspense_transactions'::t_associated_record_type_enum,
+        pi_associated_record_id   => v_suspense_transaction_id::VARCHAR,
+        pi_report_instance_id     => NULL,
+        po_report_entry_id        => v_report_entry_id
     );
 
     --------------------------------------------------------------------
-    -- Step 7: Optimistic concurrency control.
+    -- Step 8: Apply optimistic concurrency control.
     --------------------------------------------------------------------
 
     UPDATE suspense_items
@@ -179,11 +183,12 @@ BEGIN
                   DETAIL = 'p_reverse_suspense_function: suspense item version mismatch';
     END IF;
 
+EXCEPTION
+
     --------------------------------------------------------------------
-    -- Exception handling.
+    -- Step 9: Handle known validation exceptions.
     --------------------------------------------------------------------
 
-EXCEPTION
     WHEN SQLSTATE 'P4001'
       OR SQLSTATE 'P4002'
       OR SQLSTATE 'P4003'
@@ -197,6 +202,10 @@ EXCEPTION
             SQLERRM;
 
         RAISE;
+
+    --------------------------------------------------------------------
+    -- Step 10: Handle all other exceptions.
+    --------------------------------------------------------------------
 
     WHEN OTHERS THEN
         GET STACKED DIAGNOSTICS
@@ -214,7 +223,7 @@ EXCEPTION
         RAISE;
 
 END;
-$procedure$;
+$BODY$;
 
 COMMENT ON PROCEDURE p_reverse_suspense_function(
     BIGINT,
