@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteRequest;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyAddNoteResponse;
 import uk.gov.hmcts.opal.dto.legacy.search.LegacyNote;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
+import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.service.iface.NotesServiceInterface;
 
 @Service
@@ -45,12 +46,12 @@ public class LegacyNotesService implements NotesServiceInterface {
         return request.getActivityNote().getRecordId();
     }
 
-    private String getBusinessUnitUserId(UserState user, Short businessUnitId) {
+    private String getBusinessUnitUserId(UserState user, Short businessUnitId, FinesPermission permission) {
         return user.getBusinessUnitUserForBusinessUnit(businessUnitId)
             .map(BusinessUnitUser::getBusinessUnitUserId)
             .filter(id -> !id.isBlank())
             .orElseThrow(() -> new PermissionNotAllowedException(
-                businessUnitId, FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES));
+                businessUnitId, permission));
     }
 
     private void validateGatewayResponse(GatewayService.Response<LegacyAddNoteResponse> response) {
@@ -96,8 +97,11 @@ public class LegacyNotesService implements NotesServiceInterface {
             .recordType(RecordType.valueOf(request.getActivityNote().getRecordType().name()))
             .recordId(request.getActivityNote().getRecordId()).build();
 
+        FinesPermission permission =
+            request.getActivityNote().getRecordType() == NoteCommon.RecordTypeEnum.SUSPENSE_ITEMS
+            ? FinesPermission.MANAGE_SUSPENSE_ITEMS : FinesPermission.ADD_ACCOUNT_ACTIVITY_NOTES;
         return LegacyAddNoteRequest.builder().businessUnitId(businessUnitId.toString())
-            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId))
+            .businessUnitUserId(getBusinessUnitUserId(user, businessUnitId, permission))
             .version(extractBigInteger(version)).activityNote(note).build();
     }
 

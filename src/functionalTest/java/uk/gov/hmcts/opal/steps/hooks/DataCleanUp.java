@@ -33,7 +33,8 @@ public class DataCleanUp extends BaseStepDef {
      * Attempts to remove any draft accounts created during the scenario and always clears the
      * remembered scenario state afterwards.
      */
-    @After(order = Integer.MAX_VALUE)
+    // Run general account cleanup last so the test-support endpoint can remove dependent records.
+    @After(order = Integer.MIN_VALUE)
     public void cleanUpData() {
         try {
             // Cleanup should always run with the default authenticated test user.

@@ -177,6 +177,71 @@ public class DraftAccountRequestFactory {
                 }
             }
         }
+
+        applyMinorCreditorOverrides(accountObject, dataToPost);
+    }
+
+    /**
+     * Applies any supplied functional-test overrides to the first minor creditor in the account.
+     *
+     * @param accountObject account fixture to update.
+     * @param dataToPost optional minor-creditor override values.
+     * @throws JSONException if the fixture has invalid JSON or overrides are supplied without a minor creditor.
+     */
+    private void applyMinorCreditorOverrides(JSONObject accountObject, Map<String, String> dataToPost)
+        throws JSONException {
+        boolean hasOverrides = dataExists(dataToPost.get("minor_creditor_forenames"))
+            || dataExists(dataToPost.get("minor_creditor_surname"))
+            || dataExists(dataToPost.get("minor_creditor_address_line_1"))
+            || dataExists(dataToPost.get("minor_creditor_post_code"));
+        if (!hasOverrides) {
+            return;
+        }
+
+        JSONArray offences = accountObject.getJSONArray("offences");
+
+        for (int offenceIndex = 0; offenceIndex < offences.length(); offenceIndex++) {
+            JSONArray impositions = offences.getJSONObject(offenceIndex).getJSONArray("impositions");
+
+            for (int impositionIndex = 0; impositionIndex < impositions.length(); impositionIndex++) {
+                JSONObject imposition = impositions.getJSONObject(impositionIndex);
+                if (!imposition.has("minor_creditor") || imposition.isNull("minor_creditor")) {
+                    continue;
+                }
+
+                JSONObject creditor = imposition.getJSONObject("minor_creditor");
+                overrideCreditorField(dataToPost, creditor, "minor_creditor_forenames", "forenames");
+                overrideCreditorField(dataToPost, creditor, "minor_creditor_surname", "surname");
+                overrideCreditorField(dataToPost, creditor, "minor_creditor_address_line_1", "address_line_1");
+                overrideCreditorField(dataToPost, creditor, "minor_creditor_post_code", "post_code");
+                return;
+            }
+        }
+
+        throw new JSONException(
+            "Minor-creditor overrides were supplied but the account fixture has no minor creditor"
+        );
+    }
+
+    /**
+     * Copies an optional override value into its minor-creditor JSON field.
+     *
+     * @param dataToPost source map containing the optional override.
+     * @param creditor minor-creditor object to update.
+     * @param dataKey key in the source map.
+     * @param jsonField field in the minor-creditor JSON object.
+     * @throws JSONException if the JSON object cannot be updated.
+     */
+    private void overrideCreditorField(
+        Map<String, String> dataToPost,
+        JSONObject creditor,
+        String dataKey,
+        String jsonField
+    ) throws JSONException {
+        String value = dataToPost.get(dataKey);
+        if (dataExists(value)) {
+            creditor.put(jsonField, value);
+        }
     }
 
     /**
