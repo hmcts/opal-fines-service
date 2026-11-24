@@ -10,7 +10,7 @@ public record AcknowledgementsQueueMessage(
     @JsonProperty("defendant_id") Long defendant_id,
     @JsonProperty("status") Status status) {
 
-    enum Status {
+    public enum Status {
         PUBLISHED, PUBLISHING_FAILED
     }
 }
