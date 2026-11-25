@@ -32,9 +32,9 @@ public class Defendant {
     @XmlElement(name = "organisation_name", nillable = true)
     private String organisationName;
 
-    @XmlElement(name = "firstnames", nillable = true)
+    @XmlElement(name = "defendant_firstnames", nillable = true)
     private String firstnames;
 
-    @XmlElement(name = "surname", nillable = true)
+    @XmlElement(name = "defendant_surname", nillable = true)
     private String surname;
 }

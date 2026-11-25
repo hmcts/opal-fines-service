@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.dto.legacy;
 
+import jakarta.xml.bind.JAXBException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -10,7 +11,10 @@ import uk.gov.hmcts.opal.dto.ToJsonString;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.Month;
+import uk.gov.hmcts.opal.dto.legacy.search.LegacyMinorCreditorSearchResultsResponse;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -136,5 +140,30 @@ class LegacyDefendantAccountSearchResultTest {
           "count" : 1
         }
             """;
+    }
+
+    @Test
+    void unmarshalXml_readsDefendantNamesFromLegacyElements() throws JAXBException {
+        LegacyMinorCreditorSearchResultsResponse response = XmlUtil.unmarshalXmlString("""
+            <response>
+              <count>1</count>
+              <creditor_accounts>
+                <creditor_accounts_element>
+                  <creditor_account_id>123</creditor_account_id>
+                  <defendant>
+                    <defendant_account_id>770000007440</defendant_account_id>
+                    <defendant_firstnames>Minor</defendant_firstnames>
+                    <defendant_surname>Creditor Seed DefLinkyfdwaolhg</defendant_surname>
+                  </defendant>
+                </creditor_accounts_element>
+              </creditor_accounts>
+            </response>
+            """, LegacyMinorCreditorSearchResultsResponse.class);
+
+        var defendant = response.getCreditorAccounts().getFirst().getDefendant();
+
+        assertThat(defendant.getDefendantAccountId()).isEqualTo("770000007440");
+        assertThat(defendant.getFirstnames()).isEqualTo("Minor");
+        assertThat(defendant.getSurname()).isEqualTo("Creditor Seed DefLinkyfdwaolhg");
     }
 }
