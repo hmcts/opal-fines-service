@@ -399,8 +399,10 @@ class InterfaceJobProcessedFileSummaryIT extends AbstractIntegrationTest {
             interfaceJobRepository.findById(IGNORED_INTERFACE_JOB_ID).orElseThrow().getStatus());
         assertEquals(0L, tillRepository.countByInterfaceFile_InterfaceFileIdIn(
             List.of(IGNORED_INTERFACE_FILE_ID)));
-        assertEquals(0, summaryViewRepository
-            .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(IGNORED_INTERFACE_JOB_ID).size());
+        List<InterfaceJobProcessedFileSummaryEntity> summaries = summaryViewRepository
+            .findAllByInterfaceJobIdOrderByInterfaceFileIdAsc(IGNORED_INTERFACE_JOB_ID);
+        assertEquals(1, summaries.size());
+        assertNull(summaries.getFirst().getTillId());
 
         mockMvc.perform(get(IGNORED_URL).accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
