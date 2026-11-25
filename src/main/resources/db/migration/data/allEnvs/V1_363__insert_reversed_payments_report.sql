@@ -2,19 +2,19 @@
 /**
 * OPAL Program
 *
-* MODULE      : insert_reversed_payments_report_reference_data.sql
+* MODULE      : insert_reversed_payments_report.sql
 *
 * DESCRIPTION : Insert Reversed Payments Report reference data
 *
 * VERSION HISTORY:
 *
 * Date          Author      Version     Nature of Change
-* ----------    -------     --------    --------------------------------------------------------
-* 21/10/2026    I Chandio   1.0         PO-10345 - Insert Reversed Payments Report reference data.
+* -----------   ----------  --------    --------------------------------------------------------
+* 24/11/2026    I Chandio   1.0         PO-10345 - Insert Reversed Payments Report reference data.
 *
-*/
+**/
 
-INSERT INTO public.reports (
+INSERT INTO reports (
     report_id,
     report_title,
     report_group,
@@ -37,8 +37,7 @@ INSERT INTO public.reports (
     false,
     false,
     NULL,
-    'Reports, Daily Checks/ Month End',
-    ARRAY['PDF']::public.r_supported_file_type_enum[],
+    'REVERSE_PAYMENT_REPORT',
+    ARRAY['PDF']::r_supported_file_type_enum[],
     true
 );
-
