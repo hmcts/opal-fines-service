@@ -22,11 +22,6 @@
       "enabled": false
     },
     {
-      "matchManagers": ["helm"],
-      "matchPackageNames": ["postgresql", "userServicePostgresql"],
-      "enabled": false
-    },
-    {
       "matchManagers": ["gradle-wrapper"],
       "matchUpdateTypes": ["minor", "patch"]
     },
