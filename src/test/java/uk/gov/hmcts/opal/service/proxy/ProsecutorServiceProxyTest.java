@@ -11,6 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.generated.model.ProsecutorsObject;
+import uk.gov.hmcts.opal.generated.model.ProsecutorsReferenceDataResponse;
 import uk.gov.hmcts.opal.service.legacy.LegacyProsecutorService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.OpalProsecutorService;
@@ -48,6 +49,27 @@ class ProsecutorServiceProxyTest {
 
         assertEquals(expected, prosecutorServiceProxy.getProsecutorByKey("10"));
         verify(legacyProsecutorService).getProsecutorByKey("10");
+        verifyNoInteractions(opalProsecutorService);
+    }
+
+    @Test
+    void getProsecutorsRefData_usesOpalServiceInOpalMode() {
+        ProsecutorsReferenceDataResponse expected = ProsecutorsReferenceDataResponse.builder().count(1).build();
+        when(opalProsecutorService.getProsecutorsRefData("opal")).thenReturn(expected);
+
+        assertEquals(expected, prosecutorServiceProxy.getProsecutorsRefData("opal"));
+        verify(opalProsecutorService).getProsecutorsRefData("opal");
+        verifyNoInteractions(legacyProsecutorService);
+    }
+
+    @Test
+    void getProsecutorsRefData_usesLegacyServiceInLegacyMode() {
+        when(dynamicConfigService.isLegacyMode()).thenReturn(true);
+        ProsecutorsReferenceDataResponse expected = ProsecutorsReferenceDataResponse.builder().count(1).build();
+        when(legacyProsecutorService.getProsecutorsRefData("legacy")).thenReturn(expected);
+
+        assertEquals(expected, prosecutorServiceProxy.getProsecutorsRefData("legacy"));
+        verify(legacyProsecutorService).getProsecutorsRefData("legacy");
         verifyNoInteractions(opalProsecutorService);
     }
 }

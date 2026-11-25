@@ -28,7 +28,7 @@ import lombok.experimental.SuperBuilder;
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "prosecutor_code")
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class OpalProsecutorEntity {
+public class ProsecutorOpalEntity {
 
     @Id
     @Column(name = "prosecutor_code", nullable = false, length = 4)
