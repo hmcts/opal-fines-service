@@ -74,7 +74,6 @@ public class LegacyDefendantAccountPartyService implements DefendantAccountParty
             log.info(":getDefendantAccountParty: Legacy success.");
         }
 
-        //todo PO-11477 here (for individual only)
         return defendantAccountPartyLegacyResponseMapper.toGeneratedResponse(response.responseEntity);
     }
 
