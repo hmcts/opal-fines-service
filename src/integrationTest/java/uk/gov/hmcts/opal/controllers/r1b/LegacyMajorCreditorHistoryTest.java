@@ -41,6 +41,7 @@ import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.controllers.shared.util.UserStateUtil;
+import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHeaderSummaryLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.GetMajorCreditorAccountHistoryLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse.HistoryDetails;
@@ -61,6 +62,7 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
     private static final String AUTH_HEADER = "Bearer test-token";
     private static final String URL = "/major-creditor-accounts/{id}/history";
     private static final String GET_MAJOR_CREDITOR_ACCOUNT_HISTORY = "getMajorCreditorAccountHistory";
+    private static final String GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY = "getMajorCreditorAccountHeaderSummary";
     private static final long MAJOR_CREDITOR_ACCOUNT_ID = 99264300000001L;
 
     @MockitoBean
@@ -235,6 +237,107 @@ class LegacyMajorCreditorHistoryTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.status").value(404))
             .andExpect(jsonPath("$.title").value("Entity Not Found"))
             .andExpect(jsonPath("$.historyItems").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-11466 returns 404 when empty history belongs to an unknown account")
+    @JiraStory("PO-11466")
+    @JiraEpic("PO-11478")
+    void getHistory_whenEmptyHistoryAndAccountNotFoundReturns404WithoutHistoryData() throws Exception {
+        LegacyMajorCreditorHistoryResponse historyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse headerResponse =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-20013")
+                    .errorMessage("Account not found")
+                    .build())
+                .build();
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
+            eq(LegacyMajorCreditorHistoryResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, historyResponse, null, null));
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, headerResponse, null, null));
+
+        getHistory()
+            .andExpect(status().isNotFound())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.status").value(404))
+            .andExpect(jsonPath("$.historyItems").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("PO-11466 keeps 200 with empty history for an existing account")
+    @JiraStory("PO-11466")
+    @JiraEpic("PO-11478")
+    void getHistory_whenEmptyHistoryAndAccountExistsReturns200() throws Exception {
+        LegacyMajorCreditorHistoryResponse historyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse headerResponse =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .majorCreditor(GetMajorCreditorAccountHeaderSummaryLegacyResponse.MajorCreditorLegacy.builder()
+                    .creditorAccountId(MAJOR_CREDITOR_ACCOUNT_ID)
+                    .build())
+                .build();
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
+            eq(LegacyMajorCreditorHistoryResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, historyResponse, null, null));
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, headerResponse, null, null));
+
+        getHistory()
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.historyItems").isEmpty());
+    }
+
+    @Test
+    @DisplayName("PO-11466 preserves 500 when empty-history account lookup has a Legacy procedure error")
+    @JiraStory("PO-11466")
+    @JiraEpic("PO-11478")
+    void getHistory_whenEmptyHistoryAccountLookupHasProcedureFailureReturns500() throws Exception {
+        LegacyMajorCreditorHistoryResponse historyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse headerResponse =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-6550")
+                    .errorMessage("ORA-06550: procedure failure")
+                    .build())
+                .build();
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY),
+            eq(LegacyMajorCreditorHistoryResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, historyResponse, null, null));
+        when(gatewayService.postToGateway(
+            eq(GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMajorCreditorAccountHeaderSummaryLegacyResponse.class),
+            any(),
+            isNull()
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, headerResponse, null, null));
+
+        getHistory()
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
     }
 
     @Test
