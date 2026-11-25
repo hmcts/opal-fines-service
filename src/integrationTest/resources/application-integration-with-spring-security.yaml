@@ -35,6 +35,7 @@ jpa:
     ddl-auto: validate
   show-sql: true
 
+# test containers
 testcontainers:
   reuse:
     enable: true

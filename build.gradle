@@ -1385,7 +1385,7 @@ dependencyManagement {
   imports {
     mavenBom 'org.springframework.cloud:spring-cloud-dependencies:2025.1.4'
     mavenBom "org.springframework.integration:spring-integration-bom:7.1.2"
-    mavenBom "io.netty:netty-bom:4.2.20.Final"
+    mavenBom "io.netty:netty-bom:4.2.21.Final"
     mavenBom "com.fasterxml.jackson:jackson-bom:2.23.0"
   }
 
