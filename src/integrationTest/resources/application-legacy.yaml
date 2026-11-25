@@ -2,3 +2,8 @@ launchdarkly:
   enabled: false
   default-flag-values:
     is-legacy-mode: true
+
+opal:
+  ref-data:
+    service-bus:
+      consumer-enabled: false
