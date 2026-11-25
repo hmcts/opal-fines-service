@@ -540,13 +540,15 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
             + ToJsonString.toPrettyJson(body));
 
         resultActions.andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.count").value(3))
+            .andExpect(jsonPath("$.count").value(4))
             .andExpect(jsonPath("$.summaries[0].draft_account_id").value(1))
             .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[1].draft_account_id").value(2))
             .andExpect(jsonPath("$.summaries[1].business_unit_id").value(77))
             .andExpect(jsonPath("$.summaries[2].draft_account_id").value(3))
-            .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73));
+            .andExpect(jsonPath("$.summaries[2].business_unit_id").value(73))
+            .andExpect(jsonPath("$.summaries[3].draft_account_id").value(106))
+            .andExpect(jsonPath("$.summaries[3].business_unit_id").value(77));
 
         jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
@@ -742,6 +744,68 @@ class DraftAccountControllerGetIntegrationTest extends CommonDraftAccountControl
                 "Invalid arguments were provided in the request",
                 "https://hmcts.gov.uk/problems/illegal-argument"
             ));
+    }
+
+    @Test
+    @DisplayName("Get Draft Account by ID returns Publishing Failure Resolved entity")
+    @JiraStory("PO-10673")
+    @JiraEpic("PO-7462")
+    void testGetDraftAccountById_success_fetchesPublishFailedResolvedStatus() throws Exception {
+
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE + "/106")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken()));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountById_success: Response body:\n" + ToJsonString.toPrettyJson(body));
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(header().string("ETag", "\"0\""))
+            .andExpect(jsonPath("$.draft_account_id").value(106))
+            .andExpect(jsonPath("$.business_unit_id").value(77))
+            .andExpect(jsonPath("$.account_type").value("Fixed Penalty"))
+            .andExpect(jsonPath("$.submitted_by").value("user_005"))
+            .andExpect(jsonPath("$.account_status").value("Publishing Failure Resolved"))
+            .andExpect(jsonPath("$.account_status_date").value("2024-12-10T16:27:01.023126Z"))
+            .andExpect(jsonPath("$.submitted_by_name").value("John Smith"))
+            .andExpect(jsonPath("$.account.originator_type").value("NEW"))
+            .andExpect(jsonPath("$.version_number").doesNotExist())
+            .andExpect(jsonPath("$.status_message").doesNotExist())
+            .andExpect(jsonPath("$.validated_by_name").doesNotExist());
+
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNT_RESPONSE);
+    }
+
+    @Test
+    @DisplayName("Get draft accounts summaries - returns entity with Publishing Failure Resolved status")
+    @JiraStory("PO-10673")
+    @JiraEpic("PO-7462")
+    void testGetDraftAccountsSummaries_returnsPublishingFailureResolved() throws Exception {
+        ResultActions resultActions = mockMvc.perform(get(URL_BASE)
+            .param("status", "Publishing Failure Resolved")
+            .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+            .header("authorization", userStateStub.getBearerToken())
+            .contentType(MediaType.APPLICATION_JSON));
+
+        String body = resultActions.andReturn().getResponse().getContentAsString();
+        log.info(":testGetDraftAccountsSummaries_noParams: body:\n" + ToJsonString.toPrettyJson(body));
+        JsonNode response = objectMapper.readTree(body);
+        int count = response.get("count").asInt();
+        int summariesSize = response.withArray("summaries").size();
+
+        resultActions.andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(1))
+            .andExpect(jsonPath("$.summaries[0].draft_account_id").value(106))
+            .andExpect(jsonPath("$.summaries[0].business_unit_id").value(77))
+            .andExpect(jsonPath("$.summaries[0].submitted_by").value("user_005"))
+            .andExpect(jsonPath("$.summaries[0].account_status")
+                .value("Publishing Failure Resolved"))
+            .andExpect(jsonPath("$.summaries[0].version_number").value(0));
+
+        assertEquals(count, summariesSize);
+        jsonSchemaValidationService.validateOrError(body, GET_DRAFT_ACCOUNTS_RESPONSE);
     }
 
 }

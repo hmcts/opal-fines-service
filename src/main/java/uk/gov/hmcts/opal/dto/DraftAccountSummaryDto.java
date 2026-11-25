@@ -69,6 +69,6 @@ public class DraftAccountSummaryDto implements ToJsonString, Versioned {
     @JsonProperty("status_message")
     private String statusMessage;
 
-    @JsonIgnore
+    @JsonProperty("version_number")
     private BigInteger version;
 }
