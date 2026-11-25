@@ -74,6 +74,9 @@ opal:
   interface-file:
     service-bus:
       consumer-enabled: false
+  ref-data:
+    service-bus:
+      consumer-enabled: false
   redis:
     enabled: false
     ttl-duration: 8H

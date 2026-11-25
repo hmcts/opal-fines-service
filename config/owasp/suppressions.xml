@@ -74,6 +74,34 @@
     <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core|azure\-core\-http\-netty|azure\-json|azure\-storage\-blob|azure\-storage\-common|azure\-storage\-internal\-avro|azure\-xml)@[0-9]+(\.[0-9]+){2}$</packageUrl>
     <cve>CVE-2026-33117</cve>
   </suppress>
+  <suppress until="2026-12-15Z">
+    <notes><![CDATA[
+    Reviewed 2026-11-25. CVE-2026-33117 concerns the Azure Key Vault Keys
+    local cryptographic verification path, not Azure Core AMQP or Azure Identity.
+    Dependency-Check maps these artifacts to the generic Azure SDK for Java CPE.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.azure/(azure\-core\-amqp@2\.12\.0|azure\-identity@1\.17\.0)$</packageUrl>
+    <cve>CVE-2026-33117</cve>
+  </suppress>
+  <suppress until="2026-12-15Z">
+    <notes><![CDATA[
+    Reviewed 2026-11-25. NVD lists Azure Identity for Java versions before
+    1.10.2 as affected by CVE-2023-36415 and versions before 1.12.2 as
+    affected by CVE-2024-35255. The reported version 1.17.0 is later than both.
+    ]]></notes>
+    <packageUrl>pkg:maven/com.azure/azure-identity@1.17.0</packageUrl>
+    <cve>CVE-2023-36415</cve>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
+  <suppress until="2026-12-15Z">
+    <notes><![CDATA[
+    Reviewed 2026-11-25. NVD lists Microsoft Authentication Library for Java
+    versions before 1.15.1 as affected by CVE-2024-35255. The reported
+    msal4j version 1.22.0 is later than that threshold.
+    ]]></notes>
+    <packageUrl>pkg:maven/com.microsoft.azure/msal4j@1.22.0</packageUrl>
+    <cve>CVE-2024-35255</cve>
+  </suppress>
   <suppress until="2026-07-31Z">
     <notes><![CDATA[
     Reviewed 2026-06-11.
