@@ -19,7 +19,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtIssuerAuthenticationManagerResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthConfigurationProperties;
 import uk.gov.hmcts.opal.authentication.config.internal.InternalAuthProviderConfigurationProperties;
@@ -62,7 +61,7 @@ public class SecurityConfig {
     @Bean
     @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "squid:S4502"})
     public SecurityFilterChain filterChain(HttpSecurity http,
-        JwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver) {
+        OpalJwtIssuerAuthenticationManagerResolver jwtIssuerAuthenticationManagerResolver) {
         applyCommonConfig(http)
             .authorizeHttpRequests(authorize ->
                 authorize.requestMatchers(PathRequest.toStaticResources().atCommonLocations())
