@@ -24,7 +24,7 @@ Feature: Defendant account party replacement
   # Only visible editable fields are populated. Non-paying guardians have names and address only.
   # Employer details apply to paying individuals; vehicle and contact details also apply to companies.
   # Phone fixtures use internal spaces: 35 raw characters and exactly 11 digits.
-  @cleanUpData @PartyMaximumLength @ExtendedTest @JIRA-STORY:PO-10767 @JIRA-EPIC:PO-10729
+  @cleanUpData @PartyMaximumLength @ExtendedTest @JIRA-STORY:PO-11196 @JIRA-EPIC:PO-10729
   Scenario Outline: Maximum-length <source> to <target> party amendment or conversion
     Given a <source> party exists for maximum-length amendment
     When I replace the party as a <target> using the maximum-length editable fixture
