@@ -24,5 +24,6 @@ class SuspenseItemTypeTest {
         assertEquals("Repayment", SuspenseItemType.RP.getDescription());
         assertEquals("Reversal", SuspenseItemType.RV.getDescription());
         assertEquals("Unidentified", SuspenseItemType.UN.getDescription());
+        assertEquals("Payment", SuspenseItemType.XP.getDescription());
     }
 }

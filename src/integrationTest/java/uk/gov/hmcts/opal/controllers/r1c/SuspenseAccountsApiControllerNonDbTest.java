@@ -1,11 +1,13 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -84,7 +86,15 @@ public class SuspenseAccountsApiControllerNonDbTest extends AbstractIntegrationT
             .accept(MediaType.APPLICATION_JSON)
             .header(HttpHeaders.AUTHORIZATION, AUTH_HEADER));
 
-        resultActions.andExpect(status().isNotFound());
+        resultActions.andExpect(status().isOk());
+
+        String result = resultActions.andReturn().getResponse().getContentAsString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        SuspenseItemSummaryCommonStrict response = objectMapper.readValue(result,
+            SuspenseItemSummaryCommonStrict.class);
+        SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict.builder().build();
+
+        assertEquals(expected, response);
     }
 
 }

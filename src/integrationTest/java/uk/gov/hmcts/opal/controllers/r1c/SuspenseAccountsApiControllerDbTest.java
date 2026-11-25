@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertEquals;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -12,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,6 +27,7 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
+import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -99,9 +102,16 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     @JiraEpic("PO-9026")
     @DisplayName("Missing or mismatched business-unit and item values return not found")
     void getSummary_rejectsMissingOrMismatchedValues(short businessUnitId, long itemNumber) throws Exception {
-        getSummary(businessUnitId, itemNumber, VIEW_SUSPENSE_ITEMS)
-            .andExpect(status().isNotFound())
-            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON));
+        SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict.builder().build();
+        ObjectMapper mapper = new ObjectMapper();
+        //String expectedString = mapper.writeValueAsString(expected);
+
+        ResultActions actions = getSummary(businessUnitId, itemNumber, VIEW_SUSPENSE_ITEMS)
+            .andExpect(status().isOk());
+        String result = actions.andReturn().getResponse().getContentAsString();
+        SuspenseItemSummaryCommonStrict response = mapper.readValue(result, SuspenseItemSummaryCommonStrict.class);
+
+        assertEquals(expected, response);
     }
 
     @Test

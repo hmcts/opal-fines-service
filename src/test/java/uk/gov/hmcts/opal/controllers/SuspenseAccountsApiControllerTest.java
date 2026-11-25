@@ -108,10 +108,12 @@ public class SuspenseAccountsApiControllerTest {
         when(suspenseAccountsSummaryService.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345)))
             .thenReturn(null);
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class,
-            () -> suspenseAccountsApiController.getSuspenseItemSummary((short) 123, 12345L));
+        //  Exception not thrown now!
+        SuspenseItemSummaryCommonStrict expected = SuspenseItemSummaryCommonStrict.builder().build();
+        ResponseEntity<SuspenseItemSummaryCommonStrict> response =
+            suspenseAccountsApiController.getSuspenseItemSummary((short) 123, 12345L);
 
-        assertEquals("Suspense item summary not found", exception.getMessage());
+        assertEquals(expected, response.getBody());
     }
 
     @Test

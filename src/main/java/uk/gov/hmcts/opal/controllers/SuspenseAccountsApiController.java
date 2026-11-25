@@ -4,7 +4,6 @@ import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_SUSPENSE_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.HttpUtil.buildResponse;
 
-import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ public class SuspenseAccountsApiController implements SuspenseAccountsApi {
             .getSuspenseAccountsSummary(businessUnitId, BigInteger.valueOf(suspenseItemNumber));
 
         if (response == null) {
-            throw new EntityNotFoundException("Suspense item summary not found");
+            response = SuspenseItemSummaryCommonStrict.builder().build();
         }
 
         return buildResponse(response);
