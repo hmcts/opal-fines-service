@@ -13,17 +13,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestConstructor;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.SqlMergeMode;
 import org.springframework.test.web.servlet.ResultActions;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.TillEntity;
+import uk.gov.hmcts.opal.repository.TillRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -32,9 +36,13 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/insertData/insert_into_tills_summary.sql", executionPhase = BEFORE_TEST_METHOD)
 @Sql(scripts = "classpath:db/deleteData/delete_from_tills_summary.sql", executionPhase = AFTER_TEST_METHOD)
 @DisplayName("Tills Controller Integration Test")
+@TestConstructor(autowireMode = TestConstructor.AutowireMode.ALL)
+@RequiredArgsConstructor
 class TillsControllerIntegrationTest extends AbstractIntegrationTest {
 
     private static final String URL_BASE = "/tills";
+
+    private final TillRepository tillRepository;
 
     @BeforeEach
     void setUp() {
@@ -89,18 +97,25 @@ class TillsControllerIntegrationTest extends AbstractIntegrationTest {
     @JiraStory("PO-2575")
     @JiraEpic("PO-2532")
     void getTills_filtersByNonAutoPayments() throws Exception {
+        TillEntity manualTill = tillRepository.findById(257502L).orElseThrow();
+        manualTill.setInterfaceFile(null);
+        tillRepository.saveAndFlush(manualTill);
+
         mockMvc.perform(get(URL_BASE)
                 .param("business_unit_ids", "25750")
                 .param("auto_payments", "false")
                 .with(userStateStub.getAuthenticaitonRequestPostProcessor()))
             .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.tills", hasSize(1)))
+            .andExpect(jsonPath("$.tills[0].till_id").value(257502))
             .andExpect(jsonPath("$.tills[0].till_number").value(502))
-            .andExpect(jsonPath("$.tills[0].errors").value(1))
-            .andExpect(jsonPath("$.tills[0].file_name").value("luton-created.dat"))
             .andExpect(jsonPath("$.tills[0].source").value("ALLPAY"))
             .andExpect(jsonPath("$.tills[0].business_unit_id").value(25750))
+            .andExpect(jsonPath("$.tills[0].business_unit_name").value("Luton"))
             .andExpect(jsonPath("$.tills[0].interface_job_id").doesNotExist())
+            .andExpect(jsonPath("$.tills[0].file_name").doesNotExist())
+            .andExpect(jsonPath("$.tills[0].errors").value(0))
             .andExpect(jsonPath("$.tills[0].amount").value(2345.67));
     }
 

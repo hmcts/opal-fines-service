@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessage;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageGroup;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageType;
@@ -18,7 +19,7 @@ import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessedFileSummaryRespon
 
 class InterfaceJobsProcessedFileSummaryResponseTest {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = JsonMapper.builder().findAndAddModules().build();
 
     @Test
     void serializesExpectedResponseFields() {
@@ -37,6 +38,7 @@ class InterfaceJobsProcessedFileSummaryResponseTest {
             .fileName("auto-payments-in.dat")
             .source("NATWEST")
             .businessUnitName("Luton")
+            .tillNumber((short) 123)
             .totalAmount(new BigDecimal("12.34"))
             .totalRecords((short) 2)
             .totalErrors(1L)
@@ -49,6 +51,7 @@ class InterfaceJobsProcessedFileSummaryResponseTest {
         // Assert
         assertEquals(Set.of("file_name", "source", "business_unit_name", "total_amount", "total_records",
             "total_errors", "interface_messages", "till_number"), fieldNames(json));
+        assertEquals(123, json.get("till_number").asInt());
         assertEquals(Set.of("message_text", "messages"), fieldNames(json.get("interface_messages").get(0)));
         assertEquals(Set.of("interface_messages_id", "message_data", "message_type"),
             fieldNames(json.get("interface_messages").get(0).get("messages").get(0)));
