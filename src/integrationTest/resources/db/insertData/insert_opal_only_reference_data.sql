@@ -11,9 +11,9 @@ INSERT INTO enforcers (
 );
 
 INSERT INTO local_justice_areas (
-    local_justice_area_id, name, address_line_1, lja_code, lja_type
+    local_justice_area_id, name, address_line_1, lja_type
 ) VALUES (
-    32761, 'OPAL_ONLY Local Justice Area', 'OPAL_ONLY Address', 'OPAL', 'LJA'
+    32761, 'OPAL_ONLY Local Justice Area', 'OPAL_ONLY Address', 'LJA'
 );
 
 INSERT INTO major_creditors (
