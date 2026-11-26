@@ -186,11 +186,11 @@ Feature: Replace Draft Account
       | If-Match                 | 0                                    |
       | account_originator_type   | FP                                   |
       | account_originator_id     | 1                                    |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the created draft account is replaced successfully and the retrieved draft account contains the following data
       | business_unit_id                   | 73                                                      |
       | account_type                        | Fixed Penalty                                           |
       | account_status                      | Resubmitted                                             |
       | account.originator_type             | FP                                                      |
       | account.originator_id               | 1                                                       |
-      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+      | account.originator_name             | Met Police Traffic Offence Reports |
