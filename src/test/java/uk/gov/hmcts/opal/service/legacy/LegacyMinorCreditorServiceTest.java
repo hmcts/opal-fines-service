@@ -1017,7 +1017,7 @@ class LegacyMinorCreditorServiceTest {
 
         when(gatewayService.postToGateway(eq(SEARCH_MINOR_CREDITOR_ACCOUNTS),
             eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any())).thenReturn(
-            new GatewayService.Response<>(HttpStatus.OK, legacy, null, null));
+                new GatewayService.Response<>(HttpStatus.OK, legacy, null, null));
     }
 
     private static Stream<Arguments> minorCreditorAccountIds() {
