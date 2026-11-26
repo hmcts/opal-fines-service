@@ -183,6 +183,7 @@ class PrisonMessageProcessingIntegrationTest extends AbstractIntegrationTest {
         // Then
         assertThat(repository.findByName(name)).isEmpty();
     }
+
     @Test
     @JiraStory("PO-11022")
     @JiraEpic("PO-10769")
