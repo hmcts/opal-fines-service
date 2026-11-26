@@ -24,6 +24,9 @@ import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.FROM_DATE;
 import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.TO_DATE;
 import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.USER_ID;
 import static uk.gov.hmcts.opal.testdata.ReportInstanceTestData.createDefaultReportInstanceDto;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -44,6 +47,9 @@ import uk.gov.hmcts.opal.generated.model.ReportInstanceListReportsInner;
 import uk.gov.hmcts.opal.service.report.FileType;
 import uk.gov.hmcts.opal.service.report.GenericReportService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceCreationService;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
+import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @ExtendWith(MockitoExtension.class)
 class ReportInstancesApiControllerTest {
@@ -183,6 +189,26 @@ class ReportInstancesApiControllerTest {
                     exception.getReason()),
                 () -> verifyNoInteractions(genericReportService));
         }
+    }
+
+    @Test
+    @JiraStory("PO-2254")
+    @JiraEpic("PO-2248")
+    @JiraTestKey("PO-8270")
+    void getReportInstance_whenServiceRejectsRequest_returnsUnauthorized()
+        throws Exception {
+
+        when(genericReportService.getReportInstance(REPORT_INSTANCE_ID))
+            .thenThrow(new ResponseStatusException(
+                HttpStatus.UNAUTHORIZED, "Unauthorized"));
+
+        standaloneSetup(reportInstancesApiController)
+            .build()
+            .perform(get("/report-instances/{id}", REPORT_INSTANCE_ID)
+                .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+
+        verify(genericReportService).getReportInstance(REPORT_INSTANCE_ID);
     }
 
     private void mock_reportContentRequest(String acceptHeader, FileType fileType, Object expectedContent) {

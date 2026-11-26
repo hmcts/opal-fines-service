@@ -1,7 +1,9 @@
 @Legacy @R1BDrop2 @JIRA-LABEL:account-enquiry @MinorCreditorAtAGlance
 Feature: Minor Creditor Account At A Glance API In Legacy Mode
 
-  # The seeded legacy minor creditor steps use JCDE account 20730000000836.
+  # JCDE minor creditor 20730000000579 (Small Fish Big Ocean) is linked from the FCOMP
+  # imposition on Company A Chocolate Limited, defendant account 24000050E in West London.
+  # The link was confirmed in the UI; a successful at-a-glance API response still needs verification.
   # TODO: Confirm a preprod account and expected defendant details, then share the fixture
   # or split the requests and assertions by environment. Preprod support is pending.
 
@@ -10,7 +12,7 @@ Feature: Minor Creditor Account At A Glance API In Legacy Mode
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     When I request minor creditor account at a glance for the seeded legacy minor creditor account
     Then the minor creditor account at a glance response is returned as documented
-    And the minor creditor account at a glance defendant is an organisation named "Parking Enforcement Corp"
+    And the minor creditor account at a glance defendant is an organisation named "Company A Chocolate Limited"
 
   @JIRA-STORY:PO-10678 @JIRA-EPIC:PO-2982
   Scenario: E2E.02 Legacy minor creditor account at a glance rejects a request without authentication

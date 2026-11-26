@@ -3,6 +3,7 @@
   "extends": [
     "local>hmcts/.github:renovate-config"
   ],
+  "addLabels": ["ExtendedTests"],
   "packageRules": [
     {
       "description": "Keep the build JDK on Java 21 until a newer Java version is deliberately adopted",
@@ -18,11 +19,6 @@
     {
       "matchDatasources": ["docker"],
       "matchPackageNames": ["postgres"],
-      "enabled": false
-    },
-    {
-      "matchManagers": ["helm"],
-      "matchPackageNames": ["postgresql", "userServicePostgresql"],
       "enabled": false
     },
     {

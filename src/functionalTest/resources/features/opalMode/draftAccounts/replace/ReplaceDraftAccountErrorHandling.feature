@@ -142,7 +142,7 @@ Feature: Replace Draft Account Error Handling
       | submitted_by_name        | Laura Clerk                                            |
       | account_originator_type   | NEW                                                    |
       | account_originator_id     | 1                                                      |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the request is rejected as bad request and the created draft account remains with the following data
       | business_unit_id                   | 73                    |
       | account_type                        | Fine                  |
@@ -198,7 +198,7 @@ Feature: Replace Draft Account Error Handling
       | submitted_by_name        | Laura Clerk                          |
       | account_originator_type   | FP                                   |
       | account_originator_id     | 1                                    |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the request is rejected as bad request and the created draft account remains with the following data
       | business_unit_id                   | 73                    |
       | account_type                        | Fine                  |

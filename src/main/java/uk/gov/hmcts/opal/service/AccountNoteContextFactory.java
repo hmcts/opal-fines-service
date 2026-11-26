@@ -6,11 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
+import uk.gov.hmcts.opal.entity.SuspenseItemEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.SuspenseItemRepository;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +20,7 @@ public class AccountNoteContextFactory {
 
     private final DefendantAccountRepository defendantAccountRepository;
     private final CreditorAccountRepository creditorAccountRepository;
+    private final SuspenseItemRepository suspenseItemRepository;
 
     public AccountNoteContext from(NoteCommon note) {
         Long accountId = Long.valueOf(note.getRecordId());
@@ -42,6 +45,14 @@ public class AccountNoteContextFactory {
                     AssociatedRecordType.CREDITOR_ACCOUNTS
                 ))
                 .orElseThrow(() -> accountNotFound(note.getRecordId()));
+            case SUSPENSE_ITEMS -> suspenseItemRepository.findBySuspenseItemId(accountId)
+                .map(item -> new AccountNoteContext(
+                    SuspenseItemEntity.class,
+                    item.getSuspenseItemId(),
+                    item.getSuspenseAccount().getBusinessUnit().getBusinessUnitId(),
+                    AssociatedRecordType.SUSPENSE_ITEMS
+                ))
+                .orElseThrow(() -> new EntityNotFoundException("Suspense item %s not found".formatted(accountId)));
             default -> throw new ResponseStatusException(
                 HttpStatus.BAD_REQUEST, "Record type %s is not supported".formatted(recordType)
             );

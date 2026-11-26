@@ -29,7 +29,7 @@ import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
 @AutoConfigureMockMvc(htmlUnit = @AutoConfigureMockMvc.HtmlUnit(webClient = false, webDriver = false))
-@Import(IntegrationSecurityConfiguration.class)
+@Import({IntegrationSecurityConfiguration.class, RedisIntegrationTestConfiguration.class})
 @ExtendWith(ZephyrAutomationExtension.class)
 @SuppressWarnings({"java:S6813", "SpringJavaInjectionPointsAutowiringInspection"})
 public abstract class AbstractIntegrationTest {
