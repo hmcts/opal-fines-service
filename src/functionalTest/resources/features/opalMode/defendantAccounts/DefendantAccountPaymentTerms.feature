@@ -4,20 +4,21 @@ Feature: Defendant account payment-term amendments
   # Reason for change is exposed by the API as reason_for_extension.
   # Instalments with an initial lump sum use type I, as do instalments without one.
   # Paid terms are not an editable payment arrangement for an outstanding account.
+  # The setup fixture must have outstanding debt to pass the payment-term account controls.
   # Expected to fail in Legacy mode until PO-11822 is fixed: the latest GET returns a null reason for change.
   @cleanUpData @JIRA-STORY:PO-1718 @JIRA-EPIC:PO-977
   @JIRA-DEFECT:PO-11822
   Scenario Outline: Maximum-length reason is preserved for <shape> payment terms
     Given I am testing as the "opal-test@dev.platform.hmcts.net" user
     And an enforceable defendant account exists with the following details
-      | source                       | MAC                                         |
-      | business_unit_id             | 77                                          |
-      | account_enforcement_court_id | 770000000001                                |
-      | account                      | draftAccounts/accountJson/adultAccount.json |
-      | account_type                 | Fine                                        |
-      | account_status               | Submitted                                   |
-      | submitted_by                 | PAYTERMS001                                 |
-      | submitted_by_name            | Laura Clerk                                 |
+      | source                       | MAC                                             |
+      | business_unit_id             | 77                                              |
+      | account_enforcement_court_id | 770000000001                                    |
+      | account                      | draftAccounts/accountJson/auditableAccount.json |
+      | account_type                 | Fine                                            |
+      | account_status               | Submitted                                       |
+      | submitted_by                 | PAYTERMS001                                     |
+      | submitted_by_name            | Laura Clerk                                     |
     And a payment-term amendment fixture with a 250-character reason and the following values
       | payment_terms_type_code         | <type>        |
       | payment_terms_type_display_name | <type_name>   |
