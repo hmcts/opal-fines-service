@@ -13,7 +13,6 @@ import uk.gov.hmcts.opal.repository.AlternatePaymentReferenceRepository;
 import uk.gov.hmcts.opal.repository.AmendmentRepository;
 import uk.gov.hmcts.opal.repository.BacsPaymentRepository;
 import uk.gov.hmcts.opal.repository.ChequeRepository;
-import uk.gov.hmcts.opal.repository.CommittalWarrantProgressRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountPartiesRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.DefendantTransactionRepository;
@@ -48,7 +47,6 @@ public class DefendantAccountDeletionService {
     private final FixedPenaltyOffenceRepository fixedPenaltyOffenceRepository;
     private final AccountTransferRepository accountTransferRepository;
     private final EnforcementRepository enforcementRepository;
-    private final CommittalWarrantProgressRepository committalWarrantProgressRepository;
     private final DocumentInstanceRepository documentInstanceRepository;
     private final CreditorAccountTransactional creditorAccountTransactional;
     private final PaymentCardRequestRepository paymentCardRequestsRepository;
@@ -118,7 +116,6 @@ public class DefendantAccountDeletionService {
         defendantTransactionRepository.deleteByDefendantAccountId(defendantAccountId);
 
         // Entities with simple Long defendantAccountId fields
-        committalWarrantProgressRepository.deleteByDefendantAccountId(defendantAccountId);
         fixedPenaltyOffenceRepository.deleteByDefendantAccountId(defendantAccountId);
         paymentCardRequestsRepository.deleteByDefendantAccountId(defendantAccountId);
         noteRepository.deleteByAssociatedRecordId(String.valueOf(defendantAccountId));
