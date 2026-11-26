@@ -227,11 +227,23 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.suspense_transactions[0].details").doesNotExist());
     }
 
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("XP transactions are returned with null details")
+    void getHistory_returnsNullDetailsForXp() throws Exception {
+        String payment = transactionPath(99000000979715L);
+        getPaymentHistory()
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".transaction_type.transaction_type_code", contains("XP")))
+            .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
+    }
+
     private ResultActions getPaymentHistory() throws Exception {
         return getHistoryAndTransactions((short) 29101, 99000000979700L, VIEW_SUSPENSE_ITEMS)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.suspense_transactions", hasSize(13)));
+            .andExpect(jsonPath("$.suspense_transactions", hasSize(14)));
     }
 
     private static String transactionPath(long transactionId) {

@@ -91,6 +91,7 @@ public class SuspenseItemHistoryMapper {
                 ? new ReversalDetailsCommonStrict().reversalDescription(row.getText()) : null;
             case "IN" -> toAdjustmentDetails(row);
             case "RP" -> toRepaymentDetails(row);
+            case "XP" -> null;
             default -> row.getPaymentInId() == null ? toAccountDetails(row) : toPaymentDetails(row);
         };
     }
@@ -161,6 +162,10 @@ public class SuspenseItemHistoryMapper {
                 .creditorAccountNumber(row.getCreditorAccountNumber())
                 .creditorSummary(creditor).creditorAddress(toCreditorAddress(row));
         }
+        return toDefendantDetails(row);
+    }
+
+    private @Nullable DefendantDetailsCommonStrict toDefendantDetails(SuspenseTransactionHistoryProjection row) {
         Long number = toAccountNumber(row.getDefendantAccountNumber());
         PartyDetailsCommonStrict name = toDefendantName(row);
         return number == null || name == null ? null : new DefendantDetailsCommonStrict()
@@ -179,7 +184,11 @@ public class SuspenseItemHistoryMapper {
             .creditorSummary(creditor).creditorAddress(toCreditorAddress(row));
     }
 
-    private @Nullable ThirdPartyRepayDetailsCommonStrict toRepaymentDetails(SuspenseTransactionHistoryProjection row) {
+    private @Nullable SuspenseTransactionCommonStrictDetails toRepaymentDetails(
+        SuspenseTransactionHistoryProjection row) {
+        if ("defendant_accounts".equals(row.getAssociatedRecordType())) {
+            return toDefendantDetails(row);
+        }
         if (!("creditor_accounts".equals(row.getAssociatedRecordType())
             || "creditor_transactions".equals(row.getAssociatedRecordType()))) {
             return null;

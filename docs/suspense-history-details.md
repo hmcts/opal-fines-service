@@ -19,9 +19,11 @@ it does not fall through to a generic account or payment shape.
 
 | Priority | Condition | Details implementation and data |
 | --- | --- | --- |
+| 0 | Transaction type `XP`, regardless of associated reference | Null details; retain the payment transaction in history. |
 | 1 | Transaction type `RV`, with nonblank transaction text | `ReversalDetailsCommonStrict`: transaction `text` becomes `reversal_description`. An associated record is not required. |
 | 2 | Transaction type `IN`, associated type `impositions`, with a resolvable imposition, defendant identity/numeric account number and creditor identity | `AdjustmentDetailsCommonStrict`: imposition ID, defendant name/account number, creditor summary/address. |
 | 3 | Transaction type `RP`, associated type `creditor_accounts` or `creditor_transactions`, resolving to a creditor with `repayment = true` | `ThirdPartyRepayDetailsCommonStrict`: creditor account number, summary/address, and `Pay by BACS` when `pay_by_bacs` is true, otherwise `Pay by Cheque`. |
+| 3 | Transaction type `RP`, associated type `defendant_accounts`, with a resolvable defendant identity/numeric account number | `DefendantDetailsCommonStrict`: defendant account number and individual or organisation name. Confirmed by the requested repayment correction on 26 November 2026. |
 | 4 | Eligible linked payment with `auto_payment = true` | `AutoPaymentDetailsCommonStrict`: originator reference, payment source and optional numeric defendant account number. |
 | 5 | Eligible linked manual payment, transaction type `CF` or `OC`, with exactly one resolvable court-fee record | `ManualPaymentCourtFeeDetailsCommonStrict`: linked fee code, payment information and available payer details. |
 | 6 | Eligible linked manual payment, transaction type `UN` and suspense item type `UN` | `ManualPaymentUnidentifiedDetailsCommonStrict`: payment information and `suspense_reason_detail`. |
@@ -48,6 +50,9 @@ codes absent from `SuspenseItemType` retain their raw code as the display name.
 - An imposition reference is supported only for `IN`. `IN` with a direct account
   reference remains unmatched. `RP` with an ordinary non-repayment creditor also
   remains unmatched.
+- `RP` also supports a direct `defendant_accounts` reference. Missing, cross-unit,
+  ambiguous or nonnumeric defendant data leaves details null. A
+  `defendant_transactions` reference is not inferred to be a supported repayment.
 - Existing till-allocation SQL writes a **null associated record type** and a
   `payments_in.payment_in_id` in `associated_record_id`. This fallback is limited
   to transaction types `UN`, `CF`, `OC`, `OF` and `FA`. Other null-type references,

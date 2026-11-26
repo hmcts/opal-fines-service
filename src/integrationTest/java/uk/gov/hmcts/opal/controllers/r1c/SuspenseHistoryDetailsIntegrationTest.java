@@ -69,7 +69,7 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = {99000000979805L, 99000000979806L})
+    @ValueSource(longs = {99000000979805L, 99000000979851L})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
     @DisplayName("Defendant account and transaction references resolve the defendant's name and account number")
@@ -155,6 +155,34 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(details + ".creditor_payment_method", contains(method)))
             .andExpect(jsonPath(details + ".creditor_summary", hasSize(1)))
             .andExpect(jsonPath(details + ".creditor_address", hasSize(1)));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("RP linked to an individual defendant account returns defendant repayment details")
+    void getHistory_mapsIndividualDefendantRepayment() throws Exception {
+        String details = transaction(99000000979826L) + ".details";
+        history()
+            .andExpect(jsonPath(details + ".defendant_account_number", contains(12345678)))
+            .andExpect(jsonPath(details + ".defendant_name.organisation_flag", contains(false)))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.forenames", contains("Alex")))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.surname", contains("Defendant")))
+            .andExpect(jsonPath(details + ".creditor_account_number").doesNotExist());
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("RP linked to an organisation defendant account returns organisation repayment details")
+    void getHistory_mapsOrganisationDefendantRepayment() throws Exception {
+        String details = transaction(99000000979852L) + ".details";
+        history()
+            .andExpect(jsonPath(details + ".defendant_account_number", contains(23456789)))
+            .andExpect(jsonPath(details + ".defendant_name.organisation_flag", contains(true)))
+            .andExpect(jsonPath(details + ".defendant_name.organisation_details.organisation_name",
+                contains("Defendant Ltd")))
+            .andExpect(jsonPath(details + ".creditor_account_number").doesNotExist());
     }
 
     @Test
@@ -270,9 +298,10 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
     @ParameterizedTest
     @ValueSource(longs = {99000000979815L, 99000000979816L, 99000000979817L, 99000000979818L,
         99000000979819L, 99000000979820L, 99000000979821L, 99000000979822L, 99000000979823L,
-        99000000979824L, 99000000979825L, 99000000979826L, 99000000979827L, 99000000979828L,
+        99000000979824L, 99000000979825L, 99000000979827L, 99000000979828L,
         99000000979829L, 99000000979831L, 99000000979832L, 99000000979833L, 99000000979836L,
-        99000000979837L, 99000000979838L, 99000000979839L, 99000000979841L, 99000000979842L})
+        99000000979837L, 99000000979838L, 99000000979839L, 99000000979841L, 99000000979842L,
+        99000000979853L, 99000000979854L, 99000000979855L, 99000000979856L, 99000000979857L})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
     @DisplayName("Unmatched, incomplete, ambiguous and cross-business-unit combinations retain null details")
@@ -282,8 +311,20 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(transaction(id) + ".details", everyItem(nullValue())));
     }
 
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("XP returns null details even when its defendant transaction reference resolves")
+    void getHistory_returnsNullDetailsForXp() throws Exception {
+        String payment = transaction(99000000979806L);
+        history()
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".transaction_type.transaction_type_code", contains("XP")))
+            .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
+    }
+
     private ResultActions history() throws Exception {
-        return history(99000000979800L).andExpect(jsonPath("$.suspense_transactions", hasSize(49)));
+        return history(99000000979800L).andExpect(jsonPath("$.suspense_transactions", hasSize(56)));
     }
 
     private ResultActions history(long itemId) throws Exception {
