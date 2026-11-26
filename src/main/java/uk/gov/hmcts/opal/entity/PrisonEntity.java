@@ -12,15 +12,17 @@ import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @Entity
 @Table(name = "prisons")
 @SuperBuilder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @XmlRootElement
@@ -30,10 +32,11 @@ public class PrisonEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "prison_id_seq_generator")
     @SequenceGenerator(name = "prison_id_seq_generator", sequenceName = "prison_id_seq", allocationSize = 1)
-    @Column(name = "prison_id", nullable = false)
+    @Column(nullable = false)
     private Long prisonId;
 
-    @Column(name = "name", length = 200, nullable = false)
+    @Column(length = 200, nullable = false)
+    @NonNull
     private String name;
 
     @Column(name = "address_line_1", length = 35)
@@ -51,7 +54,7 @@ public class PrisonEntity {
     @Column(name = "address_line_5", length = 35)
     private String addressLine5;
 
-    @Column(name = "postcode", length = 8)
+    @Column(length = 8)
     private String postcode;
 
 }
