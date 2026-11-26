@@ -1,6 +1,5 @@
 package uk.gov.hmcts.opal.controllers.r1a;
 
-import static org.mockito.Mockito.lenient;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,12 +8,11 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.convention.TestBean;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
 import uk.gov.hmcts.opal.SchemaPaths;
@@ -65,19 +63,17 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
     @MockitoBean
     SecurityEventLoggingService securityEventLoggingService;
 
-    @MockitoSpyBean
+    @Autowired
     JsonSchemaValidationService jsonSchemaValidationService;
 
-    @MockitoBean
+    @TestBean(name = "clock", methodName = "fixedClock", enforceOverride = true)
     Clock clock;
 
     @Autowired
     protected DraftAccountRepository draftAccountRepository;
 
-    @BeforeEach
-    void setupClock() {
-        lenient().when(clock.instant()).thenReturn(FIXED_CLOCK.instant());
-        lenient().when(clock.getZone()).thenReturn(FIXED_CLOCK.getZone());
+    static Clock fixedClock() {
+        return FIXED_CLOCK;
     }
 
     protected static String validUpdateRequestBody(String businessUnit, String status, String delta) {
