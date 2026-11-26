@@ -17,7 +17,7 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceDataResults;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.generated.http.api.MajorCreditorApi;
 import uk.gov.hmcts.opal.generated.model.GetCentralFundResponse;
 import uk.gov.hmcts.opal.generated.model.GetMajorCreditorAccountAtAGlance200Response;
@@ -48,7 +48,7 @@ public class MajorCreditorApiController implements MajorCreditorApi {
     )
     public ResponseEntity<MajorCreditorObject> getMajorCreditorById(Long majorCreditorId) {
 
-        MajorCreditorEntity entity = majorCreditorService.getMajorCreditorById(majorCreditorId);
+        MajorCreditorLegacyEntity entity = majorCreditorService.getMajorCreditorById(majorCreditorId);
         return buildResponse(majorCreditorMapper.toObject(entity));
     }
 

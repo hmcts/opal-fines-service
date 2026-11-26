@@ -5,14 +5,14 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 @Repository
-public interface OffenceRepository extends JpaRepository<OffenceEntity, Long>,
-    JpaSpecificationExecutor<OffenceEntity> {
+public interface OffenceRepository extends JpaRepository<OffenceLegacyEntity, Long>,
+    JpaSpecificationExecutor<OffenceLegacyEntity> {
 
     default boolean existsByOffenceIdAvailableToBusinessUnit(Long offenceId, Short businessUnitId) {
         return existsByOffenceIdAndBusinessUnitIdOrOffenceIdAndBusinessUnitIdIsNull(
@@ -29,13 +29,13 @@ public interface OffenceRepository extends JpaRepository<OffenceEntity, Long>,
     );
 
     @Override
-    @EntityGraph(value = OffenceEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
-    Optional<OffenceEntity> findById(Long offenceId);
+    @EntityGraph(value = OffenceLegacyEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<OffenceLegacyEntity> findById(Long offenceId);
 
     @Override
-    @EntityGraph(value = OffenceEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
-    <S extends OffenceEntity, R> R findBy(
-        Specification<OffenceEntity> spec,
+    @EntityGraph(value = OffenceLegacyEntity.ENTITY_GRAPH_LITE, type = EntityGraph.EntityGraphType.FETCH)
+    <S extends OffenceLegacyEntity, R> R findBy(
+        Specification<OffenceLegacyEntity> spec,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction
     );
 }

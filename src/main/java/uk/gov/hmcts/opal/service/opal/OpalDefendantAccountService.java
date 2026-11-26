@@ -45,17 +45,17 @@ import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryResponse;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.entity.search.SearchConsolidatedEntity;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount;
 import uk.gov.hmcts.opal.entity.search.SearchDefendantAccount.BasicEntity;
@@ -483,7 +483,7 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         if (courtId == null) {
             throw new IllegalArgumentException("enforcement_court.court_id is required");
         }
-        CourtEntity court = courtLiteRepository.findById(courtId)
+        CourtLegacyEntity court = courtLiteRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found: " + courtId));
         entity.setEnforcingCourt(court);
         log.debug(":applyEnforcementCourt: accountId={}, courtId={}",
@@ -494,18 +494,18 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         return dto.getAccountBalance() != null && dto.getAccountBalance().compareTo(BigDecimal.ZERO) != 0;
     }
 
-    private ResultEntity fetchResultEntity(String resultId) {
+    private ResultLegacyEntity fetchResultEntity(String resultId) {
         return Optional.ofNullable(resultId).flatMap(resultRepository::findById).orElse(null);
     }
 
-    private EnforcerEntity fetchEnforcerEntity(DefendantAccountEntity entity) {
+    private EnforcerLegacyEntity fetchEnforcerEntity(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideEnforcerId())
             .flatMap(enforcerRepository::findById)
             .filter(enforcer -> Objects.nonNull(enforcer.getEnforcerId()))
             .orElse(null);
     }
 
-    private LocalJusticeAreaEntity fetchLja(DefendantAccountEntity entity) {
+    private LocalJusticeAreaLegacyEntity fetchLja(DefendantAccountEntity entity) {
         return Optional.ofNullable(entity.getEnforcementOverrideTfoLjaId())
             .flatMap(localJusticeAreaRepository::findById)
             .orElse(null);

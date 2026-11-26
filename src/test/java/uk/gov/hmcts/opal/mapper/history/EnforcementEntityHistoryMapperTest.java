@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 class EnforcementEntityHistoryMapperTest {
@@ -17,7 +17,7 @@ class EnforcementEntityHistoryMapperTest {
 
     @Test
     void toHistoryItem_mapsHearingCourtName() {
-        CourtEntity hearingCourt = CourtEntity.builder()
+        CourtLegacyEntity hearingCourt = CourtLegacyEntity.builder()
             .courtId(321L)
             .name("Brent magistrates court")
             .build();
