@@ -32,7 +32,7 @@ import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.search.BusinessUnitSearchDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
-import uk.gov.hmcts.opal.dto.search.LocalJusticeAreaSearchDto;
+import uk.gov.hmcts.opal.dto.search.LegacyLocalJusticeAreaSearchDto;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
 import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
@@ -42,7 +42,7 @@ import uk.gov.hmcts.opal.service.opal.BusinessUnitService;
 import uk.gov.hmcts.opal.service.opal.DefendantAccountDeletionService;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.InterfaceJobService;
-import uk.gov.hmcts.opal.service.opal.LocalJusticeAreaService;
+import uk.gov.hmcts.opal.service.legacy.LegacyLocalJusticeAreaService;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
 import uk.gov.hmcts.opal.service.opal.OpalCreditorAccountService;
 import uk.gov.hmcts.opal.service.report.ReportInstanceDeletionService;
@@ -73,7 +73,7 @@ public class TestingSupportController {
     private final BusinessUnitService businessUnitService;
     private final OpalCreditorAccountService opalCreditorAccountService;
     private final DraftAccountService draftAccountService;
-    private final LocalJusticeAreaService opalLocalJusticeAreaService;
+    private final LegacyLocalJusticeAreaService legacyLocalJusticeAreaService;
     private final ReportInstanceDeletionService reportInstanceDeletionService;
     private final TestingSupportTillService testingSupportTillService;
 
@@ -278,10 +278,10 @@ public class TestingSupportController {
     @PostMapping(value = "/local-justice-areas/search", consumes = MediaType.APPLICATION_JSON_VALUE)
     @Operation(summary = "Searches LocalJusticeAreas based upon criteria in request body")
     public ResponseEntity<List<LocalJusticeAreaLegacyEntity>> postLocalJusticeAreasSearch(
-        @RequestBody LocalJusticeAreaSearchDto criteria) {
+        @RequestBody LegacyLocalJusticeAreaSearchDto criteria) {
         log.debug(":POST:postLocalJusticeAreasSearch: query: \n{}", criteria);
 
-        List<LocalJusticeAreaLegacyEntity> response = opalLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
+        List<LocalJusticeAreaLegacyEntity> response = legacyLocalJusticeAreaService.searchLocalJusticeAreas(criteria);
 
         return buildResponse(response);
     }

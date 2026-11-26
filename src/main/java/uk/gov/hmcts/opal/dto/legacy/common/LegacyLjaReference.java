@@ -1,14 +1,12 @@
 package uk.gov.hmcts.opal.dto.legacy.common;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-
-import jakarta.xml.bind.annotation.XmlAccessorType;
-import jakarta.xml.bind.annotation.XmlAccessType;
-import jakarta.xml.bind.annotation.XmlElement;
-
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 
 @Data
@@ -16,7 +14,7 @@ import uk.gov.hmcts.opal.dto.ToXmlString;
 @AllArgsConstructor
 @Builder
 @XmlAccessorType(XmlAccessType.FIELD)
-public class LjaReference implements ToXmlString {
+public class LegacyLjaReference implements ToXmlString {
 
     @XmlElement(name = "lja_id", required = true)
     private Short ljaId;

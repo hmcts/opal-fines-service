@@ -47,7 +47,7 @@ import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.OpalLocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -76,7 +76,7 @@ public class OpalDefendantAccountEnforcementService
 
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    private final LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+    private final OpalLocalJusticeAreaRepositoryService opalLocalJusticeAreaRepositoryService;
 
     private final EnforcerRepositoryService enforcerRepositoryService;
 
@@ -366,7 +366,8 @@ public class OpalDefendantAccountEnforcementService
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
                     enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId()).orElse(null)))
                 .lja(OpalDefendantAccountBuilders.buildLja(
-                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
+                    opalLocalJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId())
+                        .orElse(null)))
                 .build();
         }
     }

@@ -63,7 +63,7 @@ import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAc
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
@@ -90,7 +90,7 @@ import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.OpalLocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -126,7 +126,7 @@ class OpalDefendantAccountEnforcementServiceTest {
     private EnforcerRepositoryService enforcerRepositoryService;
 
     @Mock
-    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+    private OpalLocalJusticeAreaRepositoryService opalLocalJusticeAreaRepositoryService;
 
     @Mock
     private NotesProxy notesProxy;
@@ -186,15 +186,15 @@ class OpalDefendantAccountEnforcementServiceTest {
             .name("North East Enforcement")
             .build();
 
-        LocalJusticeAreaLegacyEntity lja = LocalJusticeAreaLegacyEntity.builder()
+        OpalLocalJusticeAreaEntity lja = OpalLocalJusticeAreaEntity.builder()
             .localJusticeAreaId((short) 66)
-            .ljaCode("L066")
             .name("Tyne & Wear LJA")
             .build();
 
         when(resultRepositoryService.getResultById("FWEC")).thenReturn(java.util.Optional.of(result));
         when(enforcerRepositoryService.findById(55L)).thenReturn(java.util.Optional.of(enforcer));
-        when(localJusticeAreaRepositoryService.getLjaById((short) 66)).thenReturn(java.util.Optional.of(lja));
+        when(opalLocalJusticeAreaRepositoryService.getLjaById((short) 66))
+            .thenReturn(java.util.Optional.of(lja));
 
         EnforcementOverride override = service.buildEnforcementOverride(entity);
 
@@ -214,7 +214,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         EnforcementOverride override = service.buildEnforcementOverride(entity);
 
         assertNull(override);
-        verifyNoInteractions(resultRepositoryService, enforcerRepositoryService, localJusticeAreaRepositoryService);
+        verifyNoInteractions(resultRepositoryService, enforcerRepositoryService,
+            opalLocalJusticeAreaRepositoryService);
     }
 
     @Test

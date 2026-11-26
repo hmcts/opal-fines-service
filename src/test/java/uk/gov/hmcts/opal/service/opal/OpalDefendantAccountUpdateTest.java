@@ -36,7 +36,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -55,7 +55,7 @@ import uk.gov.hmcts.opal.mapper.common.EnforcerDefendantAccountMapper;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.NoteRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
@@ -73,7 +73,7 @@ class OpalDefendantAccountUpdateTest {
     private CourtLiteRepository courtLiteRepo;
 
     @Mock
-    private LocalJusticeAreaRepository ljaRepo;
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @Mock
     private EnforcerRepository enforcerRepo;
@@ -144,9 +144,9 @@ class OpalDefendantAccountUpdateTest {
             .enforcerId(22L)
             .build());
 
-        LocalJusticeAreaLegacyEntity lja = mock(LocalJusticeAreaLegacyEntity.class);
+        OpalLocalJusticeAreaEntity lja = mock(OpalLocalJusticeAreaEntity.class);
         when(lja.getLocalJusticeAreaId()).thenReturn((short) 33);
-        when(ljaRepo.findById((short) 33)).thenReturn(Optional.of(lja));
+        when(opalLocalJusticeAreaRepository.findById((short) 33)).thenReturn(Optional.of(lja));
         when(noteRepository.save(any())).thenReturn(null);
         doNothing().when(entityManager).lock(any(), any());
 

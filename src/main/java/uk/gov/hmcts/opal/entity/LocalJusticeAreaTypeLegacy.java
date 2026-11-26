@@ -1,6 +1,6 @@
 package uk.gov.hmcts.opal.entity;
 
-public enum LocalJusticeAreaType {
+public enum LocalJusticeAreaTypeLegacy {
     LJA,
     CRWCRT,
     SJCRT,

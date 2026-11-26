@@ -12,7 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -51,6 +54,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     private CourtLiteRepository courtLiteRepository;
 
     @Autowired
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
+
+    @Autowired
     private EntityManagerFactory entityManagerFactory;
 
     @PersistenceContext
@@ -62,6 +68,25 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     void setUp() {
         entityManager.clear();
         unitUtil = entityManagerFactory.getPersistenceUnitUtil();
+    }
+
+    @Test
+    @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
+    void courtAssociation_readsLjaFromLegacyTable() {
+        opalLocalJusticeAreaRepository.saveAndFlush(OpalLocalJusticeAreaEntity.builder()
+            .localJusticeAreaId(LOCAL_JUSTICE_AREA_ID)
+            .name("Opal Court LJA")
+            .addressLine1("Opal Court Address")
+            .ljaType(OpalLocalJusticeAreaType.LJA)
+            .build());
+        entityManager.clear();
+
+        CourtLegacyEntity court = courtRepository.findById(COURT_ID).orElseThrow();
+
+        assertEquals(LOCAL_JUSTICE_AREA_ID, court.getLocalJusticeArea().getLocalJusticeAreaId());
+        assertEquals("Court Graph LJA", court.getLocalJusticeArea().getName());
     }
 
     @Test
