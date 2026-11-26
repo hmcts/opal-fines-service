@@ -1420,7 +1420,7 @@ dependencies {
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.2'
   testImplementation 'uk.gov.hmcts:zephyr-automation:2.0.2'
-  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.5'
+  testImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.19.0'
 
   openapiImplementation "io.swagger.parser.v3:swagger-parser:2.1.49"
   openapiImplementation "io.swagger.core.v3:swagger-models:3.0.0"
@@ -1520,7 +1520,7 @@ dependencies {
   testImplementation 'org.testcontainers:testcontainers-postgresql'
   testImplementation 'com.redis:testcontainers-redis'
   testImplementation 'io.rest-assured:rest-assured:6.3.0'
-  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.17.5'
+  integrationTestImplementation 'com.launchdarkly:launchdarkly-java-server-sdk:7.19.0'
   testImplementation 'org.junit.platform:junit-platform-launcher'
   testImplementation 'junit:junit:4.13.2'
   testImplementation(platform('org.junit:junit-bom:6.1.3'))
