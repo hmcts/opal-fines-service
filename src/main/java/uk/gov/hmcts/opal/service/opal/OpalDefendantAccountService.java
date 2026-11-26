@@ -8,6 +8,8 @@ import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildE
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementOverrideResultDefendantAccount;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.buildEnforcementStatus;
 import static uk.gov.hmcts.opal.service.opal.OpalDefendantAccountBuilders.filterDefendantParty;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT;
 import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1C_PAYMENT_ENABLED_PROPERTY;
 
@@ -152,7 +154,10 @@ public class OpalDefendantAccountService implements DefendantAccountServiceInter
         DefendantAccountHeaderViewEntity entity = defendantAccountHeaderViewRepositoryService
             .getHeaderViewById(defendantAccountId);
 
-        return defendantAccountHeaderSummaryMapper.toDto(entity);
+        boolean welshLanguageEnabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1B_1_1, RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+
+        return defendantAccountHeaderSummaryMapper.toDto(entity, welshLanguageEnabled);
     }
 
     @Override

@@ -47,6 +47,9 @@ public class MajorCreditorAccountHeaderEntity {
     @Column(name = "business_unit_code")
     private String businessUnitCode;
 
+    @Column(name = "welsh_language")
+    private Boolean welshLanguage;
+
     @Column(name = "name")
     private String name;
 

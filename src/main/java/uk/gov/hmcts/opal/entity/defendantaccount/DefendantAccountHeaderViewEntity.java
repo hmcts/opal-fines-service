@@ -96,6 +96,9 @@ public class DefendantAccountHeaderViewEntity {
     @Column(name = "business_unit_code")
     private String businessUnitCode;
 
+    @Column(name = "welsh_language")
+    private Boolean welshLanguage;
+
     @Column(name = "ticket_number")
     private String fixedPenaltyTicketNumber;
 
