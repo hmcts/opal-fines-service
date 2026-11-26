@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -262,7 +263,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             .orElse(List.of())
             .stream()
             .map(legacy -> MinorCreditorAccountSearchResultMinorCreditor.builder()
-                .creditorAccountId(legacy.getCreditorAccountId())
+                .creditorAccountId(formatMinorCreditorAccountId(legacy.getCreditorAccountId()))
                 .accountNumber(legacy.getAccountNumber())
                 .organisation(legacy.isOrganisation())
                 .organisationName(legacy.getOrganisationName())
@@ -331,5 +332,15 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
                 FeatureFlags.RELEASE_1B_1_1);
         }
         return enabled;
+    }
+
+    // TODO: Temporary workaround:
+    //  Legacy search returns unprefixed creditor IDs, but the detail endpoints require the canonical legacy format
+    private String formatMinorCreditorAccountId(String minorCreditorAccountId) {
+        if (minorCreditorAccountId == null || !minorCreditorAccountId.matches("[0-9]{11,13}")) {
+            return minorCreditorAccountId;
+        }
+
+        return "2" + StringUtils.leftPad(minorCreditorAccountId, 13, '0');
     }
 }

@@ -12,12 +12,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -52,6 +57,7 @@ import uk.gov.hmcts.opal.generated.model.CreditorAccountPaymentDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.GetMinorCreditorHistory200Response;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchCreditor;
+import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountSearchResultMinorCreditor;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorAccountsSearchResponse;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory.TypeEnum;
@@ -376,6 +382,100 @@ class LegacyMinorCreditorServiceTest {
         assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
 
         verify(minorCreditorMapper, times(1)).toCreditor(null);
+    }
+
+    @ParameterizedTest
+    @MethodSource("minorCreditorAccountIds")
+    void searchNormalizesCreditorAccountId(String legacyId, String expectedId) {
+        stubSearchResults(CreditorAccount.builder()
+            .creditorAccountId(legacyId)
+            .build());
+
+        MinorCreditorAccountsSearchResponse result = legacyMinorCreditorService
+            .searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
+
+        String actualId = result.getCreditorAccounts().getFirst().getCreditorAccountId();
+        assertEquals(expectedId, actualId);
+    }
+
+    @Test
+    void searchNormalizesMixedResultsWithoutChangingOtherFields() {
+        CreditorAccount unprefixed = CreditorAccount.builder()
+            .creditorAccountId("730000000123")
+            .accountNumber("16000313H")
+            .businessUnitId("73")
+            .businessUnitName("West London")
+            .firstnames("John")
+            .surname("Smith")
+            .addressLine1("123 Road")
+            .accountBalance(12.34)
+            .defendant(Defendant.builder().defendantAccountId("730000002175").build())
+            .build();
+
+        stubSearchResults(unprefixed,
+            CreditorAccount.builder().creditorAccountId("21060000000125").build(),
+            CreditorAccount.builder().creditorAccountId("unsupported").build());
+
+        MinorCreditorAccountsSearchResponse result =
+            legacyMinorCreditorService.searchMinorCreditors(MinorCreditorSearchRequest.builder().build());
+
+        assertEquals(3, result.getCount());
+        assertEquals(List.of("20730000000123", "21060000000125", "unsupported"),
+            result.getCreditorAccounts().stream().map(
+                MinorCreditorAccountSearchResultMinorCreditor::getCreditorAccountId).toList());
+
+        MinorCreditorAccountSearchResultMinorCreditor account = result.getCreditorAccounts().getFirst();
+        assertEquals("16000313H", account.getAccountNumber());
+        assertEquals("73", account.getBusinessUnitId());
+        assertEquals("West London", account.getBusinessUnitName());
+        assertEquals("John", account.getFirstnames());
+        assertEquals("Smith", account.getSurname());
+        assertEquals("123 Road", account.getAddressLine1());
+        assertEquals(new BigDecimal("12.34"), account.getAccountBalance());
+        assertEquals("730000002175", account.getDefendant().getDefendantAccountId());
+        assertEquals("730000000123", unprefixed.getCreditorAccountId());
+    }
+
+    @Test
+    void searchResultIdRetrievesSelectedCreditorHeader() {
+        stubSearchResults(CreditorAccount.builder()
+            .creditorAccountId("730000000123").accountNumber("16000313H").build());
+
+        GetMinorCreditorAccountHeaderSummaryLegacyResponse legacyHeader =
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .creditor(CreditorHeaderLegacy.builder()
+                    .accountId("20730000000123")
+                    .accountNumber("16000313H")
+                    .accountVersion(BigInteger.ONE)
+                    .build())
+                .build();
+
+        when(gatewayService.postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder()
+                .creditorAccountId("20730000000123").build()), any()))
+            .thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyHeader, null, null));
+
+        when(headerSummaryResponseMapper.toOpal(legacyHeader)).thenReturn(
+            MinorCreditorAccountHeaderSummaryResponse.builder()
+                .creditor(MinorCreditorAccountHeaderSummaryResponseCreditor.builder()
+                    .accountId("20730000000123").accountNumber("16000313H").build())
+                .build());
+
+        MinorCreditorAccountSearchResultMinorCreditor selected = legacyMinorCreditorService
+            .searchMinorCreditors(MinorCreditorSearchRequest.builder().build())
+            .getCreditorAccounts().getFirst();
+
+        MinorCreditorAccountHeaderSummaryResponse header = legacyMinorCreditorService
+            .getHeaderSummary(Long.valueOf(selected.getCreditorAccountId()));
+
+        assertEquals(selected.getCreditorAccountId(), header.getCreditor().getAccountId());
+        assertEquals(selected.getAccountNumber(), header.getCreditor().getAccountNumber());
+
+        verify(gatewayService).postToGateway(eq(GET_MINOR_CREDITOR_ACCOUNT_HEADER_SUMMARY),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyResponse.class),
+            eq(GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder()
+                .creditorAccountId(selected.getCreditorAccountId()).build()), any());
     }
 
     @Test
@@ -908,5 +1008,34 @@ class LegacyMinorCreditorServiceTest {
             null
         );
         verify(updateMinorCreditorAccountResponseMapper).toMinorCreditorAccountResponse(legacyResponse);
+    }
+
+    private void stubSearchResults(CreditorAccount... accounts) {
+        LegacyMinorCreditorSearchResultsResponse legacy =
+            LegacyMinorCreditorSearchResultsResponse.builder().count(accounts.length)
+                .creditorAccounts(List.of(accounts)).build();
+
+        when(gatewayService.postToGateway(eq(SEARCH_MINOR_CREDITOR_ACCOUNTS),
+            eq(LegacyMinorCreditorSearchResultsResponse.class), any(), any())).thenReturn(
+            new GatewayService.Response<>(HttpStatus.OK, legacy, null, null));
+    }
+
+    private static Stream<Arguments> minorCreditorAccountIds() {
+        return Stream.of(Arguments.of("730000000123", "20730000000123"),
+            Arguments.of("1060000000125", "21060000000125"),
+            Arguments.of("10000000123", "20010000000123"),
+            Arguments.of("230000000123", "20230000000123"),
+            Arguments.of("0730000000123", "20730000000123"),
+            Arguments.of("20730000000123", "20730000000123"),
+            Arguments.of("21060000000125", "21060000000125"),
+            Arguments.of(null, null),
+            Arguments.of("", ""),
+            Arguments.of("   ", "   "),
+            Arguments.of("73000000012A", "73000000012A"),
+            Arguments.of(" 730000000123", " 730000000123"),
+            Arguments.of("730000000123 ", "730000000123 "),
+            Arguments.of("0000000123", "0000000123"),
+            Arguments.of("30730000000123", "30730000000123"),
+            Arguments.of("207300000001234", "207300000001234"));
     }
 }
