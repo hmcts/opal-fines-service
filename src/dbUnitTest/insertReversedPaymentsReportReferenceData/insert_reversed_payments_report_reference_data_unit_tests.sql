@@ -1,4 +1,17 @@
-
+/**
+* OPAL Program
+*
+* MODULE      : insert_reversed_payments_report_reference_data_unit_tests.sql
+*
+* DESCRIPTION : Unit tests for Reversed Payments Report reference data.
+*
+* VERSION HISTORY:
+*
+* Date          Author      Version     Nature of Change
+* -----------   ----------  --------    --------------------------------------------------------
+* 26/11/2026    I Chandio   1.0         PO-10345 - Unit tests for Reversed Payments Report reference data.
+*
+**/
 DO $$
 DECLARE
     v_report reports%ROWTYPE;
