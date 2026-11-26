@@ -25,6 +25,10 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.AdjustmentDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryLiteCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
+import uk.gov.hmcts.opal.generated.model.CreditorSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommonStrict;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.NoteTypeEnum;
 import uk.gov.hmcts.opal.generated.model.NoteCommon.RecordTypeEnum;
@@ -121,14 +125,14 @@ public class SuspenseAccountsApiControllerTest {
         SuspenseItemHistoryCommonStrict history = new SuspenseItemHistoryCommonStrict()
             .businessUnitId(123)
             .suspenseItemId(1L);
-        when(suspenseAccountsHistoryService.getSuspenseItemHistory(123L, 12345L)).thenReturn(history);
+        when(suspenseAccountsHistoryService.getSuspenseItemHistory((short) 123, 12345L)).thenReturn(history);
 
         ResponseEntity<SuspenseItemHistoryCommonStrict> response =
-            suspenseAccountsApiController.getSuspenseItemHistory(123L, 12345L);
+            suspenseAccountsApiController.getSuspenseItemHistory((short) 123, 12345L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(history, response.getBody());
-        verify(suspenseAccountsHistoryService).getSuspenseItemHistory(123L, 12345L);
+        verify(suspenseAccountsHistoryService).getSuspenseItemHistory((short) 123, 12345L);
     }
 
     @Test
@@ -159,6 +163,13 @@ public class SuspenseAccountsApiControllerTest {
                     .amount(BigDecimal.valueOf(100))
                     .details(AdjustmentDetailsCommonStrict
                         .builder()
+                        .impositionId(1L)
+                        .defendantAccountNumber(12345678L)
+                        .defendantName(new PartyDetailsCommonStrict().organisationFlag(false)
+                            .individualDetails(new IndividualDetailsCommonStrict().surname("Defendant")))
+                        .creditorSummary(new CreditorSummaryCommon().creditorAccountId(1L)
+                            .creditorAccountTypeReference(new CreditorAccountTypeReferenceCommon()
+                                .creditorAccountType(CreditorAccountTypeReferenceCommon.CreditorAccountTypeEnum.MN)))
                         .creditorAddress(AddressDetailsCommon
                             .builder()
                             .addressLine1("123 Test Street")
@@ -174,7 +185,7 @@ public class SuspenseAccountsApiControllerTest {
 
         //  Call the API Controller:
         ResponseEntity<SuspenseItemHistoryCommonStrict> response =
-            suspenseAccountsApiController.getSuspenseItemHistory(1L, 1L);
+            suspenseAccountsApiController.getSuspenseItemHistory((short) 1, 1L);
 
         assertEquals(itemHistory, response.getBody());
         assertNotNull(response.getBody());
@@ -194,7 +205,7 @@ public class SuspenseAccountsApiControllerTest {
             response.getBody().getSuspenseNotes().get().getFirst().getNote()).getNoteText());
         assertEquals(NoteTypeEnum.AA, Objects.requireNonNull(
             response.getBody().getSuspenseNotes().get().getFirst().getNote()).getNoteType());
-        assertEquals(1, response.getBody().getSuspenseTransactions().get().size());
+        assertEquals(1, response.getBody().getSuspenseTransactions().size());
 
         //TEMP: Test transaction type
     }
@@ -205,7 +216,7 @@ public class SuspenseAccountsApiControllerTest {
             .thenThrow(new EntityNotFoundException("Suspense item not found in the requested business unit"));
 
         assertThrows(EntityNotFoundException.class, () -> {
-            suspenseAccountsApiController.getSuspenseItemHistory(123L, 12345L);
+            suspenseAccountsApiController.getSuspenseItemHistory((short) 123, 12345L);
         });
     }
 
@@ -255,7 +266,7 @@ public class SuspenseAccountsApiControllerTest {
             .build();
         when(suspenseAccountsHistoryService.getSuspenseItemHistory(any(), any())).thenReturn(itemHistory);
 
-        var response = suspenseAccountsApiController.getSuspenseItemHistory(1L, 1L);
+        var response = suspenseAccountsApiController.getSuspenseItemHistory((short) 1, 1L);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -267,7 +278,7 @@ public class SuspenseAccountsApiControllerTest {
         assertNotNull(response.getBody().getSuspenseNotes());
         assertNotNull(response.getBody().getSuspenseTransactions());
         assertEquals(1, response.getBody().getSuspenseNotes().get().size());
-        assertEquals(1, response.getBody().getSuspenseTransactions().get().size());
+        assertEquals(1, response.getBody().getSuspenseTransactions().size());
 
         //  Notes:
         assertNotNull(response.getBody().getSuspenseNotes().get().getFirst().getNote());
@@ -291,25 +302,25 @@ public class SuspenseAccountsApiControllerTest {
                 .getPostedByName());
 
         //  Transactions:
-        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst());
-        assertEquals(1L, response.getBody().getSuspenseTransactions().get().getFirst().getTransactionId());
+        assertNotNull(response.getBody().getSuspenseTransactions().getFirst());
+        assertEquals(1L, response.getBody().getSuspenseTransactions().getFirst().getTransactionId());
 
-        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType());
+        assertNotNull(response.getBody().getSuspenseTransactions().getFirst().getTransactionType());
         assertEquals(TransactionTypeCodeCommonStrict.CC,
-            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType())
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getTransactionType())
                 .getTransactionTypeCode());
         assertEquals("Cancelled cheque (Fines)",
-            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getTransactionType())
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getTransactionType())
                 .getTransactionTypeDisplayName());
-        assertNotNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails());
+        assertNotNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails());
         assertEquals(LocalDateTime.of(2026, 1, 1, 0, 0),
-            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails())
                 .getPostedDate());
         assertEquals("Test User One",
-            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails())
                 .getPostedBy());
         assertEquals("Test User One",
-            Objects.requireNonNull(response.getBody().getSuspenseTransactions().get().getFirst().getPostedDetails())
+            Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails())
                 .getPostedByName());
     }
 

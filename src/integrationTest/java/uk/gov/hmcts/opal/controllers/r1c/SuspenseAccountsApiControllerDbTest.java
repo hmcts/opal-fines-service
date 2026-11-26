@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.controllers.r1c;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
@@ -14,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -137,21 +139,59 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.suspense_notes").isArray())
             .andExpect(jsonPath("$.suspense_notes.length()").value(0))
             .andExpect(jsonPath("$.suspense_transactions").isArray())
-            .andExpect(jsonPath("$.suspense_transactions.length()").value(2));
+            .andExpect(jsonPath("$.suspense_transactions.length()").value(2))
+            .andExpect(jsonPath("$.suspense_transactions[0].transaction_id").value(99000000979602L))
+            .andExpect(jsonPath("$.suspense_transactions[0].amount")
+                .value(comparesEqualTo(new BigDecimal("-25.25")), BigDecimal.class))
+            .andExpect(jsonPath("$.suspense_transactions[1].transaction_id").value(99000000979601L))
+            .andExpect(jsonPath("$.suspense_transactions[1].amount")
+                .value(comparesEqualTo(new BigDecimal("100.50")), BigDecimal.class));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("An item without transactions returns an empty transaction array")
+    void getHistory_returnsEmptyTransactionArray() throws Exception {
+        getHistoryAndTransactions((short) 29101, 99000000979603L, VIEW_SUSPENSE_ITEMS)
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.suspense_item_id").value(99000000979603L))
+            .andExpect(jsonPath("$.suspense_transactions").isArray())
+            .andExpect(jsonPath("$.suspense_transactions", hasSize(0)));
     }
 
     @ParameterizedTest
-    @CsvSource({"99000000979701, BANK-REFERENCE", "99000000979702, FLAT-REFERENCE"})
+    @ValueSource(strings = {"32768", "-32769", "not-a-number"})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("Automatic payment history uses the linked payment reference and till source")
-    void getHistory_populatesAutomaticPaymentDetails(long transactionId, String reference) throws Exception {
+    @DisplayName("History rejects business-unit headers that are not valid smallint values")
+    void getHistory_rejectsInvalidBusinessUnitHeader(String businessUnitId) throws Exception {
+        userStateStub.setupWithNoPermissions();
+        userStateStub.addPermissions((short) 29101, VIEW_SUSPENSE_ITEMS);
+        mockMvc.perform(get(HISTORY_URL, 99000000979601L)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .accept(MediaType.APPLICATION_JSON)
+                .header("Business-Unit-Id", businessUnitId)
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isNotAcceptable())
+            .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
+            .andExpect(jsonPath("$.type").value("https://hmcts.gov.uk/problems/type-mismatch"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {99000000979701L, 99000000979702L})
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Imported UN payments use unidentified payment details and the till source")
+    void getHistory_mapsImportedUnidentifiedPaymentDetails(long transactionId) throws Exception {
         String transaction = transactionPath(transactionId);
         getPaymentHistory()
             .andExpect(jsonPath(transaction, hasSize(1)))
-            .andExpect(jsonPath(transaction + ".details.originator_reference", contains(reference)))
-            .andExpect(jsonPath(transaction + ".details.payment_source", contains("NATWEST")))
-            .andExpect(jsonPath(transaction + ".details.payment_details").doesNotExist());
+            .andExpect(jsonPath(transaction + ".details.payment_details.payment_method", contains("CT")))
+            .andExpect(jsonPath(transaction + ".details.payment_details.payment_source.payment_source",
+                contains("NATWEST")))
+            .andExpect(jsonPath(transaction + ".details.originator_reference").doesNotExist());
     }
 
     @ParameterizedTest
@@ -199,7 +239,7 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(manual + ".payment_details.payment_source", everyItem(nullValue())))
             .andExpect(jsonPath(manual + ".relevant_details", everyItem(nullValue())))
             .andExpect(jsonPath(automatic + ".originator_reference", everyItem(nullValue())))
-            .andExpect(jsonPath(automatic + ".payment_source", contains("NATWEST")));
+            .andExpect(jsonPath(automatic + ".payment_details.payment_source.payment_source", contains("NATWEST")));
     }
 
     @ParameterizedTest

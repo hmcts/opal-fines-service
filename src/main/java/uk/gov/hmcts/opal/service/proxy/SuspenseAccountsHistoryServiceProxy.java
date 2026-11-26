@@ -24,7 +24,7 @@ public class SuspenseAccountsHistoryServiceProxy implements SuspenseAccountsHist
     }
 
     @Override
-    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemId) {
+    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Short businessUnitId, Long suspenseItemId) {
         return getCurrentModeService().getSuspenseItemHistory(businessUnitId, suspenseItemId);
     }
 

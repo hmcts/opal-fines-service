@@ -68,6 +68,31 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(details + ".payer_details.payer_name", contains("Court Payer Ltd")));
     }
 
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("A single court fee received row with no fee ID returns the OC fallback code")
+    void getHistory_mapsOverpaymentWithoutCourtFeeId() throws Exception {
+        String payment = transaction(99000000979861L);
+        history()
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".transaction_type.transaction_type_code", contains("OC")))
+            .andExpect(jsonPath(payment + ".details.court_fee_code", contains("OC")))
+            .andExpect(jsonPath(payment + ".details.payment_details.payment_method", contains("PO")))
+            .andExpect(jsonPath(payment + ".details.payer_details.payer_name", contains("Court Payer Ltd")));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {99000000979862L, 99000000979863L, 99000000979864L})
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Ambiguous fee rows and cross-unit fee links do not use the OC fallback")
+    void getHistory_doesNotFallbackForAmbiguousOrCrossUnitCourtFees(long id) throws Exception {
+        history()
+            .andExpect(jsonPath(transaction(id), hasSize(1)))
+            .andExpect(jsonPath(transaction(id) + ".details", everyItem(nullValue())));
+    }
+
     @ParameterizedTest
     @ValueSource(longs = {99000000979805L, 99000000979851L})
     @JiraStory("PO-9026")
@@ -199,25 +224,49 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(details + ".creditor_address.postcode", contains("CD3 4EF")));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(longs = {99000000979814L, 99000000979817L})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("RV uses transaction text as the reversal description")
-    void getHistory_mapsReversal() throws Exception {
-        history().andExpect(jsonPath(transaction(99000000979814L) + ".details.reversal_description",
-            contains("Duplicate allocation reversed")));
+    @DisplayName("RV returns null details regardless of transaction text or associated account")
+    void getHistory_returnsNullDetailsForRv(long id) throws Exception {
+        history()
+            .andExpect(jsonPath(transaction(id), hasSize(1)))
+            .andExpect(jsonPath(transaction(id) + ".transaction_type.transaction_type_code", contains("RV")))
+            .andExpect(jsonPath(transaction(id) + ".details", everyItem(nullValue())));
     }
 
     @Test
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("Automatic payments include a linked numeric defendant account number")
-    void getHistory_mapsAutomaticDefendantAccountNumber() throws Exception {
+    @DisplayName("DQ returns reversal details containing transaction text")
+    void getHistory_mapsDishonouredTransactionDescription() throws Exception {
+        history().andExpect(jsonPath(transaction(99000000979859L) + ".details.reversal_description",
+            contains("Dishonoured payment")));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("DQ returns null details when the required description is unavailable")
+    void getHistory_returnsNullForDishonouredTransactionWithoutText() throws Exception {
+        String payment = transaction(99000000979832L);
+        history()
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Imported UN payments use payment details even when a defendant account is linked")
+    void getHistory_mapsImportedPaymentAsUnidentified() throws Exception {
         String details = transaction(99000000979830L) + ".details";
         history()
-            .andExpect(jsonPath(details + ".defendant_account_number", contains(12345678)))
-            .andExpect(jsonPath(details + ".originator_reference", contains("AUTO-REF")))
-            .andExpect(jsonPath(details + ".payment_source", contains("NATWEST")));
+            .andExpect(jsonPath(details + ".payment_details.payment_method", contains("CT")))
+            .andExpect(jsonPath(details + ".payment_details.payment_source.payment_source", contains("NATWEST")))
+            .andExpect(jsonPath(details + ".defendant_account_number").doesNotExist())
+            .andExpect(jsonPath(details + ".originator_reference").doesNotExist());
     }
 
     @Test
@@ -265,12 +314,13 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
     @Test
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("An overflowing optional defendant reference preserves the automatic payment")
-    void getHistory_preservesAutomaticPaymentsWithInvalidAccountReferences() throws Exception {
+    @DisplayName("An overflowing optional defendant reference preserves unidentified payment details")
+    void getHistory_preservesUnidentifiedPaymentsWithInvalidAccountReferences() throws Exception {
         String details = transaction(99000000979850L) + ".details";
         history()
-            .andExpect(jsonPath(details + ".originator_reference", contains("OVERFLOW-ACCOUNT")))
-            .andExpect(jsonPath(details + ".defendant_account_number", everyItem(nullValue())));
+            .andExpect(jsonPath(details + ".payment_details.payment_method", contains("CT")))
+            .andExpect(jsonPath(details + ".payment_details.payment_source.payment_source", contains("NATWEST")))
+            .andExpect(jsonPath(details + ".defendant_account_number").doesNotExist());
     }
 
     @Test
@@ -290,17 +340,57 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("UN transactions for identified miscellaneous items use payer details")
     void getHistory_mapsIdentifiedMiscellaneousPayment() throws Exception {
         history(99000000979801L)
+            .andExpect(jsonPath("$.suspense_transactions", hasSize(2)))
+            .andExpect(jsonPath(transaction(99000000979840L) + ".details.payer_details.payer_name",
+                contains("Dr Jo Payer")))
+            .andExpect(jsonPath(transaction(99000000979840L) + ".details.relevant_details").doesNotExist());
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("MS transactions resolve their linked payment and payer details")
+    void getHistory_mapsMiscellaneousTransactionPaymentDetails() throws Exception {
+        String payment = transaction(99000000979858L);
+        history(99000000979801L)
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".transaction_type.transaction_type_code", contains("MS")))
+            .andExpect(jsonPath(payment + ".details.payment_details.payment_method", contains("CQ")))
+            .andExpect(jsonPath(payment + ".details.payment_details.payment_reference", contains("PAYER-001")))
+            .andExpect(jsonPath(payment + ".details.payment_details.received_from", contains("Third Party")))
+            .andExpect(jsonPath(payment + ".details.payer_details.payer_type", contains("Individual")))
+            .andExpect(jsonPath(payment + ".details.payer_details.payer_name", contains("Dr Jo Payer")));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("OF items return null details when required payer data is absent")
+    void getHistory_returnsNullForOverpaymentWithoutPayer() throws Exception {
+        history(99000000979802L)
             .andExpect(jsonPath("$.suspense_transactions", hasSize(1)))
-            .andExpect(jsonPath("$.suspense_transactions[0].details.payer_details.payer_name").value("Dr Jo Payer"))
-            .andExpect(jsonPath("$.suspense_transactions[0].details.relevant_details").doesNotExist());
+            .andExpect(jsonPath("$.suspense_transactions[0].transaction_id").value(99000000979860L))
+            .andExpect(jsonPath("$.suspense_transactions[0].details").doesNotExist());
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Identified payments retain payer details when received-from is unknown")
+    void getHistory_preservesPayerWithUnknownReceivedFrom() throws Exception {
+        String details = transaction(99000000979842L) + ".details";
+        history()
+            .andExpect(jsonPath(details + ".payer_details.payer_name", contains("Invalid received-from code")))
+            .andExpect(jsonPath(details + ".payment_details.payment_method", contains("NC")))
+            .andExpect(jsonPath(details + ".payment_details.received_from", everyItem(nullValue())));
     }
 
     @ParameterizedTest
     @ValueSource(longs = {99000000979815L, 99000000979816L, 99000000979817L, 99000000979818L,
         99000000979819L, 99000000979820L, 99000000979821L, 99000000979822L, 99000000979823L,
         99000000979824L, 99000000979825L, 99000000979827L, 99000000979828L,
-        99000000979829L, 99000000979831L, 99000000979832L, 99000000979833L, 99000000979836L,
-        99000000979837L, 99000000979838L, 99000000979839L, 99000000979841L, 99000000979842L,
+        99000000979829L, 99000000979831L, 99000000979833L, 99000000979836L,
+        99000000979837L, 99000000979838L, 99000000979839L, 99000000979841L,
         99000000979853L, 99000000979854L, 99000000979855L, 99000000979856L, 99000000979857L})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
@@ -323,8 +413,28 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
     }
 
+    @ParameterizedTest
+    @ValueSource(longs = {99000000979865L, 99000000979866L, 99000000979867L, 99000000979868L})
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Details remain null when required payer data or a creditor address is missing")
+    void getHistory_returnsNullForMissingRequiredDetails(long id) throws Exception {
+        history()
+            .andExpect(jsonPath(transaction(id), hasSize(1)))
+            .andExpect(jsonPath(transaction(id) + ".details", everyItem(nullValue())));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("VARIANT_BANKING is serialized as a supported payment source")
+    void getHistory_mapsVariantBankingPaymentSource() throws Exception {
+        history().andExpect(jsonPath(transaction(99000000979869L)
+            + ".details.payment_details.payment_source.payment_source", contains("VARIANT_BANKING")));
+    }
+
     private ResultActions history() throws Exception {
-        return history(99000000979800L).andExpect(jsonPath("$.suspense_transactions", hasSize(56)));
+        return history(99000000979800L).andExpect(jsonPath("$.suspense_transactions", hasSize(66)));
     }
 
     private ResultActions history(long itemId) throws Exception {

@@ -29,7 +29,7 @@ public class OpalSuspenseAccountsHistoryService implements SuspenseAccountsHisto
 
     @Override
     @Transactional(readOnly = true)
-    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemId) {
+    public SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Short businessUnitId, Long suspenseItemId) {
         log.info("Getting suspense item history for business unit id {} and suspense item number {}", businessUnitId,
             suspenseItemId);
 
@@ -61,7 +61,7 @@ public class OpalSuspenseAccountsHistoryService implements SuspenseAccountsHisto
         return SuspenseItemHistoryCommonStrict
             .builder()
             .version(BigInteger.valueOf(versionNumber == null ? 0 : versionNumber))
-            .businessUnitId(Math.toIntExact(businessUnitId))
+            .businessUnitId(businessUnitId.intValue())
             .suspenseItemId(itemId)
             .suspenseNotes(notes)
             .suspenseTransactions(transactions)

@@ -46,12 +46,12 @@ class SuspenseAccountsHistoryServiceProxyTest extends ProxyTestsBase {
 
         SuspenseItemHistoryCommonStrict expected =
             new SuspenseItemHistoryCommonStrict().businessUnitId(123).suspenseItemId(1L);
-        when(selected.getSuspenseItemHistory(123L, 12345L)).thenReturn(expected);
+        when(selected.getSuspenseItemHistory((short) 123, 12345L)).thenReturn(expected);
 
-        SuspenseItemHistoryCommonStrict result = proxy.getSuspenseItemHistory(123L, 12345L);
+        SuspenseItemHistoryCommonStrict result = proxy.getSuspenseItemHistory((short) 123, 12345L);
 
         assertEquals(expected, result);
-        verify(selected).getSuspenseItemHistory(123L, 12345L);
+        verify(selected).getSuspenseItemHistory((short) 123, 12345L);
         verifyNoInteractions(other);
     }
 }

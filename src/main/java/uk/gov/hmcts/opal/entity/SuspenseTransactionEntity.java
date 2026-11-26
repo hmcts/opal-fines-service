@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -53,8 +54,8 @@ public class SuspenseTransactionEntity {
     @Column(name = "transaction_type",nullable = false)
     private String transactionType;
 
-    @Column(name = "amount",nullable = false)
-    private Double amount;
+    @Column(name = "amount", nullable = false, precision = 18, scale = 2)
+    private BigDecimal amount;
 
     @Column(name = "associated_record_type",nullable = false)
     private String associatedRecordType;

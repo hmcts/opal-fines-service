@@ -57,7 +57,7 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long>, JpaSpec
         ORDER BY n.posted_date DESC NULLS LAST, n.note_id DESC
         """, nativeQuery = true)
     List<NoteEntity> findSuspenseItemNotes(
-        @Param("businessUnitId") Long businessUnitId,
+        @Param("businessUnitId") Short businessUnitId,
         @Param("suspenseItemId") Long suspenseItemId);
 
 }

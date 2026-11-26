@@ -103,7 +103,7 @@ public interface SuspenseTransactionRepository extends JpaRepository<SuspenseTra
           ON p.payment_in_id = reference.record_id
          AND t.business_unit_id = sa.business_unit_id
          AND st.associated_record_type IS NULL
-         AND st.transaction_type::text IN ('UN', 'CF', 'OC', 'OF', 'FA')
+         AND st.transaction_type::text IN ('UN', 'CF', 'OC', 'OF', 'FA', 'MS')
         LEFT JOIN LATERAL (
             SELECT CASE WHEN p.associated_record_id ~ '^(0|-?[1-9][0-9]{0,18})$' THEN
                 CASE WHEN p.associated_record_id::numeric BETWEEN -9223372036854775808 AND 9223372036854775807
@@ -119,9 +119,16 @@ public interface SuspenseTransactionRepository extends JpaRepository<SuspenseTra
          AND ma.business_unit_id = sa.business_unit_id
         LEFT JOIN public.parties payer ON payer.party_id = ma.party_id
         LEFT JOIN LATERAL (
-            SELECT CASE WHEN count(*) = 1 THEN min(cf.court_fee_code) END AS court_fee_code
+            SELECT CASE
+                WHEN count(*) = 1 THEN
+                    CASE
+                        WHEN min(cfr.court_fee_id) IS NULL THEN 'OC'
+                        ELSE min(cf.court_fee_code)
+                    END
+            END AS court_fee_code
             FROM public.court_fees_received cfr
-            JOIN public.court_fees cf ON cf.court_fee_id = cfr.court_fee_id
+            LEFT JOIN public.court_fees cf
+              ON cf.court_fee_id = cfr.court_fee_id
              AND cf.business_unit_id = sa.business_unit_id
             WHERE cfr.suspense_transaction_id = st.suspense_transaction_id
               AND cfr.business_unit_id = sa.business_unit_id
@@ -177,5 +184,5 @@ public interface SuspenseTransactionRepository extends JpaRepository<SuspenseTra
         """, nativeQuery = true)
     List<SuspenseTransactionHistoryProjection> findHistory(
         @Param("suspenseItemId") Long suspenseItemId,
-        @Param("businessUnitId") Long businessUnitId);
+        @Param("businessUnitId") Short businessUnitId);
 }

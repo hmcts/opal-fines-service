@@ -25,7 +25,6 @@ import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PayerDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ReversalDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ThirdPartyRepayDetailsCommonStrict;
-import uk.gov.hmcts.opal.generated.model.AutoPaymentDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.ManualPaymentUnidentifiedDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentDetailsCommonStrict;
@@ -87,8 +86,9 @@ public class SuspenseItemHistoryMapper {
 
         // Provisional selection rules: docs/suspense-history-details.md.
         return switch (row.getTransactionType()) {
-            case "RV" -> hasText(row.getText())
-                ? new ReversalDetailsCommonStrict().reversalDescription(row.getText()) : null;
+            case "RV" -> null;
+            case "DQ" -> row.getText() == null ? null
+                : new ReversalDetailsCommonStrict().reversalDescription(row.getText());
             case "IN" -> toAdjustmentDetails(row);
             case "RP" -> toRepaymentDetails(row);
             case "XP" -> null;
@@ -98,22 +98,13 @@ public class SuspenseItemHistoryMapper {
 
     private @Nullable SuspenseTransactionCommonStrictDetails toPaymentDetails(
         SuspenseTransactionHistoryProjection row) {
-        if (Boolean.TRUE.equals(row.getAutoPayment())) {
-            return new AutoPaymentDetailsCommonStrict()
-                .defendantAccountNumber(toAccountNumber(row.getDefendantAccountNumber()))
-                .originatorReference(row.getOriginatorReference())
-                .paymentSource(row.getPaymentSource());
-        }
-        if (!Boolean.FALSE.equals(row.getAutoPayment())
-            || (row.getPaymentReceivedFrom() != null && toReceivedFrom(row.getPaymentReceivedFrom()) == null)) {
-            return null;
-        }
         if ("CF".equals(row.getTransactionType()) || "OC".equals(row.getTransactionType())) {
-            return hasText(row.getCourtFeeCode())
+            PayerDetailsCommonStrict payer = toPayer(row);
+            return hasText(row.getCourtFeeCode()) && payer != null
                 ? new ManualPaymentCourtFeeDetailsCommonStrict()
                     .courtFeeCode(row.getCourtFeeCode())
                     .paymentDetails(toPayment(row))
-                    .payerDetails(toPayer(row)) : null;
+                    .payerDetails(payer) : null;
         }
         if ("UN".equals(row.getTransactionType()) && "UN".equals(row.getSuspenseItemType())) {
             return new ManualPaymentUnidentifiedDetailsCommonStrict()
@@ -134,7 +125,8 @@ public class SuspenseItemHistoryMapper {
             payment.paymentMethod(PaymentDetailsCommonStrict.PaymentMethodEnum.fromValue(method));
         }
         if (hasText(row.getPaymentSource())) {
-            payment.paymentSource(new PaymentSourceCommonStrict().paymentSource(row.getPaymentSource()));
+            payment.paymentSource(new PaymentSourceCommonStrict().paymentSource(
+                PaymentSourceCommonStrict.PaymentSourceEnum.fromValue(row.getPaymentSource())));
         }
         return payment;
     }
@@ -158,9 +150,10 @@ public class SuspenseItemHistoryMapper {
         }
         if (row.getCreditorAccountId() != null) {
             CreditorSummaryCommon creditor = toCreditor(row);
-            return creditor == null ? null : new CreditorDetailsCommonStrict()
+            AddressDetailsCommon address = toCreditorAddress(row);
+            return creditor == null || address == null ? null : new CreditorDetailsCommonStrict()
                 .creditorAccountNumber(row.getCreditorAccountNumber())
-                .creditorSummary(creditor).creditorAddress(toCreditorAddress(row));
+                .creditorSummary(creditor).creditorAddress(address);
         }
         return toDefendantDetails(row);
     }
@@ -176,12 +169,13 @@ public class SuspenseItemHistoryMapper {
         Long number = toAccountNumber(row.getDefendantAccountNumber());
         PartyDetailsCommonStrict name = toDefendantName(row);
         CreditorSummaryCommon creditor = toCreditor(row);
-        if (row.getImpositionId() == null || number == null || name == null || creditor == null) {
+        AddressDetailsCommon address = toCreditorAddress(row);
+        if (row.getImpositionId() == null || number == null || name == null || creditor == null || address == null) {
             return null;
         }
         return new AdjustmentDetailsCommonStrict()
             .impositionId(row.getImpositionId()).defendantAccountNumber(number).defendantName(name)
-            .creditorSummary(creditor).creditorAddress(toCreditorAddress(row));
+            .creditorSummary(creditor).creditorAddress(address);
     }
 
     private @Nullable SuspenseTransactionCommonStrictDetails toRepaymentDetails(
@@ -194,12 +188,13 @@ public class SuspenseItemHistoryMapper {
             return null;
         }
         CreditorSummaryCommon creditor = toCreditor(row);
-        if (!Boolean.TRUE.equals(row.getRepaymentCreditor()) || creditor == null) {
+        AddressDetailsCommon address = toCreditorAddress(row);
+        if (!Boolean.TRUE.equals(row.getRepaymentCreditor()) || creditor == null || address == null) {
             return null;
         }
         return new ThirdPartyRepayDetailsCommonStrict()
             .creditorAccountNumber(row.getCreditorAccountNumber())
-            .creditorSummary(creditor).creditorAddress(toCreditorAddress(row))
+            .creditorSummary(creditor).creditorAddress(address)
             .creditorPaymentMethod(Boolean.TRUE.equals(row.getPayByBacs())
                 ? ThirdPartyRepayDetailsCommonStrict.CreditorPaymentMethodEnum.PAY_BY_BACS
                 : ThirdPartyRepayDetailsCommonStrict.CreditorPaymentMethodEnum.PAY_BY_CHEQUE);

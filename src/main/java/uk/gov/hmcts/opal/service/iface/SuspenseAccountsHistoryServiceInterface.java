@@ -5,6 +5,6 @@ import uk.gov.hmcts.opal.generated.model.SuspenseItemHistoryCommonStrict;
 
 public interface SuspenseAccountsHistoryServiceInterface {
 
-    SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Long businessUnitId, Long suspenseItemId);
+    SuspenseItemHistoryCommonStrict getSuspenseItemHistory(Short businessUnitId, Long suspenseItemId);
 
 }

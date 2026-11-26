@@ -102,7 +102,7 @@ paths:
           name: Business-Unit-Id
           schema:
             type: integer
-            format: int64
+            format: int16
           required: true
         - in: path
           name: suspenseItemId

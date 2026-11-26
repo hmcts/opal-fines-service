@@ -22,7 +22,7 @@ public interface SuspenseItemRepository extends JpaRepository<SuspenseItemEntity
         """, nativeQuery = true)
     Optional<Long> findItemIdForBusinessUnit(
         @Param("suspenseItemId") Long suspenseItemId,
-        @Param("businessUnitId") Long businessUnitId);
+        @Param("businessUnitId") Short businessUnitId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<SuspenseItemEntity> findBySuspenseItemId(Long suspenseItemId);

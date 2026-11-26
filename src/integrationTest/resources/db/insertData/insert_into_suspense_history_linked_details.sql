@@ -197,4 +197,61 @@ INSERT INTO suspense_transactions (
     (99000000979854, 99000000979800, '2026-11-03', 'RP', 10, 'defendant_accounts', '99000000979999'),
     (99000000979855, 99000000979800, '2026-11-03', 'RP', 10, 'defendant_accounts', '99000000979804'),
     (99000000979856, 99000000979800, '2026-11-03', 'RP', 10, 'defendant_accounts', '99000000979805'),
-    (99000000979857, 99000000979800, '2026-11-03', 'RP', 10, 'defendant_transactions', '99000000979801');
+    (99000000979857, 99000000979800, '2026-11-03', 'RP', 10, 'defendant_transactions', '99000000979801'),
+    (99000000979858, 99000000979801, '2026-11-03', 'MS', 10, NULL, '99000000979801');
+
+INSERT INTO suspense_items (
+    suspense_item_id, suspense_account_id, suspense_item_number, suspense_item_type, created_date, version_number
+) VALUES (99000000979802, 99000000979601, 100005, 'OF', '2026-11-03', 1);
+INSERT INTO suspense_transactions (
+    suspense_transaction_id, suspense_item_id, posted_date, transaction_type, amount,
+    associated_record_type, associated_record_id, text
+) VALUES
+    (99000000979859, 99000000979800, '2026-11-03', 'DQ', -10, NULL, NULL, 'Dishonoured payment'),
+    (99000000979860, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979805', NULL);
+
+-- OC fallback requires exactly one received row in this business unit.
+INSERT INTO suspense_transactions (
+    suspense_transaction_id, suspense_item_id, posted_date, transaction_type, amount,
+    associated_record_type, associated_record_id
+) VALUES
+    (99000000979861, 99000000979800, '2026-11-03', 'OC', 10, NULL, '99000000979803'),
+    (99000000979862, 99000000979800, '2026-11-03', 'OC', 10, NULL, '99000000979803'),
+    (99000000979863, 99000000979800, '2026-11-03', 'OC', 10, NULL, '99000000979803'),
+    (99000000979864, 99000000979800, '2026-11-03', 'OC', 10, NULL, '99000000979803');
+INSERT INTO court_fees_received (
+    court_fee_received_id, business_unit_id, court_fee_id, overpayment, suspense_transaction_id, number_of_items
+) VALUES
+    (99000000979806, 29101, NULL, TRUE, 99000000979861, 1),
+    (99000000979807, 29101, 99000000979801, TRUE, 99000000979862, 1),
+    (99000000979808, 29101, NULL, TRUE, 99000000979862, 1),
+    (99000000979809, 29101, 99000000979802, TRUE, 99000000979863, 1),
+    (99000000979810, 29102, NULL, TRUE, 99000000979864, 1);
+
+-- Required detail fields: missing payer and creditor-address records must not produce invalid objects.
+INSERT INTO parties (party_id, organisation, forenames, surname) VALUES
+    (99000000979806, FALSE, 'No', 'Address');
+INSERT INTO creditor_accounts (
+    creditor_account_id, business_unit_id, account_number, creditor_account_type,
+    prosecution_service, minor_creditor_party_id, repayment, hold_payout, pay_by_bacs, version_number
+) VALUES (99000000979809, 29101, 'NO-ADDRESS', 'MN', FALSE, 99000000979806, TRUE, FALSE, TRUE, 1);
+INSERT INTO impositions (imposition_id, defendant_account_id, posted_date, result_id,
+                         imposed_amount, paid_amount, creditor_account_id) VALUES
+    (99000000979805, 99000000979801, '2026-11-03', 'FO', 100, 0, 99000000979809);
+INSERT INTO payments_in (
+    payment_in_id, till_id, payment_amount, payment_date, payment_method, destination_type,
+    receipt, allocated, auto_payment, additional_information
+) VALUES (99000000979813, 99000000979801, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, FALSE,
+    '{"transfer_source":"VARIANT_BANKING"}');
+INSERT INTO suspense_transactions (
+    suspense_transaction_id, suspense_item_id, posted_date, transaction_type, amount,
+    associated_record_type, associated_record_id
+) VALUES
+    (99000000979865, 99000000979800, '2026-11-03', 'CF', 10, NULL, '99000000979805'),
+    (99000000979866, 99000000979800, '2026-11-03', 'CC', 10, 'creditor_accounts', '99000000979809'),
+    (99000000979867, 99000000979800, '2026-11-03', 'RP', 10, 'creditor_accounts', '99000000979809'),
+    (99000000979868, 99000000979800, '2026-11-03', 'IN', 10, 'impositions', '99000000979805'),
+    (99000000979869, 99000000979800, '2026-11-03', 'UN', 10, NULL, '99000000979813');
+INSERT INTO court_fees_received (
+    court_fee_received_id, business_unit_id, court_fee_id, overpayment, suspense_transaction_id, number_of_items
+) VALUES (99000000979811, 29101, 99000000979801, FALSE, 99000000979865, 1);

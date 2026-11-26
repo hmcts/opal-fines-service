@@ -766,7 +766,6 @@ components:
         suspense_transactions:
           type:
             - array
-            - 'null'
           items:
             $ref: '#/components/schemas/suspenseTransaction'
 
@@ -795,8 +794,10 @@ components:
         amount:
           type:
             - number
+            - 'null'
         details:
           oneOf:
+            - type: 'null'
             - $ref: '#/components/schemas/manualPaymentPayerDetails'
             - $ref: '#/components/schemas/manualPaymentUnidentifiedDetails'
             - $ref: '#/components/schemas/manualPaymentCourtFeeDetails'
@@ -845,6 +846,9 @@ components:
       title: Manual Payment Payer Details
       type: object
       additionalProperties: false
+      required:
+        - payment_details
+        - payer_details
       properties:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
@@ -855,6 +859,8 @@ components:
       title: Manual Payment Unidentified Details
       type: object
       additionalProperties: false
+      required:
+        - payment_details
       properties:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
@@ -864,6 +870,10 @@ components:
     manualPaymentCourtFeeDetails:
       type: object
       additionalProperties: false
+      required:
+        - court_fee_code
+        - payment_details
+        - payer_details
       properties:
         court_fee_code:
           type: string
@@ -875,6 +885,8 @@ components:
     autoPaymentDetails:
       type: object
       additionalProperties: false
+      required:
+        - payment_source
       properties:
         defendant_account_number:
           type:
@@ -891,6 +903,9 @@ components:
     defendantDetails:
       type: object
       additionalProperties: false
+      required:
+        - defendant_account_number
+        - defendant_name
       properties:
         defendant_account_number:
           type: integer
@@ -901,6 +916,11 @@ components:
     thirdPartyRepayDetails:
       type: object
       additionalProperties: false
+      required:
+        - creditor_account_number
+        - creditor_summary
+        - creditor_address
+        - creditor_payment_method
       properties:
         creditor_account_number:
           type: string
@@ -917,6 +937,8 @@ components:
     reversalDetails:
       type: object
       additionalProperties: false
+      required:
+        - reversal_description
       properties:
         reversal_description:
           type: string
@@ -924,6 +946,12 @@ components:
     adjustmentDetails:
       type: object
       additionalProperties: false
+      required:
+        - defendant_account_number
+        - defendant_name
+        - imposition_id
+        - creditor_summary
+        - creditor_address
       properties:
         defendant_account_number:
           type: integer
@@ -942,6 +970,10 @@ components:
       title: Creditor Details
       type: object
       additionalProperties: false
+      required:
+        - creditor_account_number
+        - creditor_summary
+        - creditor_address
       properties:
         creditor_account_number:
           type: string
@@ -1003,24 +1035,15 @@ components:
       properties:
         payment_source:
           type: string
-          oneOf:
-          - title: NATWEST
-            description: NatWest
-          - title: ALLPAY
-            description: allpay
-          - title: ALLPAY_DD
-            description: allpay DD
-          - title: BARCLAYCARD
-            description: Barclaycard
-          - title: BTECKOH
-            description: British Telecom
-          - title: OTHER
-            description: Other
-          - title: DWP
-            description: DWP
-          - title: CDER
-            description: CDER
-          - title: JACOBS
-            description: Jacobs
-          - title: MARSTON
-            description: Marston
+          enum:
+            - NATWEST
+            - ALLPAY
+            - ALLPAY_DD
+            - BARCLAYCARD
+            - BTECKOH
+            - DWP
+            - CDER
+            - JACOBS
+            - MARSTON
+            - OTHER
+            - VARIANT_BANKING
