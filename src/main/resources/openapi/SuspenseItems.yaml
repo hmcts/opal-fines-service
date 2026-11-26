@@ -195,11 +195,30 @@ components:
         - noteText
       properties:
         transactionType:
-          $ref: './CommonStrict.yaml#/components/schemas/transactionTypeCode'
+          type: string
+          enum:
+            - CC
+            - CF
+            - DQ
+            - FA
+            - FB
+            - IN
+            - LA
+            - MA
+            - MB
+            - MC
+            - MS
+            - OM
+            - OC
+            - OF
+            - RP
+            - RV
+            - UN
+            - XF
+            - XP
         noteText:
           type: string
           description: Note associated with the transaction.
-
     SuspenseItemTransactionResponse:
       type: object
       additionalProperties: false

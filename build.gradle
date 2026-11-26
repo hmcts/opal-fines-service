@@ -444,11 +444,6 @@ gradle.taskGraph.whenReady { graph ->
 tasks.withType(Test).configureEach {
   useJUnitPlatform()
 
-  jacoco {
-    // HtmlUnit's generated CSS initialiser exceeds the JVM method size limit when instrumented.
-    excludes += ['org.htmlunit.*']
-  }
-
   doFirst {
     if (!extendedTests.get() && filter.commandLineIncludePatterns.empty) {
       useJUnitPlatform {
