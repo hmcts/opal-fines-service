@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.hmcts.opal.annotation.JsonSchemaValidated;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureDisabledException;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureToggle;
 import uk.gov.hmcts.opal.generated.http.api.TillsApi;
@@ -20,8 +21,8 @@ import uk.gov.hmcts.opal.generated.model.TillsResponse;
 import uk.gov.hmcts.opal.service.opal.DynamicConfigService;
 import uk.gov.hmcts.opal.service.opal.till.CreateTillService;
 import uk.gov.hmcts.opal.service.opal.till.TillAllocationService;
-import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
 import uk.gov.hmcts.opal.service.opal.till.TillSearchService.TillSearchCriteria;
+import uk.gov.hmcts.opal.service.opal.till.TillSearchService;
 import uk.gov.hmcts.opal.service.opal.till.TillsService;
 
 @RestController
@@ -82,7 +83,8 @@ public class TillsApiController implements TillsApi {
 
     @Override
     @FeatureToggle(feature = RELEASE_1C_PAYMENT, defaultValueProperty = RELEASE_1C_PAYMENT_ENABLED_PROPERTY)
-    public ResponseEntity<Void> postTills(TillsCreateRequest tillsCreateRequest) {
+    public ResponseEntity<Void> postTills(
+        @JsonSchemaValidated(schemaPath = "tills/createTillRequest.json") TillsCreateRequest tillsCreateRequest) {
         log.debug(":POST:postTills: businessUnitId: {}", tillsCreateRequest.getBusinessUnitId());
         createTillService.createTill(tillsCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).build();

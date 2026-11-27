@@ -250,8 +250,8 @@ public class TillAllocationStepDef extends BaseStepDef {
     }
 
     private String uniqueTillCreateRequest() {
-        // Keep this below the database's 50-character third_party_payer_name limit.
-        String payerName = "PO-3423-" + UUID.randomUUID();
+        // Keep the payer name within the Add Till contract's 30-character limit.
+        String payerName = "PO-3423-" + UUID.randomUUID().toString().substring(0, 16);
         return """
             {
               "business_unit_id": 78,
@@ -260,10 +260,12 @@ public class TillAllocationStepDef extends BaseStepDef {
                   "defendant_account_id": %s,
                   "payment_details": {
                     "amount": 12.34,
-                    "method": "Notes & Coins",
-                    "destination_type": "Fines",
-                    "allocation_type": "FULL",
-                    "additional_information": "Third Party",
+                    "method": "NC",
+                    "destination_type": "F",
+                    "allocation_type": "FULL"
+                  },
+                  "additional_information": {
+                    "payment_received_from": "T",
                     "third_party_payer_name": "%s"
                   }
                 }
