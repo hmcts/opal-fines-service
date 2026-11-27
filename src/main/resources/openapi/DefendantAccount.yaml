@@ -989,7 +989,11 @@ paths:
       tags:
         - Defendant Account
       summary: Search defendant accounts
-      description: Searches defendant accounts based upon criteria in request body.
+      description: >-
+        Searches defendant accounts based upon criteria in request body. Returning individual defendant
+        results requires successful queueing of a PDPO consultation. Consolidation searches resolve
+        the release-1c-write-off feature flag before searching and queueing that consultation.
+        If required queueing fails, the API returns 503 without search results.
       operationId: postDefendantAccountSearch
       security:
         - permissions:
