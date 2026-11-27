@@ -30,7 +30,7 @@ public class LegacyPaymentTerms {
     @XmlElement(name = "days_in_default")
     private Integer daysInDefault;
 
-    @XmlElement(name = "date_days_default_imposed")
+    @XmlElement(name = "date_days_in_default_imposed")
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate dateDaysInDefaultImposed;
 
