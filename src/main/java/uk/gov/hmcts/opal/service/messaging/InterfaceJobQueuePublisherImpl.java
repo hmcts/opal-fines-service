@@ -36,7 +36,7 @@ public class InterfaceJobQueuePublisherImpl implements InterfaceJobQueuePublishe
             .toList();
 
         try {
-            jmsTemplate.execute(session -> sendBatch(session, payloads), true);
+            jmsTemplate.execute(session -> sendBatch(session, payloads));
             log.info("Published {} interface job messages", payloads.size());
         } catch (JmsException e) {
             throw new InterfaceJobQueueException("Unable to publish interface job messages", e);
