@@ -343,7 +343,7 @@ public class DraftAccountService {
 
         return transactionTemplate.execute(status -> {
             DraftAccountEntity draftAccount = draftAccountRepository.findById(draftAccountId)
-                .orElseThrow(() ->new EntityNotFoundException("Draft Account not found with id: " + draftAccountId))
+                .orElseThrow(() ->new EntityNotFoundException("Draft Account not found with id: " + draftAccountId));
             Short businessUnitId = draftAccount.getBusinessUnit().getBusinessUnitId();
 
             Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(businessUnitId);
