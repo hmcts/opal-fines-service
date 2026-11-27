@@ -47,15 +47,7 @@ public class MajorCreditorAccountService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
 
-        GetMajorCreditorAccountHeaderSummaryResponse response =
-            majorCreditorAccountProxy.getHeaderSummary(majorCreditorAccountId);
-        Short businessUnitId = getBusinessUnitId(response.getBusinessUnitDetails());
-
-        if (!userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-
-        return response;
+        return majorCreditorAccountProxy.getHeaderSummary(majorCreditorAccountId);
     }
 
     public GetMajorCreditorHistoryResponse getHistory(

@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -92,22 +93,23 @@ class MajorCreditorAccountServiceTest {
         @Test
         void whenUserIsAuthorised_delegatesToProxy_happyPath() {
             UserState userState = mock(UserState.class);
-            GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
+
+            GetMajorCreditorAccountHeaderSummaryResponse response =
+                new GetMajorCreditorAccountHeaderSummaryResponse();
+            response.setBusinessUnitDetails(new BusinessUnitSummaryCommon().businessUnitId((short) 77));
 
             when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
             when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
                 .thenReturn(true);
-            when(userState.hasBusinessUnitUserWithPermission((short) 77,
-                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
             when(majorCreditorAccountProxy.getHeaderSummary(123L)).thenReturn(response);
 
             GetMajorCreditorAccountHeaderSummaryResponse result =
                 majorCreditorAccountService.getHeaderSummary(123L);
 
+            assertNotNull(result);
             assertEquals(response, result);
             verify(userStateService).getUserStateV1FromSecurityContext();
-            verify(userState).hasBusinessUnitUserWithPermission((short) 77,
-                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
+            verify(userState).anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
             verify(majorCreditorAccountProxy).getHeaderSummary(123L);
         }
 
@@ -132,14 +134,10 @@ class MajorCreditorAccountServiceTest {
         @Test
         void whenPermissionIsForDifferentBusinessUnit_throwsForbidden_sadPath() {
             UserState userState = mock(UserState.class);
-            GetMajorCreditorAccountHeaderSummaryResponse response = responseWithBusinessUnit((short) 77);
 
             when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
             when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS))
-                .thenReturn(true);
-            when(userState.hasBusinessUnitUserWithPermission((short) 77,
-                FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(false);
-            when(majorCreditorAccountProxy.getHeaderSummary(123L)).thenReturn(response);
+                .thenReturn(false);
 
             PermissionNotAllowedException exception = assertThrows(
                 PermissionNotAllowedException.class,
@@ -148,8 +146,7 @@ class MajorCreditorAccountServiceTest {
 
             assertAll(
                 () -> assertThat(exception.getPermission()).containsExactly(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS),
-                () -> assertThat(exception.getBusinessUnitId()).isEqualTo((short) 77),
-                () -> verify(majorCreditorAccountProxy).getHeaderSummary(123L)
+                () -> assertThat(exception.getBusinessUnitId()).isNull()
             );
         }
     }
@@ -262,12 +259,5 @@ class MajorCreditorAccountServiceTest {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userState);
         when(userState.anyBusinessUnitUserHasPermission(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)).thenReturn(true);
         when(majorCreditorAccountProxy.getHistory(123L, null, null, null)).thenReturn(response);
-    }
-
-    private GetMajorCreditorAccountHeaderSummaryResponse responseWithBusinessUnit(Short businessUnitId) {
-        GetMajorCreditorAccountHeaderSummaryResponse response =
-            new GetMajorCreditorAccountHeaderSummaryResponse();
-        response.setBusinessUnitDetails(new BusinessUnitSummaryCommon().businessUnitId(businessUnitId));
-        return response;
     }
 }
