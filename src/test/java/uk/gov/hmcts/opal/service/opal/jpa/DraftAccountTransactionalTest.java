@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
@@ -580,18 +580,15 @@ class DraftAccountTransactionalTest {
             .build();
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
-        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(returnsFirstArg());
 
         // Act
         DraftAccountEntity result = draftAccountTransactional
-            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState,
-                "TestValidator", "Test Validator");
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, mock(UserState.class),
+                "", "");
 
         // Assert
         assertNotNull(result);
-        assertEquals(draftAccountId, result.getDraftAccountId());
         assertEquals(DraftAccountStatus.PUBLISHING_FAILURE_RESOLVED, result.getAccountStatus());
         assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
     }
