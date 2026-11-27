@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -19,6 +20,16 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long>, JpaSpec
         String associatedRecordId, String noteType);
 
     void deleteByAssociatedRecordId(String defendantAccountId);
+
+    @Modifying
+    @Query("""
+        DELETE FROM NoteEntity note
+         WHERE CAST(note.associatedRecordType AS string) = :associatedRecordType
+           AND note.associatedRecordId = :associatedRecordId
+        """)
+    long deleteAllByAssociatedRecordTypeAndAssociatedRecordId(
+        @Param("associatedRecordType") String associatedRecordType,
+        @Param("associatedRecordId") String associatedRecordId);
 
     long countByAssociatedRecordId(String associatedRecordId);
 

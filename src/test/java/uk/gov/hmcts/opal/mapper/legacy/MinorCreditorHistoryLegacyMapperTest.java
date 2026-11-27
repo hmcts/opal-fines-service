@@ -30,18 +30,18 @@ class MinorCreditorHistoryLegacyMapperTest {
     private final LegacyMinorCreditorHistoryMapper mapper = new LegacyMinorCreditorHistoryMapper();
 
     @Test
-    void toLegacyRequest_whenNoFilters_mapsAccountIdAndOmitsItemTypes() {
+    void toLegacyRequest_whenNoFilters_mapsAccountIdAndAllItemTypes() {
         // Arrange
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(101L, filters, false);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(101L, filters);
 
         // Assert
         assertEquals("101", result.getCreditorAccountId());
         assertNull(result.getFromDate());
         assertNull(result.getToDate());
-        assertNull(result.getItemTypes());
+        assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
     }
 
     @Test
@@ -52,7 +52,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(dateFrom, dateTo, List.of("note"));
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(202L, filters, false);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(202L, filters);
 
         // Assert
         assertEquals("202", result.getCreditorAccountId());
@@ -62,7 +62,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     }
 
     @Test
-    void toLegacyRequest_whenAllTypesSelected_omitsItemTypes() {
+    void toLegacyRequest_whenAllTypesSelected_mapsAllItemTypes() {
         // Arrange
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
             null,
@@ -71,10 +71,10 @@ class MinorCreditorHistoryLegacyMapperTest {
         );
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(303L, filters, false);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(303L, filters);
 
         // Assert
-        assertNull(result.getItemTypes());
+        assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
     }
 
     @Test
@@ -87,7 +87,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         );
 
         // Act
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, false);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters);
 
         // Assert
         assertEquals(List.of("Financial", "Note"), result.getItemTypes());
@@ -290,7 +290,7 @@ class MinorCreditorHistoryLegacyMapperTest {
     void toOpal_whenItemTypesAreNull_mapsToAllSupportedItemTypes() {
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(null, null, null);
 
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters);
 
         assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
     }
@@ -300,7 +300,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         MinorCreditorHistoryFilters filters =
             MinorCreditorHistoryFilters.from(null, null, List.of("note,financial,amendment"));
 
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters);
 
         assertEquals(List.of("Amendment", "Financial", "Note"), result.getItemTypes());
     }
@@ -310,7 +310,7 @@ class MinorCreditorHistoryLegacyMapperTest {
         MinorCreditorHistoryFilters filters =
             MinorCreditorHistoryFilters.from(null, null, List.of("amendment"));
 
-        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters, true);
+        LegacyGetMinorCreditorAccountHistoryRequest result = mapper.toLegacyRequest(404L, filters);
 
         assertEquals(List.of("Amendment"), result.getItemTypes());
     }

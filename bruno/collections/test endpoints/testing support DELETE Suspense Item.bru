@@ -1,0 +1,21 @@
+meta {
+  name: testing support DELETE Suspense Item
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseURL}}/testing-support/suspense-items/{{suspenseItemId}}
+  body: none
+  auth: inherit
+}
+
+vars:pre-request {
+  suspenseItemId: 99000000836503
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+  forwardAuthorizationHeader: false
+}
