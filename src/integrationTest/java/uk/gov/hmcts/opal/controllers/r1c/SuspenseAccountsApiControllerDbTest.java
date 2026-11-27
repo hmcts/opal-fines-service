@@ -225,21 +225,16 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
                 contains("Applicant")));
     }
 
-    @Test
+    @ParameterizedTest
+    @ValueSource(longs = {99000000979705L, 99000000979713L})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("Missing optional payment information does not prevent history being returned")
-    void getHistory_handlesMissingOptionalInformation() throws Exception {
-        String manual = transactionPath(99000000979705L) + ".details";
-        String automatic = transactionPath(99000000979713L) + ".details";
+    @DisplayName("UN payments without an originator reference or payer return null details")
+    void getHistory_returnsNullWithoutOriginatorReference(long transactionId) throws Exception {
+        String payment = transactionPath(transactionId);
         getPaymentHistory()
-            .andExpect(jsonPath(manual + ".payment_details.payment_method", contains("PO")))
-            .andExpect(jsonPath(manual + ".payment_details.payment_reference", everyItem(nullValue())))
-            .andExpect(jsonPath(manual + ".payment_details.received_from", everyItem(nullValue())))
-            .andExpect(jsonPath(manual + ".payment_details.payment_source", everyItem(nullValue())))
-            .andExpect(jsonPath(manual + ".relevant_details", everyItem(nullValue())))
-            .andExpect(jsonPath(automatic + ".originator_reference", everyItem(nullValue())))
-            .andExpect(jsonPath(automatic + ".payment_details.payment_source.payment_source", contains("NATWEST")));
+            .andExpect(jsonPath(payment, hasSize(1)))
+            .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
     }
 
     @ParameterizedTest

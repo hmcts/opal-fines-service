@@ -14,8 +14,9 @@ implemented assumptions, not independent confirmation of their business meaning.
 
 ## Selection order
 
-Rules are evaluated in the following order. A failed special rule returns null;
-it does not fall through to a generic account or payment shape.
+Rules are evaluated in the following order. A failed reversal, adjustment, repayment,
+court-fee or automatic-details rule returns null. A UN payment without an originator
+reference falls through to identified payer details when a payer is available.
 
 | Priority | Condition | Details implementation and data |
 | --- | --- | --- |
@@ -26,22 +27,25 @@ it does not fall through to a generic account or payment shape.
 | 3 | Transaction type `RP`, associated type `creditor_accounts` or `creditor_transactions`, resolving to a creditor with `repayment = true` | `ThirdPartyRepayDetailsCommonStrict`: creditor account number, summary/address, and `Pay by BACS` when `pay_by_bacs` is true, otherwise `Pay by Cheque`. |
 | 3 | Transaction type `RP`, associated type `defendant_accounts`, with a resolvable defendant identity/numeric account number | `DefendantDetailsCommonStrict`: defendant account number and individual or organisation name. Confirmed by the requested repayment correction on 26 November 2026. |
 | 5 | Eligible linked payment, transaction type `CF` or `OC`, with exactly one resolvable court-fee record and an identified payer | `ManualPaymentCourtFeeDetailsCommonStrict`: linked fee code, payment information and available payer details. |
-| 6 | Eligible linked payment, transaction type `UN` and suspense item type `UN` | `ManualPaymentUnidentifiedDetailsCommonStrict`: payment information and `suspense_reason_detail`. |
-| 7 | Other eligible linked payment with an identified payer | `ManualPaymentPayerDetailsCommonStrict`: payment information and payer details. This includes `UN` transactions on miscellaneous items when a payer is identified. |
-| 8 | Associated type `creditor_accounts` or `creditor_transactions`, resolving to a creditor identity | `CreditorDetailsCommonStrict`: creditor account number and summary/address. |
-| 9 | Associated type `defendant_accounts` or `defendant_transactions`, resolving to one defendant identity and a numeric account number | `DefendantDetailsCommonStrict`: defendant account number and name. |
+| 6 | Eligible linked payment, transaction type `UN`, suspense item type `UN` and a nonempty originator reference | `ManualPaymentUnidentifiedDetailsCommonStrict`: payment information and `suspense_reason_detail`. |
+| 7 | Eligible linked payment, transaction type `OF` and suspense item type `OF` | `AutoPaymentDetailsCommonStrict`: defendant account number (default `0` when absent), originator reference and required payment source. Does not depend on the payment auto/manual flag or payer identity. |
+| 8 | Other eligible linked payment with an identified payer | `ManualPaymentPayerDetailsCommonStrict`: payment information and payer details. This includes `UN` transactions on miscellaneous items and `UN` items without an originator reference when a payer is identified. |
+| 9 | Associated type `creditor_accounts` or `creditor_transactions`, resolving to a creditor identity | `CreditorDetailsCommonStrict`: creditor account number and summary/address. |
+| 10 | Associated type `defendant_accounts` or `defendant_transactions`, resolving to one defendant identity and a numeric account number | `DefendantDetailsCommonStrict`: defendant account number and name. |
 | Otherwise | No supported combination or insufficient required linked data | Null details; retain the transaction in history. |
 
 The transaction's `reversed` flag does not select reversal details. The current
-reversal-details rule is specifically `DQ`; `RV` returns null details. The automatic-
-payment branch is currently disabled, so automatic/manual flags do not select a
-different details shape. API transaction
+reversal-details rule is specifically `DQ`; `RV` returns null details. Automatic-
+payment details require both the transaction and item types to be `OF`; the
+automatic/manual flag does not select a shape. A nonempty originator reference
+includes whitespace, matching the mapper's empty-string check. These payment
+selection rules reflect the mapper change of 27 November 2026. API transaction
 codes absent from `SuspenseItemType` retain their raw code as the display name.
 
 ## Required fields and business-unit types
 
 The current API contract requires payer details on manual payer/court-fee shapes,
-a non-null reversal description, and a creditor address on creditor, third-party
+a non-null reversal description, a payment source on automatic details, and a creditor address on creditor, third-party
 repayment and adjustment shapes. When these are unavailable, retain the transaction
 with null details instead of emitting a partially populated, invalid details object.
 Payment source codes are mapped to the generated enum, including `VARIANT_BANKING`.
@@ -69,7 +73,7 @@ or nonnumeric values are rejected before lookup using the shared Opal
   `defendant_transactions` reference is not inferred to be a supported repayment.
 - Existing till-allocation SQL writes a **null associated record type** and a
   `payments_in.payment_in_id` in `associated_record_id`. This fallback is limited
-  to transaction types `UN`, `CF`, `OC`, `OF` and `FA`. Other null-type references,
+  to transaction types `UN`, `CF`, `OC`, `OF`, `FA` and `MS`. Other null-type references,
   cheque references, suspense-item references and unsupported types remain unmatched.
 - Payment additional information may be an unwrapped object or wrapped inside
   `additional_information`. Manual payment source uses `transfer_source`, falling
@@ -108,8 +112,10 @@ or nonnumeric values are rejected before lookup using the shared Opal
 - The database stores defendant account numbers as strings, while these generated
   API detail models require int64. Conversion happens at mapping time. A number
   that is nonnumeric or outside int64 leaves defendant/adjustment details null;
-  imported `UN` payments instead use unidentified-payment details and do not
-  expose a defendant account number.
+  `OF` automatic details also remain null for nonnumeric or overflowing account
+  numbers. A missing or empty number defaults to `0` for `OF` automatic details.
+  Imported `UN` payments with an originator reference use unidentified-payment
+  details and do not expose a defendant account number.
 - Every account, payment, fee, imposition and business-unit-scoped reference must
   belong to the suspense account's business unit. Cross-unit references do not
   populate details. Outer joins preserve unmatched transactions and ordering.

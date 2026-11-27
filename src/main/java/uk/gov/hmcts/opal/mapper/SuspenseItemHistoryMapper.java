@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import static org.springframework.util.StringUtils.hasText;
 
 import java.util.Arrays;
+import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 import uk.gov.hmcts.opal.entity.NoteEntity;
@@ -11,6 +12,7 @@ import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.projection.SuspenseTransactionHistoryProjection;
 import uk.gov.hmcts.opal.generated.model.AdjustmentDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.AddressDetailsCommon;
+import uk.gov.hmcts.opal.generated.model.AutoPaymentDetailsCommonStrict;
 import uk.gov.hmcts.opal.generated.model.CompanyNameCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorAccountTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.CreditorDetailsCommonStrict;
@@ -106,10 +108,22 @@ public class SuspenseItemHistoryMapper {
                     .paymentDetails(toPayment(row))
                     .payerDetails(payer) : null;
         }
-        if ("UN".equals(row.getTransactionType()) && "UN".equals(row.getSuspenseItemType())) {
+        if ("UN".equals(row.getTransactionType()) && "UN".equals(row.getSuspenseItemType())
+            && !StringUtils.isEmpty(row.getOriginatorReference())) {
             return new ManualPaymentUnidentifiedDetailsCommonStrict()
                 .paymentDetails(toPayment(row))
                 .relevantDetails(row.getRelevantDetails());
+        }
+        if ("OF".equals(row.getTransactionType()) && "OF".equals(row.getSuspenseItemType())) {
+            Long defendantAccountNumber = StringUtils.isEmpty(row.getDefendantAccountNumber())
+                ? Long.valueOf(0) : toAccountNumber(row.getDefendantAccountNumber());
+            if (defendantAccountNumber == null || row.getPaymentSource() == null) {
+                return null;
+            }
+            return new AutoPaymentDetailsCommonStrict()
+                .defendantAccountNumber(defendantAccountNumber)
+                .originatorReference(row.getOriginatorReference())
+                .paymentSource(row.getPaymentSource());
         }
         PayerDetailsCommonStrict payer = toPayer(row);
         return payer == null ? null : new ManualPaymentPayerDetailsCommonStrict()

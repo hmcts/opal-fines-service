@@ -18,16 +18,16 @@ INSERT INTO payments_in (
     (99000000979702, 99000000979701, 20, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE,
      '{"originator_reference":"FLAT-REFERENCE"}'),
     (99000000979703, 99000000979702, 30, '2026-11-03', 'CQ', 'S', FALSE, TRUE, FALSE,
-     '{"payment_received_from":"T","additional_information":{"payment_reference":"CHEQUE-123","transfer_source":"ALLPAY","suspense_reason_detail":"Payer unknown"}}'),
+     '{"payment_received_from":"T","additional_information":{"originator_reference":"MANUAL-CHEQUE","payment_reference":"CHEQUE-123","transfer_source":"ALLPAY","suspense_reason_detail":"Payer unknown"}}'),
     (99000000979704, 99000000979702, 40, '2026-11-03', 'NC', 'S', FALSE, TRUE, FALSE,
-     '{"payment_received_from":"D","payment_reference":"CASH-456","transfer_source":"OTHER","suspense_reason_detail":"No account reference"}'),
+     '{"payment_received_from":"D","originator_reference":"MANUAL-CASH","payment_reference":"CASH-456","transfer_source":"OTHER","suspense_reason_detail":"No account reference"}'),
     (99000000979705, 99000000979702, 50, '2026-11-03', 'PO', 'S', FALSE, TRUE, FALSE, NULL),
     (99000000979708, 99000000979703, 80, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE,
      '{"originator_reference":"OTHER-UNIT-SECRET"}'),
     (99000000979713, 99000000979701, 13, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE,
      '{"interface_name":"Bank import job","additional_information":{"originator_reference":null}}'),
     (99000000979714, 99000000979702, 14, '2026-11-03', 'CT', 'S', FALSE, TRUE, FALSE,
-     '{"payment_received_from":"A","additional_information":{"payment_reference":"APPLICANT-789"}}');
+     '{"payment_received_from":"A","additional_information":{"originator_reference":"MANUAL-APPLICANT","payment_reference":"APPLICANT-789"}}');
 
 -- Include references which must not be interpreted as linked payments.
 INSERT INTO suspense_transactions (

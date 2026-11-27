@@ -255,3 +255,34 @@ INSERT INTO suspense_transactions (
 INSERT INTO court_fees_received (
     court_fee_received_id, business_unit_id, court_fee_id, overpayment, suspense_transaction_id, number_of_items
 ) VALUES (99000000979811, 29101, 99000000979801, FALSE, 99000000979865, 1);
+
+-- UN selection needs an originator reference; OF selection depends on both transaction and item types.
+INSERT INTO payments_in (
+    payment_in_id, till_id, payment_amount, payment_date, payment_method, destination_type,
+    receipt, allocated, auto_payment, associated_record_type, associated_record_id, additional_information
+) VALUES
+    (99000000979814, 99000000979801, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, FALSE, NULL, NULL,
+     '{"originator_reference":"MANUAL-REF","transfer_source":"VARIANT_BANKING","suspense_reason_detail":"Unknown payer"}'),
+    (99000000979815, 99000000979802, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE, NULL, NULL,
+     '{"originator_reference":""}'),
+    (99000000979816, 99000000979802, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE, NULL, NULL,
+     '{"originator_reference":" "}'),
+    (99000000979817, 99000000979802, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE,
+     'defendant_accounts', '99000000979804', '{"originator_reference":"NONNUMERIC-ACCOUNT"}'),
+    (99000000979818, 99000000979802, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, TRUE,
+     'defendant_accounts', '99000000979806', '{"originator_reference":"OVERFLOW-ACCOUNT-NUMBER"}');
+INSERT INTO suspense_transactions (
+    suspense_transaction_id, suspense_item_id, posted_date, transaction_type, amount,
+    associated_record_type, associated_record_id
+) VALUES
+    (99000000979870, 99000000979800, '2026-11-03', 'UN', 10, NULL, '99000000979814'),
+    (99000000979871, 99000000979800, '2026-11-03', 'UN', 10, NULL, '99000000979801'),
+    (99000000979872, 99000000979800, '2026-11-03', 'UN', 10, NULL, '99000000979815'),
+    (99000000979873, 99000000979800, '2026-11-03', 'UN', 10, NULL, '99000000979816'),
+    (99000000979874, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979806'),
+    (99000000979875, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979812'),
+    (99000000979876, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979814'),
+    (99000000979877, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979817'),
+    (99000000979878, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979818'),
+    (99000000979879, 99000000979802, '2026-11-03', 'UN', 10, NULL, '99000000979806'),
+    (99000000979880, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979813');
