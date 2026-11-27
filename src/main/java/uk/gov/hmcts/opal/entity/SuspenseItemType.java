@@ -17,7 +17,11 @@ public enum SuspenseItemType {
     OM("Overpayment (Maintenance)"),
     OC("Overpayment (Court Fees)"),
     OF("Overpayment (Fines)"),
-    UN("Unidentified");
+    RP("Repayment"),
+    RV("Reversal"),
+    UN("Unidentified"),
+    XF("Suspense"),
+    XP("Payment");
 
     private final String description;
 

@@ -21,8 +21,8 @@ class FinesPermissionTest {
         "OPERATIONAL_REPORT_BY_ENFORCEMENT, 14, Operational report by enforcement",
         "OPERATIONAL_REPORT_BY_PAYMENTS, 15, Operational report by payments",
         "ACCOUNT_MAINTENANCE_MINOR_CREDITOR, 20, Account Maintenance - Minor Creditor",
-        "VIEW_SUSPENSE_ITEMS, 24, View Suspense Items",
-        "MANAGE_SUSPENSE_ITEMS, 25, Manage Suspense Items"
+        "VIEW_SUSPENSE_ITEMS, 25, View Suspense Items",
+        "MANAGE_SUSPENSE_ITEMS, 26, Manage Suspense Items"
     })
     void permission_hasExpectedMetadataAndMapping(FinesPermission permission, long id, String description) {
         Permission commonPermission = permission.toCommonPermission();

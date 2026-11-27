@@ -746,6 +746,9 @@ components:
       title: Suspense Item History
       type: object
       additionalProperties: false
+      x-versioned: true
+      x-implements:
+        - uk.gov.hmcts.opal.util.Versioned
       properties:
         business_unit_id:
           type:
@@ -753,22 +756,18 @@ components:
         suspense_item_id:
           type:
             - integer
+          format: int64
         suspense_notes:
           type:
             - array
             - 'null'
           items:
             $ref: '#/components/schemas/suspenseNote'
-
-    suspense_note:
-      title: Suspense Note
-      type: object
-      additionalProperties: false
-      properties:
-        note:
-          ref: '#/components/schemas/suspenseNote'
-        posted_details:
-          ref: '#/components/schemas/postedDetails'
+        suspense_transactions:
+          type:
+            - array
+          items:
+            $ref: '#/components/schemas/suspenseTransaction'
 
     suspenseNote:
       title: Suspense Note
@@ -776,44 +775,9 @@ components:
       additionalProperties: false
       properties:
         note:
-          type:
-            - object
-          additionalProperties: false
-          required:
-            - record_type
-            - record_id
-          properties:
-            record_type:
-              type:
-                - string
-              enum:
-                - defendant_accounts
-                - creditor_accounts
-                - suspense_ items
-                - report_instances
-            record_id:
-              type:
-                - string
-            note_text:
-              type:
-                - string
-                - 'null'
-            note_type:
-              type:
-                - string
-
-    postedDetails:
-      title: Posted Details
-      additionalProperties: false
-      type: object
-      properties:
-        posted_date:
-          type: string
-          format: date-time
-        posted_by:
-          type: string
-        posted_by_name:
-          type: string
+          $ref: './common.yaml#/components/schemas/note'
+        posted_details:
+          $ref: './common.yaml#/components/schemas/postedDetails'
 
     suspenseTransaction:
       title: Suspense Transaction
@@ -824,14 +788,16 @@ components:
           type: integer
           format: int64
         transaction_type:
-          ref: '#/components/schemas/transactionType'
+          $ref: '#/components/schemas/transactionType'
         posted_details:
-          ref: '#/components/schemas/postedDetails'
+          $ref: './common.yaml#/components/schemas/postedDetails'
         amount:
           type:
-            - integer
+            - number
+            - 'null'
         details:
           oneOf:
+            - type: 'null'
             - $ref: '#/components/schemas/manualPaymentPayerDetails'
             - $ref: '#/components/schemas/manualPaymentUnidentifiedDetails'
             - $ref: '#/components/schemas/manualPaymentCourtFeeDetails'
@@ -840,6 +806,7 @@ components:
             - $ref: '#/components/schemas/thirdPartyRepayDetails'
             - $ref: '#/components/schemas/reversalDetails'
             - $ref: '#/components/schemas/adjustmentDetails'
+            - $ref: '#/components/schemas/creditor_details'
 
     transactionType:
       title: Transaction Type
@@ -847,37 +814,70 @@ components:
       additionalProperties: false
       properties:
         transaction_type_code:
+          $ref: '#/components/schemas/transactionTypeCode'
+        transaction_type_display_name:
           type: string
-          enum:
-            - SUSPENDED
-            - UNSUSPENDED
-            - REVERSED
-        transaction_type_display_namew:
-          type: string
+
+    transactionTypeCode:
+      title: Transaction Type Code
+      type: string
+      enum:
+        - CC
+        - CF
+        - DQ
+        - FA
+        - FB
+        - IN
+        - LA
+        - MA
+        - MB
+        - MC
+        - MS
+        - OM
+        - OC
+        - OF
+        - RP
+        - RV
+        - UN
+        - XF
+        - XP
 
     manualPaymentPayerDetails:
       title: Manual Payment Payer Details
       type: object
       additionalProperties: false
+      required:
+        - payment_details
+        - payer_details
       properties:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
         payer_details:
-          $ref: '#/components/schemas/payerDetails'
+          oneOf:
+            - $ref: '#/components/schemas/payerDetails'
+            - type: 'null'
 
     manualPaymentUnidentifiedDetails:
       title: Manual Payment Unidentified Details
       type: object
       additionalProperties: false
+      required:
+        - payment_details
       properties:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
         relevant_details:
-          type: string
+          type:
+            - string
+            - 'null'
 
     manualPaymentCourtFeeDetails:
       type: object
       additionalProperties: false
+      required:
+        - court_fee_code
+        - payment_details
+        - payer_details
       properties:
         court_fee_code:
           type: string
@@ -889,8 +889,10 @@ components:
     autoPaymentDetails:
       type: object
       additionalProperties: false
+      required:
+        - payment_source
       properties:
-        defendent_account_number:
+        defendant_account_number:
           type:
             - integer
             - 'null'
@@ -900,11 +902,16 @@ components:
             - string
             - 'null'
         payment_source:
-          type: string
+          type:
+            - string
+            - 'null'
 
     defendantDetails:
       type: object
       additionalProperties: false
+      required:
+        - defendant_account_number
+        - defendant_name
       properties:
         defendant_account_number:
           type: integer
@@ -915,6 +922,11 @@ components:
     thirdPartyRepayDetails:
       type: object
       additionalProperties: false
+      required:
+        - creditor_account_number
+        - creditor_summary
+        - creditor_address
+        - creditor_payment_method
       properties:
         creditor_account_number:
           type: string
@@ -931,6 +943,8 @@ components:
     reversalDetails:
       type: object
       additionalProperties: false
+      required:
+        - reversal_description
       properties:
         reversal_description:
           type: string
@@ -938,6 +952,12 @@ components:
     adjustmentDetails:
       type: object
       additionalProperties: false
+      required:
+        - defendant_account_number
+        - defendant_name
+        - imposition_id
+        - creditor_summary
+        - creditor_address
       properties:
         defendant_account_number:
           type: integer
@@ -956,6 +976,10 @@ components:
       title: Creditor Details
       type: object
       additionalProperties: false
+      required:
+        - creditor_account_number
+        - creditor_summary
+        - creditor_address
       properties:
         creditor_account_number:
           type: string
@@ -970,11 +994,14 @@ components:
       additionalProperties: false
       properties:
         received_from:
-          type: string
+          type:
+            - string
+            - 'null'
           enum:
             - Defendant
             - Third Party
             - Applicant
+            - null
         payment_method:
           type: string
           enum:
@@ -983,7 +1010,9 @@ components:
             - CQ
             - CT
         payment_source:
-          $ref: '#/components/schemas/paymentSource'
+          oneOf:
+            - $ref: '#/components/schemas/paymentSource'
+            - type: 'null'
         payment_reference:
           type:
             - string
@@ -1000,7 +1029,9 @@ components:
             - Individual
             - Organisation
         defendant_details:
-          $ref: './common.yaml#/components/schemas/defendantAccountParty'
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/defendantAccountParty'
+            - type: 'null'
         payer_name:
           type:
             - string
@@ -1017,24 +1048,15 @@ components:
       properties:
         payment_source:
           type: string
-          oneOf:
-          - title: NATWEST
-            description: NatWest
-          - title: ALLPAY
-            description: allpay
-          - title: ALLPAY_DD
-            description: allpay DD
-          - title: BARCLAYCARD
-            description: Barclaycard
-          - title: BTECKOH
-            description: British Telecom
-          - title: OTHER
-            description: Other
-          - title: DWP
-            description: DWP
-          - title: CDER
-            description: CDER
-          - title: JACOBS
-            description: Jacobs
-          - title: MARSTON
-            description: Marston
+          enum:
+            - NATWEST
+            - ALLPAY
+            - ALLPAY_DD
+            - BARCLAYCARD
+            - BTECKOH
+            - DWP
+            - CDER
+            - JACOBS
+            - MARSTON
+            - OTHER
+            - VARIANT_BANKING

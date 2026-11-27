@@ -36,10 +36,11 @@ import uk.gov.hmcts.opal.generated.model.PaymentMethodReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommon;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
+import uk.gov.hmcts.opal.mapper.helper.JsonNullableMapperHelper;
 import uk.gov.hmcts.opal.generated.model.WriteOffTypeReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.DefendantTransactionStatusReferenceCommon.DefendantTransactionStatusEnum;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", uses = JsonNullableMapperHelper.class, unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DefendantAccountHistoryResponseMapper {
 
     @Mapping(target = "historyItems", source = "historyItems")
@@ -50,6 +51,8 @@ public interface DefendantAccountHistoryResponseMapper {
     @Mapping(target = "details", expression = "java(mapDetails(item.getDetails()))")
     DefendantAccountHistoryItemHistory toGeneratedHistoryItem(DefendantAccountHistoryItem item);
 
+    @Mapping(target = "postedBy", source = "postedBy", qualifiedByName = "toJsonNullable")
+    @Mapping(target = "postedByName", source = "postedByName", qualifiedByName = "toJsonNullable")
     PostedDetailsCommon toGeneratedPostedDetails(PostedDetails postedDetails);
 
     AmendmentTypeCommon toGeneratedAmendmentType(AmendmentDetails details);

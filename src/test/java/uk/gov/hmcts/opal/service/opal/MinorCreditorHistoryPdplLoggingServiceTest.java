@@ -102,6 +102,7 @@ class MinorCreditorHistoryPdplLoggingServiceTest {
                     .build(),
                 response(),
                 response(new MinorCreditorHistoryItemHistory()),
+                response(new MinorCreditorHistoryItemHistory().postedDetails(new PostedDetailsCommon())),
                 response(historyItem(null)),
                 response(historyItem(" "))
             );

@@ -21,6 +21,9 @@ class SuspenseItemTypeTest {
         assertEquals("Overpayment (Maintenance)", SuspenseItemType.OM.getDescription());
         assertEquals("Overpayment (Court Fees)", SuspenseItemType.OC.getDescription());
         assertEquals("Overpayment (Fines)", SuspenseItemType.OF.getDescription());
+        assertEquals("Repayment", SuspenseItemType.RP.getDescription());
+        assertEquals("Reversal", SuspenseItemType.RV.getDescription());
         assertEquals("Unidentified", SuspenseItemType.UN.getDescription());
+        assertEquals("Payment", SuspenseItemType.XP.getDescription());
     }
 }

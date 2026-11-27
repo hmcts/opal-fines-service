@@ -196,7 +196,6 @@ components:
       properties:
         transactionType:
           type: string
-          description: Type of transaction to add.
           enum:
             - CC
             - CF

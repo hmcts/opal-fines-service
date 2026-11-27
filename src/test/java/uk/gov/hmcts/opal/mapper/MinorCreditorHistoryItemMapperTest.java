@@ -50,8 +50,8 @@ class MinorCreditorHistoryItemMapperTest {
         assertThat(mapped.responseItem().getType()).isEqualTo(AMENDMENT.responseType());
         assertThat(mapped.responseItem().getAmount()).isNull();
         assertThat(mapped.responseItem().getPostedDetails().getPostedDate()).isEqualTo(postedDate);
-        assertThat(mapped.responseItem().getPostedDetails().getPostedBy()).isEqualTo("AMENDUSR");
-        assertThat(mapped.responseItem().getPostedDetails().getPostedByName()).isEqualTo("Amend User");
+        assertThat(mapped.responseItem().getPostedDetails().getPostedBy().orElse(null)).isEqualTo("AMENDUSR");
+        assertThat(mapped.responseItem().getPostedDetails().getPostedByName().orElse(null)).isEqualTo("Amend User");
 
         AmendmentTypeCommon details = (AmendmentTypeCommon) mapped.responseItem().getDetails();
         assertThat(details.getAttributeName()).isEqualTo("Hold Pay Out");
@@ -188,7 +188,7 @@ class MinorCreditorHistoryItemMapperTest {
 
         // Assert
         assertThat(postedDetails.getPostedDate()).isEqualTo(postedDate);
-        assertThat(postedDetails.getPostedBy()).isEqualTo("POSTUSR");
-        assertThat(postedDetails.getPostedByName()).isEqualTo("Post User");
+        assertThat(postedDetails.getPostedBy().orElse(null)).isEqualTo("POSTUSR");
+        assertThat(postedDetails.getPostedByName().orElse(null)).isEqualTo("Post User");
     }
 }

@@ -99,10 +99,10 @@ paths:
           'Manage Suspense Items' ]
       parameters:
         - in: header
-          name: BusinessUnitId
+          name: Business-Unit-Id
           schema:
             type: integer
-            format: int64
+            format: int16
           required: true
         - in: path
           name: suspenseItemId
@@ -140,6 +140,12 @@ paths:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
         '404':
           description: Not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: './common.yaml#/components/schemas/ProblemDetail'
+        '408':
+          description: Request Timeout
           content:
             application/problem+json:
               schema:

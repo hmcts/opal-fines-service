@@ -25,9 +25,11 @@ import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.MajorCreditorHistoryItemHistoryDetails;
 import uk.gov.hmcts.opal.generated.model.NoteDetailsHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
+import uk.gov.hmcts.opal.mapper.helper.JsonNullableMapperHelper;
 import uk.gov.hmcts.opal.util.DateTimeUtils;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = DateTimeUtils.class)
+@Mapper(componentModel = "spring", uses = JsonNullableMapperHelper.class,
+    unmappedTargetPolicy = ReportingPolicy.IGNORE, imports = DateTimeUtils.class)
 public interface LegacyMajorCreditorHistoryMapper {
 
     default GetMajorCreditorHistoryResponse toOpal(LegacyMajorCreditorHistoryResponse legacy) {
@@ -55,6 +57,8 @@ public interface LegacyMajorCreditorHistoryMapper {
     @Mapping(target = "statusDate", expression = "java(DateTimeUtils.startOf(details.getStatusDate()))")
     CreditorTransactionDetailsHistory toDetails(HistoryDetails details);
 
+    @Mapping(target = "postedBy", source = "postedBy", qualifiedByName = "toJsonNullable")
+    @Mapping(target = "postedByName", source = "postedByName", qualifiedByName = "toJsonNullable")
     PostedDetailsCommon toPostedDetails(LegacyPostedDetails postedDetails);
 
     @Mapping(target = "transactionTypeDisplayName", expression = "java(toTransactionTypeDisplayName(legacy))")

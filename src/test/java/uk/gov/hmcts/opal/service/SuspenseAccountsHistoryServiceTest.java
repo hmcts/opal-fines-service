@@ -41,13 +41,13 @@ class SuspenseAccountsHistoryServiceTest {
     void getHistory_allowsEitherPermission(FinesPermission permission) {
         when(userStateService.getUserStateV1FromSecurityContext()).thenReturn(userWith(permission));
         SuspenseItemHistoryCommonStrict expected =
-            new SuspenseItemHistoryCommonStrict().businessUnitId(123).suspenseItemId(1);
-        when(proxy.getSuspenseItemHistory(123L, 12345L)).thenReturn(expected);
+            new SuspenseItemHistoryCommonStrict().businessUnitId(123).suspenseItemId(1L);
+        when(proxy.getSuspenseItemHistory((short) 123, 12345L)).thenReturn(expected);
 
-        SuspenseItemHistoryCommonStrict result = service.getSuspenseItemHistory(123L, 12345L);
+        SuspenseItemHistoryCommonStrict result = service.getSuspenseItemHistory((short) 123, 12345L);
 
         assertEquals(expected, result);
-        verify(proxy).getSuspenseItemHistory(123L, 12345L);
+        verify(proxy).getSuspenseItemHistory((short) 123, 12345L);
     }
 
     @ParameterizedTest
@@ -69,7 +69,7 @@ class SuspenseAccountsHistoryServiceTest {
 
     private void assertAccessDenied() {
         PermissionNotAllowedException exception = assertThrows(PermissionNotAllowedException.class,
-            () -> service.getSuspenseItemHistory(123L, 12345L));
+            () -> service.getSuspenseItemHistory((short) 123, 12345L));
 
         assertArrayEquals(new FinesPermission[] { VIEW_SUSPENSE_ITEMS, MANAGE_SUSPENSE_ITEMS },
             exception.getPermission());
