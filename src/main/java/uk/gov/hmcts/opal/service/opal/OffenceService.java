@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.reference.OffenceReferenceData;
 import uk.gov.hmcts.opal.dto.reference.OffenceSearchData;
 import uk.gov.hmcts.opal.dto.search.OffenceSearchDto;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity_;
 import uk.gov.hmcts.opal.mapper.OffenceMapper;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.jpa.OffenceSpecs;
@@ -35,16 +35,16 @@ public class OffenceService {
 
     private final OffenceSpecs specs = new OffenceSpecs();
 
-    public OffenceEntity getOffence(long offenceId) {
+    public OffenceLegacyEntity getOffence(long offenceId) {
         return offenceRepository.findById(offenceId).orElse(null);
     }
 
     @Cacheable(cacheNames = "offenceSearchDataCache", key = "#criteria")
     public List<OffenceSearchData> searchOffences(OffenceSearchDto criteria) {
-        Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
+        Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceLegacyEntity_.CJS_CODE);
         int limit = Optional.ofNullable(criteria.getMaxResults()).orElse(NO_REQUESTED_LIMIT);
 
-        Page<OffenceEntity> page = offenceRepository
+        Page<OffenceLegacyEntity> page = offenceRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(codeSort)
@@ -67,9 +67,9 @@ public class OffenceService {
 
         List<String> cjsCode = optionalCjsCode.orElse(Collections.emptyList());
 
-        Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceEntity_.CJS_CODE);
+        Sort codeSort = Sort.by(Sort.Direction.ASC, OffenceLegacyEntity_.CJS_CODE);
 
-        Page<OffenceEntity> page = offenceRepository
+        Page<OffenceLegacyEntity> page = offenceRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId, cjsCode),
                     ffq -> ffq
                         .sortBy(codeSort)

@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverrideResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcerReference;
-import uk.gov.hmcts.opal.dto.legacy.common.LjaReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyLjaReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultReference;
 import uk.gov.hmcts.opal.dto.legacy.common.ResultResponses;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
@@ -65,7 +65,7 @@ public class LegacyDefendantAccountBuilders {
                 .build()).orElse(null);
     }
 
-    static LjaReferenceCommon buildLja(LjaReference lja) {
+    static LjaReferenceCommon buildLja(LegacyLjaReference lja) {
         if (lja == null) {
             return null;
         }

@@ -151,6 +151,6 @@ Feature: List Draft Accounts
     When I attempt to get draft accounts with an invalid token
     Then the request is rejected as unauthorized
 
-    # DraftAccountListSecurityIT verifies no PDPO publisher calls for rejected requests.
+    # DraftAccountReadSecurityIT verifies no PDPO publisher calls for rejected requests.
     # A valid list request elsewhere can log any draft on a shared environment, so even a
     # newly created draft ID cannot isolate this request in the logging search API.
