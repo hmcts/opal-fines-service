@@ -13,6 +13,8 @@
 *
 **/
 
+DELETE FROM courts_legacy WHERE court_id IN (951002, 951001);
+DELETE FROM local_justice_areas_legacy WHERE local_justice_area_id = 951;
 DELETE FROM courts WHERE court_id IN (951002, 951001);
 DELETE FROM local_justice_areas WHERE local_justice_area_id = 951;
 DELETE FROM business_units WHERE business_unit_id = 951;

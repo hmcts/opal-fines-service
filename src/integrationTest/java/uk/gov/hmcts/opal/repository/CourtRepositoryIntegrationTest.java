@@ -12,8 +12,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.repository.jpa.CourtSpecs;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -51,6 +54,9 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     private CourtLiteRepository courtLiteRepository;
 
     @Autowired
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
+
+    @Autowired
     private EntityManagerFactory entityManagerFactory;
 
     @PersistenceContext
@@ -65,11 +71,30 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
+    void courtAssociation_readsLjaFromLegacyTable() {
+        opalLocalJusticeAreaRepository.saveAndFlush(OpalLocalJusticeAreaEntity.builder()
+            .localJusticeAreaId(LOCAL_JUSTICE_AREA_ID)
+            .name("Opal Court LJA")
+            .addressLine1("Opal Court Address")
+            .ljaType(OpalLocalJusticeAreaType.LJA)
+            .build());
+        entityManager.clear();
+
+        CourtLegacyEntity court = courtRepository.findById(COURT_ID).orElseThrow();
+
+        assertEquals(LOCAL_JUSTICE_AREA_ID, court.getLocalJusticeArea().getLocalJusticeAreaId());
+        assertEquals("Court Graph LJA", court.getLocalJusticeArea().getName());
+    }
+
+    @Test
     @JiraStory("PO-2885")
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6295")
     void shouldKeepAssociationsLazyWhenNoEntityGraphIsUsed() {
-        CourtEntity court = entityManager.find(CourtEntity.class, COURT_ID);
+        CourtLegacyEntity court = entityManager.find(CourtLegacyEntity.class, COURT_ID);
 
         assertAll(
             () -> assertNotNull(court),
@@ -84,7 +109,7 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6296")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForDirectFetch() {
-        CourtEntity court = courtLiteRepository.findById(COURT_ID).orElseThrow();
+        CourtLegacyEntity court = courtLiteRepository.findById(COURT_ID).orElseThrow();
 
         assertAssociationsRemainLazy(court);
     }
@@ -94,11 +119,11 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6293")
     void shouldKeepAssociationsLazyWhenLiteEntityGraphIsUsedForSpecificationFetch() {
-        Page<CourtEntity> page = courtLiteRepository.findBy(
+        Page<CourtLegacyEntity> page = courtLiteRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
             ffq -> ffq.page(Pageable.unpaged())
         );
-        CourtEntity court = page.getContent().getFirst();
+        CourtLegacyEntity court = page.getContent().getFirst();
 
         assertEquals(1, page.getContent().size());
         assertAssociationsRemainLazy(court);
@@ -109,7 +134,7 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6297")
     void shouldLoadFullEntityGraphForDirectFetch() {
-        CourtEntity court = courtRepository.findById(COURT_ID).orElseThrow();
+        CourtLegacyEntity court = courtRepository.findById(COURT_ID).orElseThrow();
 
         assertAll(
             () -> assertTrue(unitUtil.isLoaded(court, "businessUnit")),
@@ -126,11 +151,11 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
     @JiraEpic("PO-304")
     @JiraTestKey("PO-6294")
     void shouldLoadFullEntityGraphForSpecificationFetch() {
-        Page<CourtEntity> page = courtRepository.findBy(
+        Page<CourtLegacyEntity> page = courtRepository.findBy(
             CourtSpecs.equalsCourtId(COURT_ID),
             ffq -> ffq.page(Pageable.unpaged())
         );
-        CourtEntity court = page.getContent().getFirst();
+        CourtLegacyEntity court = page.getContent().getFirst();
 
         assertAll(
             () -> assertEquals(1, page.getContent().size()),
@@ -140,7 +165,7 @@ class CourtRepositoryIntegrationTest extends AbstractIntegrationTest {
         );
     }
 
-    private void assertAssociationsRemainLazy(CourtEntity court) {
+    private void assertAssociationsRemainLazy(CourtLegacyEntity court) {
         assertAll(
             () -> assertFalse(unitUtil.isLoaded(court, "businessUnit")),
             () -> assertFalse(unitUtil.isLoaded(court, "localJusticeArea")),

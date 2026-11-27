@@ -154,6 +154,9 @@ public class CacheConfig {
     }
 
     private Stream<String> generateKeyParts(Object filter) {
+        if (filter == null) {
+            return Stream.of("noFilter");
+        }
         return switch (filter) {
             case String s -> Stream.of(s);
             case List<?> l -> l.stream().map(Object::toString).sorted();
