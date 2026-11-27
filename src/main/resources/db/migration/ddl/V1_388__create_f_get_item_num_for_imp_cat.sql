@@ -3,7 +3,7 @@
 *
 * MODULE      : create_f_get_item_num_for_imp_cat_and_enums.sql
 *
-* DESCRIPTION : Create Function f_get_item_num_for_imp_cat, for Imposition Category to Item Number lookup, and its related Enum
+* DESCRIPTION : Create Function f_get_item_num_for_imp_cat, for Imposition Category to Item Number lookup
 *
 * VERSION HISTORY:
 *
@@ -12,23 +12,6 @@
 * 10/11/2026    T McCallion    1.0         PO-11116 - Create lookup function for Imposition Category - Item Number
 *
 **/
-
-CREATE TYPE t_imposition_category_enum AS ENUM (
-    'Compensation', 
-    'Costs', 
-    'Court Charge', 
-    'Crown Prosecution Costs', 
-    'Fines', 
-    'Legal Aid', 
-    'Victim Surcharge',
-    'Witness Expenses & Central Fund'
-);
-
-CREATE TYPE t_imp_cat_item_num_context_enum AS ENUM (
-    'MAC'
-);
-
-
 CREATE OR REPLACE FUNCTION f_get_item_num_for_imp_cat(
     pi_imposition_category t_imposition_category_enum,
     pi_context t_imp_cat_item_num_context_enum
@@ -44,6 +27,9 @@ AS $$
 * MODULE      : f_get_item_num_for_imp_cat
 *
 * DESCRIPTION : Function to lookup an Item Number for a given Imposition Category, depending on the context.
+*               
+*               NOTE: When amending this function and adding a new value to the case statement, 
+*                     ensure the new value has been added to t_imp_cat_item_num_context_enum
 *
 * VERSION HISTORY:
 *
