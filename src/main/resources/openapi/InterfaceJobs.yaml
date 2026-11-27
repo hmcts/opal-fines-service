@@ -416,13 +416,24 @@ components:
       properties:
         file_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.file_name
+          description: DB Mapping - v_interface_jobs_processed_file_summary.interface_file_name
         source:
           type: string
           description: DB Mapping - v_interface_jobs_processed_file_summary.source
         business_unit_name:
           type: string
-          description: DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+          description: >
+            Business unit name from the processed-file summary view, falling back to the interface job's business unit
+            when no till was created. DB Mapping - v_interface_jobs_processed_file_summary.business_unit_name
+            or interface_jobs.business_unit_id joined to business_units.business_unit_name.
+        till_number:
+          type:
+            - integer
+            - 'null'
+          format: int16
+          description: >
+            A non-null till number identifies a Till Summary. A null or omitted value identifies an
+            ignored-file File Summary for which no till was created.
         total_amount:
           $ref: './types.yaml#/components/schemas/monetaryZeroOrPositive'
           description: >
@@ -452,7 +463,24 @@ components:
       properties:
         message_text:
           type: string
-          description: Grouping key from interface_messages.message_text
+          description: |
+            Grouping key from interface_messages.message_text. 
+            The following mappings describe how consumers use these groups for display rows and subtotal calculations:
+
+            Summary rows:
+            - Records read: records_read.
+            - Records accepted: records_fines. records_accepted includes fines and suspense records
+              and is not used for this displayed row.
+            - Records in suspense: records_suspense.
+            - Records ignored: records_ignored_rejected.
+
+            Detail subtotals:
+            - Accounts with zero balance: zero_balance, using message_data.value.
+            - Accounts with selected enforcement actions: enforcement_action, using message_data.value.
+            - Errors directed to suspense: invalid_transaction, account_notfound, account_written_off,
+              account_consolidated, account_tfo_not_ack, account_tfo_ack and account_tfo_sc_ni;
+              sum message_data.court_amount.
+            - Ignored error records: unknown_bank; sum message_data.court_amount.
         messages:
           type: array
           items:
@@ -468,7 +496,7 @@ components:
       properties:
         interface_messages_id:
           $ref: './types.yaml#/components/schemas/BigInt'
-          description: DB Mapping - interface_messages.interface_messages_id
+          description: DB Mapping - interface_messages.interface_message_id
         message_data:
           type: object
           additionalProperties: true

@@ -5,6 +5,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
+import org.openapitools.jackson.nullable.JsonNullable;
 import uk.gov.hmcts.opal.entity.InterfaceJobProcessedFileSummaryEntity;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsMessageGroup;
 import uk.gov.hmcts.opal.generated.model.InterfaceJobsProcessedFileSummaryResponse;
@@ -15,6 +16,7 @@ public interface InterfaceJobProcessedFileSummaryMapper {
     @Mapping(target = "fileName", source = "summary.interfaceFileName")
     @Mapping(target = "businessUnitName", source = "businessUnitName")
     @Mapping(target = "interfaceMessages", source = "messages")
+    @Mapping(target = "tillNumber", source = "summary.tillNumber", qualifiedByName = "nullableTillNumber")
     @Mapping(target = "totalAmount", source = "summary.totalAmount", qualifiedByName = "penceToPounds")
     InterfaceJobsProcessedFileSummaryResponse toResponse(
         InterfaceJobProcessedFileSummaryEntity summary,
@@ -24,5 +26,10 @@ public interface InterfaceJobProcessedFileSummaryMapper {
     @Named("penceToPounds")
     default BigDecimal penceToPounds(BigDecimal amount) {
         return amount == null ? null : amount.movePointLeft(2);
+    }
+
+    @Named("nullableTillNumber")
+    default JsonNullable<Short> nullableTillNumber(Short tillNumber) {
+        return JsonNullable.of(tillNumber);
     }
 }
