@@ -65,7 +65,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private static final String DEFENDANT_JSON_PATH = "$.defendant";
 
     private static final EnumSet<DraftAccountStatus> VALID_UPDATE_STATUSES =
-        EnumSet.of(DraftAccountStatus.PUBLISHING_PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED);
+        EnumSet.of(DraftAccountStatus.PUBLISHING_PENDING, DraftAccountStatus.REJECTED, DraftAccountStatus.DELETED,
+            DraftAccountStatus.PUBLISHING_FAILURE_RESOLVED);
     public static final String EVENT_NAME_DELETION = "Business Function - Deletion of Draft Account";
 
     private final DraftAccountRepository draftAccountRepository;
@@ -196,7 +197,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     public DraftAccountEntity updateDraftAccount(Long draftAccountId, UpdateDraftAccountRequestDto dto,
                                                  DraftAccountTransactionalProxy proxy, BigInteger updateVersion,
                                                  UserState userState, String validatedBy, String validatedByName) {
-        DraftAccountEntity existingAccount = proxy.getDraftAccount(draftAccountId);
+        DraftAccountEntity existingAccount = getDraftAccount(draftAccountId);
         verifyIfMatch(existingAccount, updateVersion, draftAccountId, "updateDraftAccount");
 
         log.info(":updateDraftAccount: existing account: {}", existingAccount);
@@ -211,7 +212,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
 
         DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
-            .filter(VALID_UPDATE_STATUSES::contains)
+            .filter(VALID_UPDATE_STATUSES::contains) // TODO publishing failure resolved only allowed if feature enabled
+            .filter(existingAccount.getAccountStatus()::canUpdateTo)
             .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
                                                                 + dto.getAccountStatus()));
 

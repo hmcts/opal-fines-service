@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
@@ -35,10 +36,12 @@ import uk.gov.hmcts.opal.dto.DraftAccountsResponseDto;
 import uk.gov.hmcts.opal.dto.ReplaceDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.UpdateDraftAccountRequestDto;
 import uk.gov.hmcts.opal.dto.search.DraftAccountSearchDto;
+import uk.gov.hmcts.opal.entity.businessunit.BusinessUnitEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountSource;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
+import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -78,6 +81,9 @@ public class DraftAccountService {
     private final SecurityEventLoggingService securityEventLoggingService;
     private final Clock clock;
     private final FeatureToggleApi featureToggleApi;
+
+    private DraftAccountRepository draftAccountRepository;
+    private TransactionTemplate transactionTemplate;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 
@@ -307,32 +313,47 @@ public class DraftAccountService {
         String ifMatch) {
 
         UserState userState = userStateService.getUserStateV1FromSecurityContext();
-        Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(dto.getBusinessUnitId());
-        log.info(":updateDraftAccount: unit user: {}", unitUser);
-        if (UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
-            jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
-            BigInteger updateVersion = extractBigInteger(ifMatch);
-            BusinessUnitUser validator = unitUser.orElseThrow();
-            DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
-                draftAccountTransactional, updateVersion, userState, validator.getBusinessUnitUserId(),
-                userState.getDisplayName());
-            verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
+        BusinessUnitUser businessUnitUser = getBusinessUnitUserAndCheckPermission(draftAccountId, userState);
+        jsonSchemaValidationService.validateOrError(dto.toJson(), UPDATE_DRAFT_ACCOUNT_REQUEST_JSON);
+        BigInteger updateVersion = extractBigInteger(ifMatch);
+        // TODO get rid of passing draftAccountTransactional to itself
+        DraftAccountEntity updatedEntity = draftAccountTransactional.updateDraftAccount(draftAccountId, dto,
+            draftAccountTransactional, updateVersion, userState, businessUnitUser.getBusinessUnitUserId(),
+            userState.getDisplayName());
+        verifyUpdated(updatedEntity, updateVersion, draftAccountId, "updateDraftAccount");
 
-            loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
+        loggingService.pdplForDraftAccount(updatedEntity, Action.RESUBMIT, userState);
 
-            if (updatedEntity.getAccountStatus().isPublishingPending()) {
-                log.info(":updateDraftAccount: publishing: ");
-                DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(
-                    updatedEntity, unitUser.orElseThrow());
-                logApprovalSuccess(dto.getBusinessUnitId(), userState.getUserId(), draftAccountId,
-                    updatedEntity.getSubmittedBy());
-                return draftAccountMapper.toResponseDto(entity);
-            }
-
-            return draftAccountMapper.toResponseDto(updatedEntity);
+        if (updatedEntity.getAccountStatus().isPublishingPending()) {
+            log.info(":updateDraftAccount: publishing: ");
+            DraftAccountEntity entity = accountPublishProxy.publishDefendantAccount(updatedEntity, businessUnitUser);
+            logApprovalSuccess(businessUnitUser.getBusinessUnitId(), userState.getUserId(), draftAccountId,
+                updatedEntity.getSubmittedBy());
+            return draftAccountMapper.toResponseDto(entity);
         }
 
-        throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+        return draftAccountMapper.toResponseDto(updatedEntity);
+    }
+
+    // Note - PO-10671 - This change is to start strangling out the poor design of passing the business unit id in
+    // as a parameter from the front end rather than deriving it from the data. However, the existing code throws an
+    // exception if the business unit id passed in does not match, so we are 100% safe to use the correct
+    // business unit id from the start.
+    private BusinessUnitUser getBusinessUnitUserAndCheckPermission(Long draftAccountId, UserState userState) {
+
+        return transactionTemplate.execute(status -> {
+            DraftAccountEntity draftAccount = draftAccountRepository.findById(draftAccountId)
+                .orElseThrow(() ->new EntityNotFoundException("Draft Account not found with id: " + draftAccountId))
+            Short businessUnitId = draftAccount.getBusinessUnit().getBusinessUnitId();
+
+            Optional<BusinessUnitUser> unitUser = userState.getBusinessUnitUserForBusinessUnit(businessUnitId);
+            log.info(":updateDraftAccount: unit user: {}", unitUser);
+
+            if (!UserState.userHasPermission(unitUser, FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS)) {
+                throw new PermissionNotAllowedException(FinesPermission.CHECK_VALIDATE_DRAFT_ACCOUNTS);
+            }
+            return unitUser.orElseThrow();
+        });
     }
 
     private void logApprovalSuccess(Short buId, Long approverId, Long accountId, String submittedBy) {
