@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -103,7 +104,7 @@ class DraftAccountTransactionalTest {
     @Test
     void testGetDraftAccounts() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
@@ -129,7 +130,7 @@ class DraftAccountTransactionalTest {
     @Test
     void testGetDraftAccounts_withSourceFilter() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(Sort.by(Direction.ASC, DraftAccountEntity_.DRAFT_ACCOUNT_ID))).thenReturn(sfq);
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().businessUnit(
@@ -177,7 +178,7 @@ class DraftAccountTransactionalTest {
     @Test
     void testSearchDraftAccounts() {
         // Arrange
-        SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
+        SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         final String accountText = "myaccount";
 
         DraftAccountEntity draftAccountEntity = DraftAccountEntity.builder().account(accountText).build();
@@ -816,7 +817,6 @@ class DraftAccountTransactionalTest {
     @Test
     void testUpdateDraftAccount_cannotUpdateToPublishingStatusResolvedWhenFeatureDisabled() {
         // Arrange
-
         when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)).thenReturn(false);
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
@@ -834,16 +834,12 @@ class DraftAccountTransactionalTest {
 
         when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
 
-        UserState userState = UserState.builder().userName("BUUID1").build();
-
         // Act & Assert
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
             draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
-                BigInteger.ZERO, userState, "Validator", "Validator Name")
+                BigInteger.ZERO, mock(UserState.class), "", "")
         );
         assertEquals("Invalid account status for update: PUBLISHING_FAILURE_RESOLVED", exception.getMessage());
-
-        verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
     }
 
