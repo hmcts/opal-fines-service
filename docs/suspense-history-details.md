@@ -54,20 +54,30 @@ transaction text and `RV` returns null. API transaction codes absent from
 
 ## Required fields and business-unit types
 
-The schema requires payer details on manual payer/court-fee shapes, a non-null
-reversal description, a payment source on automatic details, and a creditor
-address on creditor, third-party repayment and adjustment shapes. The court-fee,
-reversal, creditor, repayment, adjustment and generic payer branches retain their
-existing checks for required data.
+The manual payer shape requires both `payment_details` and `payer_details` keys,
+but `payer_details` may be null when a miscellaneous-account payer cannot resolve.
+It never falls back to stale JSON. The court-fee shape continues to require a
+non-null payer. Reversal details require a non-null description; creditor,
+third-party repayment and adjustment shapes require a creditor address.
 
-The current UN/OF automatic branches return their selected object even when the
-payment source is null. The OF miscellaneous-account branch also returns its
-selected object when its payer cannot resolve, leaving `payer_details` null and
-never falling back to stale JSON. These two cases do not satisfy the current
-schema's required non-null fields. Integration assertions record the current
-mapper behavior; passing them does not establish schema validity for those
-incomplete records. This update does not change the mapper or the schema to
-resolve that discrepancy.
+Automatic details require the `payment_source` key, whose value may be a string
+or null. This accommodates the existing UN/OF mapper behavior when the payment
+and till have no source. Both nullable fields remain in their respective
+`required` lists: an explicit null key preserves the distinction between the
+payment details shapes in `suspenseTransaction.details.oneOf`.
+
+The models are regenerated from this contract. Integration tests assert the
+explicit null keys in actual responses. Focused contract cases validate both
+nullable details shapes against the bundled OpenAPI response schema; empty
+details objects, invalid field types and combinations of fields from different
+shapes remain invalid. The mapper selection rules are unchanged.
+
+These checks cover the two payment-field mismatches above. Full history-response
+validation additionally exposes pre-existing nullability mismatches in
+`posted_details.posted_by`, `posted_details.posted_by_name`, and nested manual
+`payment_details.received_from` and `payment_details.payment_source`. Those fields
+are outside this schema change; the focused contract cases do not claim that
+all history responses satisfy the entire schema.
 
 Automatic details default a missing or empty defendant account number to `0`.
 An existing account number that is nonnumeric or outside int64 becomes null;

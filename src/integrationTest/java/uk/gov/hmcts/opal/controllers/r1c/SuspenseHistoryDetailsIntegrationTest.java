@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.nullValue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -11,6 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -421,6 +423,7 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
         history(99000000979802L)
             .andExpect(jsonPath(payment, hasSize(1)))
             .andExpect(jsonPath(payment + ".details.payment_details.payment_method", contains("NC")))
+            .andExpect(jsonPath(payment + ".details.payer_details", hasSize(1)))
             .andExpect(jsonPath(payment + ".details.payer_details", everyItem(nullValue())))
             .andExpect(jsonPath(payment + ".details.originator_reference").doesNotExist());
     }
@@ -449,8 +452,32 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(payment, hasSize(1)))
             .andExpect(jsonPath(payment + ".details.defendant_account_number", contains(0)))
             .andExpect(jsonPath(payment + ".details.originator_reference", everyItem(nullValue())))
+            .andExpect(jsonPath(payment + ".details.payment_source", hasSize(1)))
             .andExpect(jsonPath(payment + ".details.payment_source", everyItem(nullValue())))
             .andExpect(jsonPath(payment + ".details.payment_details").doesNotExist());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"{\"payment_source\":null}", "{\"payment_details\":{},\"payer_details\":null}"})
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Required nullable payment fields select exactly one details shape in the contract")
+    void historyContract_acceptsNullablePaymentDetails(String details) throws Exception {
+        assertDetailsContract(details);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{}",
+        "{\"payment_source\":123}",
+        "{\"payment_details\":{},\"payer_details\":123}",
+        "{\"payment_details\":{},\"payer_details\":null,\"payment_source\":null}"
+    })
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Nullable payment fields still reject empty, incorrectly typed and mixed details shapes")
+    void historyContract_rejectsInvalidDetails(String details) throws Exception {
+        assertThrows(AssertionError.class, () -> assertDetailsContract(details));
     }
 
     @Test
@@ -555,6 +582,13 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(details + ".originator_reference", contains(" ")))
             .andExpect(jsonPath(details + ".payment_source", contains("NATWEST")))
             .andExpect(jsonPath(details + ".payment_details").doesNotExist());
+    }
+
+    private void assertDetailsContract(String details) throws Exception {
+        var body = objectMapper.readTree("""
+            {"suspense_transactions":[{"details":%s}]}
+            """.formatted(details));
+        assertGet200JsonResponseMatchesBundledSpec(body, "/suspense-items/{suspenseItemId}/history");
     }
 
     private ResultActions history() throws Exception {

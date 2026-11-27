@@ -853,7 +853,9 @@ components:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
         payer_details:
-          $ref: '#/components/schemas/payerDetails'
+          oneOf:
+            - $ref: '#/components/schemas/payerDetails'
+            - type: 'null'
 
     manualPaymentUnidentifiedDetails:
       title: Manual Payment Unidentified Details
@@ -898,7 +900,9 @@ components:
             - string
             - 'null'
         payment_source:
-          type: string
+          type:
+            - string
+            - 'null'
 
     defendantDetails:
       type: object
