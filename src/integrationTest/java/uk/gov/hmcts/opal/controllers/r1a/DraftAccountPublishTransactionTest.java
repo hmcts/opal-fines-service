@@ -97,8 +97,8 @@ class DraftAccountPublishTransactionTest extends AbstractIntegrationTest {
         String originalOpalName = opalArea.getName();
         assertEquals("Burnley Crown Court", originalOpalName);
         assertEquals(0, jdbcTemplate.queryForObject(
-            "SELECT count(*) FROM prosecutors WHERE prosecutor_id = ? AND name = ?",
-            Integer.class, courtLjaId, originalOpalName));
+            "SELECT count(*) FROM prosecutors WHERE prosecutor_code = ? AND name = ?",
+            Integer.class, Short.toString(courtLjaId), originalOpalName));
         String originalLegacyName = legacyArea.getName();
         var draft = draftAccountRepository.saveAndFlush(DraftAccountEntity.builder()
             .businessUnit(businessUnitRepository.findById((short) 77).orElseThrow())
