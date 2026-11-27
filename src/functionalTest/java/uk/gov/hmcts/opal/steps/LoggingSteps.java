@@ -303,6 +303,33 @@ public class LoggingSteps extends BaseStepDef {
     }
 
     /**
+     * Verifies the consultation for the scenario's unique consolidation search result.
+     */
+    @Then("the logging service contains a consultation for the consolidated search result")
+    public void loggingServiceContainsConsolidationSearchConsultation() {
+        String accountId = scenarioContext().getCreatedDefendantAccountIdOrFail();
+        String businessIdentifier = "Search Account Results - Consolidation - Individual Defendants";
+        latestPdpoSearchResponse = waitForPdpoLogs(Map.of(
+            "created_by", Map.of("id", PDPO_CREATED_BY_ID, "type", PDPO_CREATED_BY_TYPE),
+            "business_identifier", businessIdentifier,
+            "category", "Consultation",
+            "individual_identifier", accountId,
+            "individual_type", PdplIdentifierType.DEFENDANT.name()
+        ));
+
+        for (JsonNode log : requireLatestPdpoSearchResponse()) {
+            assertEquals(businessIdentifier, log.path("business_identifier").asString());
+            assertEquals("Consultation", log.path("category").asString());
+            assertEquals(PDPO_CREATED_BY_ID, log.path("created_by").path("id").asString());
+            assertEquals(PDPO_CREATED_BY_TYPE, log.path("created_by").path("type").asString());
+            assertEquals(1, log.path("individuals").size(), "Expected only the returned defendant participant");
+            JsonNode individual = log.path("individuals").get(0);
+            assertEquals(accountId, individual.path("id").asString());
+            assertEquals(PdplIdentifierType.DEFENDANT.name(), individual.path("type").asString());
+        }
+    }
+
+    /**
      * Verifies the logging service persisted a consultation containing each represented history
      * user exactly once.
      *
