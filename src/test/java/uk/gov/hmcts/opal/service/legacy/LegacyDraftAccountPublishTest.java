@@ -1,28 +1,40 @@
 package uk.gov.hmcts.opal.service.legacy;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.AdditionalAnswers.returnsFirstArg;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.CREATE_DEFENDANT_ACCOUNT;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.ERROR_MESSAGE_TEMPLATE;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.system.OutputCaptureExtension;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.common.logging.LogUtil;
-import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.util.FeatureFlags;
 import uk.gov.hmcts.opal.dto.legacy.LegacyCreateDefendantAccountRequest;
@@ -34,36 +46,9 @@ import uk.gov.hmcts.opal.entity.draft.TimelineData;
 import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.service.opal.jpa.DraftAccountTransactional;
 
-import java.lang.reflect.Field;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static uk.gov.hmcts.opal.service.legacy.LegacyDraftAccountPublish.ERROR_MESSAGE_TEMPLATE;
-
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(OutputCaptureExtension.class)
-class LegacyDraftAccountPublishTest {
-
-    @Spy
-    private MockRestClient restClient = spy(MockRestClient.class);
-
-    @Mock
-    private LegacyGatewayProperties gatewayProperties;
-
-    private GatewayService gatewayService;
+class LegacyDraftAccountPublishTest extends LegacyTestsBase {
 
     @Mock
     private FeatureToggleApi featureToggleApi;
@@ -71,33 +56,17 @@ class LegacyDraftAccountPublishTest {
     @Mock
     private DraftAccountTransactional draftAccountTransactional;
 
-    @InjectMocks
     private LegacyDraftAccountPublish legacyDraftAccountPublish;
 
     @BeforeEach
-    void openMocks() throws Exception {
-        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDraftAccountPublish, gatewayService);
+    void openMocks() {
+        legacyDraftAccountPublish = new LegacyDraftAccountPublish(
+            createGatewayService(), draftAccountTransactional, featureToggleApi);
     }
 
-    private void injectGatewayService(
-        LegacyDraftAccountPublish legacyDraftAccountPublish, GatewayService gatewayService)
-        throws NoSuchFieldException, IllegalAccessException {
-
-        Field field = LegacyDraftAccountPublish.class.getDeclaredField("gatewayService");
-        field.setAccessible(true);
-        field.set(legacyDraftAccountPublish, gatewayService);
-
-    }
-
-    @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_success() {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
-            .businessUnitId((short)7)
-            .businessUnitUserId("Dave")
-            .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
                 BusinessUnitEntity.builder()
@@ -111,11 +80,7 @@ class LegacyDraftAccountPublishTest {
             .defendantAccountNumber("77-007")
             .build();
 
-        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-
-        ResponseEntity<String> serverSuccessResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.valueOf(200));
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(CREATE_DEFENDANT_ACCOUNT, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         when(draftAccountTransactional
                  .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
@@ -124,12 +89,16 @@ class LegacyDraftAccountPublishTest {
                  .updateStatus(publish, DraftAccountStatus.PUBLISHED, draftAccountTransactional))
             .thenReturn(publish);
 
+        BusinessUnitUser buu = BusinessUnitUser.builder()
+            .businessUnitId((short)7)
+            .businessUnitUserId("Dave")
+            .build();
+
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
         assertEquals(publish, published);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_serverError() throws JacksonException {
 
@@ -139,10 +108,6 @@ class LegacyDraftAccountPublishTest {
         try (MockedStatic<LogUtil> logUtilMock = mockStatic(LogUtil.class)) {
             logUtilMock.when(LogUtil::getOrCreateOpalOperationId).thenReturn(opId);
 
-            BusinessUnitUser buu = BusinessUnitUser.builder()
-                .businessUnitId((short)7)
-                .businessUnitUserId("Dave")
-                .build();
             DraftAccountEntity publish = DraftAccountEntity.builder()
                 .businessUnit(
                     BusinessUnitEntity.builder()
@@ -157,10 +122,8 @@ class LegacyDraftAccountPublishTest {
                     .build())
                 .build();
 
-            when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-            ResponseEntity<String> serverErrorResponse =
-                new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR);
-            when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
+            mockGatewayResponse(CREATE_DEFENDANT_ACCOUNT,
+                new ResponseEntity<>(responseBody.toXml(), HttpStatus.INTERNAL_SERVER_ERROR));
 
             when(draftAccountTransactional
                 .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
@@ -168,6 +131,11 @@ class LegacyDraftAccountPublishTest {
             when(draftAccountTransactional
                 .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
                 .then(returnsFirstArg());
+
+            BusinessUnitUser buu = BusinessUnitUser.builder()
+                .businessUnitId((short)7)
+                .businessUnitUserId("Dave")
+                .build();
 
             // Act
             DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
@@ -185,7 +153,6 @@ class LegacyDraftAccountPublishTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_400Error() {
 
@@ -204,11 +171,7 @@ class LegacyDraftAccountPublishTest {
         LegacyCreateDefendantAccountResponse responseBody = LegacyCreateDefendantAccountResponse.builder()
             .build();
 
-        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-
-        ResponseEntity<String> serverErrorResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.NOT_FOUND);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
+        mockGatewayResponse(CREATE_DEFENDANT_ACCOUNT, new ResponseEntity<>(responseBody.toXml(), HttpStatus.NOT_FOUND));
 
         when(draftAccountTransactional
                  .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
@@ -219,14 +182,9 @@ class LegacyDraftAccountPublishTest {
         assertEquals(publish, published);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testPublishDefendantAccount_unknownError() {
 
-        BusinessUnitUser buu = BusinessUnitUser.builder()
-            .businessUnitId((short)7)
-            .businessUnitUserId("Dave")
-            .build();
         DraftAccountEntity publish = DraftAccountEntity.builder()
             .businessUnit(
                 BusinessUnitEntity.builder()
@@ -242,11 +200,8 @@ class LegacyDraftAccountPublishTest {
                 .build())
             .build();
 
-        when(restClient.responseSpec.body(any(ParameterizedTypeReference.class))).thenReturn(responseBody);
-
-        ResponseEntity<String> serverErrorResponse =
-            new ResponseEntity<>(responseBody.toXml(), HttpStatus.MOVED_PERMANENTLY);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverErrorResponse);
+        mockGatewayResponse(CREATE_DEFENDANT_ACCOUNT,
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.MOVED_PERMANENTLY));
 
         when(draftAccountTransactional
                  .updateStatus(publish, DraftAccountStatus.LEGACY_PENDING, draftAccountTransactional))
@@ -254,6 +209,11 @@ class LegacyDraftAccountPublishTest {
         when(draftAccountTransactional
             .updateStatus(publish, DraftAccountStatus.PUBLISHING_FAILED, draftAccountTransactional))
             .thenReturn(publish);
+
+        BusinessUnitUser buu = BusinessUnitUser.builder()
+            .businessUnitId((short)7)
+            .businessUnitUserId("Dave")
+            .build();
 
         DraftAccountEntity published = legacyDraftAccountPublish.publishDefendantAccount(publish, buu);
 
@@ -266,7 +226,8 @@ class LegacyDraftAccountPublishTest {
     void testPublishDefendantAccount_exceptionResponse() throws Exception {
 
         GatewayService mockGatewayService = mock(GatewayService.class);
-        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+        legacyDraftAccountPublish = new LegacyDraftAccountPublish(
+            mockGatewayService, draftAccountTransactional, featureToggleApi);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()
             .businessUnitId((short)7)
@@ -301,7 +262,8 @@ class LegacyDraftAccountPublishTest {
     void testPublishDefendantAccount_interruptedException() throws Exception {
 
         GatewayService mockGatewayService = mock(GatewayService.class);
-        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+        legacyDraftAccountPublish = new LegacyDraftAccountPublish(
+            mockGatewayService, draftAccountTransactional, featureToggleApi);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()
             .businessUnitId((short)7)
@@ -341,7 +303,8 @@ class LegacyDraftAccountPublishTest {
     void testPublishDefendantAccount_executionException() throws Exception {
 
         GatewayService mockGatewayService = mock(GatewayService.class);
-        injectGatewayService(legacyDraftAccountPublish, mockGatewayService);
+        legacyDraftAccountPublish = new LegacyDraftAccountPublish(
+            mockGatewayService, draftAccountTransactional, featureToggleApi);
 
         BusinessUnitUser buu = BusinessUnitUser.builder()
             .businessUnitId((short)7)

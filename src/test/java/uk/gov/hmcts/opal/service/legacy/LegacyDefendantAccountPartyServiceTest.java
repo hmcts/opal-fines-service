@@ -10,7 +10,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
@@ -23,15 +22,11 @@ import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
-import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyEmployerDetailsDefendantAccount;
@@ -58,14 +53,9 @@ import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper
 import uk.gov.hmcts.opal.mapper.legacy.RemoveDefendantAccountPartyLegacyResponseMapper;
 
 @ExtendWith(MockitoExtension.class)
-class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
-
-    @Spy
-    private MockRestClient restClient = spy(MockRestClient.class);
+class LegacyDefendantAccountPartyServiceTest {
 
     @Mock
-    private LegacyGatewayProperties gatewayProperties;
-
     private GatewayService gatewayService;
 
     private LegacyDefendantAccountPartyService legacyDefendantAccountPartyService;
@@ -78,7 +68,6 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void openMocks() {
-        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
         legacyDefendantAccountPartyService = new LegacyDefendantAccountPartyService(
             gatewayService,
             mapper,

@@ -11,14 +11,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_DEFENDANT_AT_A_GLANCE;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_HEADER_SUMMARY;
 
 import java.math.BigInteger;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
@@ -39,7 +39,6 @@ import uk.gov.hmcts.opal.dto.legacy.common.PaymentTermsSummary;
 class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_success_mapsTopLevelAndNulls() {
         LegacyGetDefendantAccountAtAGlanceResponse body = LegacyGetDefendantAccountAtAGlanceResponse.builder()
             .defendantAccountId("123")
@@ -49,11 +48,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
             .version(BigInteger.valueOf(5L))
             .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_AT_A_GLANCE, new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(123L);
 
@@ -74,7 +69,6 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_legacyFailure5xx_withEntity_throwsHttpServerErrorException() {
         LegacyGetDefendantAccountAtAGlanceResponse body =
             LegacyGetDefendantAccountAtAGlanceResponse.builder()
@@ -82,24 +76,15 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .defendantAccountId("456")
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(body.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(999L))
             .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("503 Legacy gateway returned failure");
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_error5xx_noEntity_throwsHttpServerErrorException() {
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(999L))
             .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("500 unexpected element");
@@ -115,7 +100,6 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsOrganisationBranch_withAliases() {
         OrganisationDetails.OrganisationAlias orgAlias = OrganisationDetails.OrganisationAlias.builder()
             .aliasId("10")
@@ -140,11 +124,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .version(BigInteger.valueOf(0L))
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_AT_A_GLANCE, new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
@@ -164,7 +144,6 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsIndividualBranch_withAliases_andDobFormatting() {
         IndividualDetails.IndividualAlias alias = IndividualDetails.IndividualAlias.builder()
             .aliasId("21")
@@ -195,11 +174,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .version(BigInteger.valueOf(0L))
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_AT_A_GLANCE, new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
@@ -224,7 +199,6 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_mapsAddress_language_payment_enforcement_comments() {
         AddressDetailsLegacy addr =
             AddressDetailsLegacy.builder()
@@ -283,11 +257,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .version(BigInteger.valueOf(0L))
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_AT_A_GLANCE, new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
 
@@ -326,7 +296,6 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void getAtAGlance_paymentTerms_nullEnumsHandled() {
         PaymentTermsSummary legacyPtsNulls =
             PaymentTermsSummary.builder()
@@ -340,11 +309,7 @@ class LegacyDefAccServiceAtAGlanceTest extends AbstractLegacyDefAccServiceTest {
                 .version(BigInteger.valueOf(0L))
                 .build();
 
-        ParameterizedTypeReference<LegacyGetDefendantAccountAtAGlanceResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(body);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(body.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_AT_A_GLANCE, new ResponseEntity<>(body.toXml(), HttpStatus.OK));
 
         GetDefendantAccountAtAGlanceResponse out = legacyDefendantAccountService.getAtAGlance(1L);
         assertNotNull(out.getPayload().getPaymentTerms());

@@ -11,18 +11,15 @@ import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,9 +36,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpServerErrorException;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
-import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
 import uk.gov.hmcts.opal.dto.AddPaymentCardRequestResponse;
 import uk.gov.hmcts.opal.dto.PostedDetails;
@@ -66,20 +61,11 @@ import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict;
 import uk.gov.hmcts.opal.generated.model.PaymentTermsTypeCommonStrict.PaymentTermsTypeCodeEnum;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPaymentTermsLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyPaymentTermsMapper;
-import uk.gov.hmcts.opal.service.opal.CourtService;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyDefendantAccountPaymentTermsServiceTest {
 
-    @Spy
-    private MockRestClient restClient = spy(MockRestClient.class);
-
     @Mock
-    private LegacyGatewayProperties gatewayProperties;
-
-    @Mock
-    private CourtService courtService;
-
     private GatewayService gatewayService;
 
     @Spy
@@ -91,21 +77,6 @@ class LegacyDefendantAccountPaymentTermsServiceTest {
 
     @InjectMocks
     private LegacyDefendantAccountPaymentTermsService legacyDefendantAccountPaymentTermsService;
-
-    @BeforeEach
-    void openMocks() throws Exception {
-        gatewayService = spy(new LegacyGatewayService(gatewayProperties, restClient));
-        injectGatewayService(legacyDefendantAccountPaymentTermsService, gatewayService);
-    }
-
-    private void injectGatewayService(
-        LegacyDefendantAccountPaymentTermsService legacyDefendantAccountService, GatewayService gatewayService)
-        throws NoSuchFieldException, IllegalAccessException {
-
-        Field field = LegacyDefendantAccountPaymentTermsService.class.getDeclaredField("gatewayService");
-        field.setAccessible(true);
-        field.set(legacyDefendantAccountService, gatewayService);
-    }
 
     @Test
     void addPaymentCardRequest_legacy_happyPath() {

@@ -8,7 +8,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_DEFENDANT_ACCOUNT_HISTORY;
 
 import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
@@ -20,8 +20,6 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
@@ -119,7 +117,6 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         );
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void getHistory_success_mapsMixedLegacyHistoryItems() {
         // Arrange
@@ -134,11 +131,7 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
             ))
             .build();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<GetDefendantAccountHistoryLegacyResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_ACCOUNT_HISTORY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHistoryFilter filter = DefendantAccountHistoryFilter.builder()
             .dateFrom(LocalDate.of(2026, Month.MAY, 11))
@@ -179,15 +172,10 @@ class LegacyDefAccServiceHistoryTest extends AbstractLegacyDefAccServiceTest {
         assertEquals(List.of("Enforcement", "Note"), requestCaptor.getValue().getItemTypes());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void getHistory_success_withNullEntity_returnsDefaultEmptyResponse() {
         // Arrange
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<GetDefendantAccountHistoryLegacyResponse>>any()
-        )).thenReturn(null);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>("<response/>", HttpStatus.OK));
+        mockGatewayResponse(GET_DEFENDANT_ACCOUNT_HISTORY, new ResponseEntity<>("<response/>", HttpStatus.OK));
 
         // Act
         DefendantAccountHistoryResponse out =

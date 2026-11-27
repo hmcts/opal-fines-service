@@ -12,6 +12,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyShort;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_ENFORCEMENT_STATUS;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_HEADER_SUMMARY;
 
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -19,8 +21,6 @@ import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
@@ -28,7 +28,6 @@ import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementAction;
 import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountEnforcementStatusResponse.EnforcementOverview;
-import uk.gov.hmcts.opal.dto.legacy.LegacyGetDefendantAccountPaymentTermsResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.CollectionOrder;
 import uk.gov.hmcts.opal.dto.legacy.common.CourtReference;
 import uk.gov.hmcts.opal.dto.legacy.common.EnforcementOverride;
@@ -50,15 +49,10 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_success_withNextEnforcementActionData() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(true);
-
-        when(restClient.responseSpec
-            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
-            .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
@@ -70,7 +64,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(GET_ENFORCEMENT_STATUS, serverSuccessResponse);
 
         when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
             FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
@@ -133,16 +127,11 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_success_withoutNextEnforcementActionData() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(true);
         responseBody.setLastEnforcementAction(null);
-
-        when(restClient.responseSpec
-            .body(Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()))
-            .thenReturn(responseBody);
 
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
@@ -151,7 +140,7 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
 
         ResponseEntity<String> serverSuccessResponse =
             new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(GET_ENFORCEMENT_STATUS, serverSuccessResponse);
 
         // Act
         EnforcementStatus response = legacyDefendantAccountService
@@ -200,12 +189,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody = createLegacyEnforcementStatusResponse(false);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any())).thenReturn(
-            responseBody);
-
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(GET_ENFORCEMENT_STATUS, serverSuccessResponse);
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short) 123).build());
 
@@ -241,18 +226,13 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_successMinimal() {
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(false);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
-        )).thenReturn(responseBody);
-
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(GET_ENFORCEMENT_STATUS, serverSuccessResponse);
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
 
@@ -285,7 +265,6 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetEnforcementStatus_ignoresEmptyLastEnforcementAction() {
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(false);
@@ -293,12 +272,8 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
             .resultReference(ResultReference.builder().resultId(" ").build())
             .build());
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
-        )).thenReturn(responseBody);
-
         ResponseEntity<String> serverSuccessResponse = new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK);
-        when(restClient.responseSpec.toEntity(String.class)).thenReturn(serverSuccessResponse);
+        mockGatewayResponse(GET_ENFORCEMENT_STATUS, serverSuccessResponse);
         when(courtService.getCourtById(anyLong())).thenReturn(
             CourtLegacyEntity.builder().courtCode((short)123).build());
 
@@ -319,66 +294,50 @@ class LegacyDefAccServiceEnforcementStatusTest extends AbstractLegacyDefAccServi
         assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getEnforcementStatus(1L));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_returns500UnexpectedElementException() {
         // Arrange
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountPaymentTermsResponse>>any())).thenReturn(null);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>("<error/>", HttpStatus.INTERNAL_SERVER_ERROR));
 
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(42L))
             .isInstanceOf(HttpServerErrorException.class).hasMessageContaining("500 unexpected element");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_returns503LegacyGatewayFailureException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(false);
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        mockGatewayResponse(GET_HEADER_SUMMARY,
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
             .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(false);
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        mockGatewayResponse(GET_HEADER_SUMMARY,
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(66L))
             .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetEnforcementStatus_ljaNotFoundInOpalDB_throwsHttpServerErrorException() {
 
         // Arrange
         LegacyGetDefendantAccountEnforcementStatusResponse responseBody =
             createLegacyEnforcementStatusResponse(true);
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountEnforcementStatusResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        mockGatewayResponse(GET_HEADER_SUMMARY,
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
             .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");

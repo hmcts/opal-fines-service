@@ -3,18 +3,14 @@ package uk.gov.hmcts.opal.service.legacy;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
-import uk.gov.hmcts.opal.common.legacy.config.LegacyGatewayProperties;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
-import uk.gov.hmcts.opal.common.legacy.service.LegacyGatewayService;
-import uk.gov.hmcts.opal.disco.legacy.LegacyTestsBase;
 import uk.gov.hmcts.opal.dto.UpdateDefendantAccountRequest;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
@@ -28,12 +24,6 @@ import uk.gov.hmcts.opal.service.opal.history.HistoryItemOrderingService;
 
 @ExtendWith(MockitoExtension.class)
 abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
-
-    @Spy
-    protected MockRestClient restClient = spy(MockRestClient.class);
-
-    @Mock
-    protected LegacyGatewayProperties gatewayProperties;
 
     @Mock
     protected CourtService courtService;
@@ -68,7 +58,7 @@ abstract class AbstractLegacyDefAccServiceTest extends LegacyTestsBase {
 
     @BeforeEach
     void openMocks() {
-        gatewayService = Mockito.spy(new LegacyGatewayService(gatewayProperties, restClient));
+        gatewayService = spy(createGatewayService());
         legacyBusinessUnitCodeResolver = new LegacyBusinessUnitCodeResolver(businessUnitRepository);
         legacyDefendantAccountService = new LegacyDefendantAccountService(
             gatewayService,
