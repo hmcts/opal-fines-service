@@ -1,0 +1,42 @@
+{
+  "header": {
+    "message_id": "00000000-0000-0000-0000-000000000000",
+    "message_type": "ReferenceData",
+    "data_product": "LJA",
+    "operation": "PUBLISH",
+    "source_system": "Semarchy",
+    "created_date_time": "2026-01-01T00:00:00Z",
+    "release_package_id": 1,
+    "record_count": 1
+  },
+  "payload": {
+    "records": [
+      {
+        "lja_code": "0001",
+        "lja_name": "LJA fixture",
+        "lja_type": "CRWCRT",
+        "start_date": "2026-01-01",
+        "end_date": null,
+        "publishing_status": "Active",
+        "cja_code": "41",
+        "addresses": [
+          {
+            "address_type": "Court Address",
+            "address_line_1": "New address NovaChips 171",
+            "address_line_2": "New address line 2SR1910",
+            "address_line_3": "New address line 3",
+            "address_line_4": "New address line 4",
+            "address_line_5": null,
+            "postcode": "NE1 2BB"
+          },
+          {
+            "address_type": "Financial Office Address",
+            "address_line_1": "Secondary address line 1",
+            "postcode": "NE1 2BB"
+          }
+        ],
+        "contact_information": []
+      }
+    ]
+  }
+}

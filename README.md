@@ -604,3 +604,71 @@ To view blobs stored in Azurite use 'Azure Service Bus Explorer'
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## LJA publication regression
+
+Use the existing service and user service. `TEST_URL` selects Fines (for example the configured PR
+service, or `http://localhost:4550`); `OPAL_USER_SERVICE_API_URL` selects token acquisition (normally
+`http://localhost:4555`, falling back to `DEV_OPAL_USER_SERVICE_API_URL`). The existing scenario user
+helper supplies bearer authentication; never save a token in a fixture.
+
+```bash
+./gradlew --no-daemon functional
+# Optional narrow selection using the existing tagged runner:
+TAGS='@LjaMessageConsumption' ./gradlew --no-daemon functionalOpalTags
+# Discovery only, without API calls:
+CUCUMBER_EXECUTION_DRY_RUN=true TAGS='@LjaMessageConsumption' ./gradlew --no-daemon functionalOpalTags
+```
+
+The four independent cases create an LJA from the JSON fixture, update the LJA created in that
+scenario, confirm that a supplied end date is ignored, and reject a request whose name is explicitly
+null. They run in the normal Opal selection. Reference Data Message Consumption and the existing
+release/auth configuration must be enabled on the selected service. Run serially: absent-key checks
+do not reserve keys against another publisher or concurrent job, and the publisher shares a fixed session.
+Keep actual deployment URLs, credentials and environment configuration in ignored local files.
+
+Request defaults come from `src/functionalTest/resources/refdata/lja/publication.json`, reloaded for
+each publication. Generated identity fields supply a fresh UUID, timestamp, count, initially absent
+four-digit code and unique name. The sample identifiers 0401 and 0406 are never allocated. The update
+overrides only the name and first Court Address line; the date case overrides the name and end date.
+Other fixture values, including the Financial Office Address, remain in the request. GET assertions
+compare all ten camelCase fields exposed by the single-record API, using the Court Address.
+
+POST `/testing-support/ref-data/topic` 202 establishes acceptance. Tests poll fresh production GET
+`/local-justice-areas/{id}` responses until the unique publication name appears, then assert the complete
+exposed contract. Submitted end dates are ignored: GET must include `endDate` with a null value even
+when the request contains `2027-03-10`. The date stays in the outgoing request; a stale baseline name
+with a null date cannot complete the update. Null-name rejection requires POST 400 and repeated genuine
+entity-not-found GET 404 responses over the observation window.
+
+`LJA_PROCESSING_TIMEOUT_SECONDS` defaults to 660, `LJA_POLL_INTERVAL_SECONDS` to 1 and
+`LJA_OBSERVATION_SECONDS` to 10 (rejection observation); all must be positive. Rejection observation runs for at least its configured period, with any final in-flight GET bounded by the
+normal finite GET timeout. The consumer's default 300-second fixed delay means each create and update may wait for
+a separate cycle. These test settings do not change the application's schedule.
+
+The LJA After hook runs before generic cleanup, including on assertion failure. It resolves any pending
+publication by observing its exact ID and unique name, confirms ownership, directly DELETEs the
+throwaway record through `/testing-support/ref-data/LJA/{id}` with status 204, then confirms genuine
+entity-not-found GET 404. It never publishes a restoration. Contract failures, including non-null or
+missing end dates, still allow cleanup after positive ownership observation. If accepted or
+transport-uncertain work is unresolved, cleanup retains the ID and reports its publication UUID,
+requested values and last GET evidence. Investigate unresolved work before retrying. Primary scenario
+failures are preserved and cleanup failures attached independently.
+
+| Coverage | API evidence and limits |
+| --- | --- |
+| AC1 | Fixture-based owned create and complete single-record GET contract |
+| AC2 | Same-ID update of scenario-created data, with fresh marker and complete GET contract |
+| AC3 (part) | Confirmed end-date-ignore rule; inactive-status rules remain deferred |
+| AC4 (part) | Null-name publisher rejection and genuine absence over a bounded window; asynchronous rollback remains deferred |
+| AC5–AC8 | Deferred atomicity, retry, DLQ, recovery and toggle controls |
+
+API visibility is the persistence evidence. These scenarios do not verify database rows or broker
+completion. Additional publication shapes, consumer failures and replay/idempotency remain outside
+this narrowed regression.
+
+Raw results are in `target/zephyr-reports/cucumber-opal.json` (normal),
+`target/zephyr-reports/cucumber-opal-tags.json` (tagged), `target/site/serenity` and
+`build/test-results/functional/opal` or `opal-tags`. Preserve them before another run overwrites them.
+Compilation, helper tests and dry runs do not establish live acceptance; run the tagged suite against
+the configured environment and inspect each scenario and its cleanup evidence.
