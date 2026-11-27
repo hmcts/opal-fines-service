@@ -119,10 +119,10 @@ Feature: List Draft Accounts
     When I request all draft accounts
     Then the request succeeds
 
-    # Assert that logging has PDPO entries for each created draft id
-    Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier              | individual_id                         | expected_count |
-      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+    # Assert consultation records cover all created draft IDs; the response is attached to the report.
+    Then the logging service contains draft-account PDPO logs covering these operations:
+      | created_by_id | created_by_type | business_identifier           |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant |
 
     # Cleanup
 
@@ -138,11 +138,11 @@ Feature: List Draft Accounts
     When I request all draft accounts
     Then the request succeeds
 
-    # Assert that logging has PDPO entries for each created draft id for both Business identifiers
-    Then the logging service contains these PDPO logs:
-      | created_by_id | created_by_type | business_identifier                       | individual_id                         | expected_count |
-      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant             | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
-      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian    | <CREATED_DRAFT_ACCOUNT_IDS_ALL_IN_ONE>| 1              |
+    # Assert both consultations cover all created draft IDs across records; responses are attached to the report.
+    Then the logging service contains draft-account PDPO logs covering these operations:
+      | created_by_id | created_by_type | business_identifier                    |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Defendant          |
+      | 500000000     | OPAL_USER_ID    | Get Draft Account - Parent or Guardian |
 
     # Cleanup
 

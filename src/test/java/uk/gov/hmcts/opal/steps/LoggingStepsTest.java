@@ -1,26 +1,9 @@
 package uk.gov.hmcts.opal.steps;
 
-import io.cucumber.datatable.DataTable;
-import io.cucumber.datatable.DataTableTypeRegistry;
-import io.cucumber.datatable.DataTableTypeRegistryTableConverter;
-import io.restassured.builder.ResponseBuilder;
-import io.restassured.specification.RequestSpecification;
-import net.serenitybdd.rest.SerenityRest;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
-import tools.jackson.databind.ObjectMapper;
-import uk.gov.hmcts.opal.context.ScenarioContextHolder;
-
-import java.util.List;
-import java.util.Locale;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.RETURNS_SELF;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
@@ -29,16 +12,48 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.cucumber.datatable.DataTable;
+import io.cucumber.datatable.DataTableTypeRegistry;
+import io.cucumber.datatable.DataTableTypeRegistryTableConverter;
+import io.restassured.builder.ResponseBuilder;
+import io.restassured.specification.RequestSpecification;
+import java.time.Instant;
+import java.util.List;
+import java.util.Locale;
+import net.serenitybdd.core.Serenity;
+import net.serenitybdd.rest.SerenityRest;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import tools.jackson.databind.ObjectMapper;
+import uk.gov.hmcts.opal.context.ScenarioContextHolder;
+
 class LoggingStepsTest {
+
+    private MockedStatic<Serenity> serenity;
+
+    @BeforeEach
+    void mockReporting() {
+        serenity = mockStatic(Serenity.class, RETURNS_DEEP_STUBS);
+    }
+
 
     private static final String LOG = """
         {"created_by":{"id":"actor","type":"OPAL_USER_ID"},
          "business_identifier":"Submit Draft Account - Defendant",
          "individuals":[{"id":"123","type":"DRAFT_ACCOUNT"}]}
         """;
+    private static final String LIST_LOG = LOG.replace("Submit Draft Account", "Get Draft Account")
+        .replace("{\"created_by\"", "{\"created_at\":\"2026-11-17T12:00:01Z\","
+            + "\"category\":\"Consultation\",\"created_by\"");
 
     @AfterEach
     void clearContext() {
+        serenity.close();
         ScenarioContextHolder.clear();
         Thread.interrupted();
     }
@@ -200,6 +215,106 @@ class LoggingStepsTest {
         when(request.post(anyString())).thenReturn(
             new ResponseBuilder().setStatusCode(200).setBody(responseBody).build());
         return request;
+    }
+
+    @Test
+    void waitsForParticipantsAcrossSeparateConsultationRecords() {
+        prepareListContext();
+        RequestSpecification request = requestReturning("[" + LIST_LOG + "]");
+        when(request.post(anyString())).thenReturn(
+            new ResponseBuilder().setStatusCode(200).setBody("[" + LIST_LOG + "]").build(),
+            new ResponseBuilder().setStatusCode(200)
+                .setBody("[" + LIST_LOG + "," + LIST_LOG.replace("123", "456") + "]").build());
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+
+            new LoggingSteps().loggingServiceCoversDraftAccountList(listOperations());
+
+            ArgumentCaptor<String> body = ArgumentCaptor.forClass(String.class);
+            verify(request, times(2)).body(body.capture());
+            var criteria = new ObjectMapper().readTree(body.getValue());
+            assertThat(criteria.has("individual_identifier")).isFalse();
+            assertThat(criteria.path("created_after").asString()).isEqualTo("2026-11-17");
+            ArgumentCaptor<String> evidence = ArgumentCaptor.forClass(String.class);
+            verify(Serenity.recordReportData().withTitle(
+                "Persisted PDPO evidence: Get Draft Account - Defendant")).andContents(evidence.capture());
+            assertThat(evidence.getValue()).contains("Search criteria:", "Persisted logging-service response:",
+                "123", "456", "DRAFT_ACCOUNT", "Consultation", "2026-11-17T12:00:01Z");
+        }
+    }
+
+    @Test
+    void ignoresConsultationRecordsFromEarlierListRequests() {
+        prepareListContext();
+        String oldLog = LIST_LOG.replace("12:00:01", "11:59:00");
+        RequestSpecification request = requestReturning("[" + oldLog + "," + LIST_LOG + ","
+            + LIST_LOG.replace("123", "456") + "]");
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+
+            new LoggingSteps().loggingServiceCoversDraftAccountList(listOperations());
+        }
+    }
+
+    @Test
+    void rejectsDuplicateParticipantsAcrossConsultationRecords() {
+        prepareListContext();
+        RequestSpecification request = requestReturning("[" + LIST_LOG + "," + LIST_LOG + ","
+            + LIST_LOG.replace("123", "456") + "]");
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+
+            assertThatThrownBy(() -> new LoggingSteps().loggingServiceCoversDraftAccountList(listOperations()))
+                .isInstanceOf(AssertionError.class).hasMessageContaining("Duplicate draft-account PDPO participants");
+        }
+    }
+
+    @Test
+    void doesNotAcceptMissingListParticipants() {
+        prepareListContext();
+        RequestSpecification request = requestReturning("[" + LIST_LOG + "]");
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+            Thread.currentThread().interrupt();
+
+            assertThatThrownBy(() -> new LoggingSteps().loggingServiceCoversDraftAccountList(listOperations()))
+                .isInstanceOf(IllegalStateException.class).hasCauseInstanceOf(InterruptedException.class);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Consultation", "Collection"})
+    void checksRequestedCategory(String actualCategory) {
+        String log = LOG.replace("\"individuals\":", "\"category\":\"" + actualCategory + "\",\"individuals\":");
+        RequestSpecification request = requestReturning("[" + log + "]");
+        DataTable expected = DataTable.create(List.of(
+            List.of("created_by_id", "created_by_type", "business_identifier", "individual_id", "expected_count",
+                "category"),
+            List.of("actor", "OPAL_USER_ID", "Submit Draft Account - Defendant", "123", "1", "Consultation")),
+            new DataTableTypeRegistryTableConverter(new DataTableTypeRegistry(Locale.UK)));
+        try (MockedStatic<SerenityRest> rest = mockStatic(SerenityRest.class)) {
+            rest.when(SerenityRest::given).thenReturn(request);
+            if (actualCategory.equals("Consultation")) {
+                new LoggingSteps().loggingServiceContainsThesePdpoLogs(expected);
+            } else {
+                Thread.currentThread().interrupt();
+                assertThatThrownBy(() -> new LoggingSteps().loggingServiceContainsThesePdpoLogs(expected))
+                    .isInstanceOf(IllegalStateException.class).hasMessageContaining("Interrupted");
+            }
+        }
+    }
+
+    private void prepareListContext() {
+        ScenarioContextHolder.current().addDraftAccountId("123");
+        ScenarioContextHolder.current().addDraftAccountId("456");
+        ScenarioContextHolder.current().setDraftAccountListRequestedAt(Instant.parse("2026-11-17T12:00:00Z"));
+    }
+
+    private DataTable listOperations() {
+        return DataTable.create(List.of(
+            List.of("created_by_id", "created_by_type", "business_identifier"),
+            List.of("actor", "OPAL_USER_ID", "Get Draft Account - Defendant")),
+            new DataTableTypeRegistryTableConverter(new DataTableTypeRegistry(Locale.UK)));
     }
 
     @Test

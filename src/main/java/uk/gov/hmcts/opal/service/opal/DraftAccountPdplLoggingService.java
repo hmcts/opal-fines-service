@@ -15,8 +15,10 @@ import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
+import uk.gov.hmcts.opal.exception.PdplLoggingException;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingCategory;
+import uk.gov.hmcts.opal.logging.integration.dto.PersonalDataProcessingLogDetails;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.util.JsonPathUtil;
 
@@ -26,9 +28,13 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
 
     private static final String JSON_DEFENDANT_TYPE = "$.defendant_type";
     private static final String JSON_MINOR_CREDITOR = "$..minor_creditor";
+    private final PdplMessageBatcher messageBatcher;
 
-    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock) {
+    public DraftAccountPdplLoggingService(LoggingService loggingService, Clock clock,
+        PdplMessageBatcher messageBatcher) {
+
         super(loggingService, clock);
+        this.messageBatcher = messageBatcher;
     }
 
     public void pdplForDraftAccount(DraftAccountEntity entity, Action action, UserState userState) {
@@ -121,7 +127,19 @@ public class DraftAccountPdplLoggingService extends AbstractPdplLoggingService {
             String businessIdentifier = action.formatFor(role);
             PersonalDataProcessingCategory category = action.getCategory();
 
-            logPdpl(businessIdentifier, category, individuals, null, userState);
+            PersonalDataProcessingLogDetails details = buildLogDetails(
+                businessIdentifier, category, individuals, null, userState.getUserId());
+            for (PersonalDataProcessingLogDetails batch : messageBatcher.split(details)) {
+                boolean queued;
+                try {
+                    queued = loggingService.personalDataAccessLogAsync(batch);
+                } catch (RuntimeException exception) {
+                    throw new PdplLoggingException("Unable to queue draft-account consultation PDPO logs", exception);
+                }
+                if (!queued) {
+                    throw new PdplLoggingException("Unable to queue draft-account consultation PDPO logs");
+                }
+            }
         }
     }
 

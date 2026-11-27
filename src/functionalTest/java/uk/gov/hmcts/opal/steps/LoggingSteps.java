@@ -10,6 +10,9 @@ import io.cucumber.datatable.DataTable;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.response.Response;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,7 +20,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import net.serenitybdd.core.Serenity;
 import net.serenitybdd.rest.SerenityRest;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
@@ -96,18 +101,75 @@ public class LoggingSteps extends BaseStepDef {
                 && response.size() == expectedCount
                 && response.valueStream().allMatch(log -> matchesExpectedDraftAccountLog(log, row, individualIds)),
                 "exactly " + expectedCount + " logs containing draft accounts " + individualIds);
+            recordPdpoEvidence(criteria, row.get("business_identifier"));
         }
     }
 
     private boolean matchesExpectedDraftAccountLog(JsonNode log, Map<String, String> row,
         List<String> individualIds) {
-        return row.get("created_by_id").equals(log.path("created_by").path("id").asString())
-            && row.get("created_by_type").equals(log.path("created_by").path("type").asString())
-            && row.get("business_identifier").equals(log.path("business_identifier").asString())
-            && log.path("individuals").isArray()
+        return matchesDraftAccountMetadata(log, row)
             && individualIds.stream().allMatch(id -> log.path("individuals").valueStream()
                 .anyMatch(individual -> id.equals(individual.path("id").asString())
                     && PdplIdentifierType.DRAFT_ACCOUNT.name().equals(individual.path("type").asString())));
+    }
+
+    private boolean matchesDraftAccountMetadata(JsonNode log, Map<String, String> row) {
+        return row.get("created_by_id").equals(log.path("created_by").path("id").asString())
+            && row.get("created_by_type").equals(log.path("created_by").path("type").asString())
+            && row.get("business_identifier").equals(log.path("business_identifier").asString())
+            && (!row.containsKey("category") || row.get("category").equals(log.path("category").asString()))
+            && log.path("individuals").isArray();
+    }
+
+    /**
+     * Waits for all created accounts across any number of consultation records from the current list request.
+     *
+     * @param expectedOperations actor and business identifiers whose participant coverage must be complete.
+     */
+    @Then("the logging service contains draft-account PDPO logs covering these operations:")
+    public void loggingServiceCoversDraftAccountList(DataTable expectedOperations) {
+        List<String> ids = scenarioContext().getDraftAccountIds();
+        assertFalse(ids.isEmpty(), "No created draft accounts available for the list consultation");
+        Instant requestedAt = scenarioContext().getDraftAccountListRequestedAtOrFail();
+        for (Map<String, String> row : expectedOperations.asMaps(String.class, String.class)) {
+            Map<String, Object> criteria = Map.of(
+                "created_by", Map.of("id", row.get("created_by_id"), "type", row.get("created_by_type")),
+                "business_identifier", row.get("business_identifier"),
+                "category", "Consultation",
+                "created_after", requestedAt.atOffset(ZoneOffset.UTC).toLocalDate().toString());
+            latestPdpoSearchResponse = waitForPdpoLogs(criteria,
+                response -> coversDraftAccountList(response, row, ids, requestedAt),
+                "consultation logs covering each created draft account exactly once: " + ids);
+            recordPdpoEvidence(criteria, row.get("business_identifier"));
+        }
+    }
+
+    private void recordPdpoEvidence(Map<String, Object> criteria, String businessIdentifier) {
+        Serenity.recordReportData().withTitle("Persisted PDPO evidence: " + businessIdentifier)
+            .andContents("Search criteria:\n" + writeJson(criteria)
+                + "\nPersisted logging-service response:\n" + latestPdpoSearchResponse.toPrettyString());
+    }
+
+    private boolean coversDraftAccountList(JsonNode response, Map<String, String> row,
+        List<String> ids, Instant requestedAt) {
+
+        if (!response.isArray()) {
+            return false;
+        }
+        List<JsonNode> logs = response.valueStream()
+            .filter(log -> !OffsetDateTime.parse(log.path("created_at").asString()).toInstant().isBefore(requestedAt))
+            .toList();
+        if (!logs.stream().allMatch(log -> matchesDraftAccountMetadata(log, row)
+            && "Consultation".equals(log.path("category").asString()))) {
+            return false;
+        }
+        Map<String, Long> occurrences = logs.stream().flatMap(log -> log.path("individuals").valueStream())
+            .filter(individual -> PdplIdentifierType.DRAFT_ACCOUNT.name().equals(individual.path("type").asString()))
+            .map(individual -> individual.path("id").asString()).filter(ids::contains)
+            .collect(Collectors.groupingBy(id -> id, Collectors.counting()));
+        assertTrue(occurrences.values().stream().allMatch(count -> count == 1),
+            "Duplicate draft-account PDPO participants across consultation records: " + occurrences);
+        return occurrences.keySet().containsAll(ids);
     }
 
     /**

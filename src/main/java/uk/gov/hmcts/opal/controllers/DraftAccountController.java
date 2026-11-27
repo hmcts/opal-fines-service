@@ -65,7 +65,8 @@ public class DraftAccountController {
 
     @GetMapping()
     @CheckAcceptHeader
-    @Operation(summary = "Returns a collection of draft accounts summaries for the given user.")
+    @Operation(summary = "Returns a collection of draft accounts summaries for the given user.",
+        description = "Returns HTTP 503 if the required personal data audit records cannot be queued.")
     @FeatureToggle(feature = FeatureFlags.RELEASE_1A,
         defaultValueProperty = FeatureFlags.RELEASE_1A_ENABLED_PROPERTY)
     public ResponseEntity<DraftAccountsResponseDto> getDraftAccountSummaries(
