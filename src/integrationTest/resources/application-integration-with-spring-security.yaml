@@ -53,3 +53,8 @@ user:
 
 security-it:
   key: ...some random string...
+
+opal:
+  common:
+    docmosis:
+      url: http://localhost:9999
