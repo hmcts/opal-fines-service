@@ -867,7 +867,9 @@ components:
         payment_details:
           $ref: '#/components/schemas/paymentDetails'
         relevant_details:
-          type: string
+          type:
+            - string
+            - 'null'
 
     manualPaymentCourtFeeDetails:
       type: object
@@ -992,11 +994,14 @@ components:
       additionalProperties: false
       properties:
         received_from:
-          type: string
+          type:
+            - string
+            - 'null'
           enum:
             - Defendant
             - Third Party
             - Applicant
+            - null
         payment_method:
           type: string
           enum:
@@ -1005,7 +1010,9 @@ components:
             - CQ
             - CT
         payment_source:
-          $ref: '#/components/schemas/paymentSource'
+          oneOf:
+            - $ref: '#/components/schemas/paymentSource'
+            - type: 'null'
         payment_reference:
           type:
             - string
@@ -1022,7 +1029,9 @@ components:
             - Individual
             - Organisation
         defendant_details:
-          $ref: './common.yaml#/components/schemas/defendantAccountParty'
+          oneOf:
+            - $ref: './common.yaml#/components/schemas/defendantAccountParty'
+            - type: 'null'
         payer_name:
           type:
             - string

@@ -438,10 +438,14 @@ components:
           type: string
           format: date-time
         posted_by:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 20
         posted_by_name:
-          type: string
+          type:
+            - string
+            - 'null'
           maxLength: 100
       required:
         - posted_date
@@ -592,16 +596,22 @@ components:
       properties:
         address_line_1:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         address_line_2:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         address_line_3:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         address_line_4:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         address_line_5:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
         postcode:
           type: string
+          x-extra-annotation: '@com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)'
     creditorAccountPaymentDetails:
       type: object
       additionalProperties: false

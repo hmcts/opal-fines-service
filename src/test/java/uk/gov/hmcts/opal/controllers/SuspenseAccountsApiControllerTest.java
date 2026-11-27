@@ -296,10 +296,10 @@ public class SuspenseAccountsApiControllerTest {
                 .getPostedDate());
         assertEquals("Test User",
             Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails())
-                .getPostedBy());
+                .getPostedBy().orElse(null));
         assertEquals("Test User",
             Objects.requireNonNull(response.getBody().getSuspenseNotes().get().getFirst().getPostedDetails())
-                .getPostedByName());
+                .getPostedByName().orElse(null));
 
         //  Transactions:
         assertNotNull(response.getBody().getSuspenseTransactions().getFirst());
@@ -318,10 +318,10 @@ public class SuspenseAccountsApiControllerTest {
                 .getPostedDate());
         assertEquals("Test User One",
             Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails())
-                .getPostedBy());
+                .getPostedBy().orElse(null));
         assertEquals("Test User One",
             Objects.requireNonNull(response.getBody().getSuspenseTransactions().getFirst().getPostedDetails())
-                .getPostedByName());
+                .getPostedByName().orElse(null));
     }
 
 }

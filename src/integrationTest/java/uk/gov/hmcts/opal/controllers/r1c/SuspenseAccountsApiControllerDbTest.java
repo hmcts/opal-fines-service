@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.authorisation.model.FinesPermission.VIEW_SUSPENSE_ITEMS;
+import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -282,7 +283,9 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
         return getHistoryAndTransactions((short) 29101, 99000000979700L, VIEW_SUSPENSE_ITEMS)
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.suspense_transactions", hasSize(14)));
+            .andExpect(jsonPath("$.suspense_transactions", hasSize(14)))
+            .andExpect(result -> assertGet200JsonResponseMatchesBundledSpec(
+                objectMapper.readTree(result.getResponse().getContentAsString()), HISTORY_URL));
     }
 
     private static String transactionPath(long transactionId) {

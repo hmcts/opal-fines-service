@@ -97,6 +97,7 @@ class MajorCreditorHistoryPdplLoggingServiceTest {
                     .build(),
                 response(),
                 response(new MajorCreditorHistoryItemHistory()),
+                response(new MajorCreditorHistoryItemHistory().postedDetails(new PostedDetailsCommon())),
                 response(historyItem(null)),
                 response(historyItem(" "))
             );

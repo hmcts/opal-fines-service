@@ -109,6 +109,16 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath(details + ".defendant_name.individual_details.title", contains("Ms")))
             .andExpect(jsonPath(details + ".defendant_name.individual_details.forenames", contains("Alex")))
             .andExpect(jsonPath(details + ".defendant_name.individual_details.surname", contains("Defendant")))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.date_of_birth", hasSize(1)))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.date_of_birth", everyItem(nullValue())))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.age", hasSize(1)))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.age", everyItem(nullValue())))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.national_insurance_number", hasSize(1)))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.national_insurance_number",
+                everyItem(nullValue())))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.individual_aliases", hasSize(1)))
+            .andExpect(jsonPath(details + ".defendant_name.individual_details.individual_aliases",
+                everyItem(nullValue())))
             .andExpect(jsonPath(details + ".creditor_summary").doesNotExist());
     }
 
@@ -139,6 +149,8 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
                 contains("MN")))
             .andExpect(jsonPath(details + ".creditor_summary.individual_name.surname", contains("Creditor")))
             .andExpect(jsonPath(details + ".creditor_address.address_line_1", contains("3 Creditor Road")))
+            .andExpect(jsonPath(details + ".creditor_address.address_line_2").doesNotExist())
+            .andExpect(jsonPath(details + ".creditor_address.address_line_3").doesNotExist())
             .andExpect(jsonPath(details + ".creditor_address.address_line_4", contains("County")))
             .andExpect(jsonPath(details + ".creditor_address.address_line_5", contains("District")))
             .andExpect(jsonPath(details + ".creditor_address.postcode", contains("CD3 4EF")));
@@ -591,6 +603,74 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
         assertGet200JsonResponseMatchesBundledSpec(body, "/suspense-items/{suspenseItemId}/history");
     }
 
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("History without posted-user information retains explicit null user fields")
+    void getHistory_mapsMissingPostedUsers() throws Exception {
+        history(99000000979802L)
+            .andExpect(jsonPath("$.suspense_transactions[*].posted_details.posted_by", hasSize(11)))
+            .andExpect(jsonPath("$.suspense_transactions[*].posted_details.posted_by", everyItem(nullValue())))
+            .andExpect(jsonPath("$.suspense_transactions[*].posted_details.posted_by_name", hasSize(11)))
+            .andExpect(jsonPath("$.suspense_transactions[*].posted_details.posted_by_name", everyItem(nullValue())));
+    }
+
+    @Test
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("The history contract accepts null received-from values and nested payment sources")
+    void historyContract_acceptsNullablePaymentMetadata() throws Exception {
+        assertDetailsContract("""
+            {"payment_details":{"received_from":null,"payment_source":null}}
+            """);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{\"received_from\":\"Unknown\"}",
+        "{\"received_from\":123}",
+        "{\"payment_source\":123}",
+        "{\"payment_source\":{\"payment_source\":\"Unknown\"}}"
+    })
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Nullable payment metadata still rejects unknown codes and incorrect types")
+    void historyContract_rejectsInvalidPaymentMetadata(String metadata) {
+        assertThrows(AssertionError.class, () -> assertDetailsContract("{\"payment_details\":" + metadata + "}"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "{}",
+        "{\"posted_date\":\"2026-11-03T10:00:00\",\"posted_by\":123}",
+        "{\"posted_date\":\"2026-11-03T10:00:00\",\"posted_by_name\":123}"
+    })
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Posted details still require a date and reject numeric user values")
+    void historyContract_rejectsInvalidPostedDetails(String postedDetails) {
+        assertThrows(AssertionError.class, () -> assertPostedDetailsContract(postedDetails));
+    }
+
+    @ParameterizedTest
+    @CsvSource({"21, 1", "1, 101"})
+    @JiraStory("PO-9026")
+    @JiraEpic("PO-9026")
+    @DisplayName("Nullable posted-user fields retain their maximum lengths")
+    void historyContract_rejectsLongPostedUsers(int userLength, int nameLength) {
+        String postedDetails = """
+            {"posted_date":"2026-11-03T10:00:00","posted_by":"%s","posted_by_name":"%s"}
+            """.formatted("U".repeat(userLength), "N".repeat(nameLength));
+        assertThrows(AssertionError.class, () -> assertPostedDetailsContract(postedDetails));
+    }
+
+    private void assertPostedDetailsContract(String postedDetails) throws Exception {
+        var body = objectMapper.readTree("""
+            {"suspense_transactions":[{"posted_details":%s}]}
+            """.formatted(postedDetails));
+        assertGet200JsonResponseMatchesBundledSpec(body, "/suspense-items/{suspenseItemId}/history");
+    }
+
     private ResultActions history() throws Exception {
         return history(99000000979800L).andExpect(jsonPath("$.suspense_transactions", hasSize(70)));
     }
@@ -604,7 +684,10 @@ class SuspenseHistoryDetailsIntegrationTest extends AbstractIntegrationTest {
                 .header("Business-Unit-Id", 29101)
                 .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(result -> assertGet200JsonResponseMatchesBundledSpec(
+                objectMapper.readTree(result.getResponse().getContentAsString()),
+                "/suspense-items/{suspenseItemId}/history"));
     }
 
     private static String transaction(long id) {

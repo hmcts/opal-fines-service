@@ -76,8 +76,8 @@ class LegacyMajorCreditorHistoryMapperTest extends AbstractMapperTest {
         assertEquals(MajorCreditorHistoryItemHistory.TypeEnum.FINANCIAL, item.getType());
         assertEquals(new BigDecimal("-31.00"), item.getAmount());
         assertEquals("2026-01-31T10:30", item.getPostedDetails().getPostedDate().toString());
-        assertEquals("MJUSR3", item.getPostedDetails().getPostedBy());
-        assertEquals("Major User Three", item.getPostedDetails().getPostedByName());
+        assertEquals("MJUSR3", item.getPostedDetails().getPostedBy().orElse(null));
+        assertEquals("Major User Three", item.getPostedDetails().getPostedByName().orElse(null));
 
         CreditorTransactionDetailsHistory details = (CreditorTransactionDetailsHistory) item.getDetails();
         assertEquals(

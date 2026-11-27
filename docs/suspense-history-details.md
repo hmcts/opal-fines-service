@@ -66,18 +66,32 @@ and till have no source. Both nullable fields remain in their respective
 `required` lists: an explicit null key preserves the distinction between the
 payment details shapes in `suspenseTransaction.details.oneOf`.
 
-The models are regenerated from this contract. Integration tests assert the
-explicit null keys in actual responses. Focused contract cases validate both
-nullable details shapes against the bundled OpenAPI response schema; empty
-details objects, invalid field types and combinations of fields from different
-shapes remain invalid. The mapper selection rules are unchanged.
+The models are regenerated from this contract. Integration tests assert explicit
+null keys and validate complete suspense history responses against the bundled
+OpenAPI response schema. Contract cases also reject empty details objects,
+incorrect field types, unknown payment codes and mixed details shapes. The mapper
+selection rules are unchanged.
 
-These checks cover the two payment-field mismatches above. Full history-response
-validation additionally exposes pre-existing nullability mismatches in
-`posted_details.posted_by`, `posted_details.posted_by_name`, and nested manual
-`payment_details.received_from` and `payment_details.payment_source`. Those fields
-are outside this schema change; the focused contract cases do not claim that
-all history responses satisfy the entire schema.
+Shared `common.yaml` posted-user fields `posted_by` and `posted_by_name` are
+optional and nullable; their maximum lengths remain 20 and 100 respectively.
+`posted_date` remains required and non-null. The regenerated `PostedDetailsCommon`
+uses nullable wrappers for the user fields. The affected history mappings and
+creditor logging code wrap or unwrap those fields without changing user values;
+logging continues to exclude absent, null and blank user IDs.
+
+Nested manual `payment_details.received_from` accepts null as well as the existing
+`Defendant`, `Third Party` and `Applicant` codes. `payment_details.payment_source`
+may be a source object or null; a source object's code still uses the existing
+enum. Unidentified `relevant_details` and a payer's optional `defendant_details`
+link may also be null. These changes accommodate missing metadata without
+fabricating a received-from value, source or defendant link.
+
+Optional fields in shared `addressDetails` retain their non-null string schema.
+Generated serialization omits missing address fields rather than emitting nulls,
+using the repository's `x-extra-annotation` convention. Populated address lines
+and postcodes are preserved. This resolves the creditor-address failures found
+when full-response validation was enabled, without changing the shared address
+model's Java getter types.
 
 Automatic details default a missing or empty defendant account number to `0`.
 An existing account number that is nonnumeric or outside int64 becomes null;
@@ -137,8 +151,12 @@ or nonnumeric values are rejected before lookup using the shared Opal
   association cannot be resolved, do not fall back to stale JSON. Without such
   an association, use payment JSON. Individual names join title, forenames and
   surname with spaces; addresses join the available lines/postcode with commas.
-- Payer `defendant_details`, defendant aliases and other optional identity fields
-  are not inferred from payer name/address text.
+- Payer `defendant_details`, defendant aliases and other identity fields are not
+  inferred from payer name/address text. Individual defendant names emit explicit
+  nulls for the required-but-nullable `date_of_birth`, `age`,
+  `national_insurance_number` and `individual_aliases` keys because this history
+  projection does not fetch those values. The shared identity schema remains
+  unchanged.
 - Minor creditor identity/address comes from its party; major creditor
   identity/address comes from `major_creditors`. Central Fund summary identifies
   the account/type, with its address taken from the business unit's single

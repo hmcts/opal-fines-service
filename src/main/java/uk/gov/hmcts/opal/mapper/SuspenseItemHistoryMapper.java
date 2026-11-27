@@ -239,7 +239,8 @@ public class SuspenseItemHistoryMapper {
                 new OrganisationDetailsCommonStrict().organisationName(row.getDefendantOrganisationName())) : null;
         }
         return hasText(row.getDefendantSurname()) ? name.individualDetails(new IndividualDetailsCommonStrict()
-            .title(row.getDefendantTitle()).forenames(row.getDefendantForenames()).surname(row.getDefendantSurname()))
+            .title(row.getDefendantTitle()).forenames(row.getDefendantForenames()).surname(row.getDefendantSurname())
+            .dateOfBirth(null).age(null).nationalInsuranceNumber(null).individualAliases(null))
             : null;
     }
 

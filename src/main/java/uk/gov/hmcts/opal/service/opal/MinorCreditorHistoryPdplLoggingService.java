@@ -14,6 +14,7 @@ import uk.gov.hmcts.opal.generated.model.MinorCreditorHistoryItemHistory;
 import uk.gov.hmcts.opal.generated.model.PostedDetailsCommon;
 import uk.gov.hmcts.opal.logging.integration.dto.ParticipantIdentifier;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
+import uk.gov.hmcts.opal.mapper.helper.JsonNullableMapperHelper;
 
 @Service
 public class MinorCreditorHistoryPdplLoggingService extends AbstractPdplLoggingService {
@@ -46,6 +47,7 @@ public class MinorCreditorHistoryPdplLoggingService extends AbstractPdplLoggingS
             .map(MinorCreditorHistoryItemHistory::getPostedDetails)
             .filter(Objects::nonNull)
             .map(PostedDetailsCommon::getPostedBy)
+            .map(JsonNullableMapperHelper::fromJsonNullable)
             .filter(StringUtils::isNotBlank)
             .distinct()
             .map(identifier -> participant(identifier, OPAL_USER_ID))
