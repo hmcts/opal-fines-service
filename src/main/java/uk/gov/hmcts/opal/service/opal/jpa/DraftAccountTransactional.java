@@ -1,7 +1,6 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 
-import static java.util.stream.Collectors.toSet;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.PUBLISHED;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
@@ -24,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -259,11 +259,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
     }
 
-    private EnumSet<DraftAccountStatus> getValidUpdateStatuses() {
+    private Set<DraftAccountStatus> getValidUpdateStatuses() {
         return VALID_UPDATE_STATUSES.stream()
             .filter(status -> !status.isPublishingFailureResolved() ||
                 featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))
-            .collect(Collectors.collectingAndThen(toSet(), EnumSet::copyOf));
+            .collect(Collectors.toUnmodifiableSet());
     }
 
     @Transactional
