@@ -54,6 +54,10 @@ public enum DraftAccountStatus {
         return this == REJECTED;
     }
 
+    public boolean isPublishingFailureResolved() {
+        return this == PUBLISHING_FAILURE_RESOLVED;
+    }
+
     public boolean canUpdateTo(DraftAccountStatus nextStatus) {
         return nextStatus != PUBLISHING_FAILURE_RESOLVED || this == PUBLISHING_FAILED;
     }

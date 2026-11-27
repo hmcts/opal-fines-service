@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service.opal.jpa;
 
 
+import static java.util.stream.Collectors.toSet;
 import static uk.gov.hmcts.opal.entity.draft.DraftAccountStatus.PUBLISHED;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_ID;
 import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.DEF_ACC_NO;
@@ -23,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,6 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -78,6 +82,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
     private final Clock clock;
 
     private final DraftAccountSpecs specs = new DraftAccountSpecs();
+
+    private final FeatureToggleApi featureToggleApi;
 
     @Transactional(readOnly = true)
     public DraftAccountEntity getDraftAccount(long draftAccountId) {
@@ -212,7 +218,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         }
 
         DraftAccountStatus newStatus = Optional.ofNullable(dto.getAccountStatus())
-            .filter(VALID_UPDATE_STATUSES::contains) // TODO publishing failure resolved only allowed if feature enabled
+            .filter(getValidUpdateStatuses()::contains)
             .filter(existingAccount.getAccountStatus()::canUpdateTo)
             .orElseThrow(() -> new IllegalArgumentException("Invalid account status for update: "
                                                                 + dto.getAccountStatus()));
@@ -251,6 +257,13 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         return draftAccountRepository.save(existingAccount);
 
+    }
+
+    private EnumSet<DraftAccountStatus> getValidUpdateStatuses() {
+        return VALID_UPDATE_STATUSES.stream()
+            .filter(status -> !status.isPublishingFailureResolved() ||
+                featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES))
+            .collect(Collectors.collectingAndThen(toSet(), EnumSet::copyOf));
     }
 
     @Transactional
