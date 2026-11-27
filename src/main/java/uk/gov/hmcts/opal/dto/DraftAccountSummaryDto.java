@@ -1,10 +1,11 @@
 package uk.gov.hmcts.opal.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonRawValue;
 import java.math.BigInteger;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,9 +13,6 @@ import lombok.NoArgsConstructor;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountStatus;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.util.Versioned;
-
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -69,6 +67,6 @@ public class DraftAccountSummaryDto implements ToJsonString, Versioned {
     @JsonProperty("status_message")
     private String statusMessage;
 
-    @JsonIgnore
+    @JsonProperty("version_number")
     private BigInteger version;
 }

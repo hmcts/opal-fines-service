@@ -15,7 +15,8 @@ public enum DraftAccountStatus {
     PUBLISHING_PENDING("Publishing Pending"),
     LEGACY_PENDING("Legacy Response Pending"),
     PUBLISHED("Published"),
-    PUBLISHING_FAILED("Publishing Failed");
+    PUBLISHING_FAILED("Publishing Failed"),
+    PUBLISHING_FAILURE_RESOLVED("Publishing Failure Resolved");
 
 
     private final String label;

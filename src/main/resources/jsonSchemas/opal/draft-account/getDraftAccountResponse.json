@@ -76,7 +76,8 @@
         "Deleted",
         "Publishing Pending",
         "Published",
-        "Publishing Failed"
+        "Publishing Failed",
+        "Publishing Failure Resolved"
       ]
     },
     "timeline_data": {

@@ -2101,6 +2101,72 @@ INSERT INTO draft_accounts (
              0                                 -- version_number
          );
 
+INSERT INTO draft_accounts(
+    draft_account_id, business_unit_id, created_date, submitted_by, validated_date, validated_by, account, account_type, account_id, account_snapshot, account_status, timeline_data, account_number, submitted_by_name, account_status_date, status_message, validated_by_name, version_number)
+VALUES
+    (
+        106,
+        77,
+        '2024-12-10 16:27:01.023126',
+        'user_005',
+        NULL,
+        NULL,
+        '{
+          "collection_order_made": true,
+          "account_type": "Fine",
+          "originator_name": "Police Force",
+          "defendant": {
+            "surname": "LNAME",
+            "dob": "2000-01-01",
+            "company_flag": false,
+            "address_line_1": "123 Elm Street",
+            "forenames": "FNAME"
+        },
+        "originator_id": 1234,
+        "originator_type": "NEW",
+        "offences": [
+            {
+              "offence_id": 30002,
+              "impositions": [
+                {
+                  "amount_paid": 200,
+                  "amount_imposed": 500,
+                  "result_id": "FO"
+                }
+              ],
+              "date_of_sentence": "2023-11-15"
+            }
+          ],
+          "payment_card_request": true,
+          "defendant_type": "Adult",
+          "collection_order_made_today": false,
+          "account_sentence_date": "2023-12-01",
+          "payment_terms": {
+            "payment_terms_type_code": "P"
+          },
+          "enforcement_court_id": 101
+        }',
+        'Fixed Penalty',
+        NULL,
+        '{
+          "snapshot": "opal-test"
+        }',
+        'PUBLISHING_FAILURE_RESOLVED',
+        '[
+          {
+            "username": "opal-test",
+            "status": "Created",
+            "status_date": "2025-01-09",
+            "reason_text": null
+          }
+        ]',
+        NULL,
+        'John Smith',
+        '2024-12-10 16:27:01.023126',
+        NULL,
+        NULL,
+        0
+    );
 
 -- Ensure sequence is above current ids
 SELECT setval('draft_account_id_seq', 200);
