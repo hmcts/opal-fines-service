@@ -12,7 +12,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import uk.gov.hmcts.opal.dto.search.CourtSearchDto;
 import uk.gov.hmcts.opal.entity.AddressEntity_;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.dto.reference.CourtReferenceData;
 import uk.gov.hmcts.opal.mapper.CourtMapper;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
@@ -33,17 +33,17 @@ public class CourtService {
 
     private final CourtSpecs specs = new CourtSpecs();
 
-    public CourtEntity getCourtById(long courtId) {
+    public CourtLegacyEntity getCourtById(long courtId) {
         return courtLiteRepository.findById(courtId)
             .orElseThrow(() -> new EntityNotFoundException("Court not found with id: " + courtId));
     }
 
-    public List<CourtEntity> searchCourts(CourtSearchDto criteria) {
+    public List<CourtLegacyEntity> searchCourts(CourtSearchDto criteria) {
 
         log.debug(":searchCourts: criteria: {}", criteria);
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity> courtsPage = courtLiteRepository
+        Page<CourtLegacyEntity> courtsPage = courtLiteRepository
             .findBy(specs.findBySearchCriteria(criteria),
                     ffq -> ffq
                         .sortBy(nameSort)
@@ -61,7 +61,7 @@ public class CourtService {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, AddressEntity_.NAME);
 
-        Page<CourtEntity> page = courtLiteRepository
+        Page<CourtLegacyEntity> page = courtLiteRepository
             .findBy(specs.referenceDataFilter(filter, businessUnitId),
                     ffq -> ffq
                         .sortBy(nameSort)
