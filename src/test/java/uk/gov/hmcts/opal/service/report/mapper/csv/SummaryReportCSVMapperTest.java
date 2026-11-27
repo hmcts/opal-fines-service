@@ -10,12 +10,14 @@ import org.junit.jupiter.api.Test;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryOperationReportRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.SummaryReportTotalsRowDto;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.operation.OperationSummaryReport;
 
 class SummaryReportCSVMapperTest {
 
     private final SummaryReportCSVMapper mapper = new SummaryReportCSVMapper();
+    private static final ReportInstanceEntity REPORT_INSTANCE = new ReportInstanceEntity();
 
     @Test
     void reportToCSVString_returnsF133SummaryCsv() {
@@ -31,7 +33,7 @@ class SummaryReportCSVMapperTest {
                 .build())
             .build();
 
-        String[] lines = mapper.reportToCSVString(report).split("\n", -1);
+        String[] lines = mapper.reportToCSVString(REPORT_INSTANCE, report).split("\n", -1);
 
         assertThat(lines).containsExactly(
             "HEADER1,company,defname,accountno,dob,nino,co,dlmove,imposed,paidsf,balance,address1,address2,"
@@ -51,7 +53,7 @@ class SummaryReportCSVMapperTest {
 
     @Test
     void reportToCSVString_missingReportData_throwsUnprocessableException() {
-        assertThatThrownBy(() -> mapper.reportToCSVString(OperationSummaryReport.builder().build()))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, OperationSummaryReport.builder().build()))
             .isInstanceOf(UnprocessableException.class)
             .extracting("detailedReason")
             .isEqualTo("Operation summary report data is required.");
@@ -63,7 +65,7 @@ class SummaryReportCSVMapperTest {
             .summaryReport(SummaryReportDto.builder().build())
             .build();
 
-        assertThatThrownBy(() -> mapper.reportToCSVString(report))
+        assertThatThrownBy(() -> mapper.reportToCSVString(REPORT_INSTANCE, report))
             .isInstanceOf(UnprocessableException.class)
             .extracting("detailedReason")
             .isEqualTo("Operation summary report totals are required.");

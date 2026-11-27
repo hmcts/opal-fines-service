@@ -104,9 +104,12 @@ class CashTillReportServiceTest {
 
         assertThat(reportData.getAllocatedReport()).isTrue();
         assertThat(reportData.getRows()).hasSize(2);
+        assertThat(reportData).extracting(
+            CashTillReportData::getBusinessUnit,
+            CashTillReportData::getCashier,
+            CashTillReportData::getCashTillNumber
+        ).containsExactly("Central Unit", "Jamie", "7");
         assertThat(reportData.getRows()).extracting(
-            CashTillReportRow::getCashTillNumber,
-            CashTillReportRow::getCashier,
             CashTillReportRow::getDestinationType,
             CashTillReportRow::getDetails,
             CashTillReportRow::getPaymentMethod,
@@ -114,9 +117,9 @@ class CashTillReportServiceTest {
             CashTillReportRow::getReceipt,
             CashTillReportRow::getAllocated
         ).containsExactly(
-            Tuple.tuple("7", "Jamie", CashTillDestinationType.FA, "ACC-001",
+            Tuple.tuple(CashTillDestinationType.FA, "ACC-001",
                 CashTillPaymentMethod.NC, money("12.30"), true, true),
-            Tuple.tuple("7", "Jamie", CashTillDestinationType.SA, "MISC-002",
+            Tuple.tuple(CashTillDestinationType.SA, "MISC-002",
                 CashTillPaymentMethod.CQ, money("8.40"), false, false));
         assertThat(reportData.getRows()).extracting(CashTillReportRow::getPaymentDateTime).containsExactly(
             LocalDateTime.of(2026, Month.MAY, 3, 10, 15),
@@ -303,28 +306,32 @@ class CashTillReportServiceTest {
         CashTillReportData reportData = mapper.readValue("""
             {
               "allocated_report": true,
+              "business_unit": "Central",
+              "cash_till_number": "22",
+              "cashier": "Alex",
+              "source": "BARCLAYCARD",
               "rows": [
                 {
-                  "business_unit": "Central",
-                  "cash_till_number": "22",
-                  "cashier": "Alex",
                   "payment_date_time": "2026-05-03T10:15:00",
-                  "destination_type": "FA",
+                  "destination_type": "Fines Account",
                   "details": "ACC999",
                   "auto_payment": false,
-                  "payment_method": "CQ",
+                  "payment_method": "Cheque",
                   "amount": 1.20,
                   "receipt": true,
                   "balance": 1.20,
                   "allocated": false
                 }
-              ]
+              ],
+              "total_amount": "1.20"
             }
             """, CashTillReportData.class);
 
         assertThat(reportData.getAllocatedReport()).isTrue();
+        assertThat(reportData.getCashTillNumber()).isEqualTo("22");
+        assertThat(reportData.getCashier()).isEqualTo("Alex");
+        assertThat(reportData.getTotalAmount()).isEqualTo(new BigDecimal("1.20"));
         assertThat(reportData.getNumberOfRecords()).isEqualTo(1);
-        assertThat(reportData.getRows().getFirst().getCashTillNumber()).isEqualTo("22");
         assertThat(reportData.getRows().getFirst().getDestinationType()).isEqualTo(CashTillDestinationType.FA);
         assertThat(reportData.getRows().getFirst().getPaymentMethod()).isEqualTo(CashTillPaymentMethod.CQ);
     }
@@ -350,9 +357,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow newerRow() {
         return CashTillReportRow.builder()
-            .businessUnit("North, Court")
-            .cashTillNumber("9")
-            .cashier("Cashier \"A\"")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 2, 14, 5))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC123")
@@ -367,9 +371,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow olderRow() {
         return CashTillReportRow.builder()
-            .businessUnit("Westshire")
-            .cashTillNumber("17")
-            .cashier("Pedro")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 1, 9, 30))
             .destinationType(CashTillDestinationType.SA)
             .details("MISC123")
@@ -384,9 +385,6 @@ class CashTillReportServiceTest {
 
     private static CashTillReportRow validRow() {
         return CashTillReportRow.builder()
-            .businessUnit("Central")
-            .cashTillNumber("22")
-            .cashier("Alex")
             .paymentDateTime(LocalDateTime.of(2026, Month.MAY, 3, 10, 15))
             .destinationType(CashTillDestinationType.FA)
             .details("ACC999")

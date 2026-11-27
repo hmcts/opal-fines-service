@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +18,7 @@ import uk.gov.hmcts.opal.dto.report.operation.DetailedAccountReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedOperationReportAccountRowDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportDto;
 import uk.gov.hmcts.opal.dto.report.operation.DetailedReportTransactionRowDto;
+import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.service.report.operation.OperationDetailedReport;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
@@ -81,7 +83,7 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     void convertReportDtoToCSV_usesDetailedMapper() {
         OperationDetailedReport report = report();
 
-        byte[] result = reportCSVService.convertReportDtoToCSV(report);
+        byte[] result = reportCSVService.convertReportDtoToCSV(typicalReportInstance(), report);
 
         assertArrayEquals(expectedCsv().getBytes(StandardCharsets.UTF_8), result);
     }
@@ -92,7 +94,7 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
     @JiraTestKey("PO-9523")
     void convertReportDtoToCSV_unmappedType_throwsUnprocessable() {
         UnprocessableException exception = assertThrows(UnprocessableException.class,
-            () -> reportCSVService.convertReportDtoToCSV(new MissingReportData()));
+            () -> reportCSVService.convertReportDtoToCSV(typicalReportInstance(), new MissingReportData()));
 
         assertEquals("Report cannot be converted to CSV format.", exception.getDetailedReason());
     }
@@ -267,5 +269,13 @@ class ReportCSVServiceIntegrationTest extends AbstractIntegrationTest {
         public ReportMetaData getReportMetaData() {
             return null;
         }
+    }
+
+    private static ReportInstanceEntity typicalReportInstance() {
+        return ReportInstanceEntity.builder()
+            .businessUnit(List.of((short)11))
+            .createdTimestamp(LocalDateTime.of(2026, 10, 30, 1, 2, 3))
+            .requestedByName("John Smith")
+            .build();
     }
 }
