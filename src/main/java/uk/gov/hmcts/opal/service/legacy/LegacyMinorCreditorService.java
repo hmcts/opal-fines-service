@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -302,24 +303,29 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
             } else if (response.isLegacyFailure()) {
                 log.error(":{}: Legacy Failure: Body:\n{}", method, response.body);
                 throw createGatewayException(response.code, "Legacy gateway returned failure", response.body, null);
+            } else if (response.body == null) {
+                log.info("Account not found");
+                throw new EntityNotFoundException(method + " Account not found");
             }
-            log.error(":{}: Generic Legacy gateway error occurred", method);
+            log.error(":{}: Legacy Gateway Error: Body:\n{}", method, response.body);
             throw createGatewayException(response.code, "Legacy gateway error", response.body, null);
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
     }
 
-    private static RuntimeException createGatewayException(HttpStatusCode status, String fallbackStatusText,
-        String responseBody, Throwable exception) {
+    private static RuntimeException createGatewayException(
+        HttpStatusCode status,
+        String fallbackStatusText,
+        String responseBody,
+        Throwable exception
+    ) {
         HttpStatusCode statusCode =
             status == null || status == HttpStatus.OK ? HttpStatus.INTERNAL_SERVER_ERROR : status;
-
         String statusText =
             exception != null && exception.getMessage() != null ? exception.getMessage() : fallbackStatusText;
-
-        byte[] body = responseBody == null ? null : responseBody.getBytes(StandardCharsets.UTF_8);
-
+        byte[] body = responseBody == null ? "null".getBytes(StandardCharsets.UTF_8)
+            : responseBody.getBytes(StandardCharsets.UTF_8);
         return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
