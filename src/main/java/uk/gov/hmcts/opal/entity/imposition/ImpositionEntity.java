@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 
@@ -131,7 +131,7 @@ public class ImpositionEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "imposing_court_id", insertable = false, updatable = false, nullable = false)
-    private CourtEntity imposingCourt;
+    private CourtLegacyEntity imposingCourt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "creditor_account_id", insertable = false, updatable = false)

@@ -11,7 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
@@ -39,11 +39,11 @@ class EnforcerServiceTest {
     void testGetEnforcer() {
         // Arrange
 
-        EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
-        when(enforcerRepository.findById(any())).thenReturn(Optional.of(enforcerEntity));
+        EnforcerLegacyEntity enforcerLegacyEntity = EnforcerLegacyEntity.builder().build();
+        when(enforcerRepository.findById(any())).thenReturn(Optional.of(enforcerLegacyEntity));
 
         // Act
-        EnforcerEntity result = enforcerService.getEnforcerById(1);
+        EnforcerLegacyEntity result = enforcerService.getEnforcerById(1);
 
         // Assert
         assertNotNull(result);
@@ -57,8 +57,8 @@ class EnforcerServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
-        Page<EnforcerEntity> mockPage = new PageImpl<>(List.of(enforcerEntity), Pageable.unpaged(), 999L);
+        EnforcerLegacyEntity enforcerLegacyEntity = EnforcerLegacyEntity.builder().build();
+        Page<EnforcerLegacyEntity> mockPage = new PageImpl<>(List.of(enforcerLegacyEntity), Pageable.unpaged(), 999L);
 
         when(enforcerRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -66,10 +66,10 @@ class EnforcerServiceTest {
         });
 
         // Act
-        List<EnforcerEntity> result = enforcerService.searchEnforcers(EnforcerSearchDto.builder().build());
+        List<EnforcerLegacyEntity> result = enforcerService.searchEnforcers(EnforcerSearchDto.builder().build());
 
         // Assert
-        assertEquals(List.of(enforcerEntity), result);
+        assertEquals(List.of(enforcerLegacyEntity), result);
 
     }
 
@@ -80,8 +80,8 @@ class EnforcerServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        EnforcerEntity enforcerEntity = EnforcerEntity.builder().build();
-        Page<EnforcerEntity> mockPage = new PageImpl<>(List.of(enforcerEntity), Pageable.unpaged(), 999L);
+        EnforcerLegacyEntity enforcerLegacyEntity = EnforcerLegacyEntity.builder().build();
+        Page<EnforcerLegacyEntity> mockPage = new PageImpl<>(List.of(enforcerLegacyEntity), Pageable.unpaged(), 999L);
 
         when(enforcerRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
@@ -92,10 +92,10 @@ class EnforcerServiceTest {
         List<EnforcerReferenceData> result = enforcerService.getReferenceData(Optional.empty());
 
         EnforcerReferenceData refData =  new EnforcerReferenceData(
-            enforcerEntity.getEnforcerId(),
-            enforcerEntity.getEnforcerCode(),
-            enforcerEntity.getName(),
-            enforcerEntity.getNameCy()
+            enforcerLegacyEntity.getEnforcerId(),
+            enforcerLegacyEntity.getEnforcerCode(),
+            enforcerLegacyEntity.getName(),
+            enforcerLegacyEntity.getNameCy()
         );
 
         // Assert
