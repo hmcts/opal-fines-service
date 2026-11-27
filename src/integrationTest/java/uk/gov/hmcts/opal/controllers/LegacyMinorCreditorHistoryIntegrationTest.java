@@ -112,6 +112,8 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             .andExpect(jsonPath("$.historyItems[2].type").value("Financial"))
             .andExpect(jsonPath("$.historyItems[2].amount").value(10.00))
             .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionType").value("PAYMNT"))
+            .andExpect(jsonPath("$.historyItems[2].details.transactionType.transactionTypeDisplayName")
+                .value("Payment"))
             .andExpect(jsonPath("$.historyItems[2].details.paymentReference").value("PAY-1"))
             .andExpect(jsonPath("$.historyItems[2].details.status.creditorTransactionStatus").value("C"))
             .andExpect(jsonPath("$.historyItems[2].details.statusDate").value("2026-04-01T00:00:00"))
@@ -230,9 +232,9 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
     }
 
     @Test
-    @JiraStory("PO-11461")
-    @JiraEpic("PO-2653")
-    @DisplayName("Legacy history preserves nested financial and note details with date filters")
+    @JiraStory("PO-11693")
+    @JiraEpic("PO-11478")
+    @DisplayName("Legacy history maps nested amendments and resolves missing transaction display names with filters")
     void getMinorCreditorHistory_whenDetailsNested_preservesDetails() throws Exception {
         mockLegacyResponse(nestedLegacyResponse());
 
@@ -241,20 +243,32 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                 "amendment,financial,note");
 
         result.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.historyItems", hasSize(4)))
-            .andExpect(jsonPath("$.historyItems[3].type").value("Note"))
-            .andExpect(jsonPath("$.historyItems[3].details.noteText").value("Nested legacy note"));
+            .andExpect(jsonPath("$.historyItems", hasSize(6)))
+            .andExpect(jsonPath("$.historyItems[0].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[0].details.attributeName").value("BACS Account Number"))
+            .andExpect(jsonPath("$.historyItems[0].details.oldValue").value("******78"))
+            .andExpect(jsonPath("$.historyItems[0].details.newValue").value("******21"))
+            .andExpect(jsonPath("$.historyItems[1].type").value("Amendment"))
+            .andExpect(jsonPath("$.historyItems[1].details.attributeName").value("Hold Pay Out"))
+            .andExpect(jsonPath("$.historyItems[1].details.oldValue").value("false"))
+            .andExpect(jsonPath("$.historyItems[1].details.newValue").value("true"))
+            .andExpect(jsonPath("$.historyItems[5].type").value("Note"))
+            .andExpect(jsonPath("$.historyItems[5].details.noteText").value("Nested legacy note"));
 
+        List<String> transactionTypes = List.of("PAYMNT", "BACS", "BACS");
+        List<String> transactionDisplayNames = List.of("Payments", "BACS payments", "BACS payments");
         for (int index = 0; index < 3; index++) {
-            String itemPath = "$.historyItems[" + index + "]";
+            String itemPath = "$.historyItems[" + (index + 2) + "]";
 
             result.andExpect(jsonPath(itemPath + ".type").value("Financial"))
                 .andExpect(jsonPath(itemPath + ".amount").value((index + 1) * 10))
                 .andExpect(jsonPath(itemPath + ".postedDetails.posted_date").value("2026-04-01T09:00:00"))
                 .andExpect(jsonPath(itemPath + ".postedDetails.posted_by").value("LEGUSR"))
                 .andExpect(jsonPath(itemPath + ".postedDetails.posted_by_name").value("Legacy User"))
-                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionType").value("PAYMNT"))
-                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionTypeDisplayName").value("Payment"))
+                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionType")
+                    .value(transactionTypes.get(index)))
+                .andExpect(jsonPath(itemPath + ".details.transactionType.transactionTypeDisplayName")
+                    .value(transactionDisplayNames.get(index)))
                 .andExpect(jsonPath(itemPath + ".details.paymentReference").value("PAY-" + (index + 1)))
                 .andExpect(jsonPath(itemPath + ".details.status.creditorTransactionStatus").value("C"))
                 .andExpect(jsonPath(itemPath + ".details.status.creditorTransactionStatusDisplayName")
@@ -469,18 +483,42 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
                 %s
                 %s
                 %s
+                %s
+                %s
           </history_items>
         </response>
             """.formatted(
-            nestedFinancialItemXml("PAY-1", 10),
-            nestedFinancialItemXml("PAY-2", 20),
-            nestedFinancialItemXml("PAY-3", 30)
+            nestedFinancialItemXml("PAYMNT", "PAY-1", 10),
+            nestedFinancialItemXml("BACS", "PAY-2", 20),
+            nestedFinancialItemXml("BACS", "PAY-3", 30),
+            nestedAmendmentItemXml("BACS Account Number", "12345678", "87654321"),
+            nestedAmendmentItemXml("Hold Pay Out", "false", "true")
         );
 
         return XmlUtil.unmarshalXmlString(xml, MinorCreditorHistoryLegacyResponse.class);
     }
 
-    private String nestedFinancialItemXml(String paymentReference, int amount) {
+    private String nestedAmendmentItemXml(String attributeName, String oldValue, String newValue) {
+        return """
+        <history_items_element>
+          <posted_details>
+            <posted_date>2026-04-01T09:00:00</posted_date>
+            <posted_by>LEGUSR</posted_by>
+            <posted_by_name>Legacy User</posted_by_name>
+          </posted_details>
+          <type>Amendment</type>
+          <details>
+            <amendment_details>
+              <attribute_name>%s</attribute_name>
+              <old_value>%s</old_value>
+              <new_value>%s</new_value>
+            </amendment_details>
+          </details>
+        </history_items_element>
+        """.formatted(attributeName, oldValue, newValue);
+    }
+
+    private String nestedFinancialItemXml(String transactionType, String paymentReference, int amount) {
         return """
         <history_items_element>
           <posted_details>
@@ -492,8 +530,7 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
           <details>
             <creditor_transaction_details>
               <transaction_type>
-                <transaction_type>PAYMNT</transaction_type>
-                <transaction_type_display_name>Payment</transaction_type_display_name>
+                <transaction_type>%s</transaction_type>
               </transaction_type>
               <payment_reference>%s</payment_reference>
               <status>
@@ -510,6 +547,6 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
           </details>
           <amount>%d</amount>
         </history_items_element>
-        """.formatted(paymentReference, amount);
+        """.formatted(transactionType, paymentReference, amount);
     }
 }
