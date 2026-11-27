@@ -4,6 +4,8 @@ import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.entity.SuspenseItemSummaryEntity;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.mapper.SuspenseItemSummaryMapper;
@@ -19,13 +21,20 @@ public class OpalSuspenseAccountsSummaryService implements SuspenseAccountsSumma
     private final SuspenseItemSummaryMapper suspenseItemSummaryMapper;
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId,
+    @Transactional(readOnly = true)
+    public VersionedResponse<SuspenseItemSummaryCommonStrict> getSuspenseAccountsSummary(Short businessUnitId,
         BigInteger suspenseItemNumber) {
 
         SuspenseItemSummaryEntity suspenseItemSummary = suspenseItemSummaryRepository
             .findByBusinessUnitIdAndSuspenseItemNumber(businessUnitId, suspenseItemNumber);
 
-        return suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(suspenseItemSummary);
+        if (suspenseItemSummary == null) {
+            return null;
+        }
+
+        return new VersionedResponse<>(
+            suspenseItemSummaryMapper.toSuspenseItemSummaryCommonStrict(suspenseItemSummary),
+            suspenseItemSummary.getVersionNumber());
     }
 
 }

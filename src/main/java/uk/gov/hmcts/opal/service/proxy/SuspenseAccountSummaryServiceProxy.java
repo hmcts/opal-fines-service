@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.service.proxy;
 import java.math.BigInteger;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.iface.SuspenseAccountsSummaryServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacySuspenseAccountSummaryService;
@@ -24,7 +25,7 @@ public class SuspenseAccountSummaryServiceProxy implements SuspenseAccountsSumma
     }
 
     @Override
-    public SuspenseItemSummaryCommonStrict getSuspenseAccountsSummary(Short businessUnitId,
+    public VersionedResponse<SuspenseItemSummaryCommonStrict> getSuspenseAccountsSummary(Short businessUnitId,
         BigInteger suspenseItemNumber) {
         return getCurrentModeService().getSuspenseAccountsSummary(businessUnitId, suspenseItemNumber);
     }

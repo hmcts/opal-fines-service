@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.hmcts.opal.dto.VersionedResponse;
 import uk.gov.hmcts.opal.generated.model.SuspenseItemSummaryCommonStrict;
 import uk.gov.hmcts.opal.service.iface.SuspenseAccountsSummaryServiceInterface;
 import uk.gov.hmcts.opal.service.legacy.LegacySuspenseAccountSummaryService;
@@ -47,12 +48,14 @@ class SuspenseAccountSummaryServiceProxyTest extends ProxyTestsBase {
 
         SuspenseItemSummaryCommonStrict expected =
             SuspenseItemSummaryCommonStrict.builder().suspenseItemId(1L).balance("100.0").build();
-        when(selected.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345))).thenReturn(expected);
+        when(selected.getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345)))
+            .thenReturn(new VersionedResponse<>(expected, 7L));
 
-        SuspenseItemSummaryCommonStrict result = proxy.getSuspenseAccountsSummary((short) 123,
+        VersionedResponse<SuspenseItemSummaryCommonStrict> result = proxy.getSuspenseAccountsSummary((short) 123,
             BigInteger.valueOf(12345));
 
-        assertEquals(expected, result);
+        assertEquals(expected, result.getData());
+        assertEquals(7L, result.getVersion());
         verify(selected).getSuspenseAccountsSummary((short) 123, BigInteger.valueOf(12345));
         verifyNoInteractions(other);
     }
