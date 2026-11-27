@@ -4,6 +4,7 @@ import static uk.gov.hmcts.opal.TestContainerConfig.POSTGRES_CONTAINER;
 import static uk.gov.hmcts.opal.TestContainerConfig.REDIS_CONTAINER;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +21,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
+import org.wiremock.spring.InjectWireMock;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
 import uk.gov.hmcts.opal.support.UserStateStub;
 import uk.hmcts.zephyr.automation.junit5.extension.ZephyrAutomationExtension;
 
+@EnableWireMock(
+    @ConfigureWireMock(
+        name = "user-service",
+        baseUrlProperties = "user.service.url",
+        filesUnderClasspath = "wiremock"
+    )
+)
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("integration")
 @ContextConfiguration(classes = {TestContainerConfig.class})
@@ -36,6 +47,7 @@ public abstract class AbstractIntegrationTest {
 
     protected static final String OVER_LONG_VERSION = "9223372036854775808";
     protected static final String OVER_LONG_VERSION_ETAG = "\"" + OVER_LONG_VERSION + "\"";
+    protected static final String AUTH_HEADER = "eyJ0eXAiOiJKsomeValue";
 
     protected final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -54,6 +66,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     private CacheManager cacheManager;
+
+    @InjectWireMock("user-service")
+    protected WireMockServer userServiceWireMock;
 
     protected UserStateStub userStateStub;
 
@@ -85,7 +100,7 @@ public abstract class AbstractIntegrationTest {
     }
 
     protected UserStateStub createUserStateStub() {
-        return new UserStateStub();
+        return new UserStateStub(userServiceWireMock);
     }
 
     protected Integer defendantAccountVersionFor(long defendantAccountId) {
