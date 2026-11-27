@@ -325,7 +325,7 @@ public class DefAccSearchTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[*].account_number",
                 containsInAnyOrder("1989", "1988")))
             .andExpect(jsonPath("$.defendant_accounts[*].business_unit_id",
-                everyItem(is("78"))));
+                everyItem(is(78))));
     }
 
     private void expectErrorResultActions(ResultActions result) throws Exception {

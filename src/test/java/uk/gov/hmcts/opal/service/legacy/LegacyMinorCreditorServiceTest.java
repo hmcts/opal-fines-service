@@ -350,7 +350,7 @@ class LegacyMinorCreditorServiceTest {
             .surname("Doe")
             .addressLine1("123 Road")
             .postcode("AB12 3CD")
-            .businessUnitId("10L")
+            .businessUnitId("10")
             .businessUnitName("Unit 10")
             .accountBalance(1000.00)
             .defendant(defendant)
@@ -373,6 +373,7 @@ class LegacyMinorCreditorServiceTest {
         assertEquals(1, result.getCount());
         assertEquals(1, result.getCreditorAccounts().size());
         assertEquals("2", result.getCreditorAccounts().getFirst().getCreditorAccountId());
+        assertEquals((short) 10, result.getCreditorAccounts().getFirst().getBusinessUnitId());
         assertEquals("Jane", result.getCreditorAccounts().getFirst().getDefendant().getFirstnames());
 
         verify(minorCreditorMapper, times(1)).toCreditor(null);
@@ -416,7 +417,7 @@ class LegacyMinorCreditorServiceTest {
             .surname("Doe")
             .addressLine1("123 Road")
             .postcode("AB12 3CD")
-            .businessUnitId("10L")
+            .businessUnitId("10")
             .businessUnitName("Unit 10")
             .accountBalance(1000.00)
             .defendant(defendant)
@@ -460,7 +461,7 @@ class LegacyMinorCreditorServiceTest {
             .surname("Doe")
             .addressLine1("123 Road")
             .postcode("AB12 3CD")
-            .businessUnitId("10L")
+            .businessUnitId("10")
             .businessUnitName("Unit 10")
             .accountBalance(1000.00)
             .defendant(null)

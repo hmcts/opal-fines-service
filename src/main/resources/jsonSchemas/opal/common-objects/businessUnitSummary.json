@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "properties": {
     "business_unit_name": { "type": "string" },
-    "business_unit_id": { "type": "string" },
+    "business_unit_id": { "type": "integer" },
     "business_unit_code": { "type": "string" },
     "welsh_speaking": { "type": "string" }
   },

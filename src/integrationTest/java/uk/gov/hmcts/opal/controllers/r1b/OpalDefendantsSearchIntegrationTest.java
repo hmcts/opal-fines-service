@@ -97,7 +97,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78));
         if (!consolidated) {
             actions
                 .andExpect(jsonPath("$.defendant_accounts[0].collection_order").value(true))
@@ -246,7 +246,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -377,7 +377,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -462,7 +462,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
                 .value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].business_unit_id")
-                .value("78"));
+                .value(78));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -509,7 +509,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].address_line_1").value("Lumber House"))
             .andExpect(jsonPath("$.defendant_accounts[0].postcode").value("MA4 1AL"));
     }
@@ -557,7 +557,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_title").value("Ms"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_firstnames").value("Anna"))
@@ -660,7 +660,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].account_number")
                 .value("177A"))
             .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '77')].business_unit_id")
-                .value("78"));
+                .value(78));
         if (!consolidation) {
             actions.andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')]").exists())
                 .andExpect(jsonPath("$.defendant_accounts[?(@.defendant_account_id == '9077')].account_number")
@@ -703,7 +703,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -779,7 +779,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
         actions.andExpect(status().isOk()).andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -1075,7 +1075,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
                     }""".formatted(consolidation)))
             .andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].business_unit_name").value(""))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("9999"));
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(9999));
     }
 
     @ParameterizedTest(name = "consolidated={0}")
@@ -1519,7 +1519,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_surname").value("Graham"));
     }
 
@@ -1904,7 +1904,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
 
         actions.andExpect(status().isOk()).andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("555"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].organisation_name").value("TechCorp Solutions Ltd"));
     }
 
@@ -2380,7 +2380,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.count").value(1))
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value("77"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("177A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(true))
             .andExpect(jsonPath("$.defendant_accounts[0].account_version").value(0))
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors[0].reference")
@@ -2411,7 +2411,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
                 "99000000000002"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("23456789A"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("77"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(77))
             .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(false))
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(0)))
@@ -2442,7 +2442,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
                 "991199"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("1989"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(true))
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(0)))
@@ -2473,7 +2473,7 @@ class OpalDefendantsSearchIntegrationTest extends AbstractIntegrationTest {
             .andExpect(jsonPath("$.defendant_accounts[0].defendant_account_id").value(
                 "991198"))
             .andExpect(jsonPath("$.defendant_accounts[0].account_number").value("1988"))
-            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value("78"))
+            .andExpect(jsonPath("$.defendant_accounts[0].business_unit_id").value(78))
             .andExpect(jsonPath("$.defendant_accounts[0].has_collection_order").value(true))
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors").isArray())
             .andExpect(jsonPath("$.defendant_accounts[0].checks.errors", hasSize(1)))
