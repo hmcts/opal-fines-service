@@ -14,7 +14,6 @@ import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.history.HistoryItemType;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
-import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorHistoryPdplLoggingService;
 import uk.gov.hmcts.opal.service.proxy.MajorCreditorAccountProxy;
 
@@ -47,15 +46,7 @@ public class MajorCreditorAccountService {
             throw new PermissionNotAllowedException(FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
         }
 
-        GetMajorCreditorAccountHeaderSummaryResponse response =
-            majorCreditorAccountProxy.getHeaderSummary(majorCreditorAccountId);
-        Short businessUnitId = getBusinessUnitId(response.getBusinessUnitDetails());
-
-        if (!userState.hasBusinessUnitUserWithPermission(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS)) {
-            throw new PermissionNotAllowedException(businessUnitId, FinesPermission.SEARCH_AND_VIEW_ACCOUNTS);
-        }
-
-        return response;
+        return majorCreditorAccountProxy.getHeaderSummary(majorCreditorAccountId);
     }
 
     public GetMajorCreditorHistoryResponse getHistory(
@@ -108,12 +99,5 @@ public class MajorCreditorAccountService {
             .map(String::trim)
             .filter(itemType -> !itemType.isEmpty())
             .toList();
-    }
-
-    private static Short getBusinessUnitId(BusinessUnitSummaryCommon businessUnitDetails) {
-        if (businessUnitDetails == null || businessUnitDetails.getBusinessUnitId() == null) {
-            throw new IllegalStateException("Business unit details were not returned for the major creditor account");
-        }
-        return businessUnitDetails.getBusinessUnitId();
     }
 }
