@@ -112,13 +112,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     public MinorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long minorCreditorAccountId) {
 
         Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
-            gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
-                GetMinorCreditorAccountHeaderSummaryLegacyResponse.class,
-                GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder()
-                    .creditorAccountId(String.valueOf(minorCreditorAccountId))
-                    .build(),
-                null
-            );
+            fetchLegacyHeaderSummary(minorCreditorAccountId);
 
         checkResponseForError(response, "getHeaderSummary");
 
@@ -172,9 +166,11 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         if (mappedResponse != null) {
             Optional<CreditorAccountEntity> creditorAccount =
                 creditorAccountRepository.findById(minorCreditorAccountId);
-            mappedResponse.setBusinessUnitId(
-                creditorAccount.map(CreditorAccountEntity::getBusinessUnitId).orElse(null)
-            );
+
+            Short businessUnitId = isRelease1B11Enabled() ? resolveLegacyBusinessUnitId(minorCreditorAccountId)
+                : creditorAccount.map(CreditorAccountEntity::getBusinessUnitId).orElse(null);
+            mappedResponse.setBusinessUnitId(businessUnitId);
+
             mappedResponse.setRepayment(
                 creditorAccount.map(CreditorAccountEntity::isRepayment).orElse(false)
             );
@@ -187,7 +183,7 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
         MinorCreditorHistoryFilters filters) {
-        boolean release1b11Enabled = isItemTypeFilteringEnabled();
+        boolean release1b11Enabled = isRelease1B11Enabled();
 
         LegacyGetMinorCreditorAccountHistoryRequest request =
             minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters, release1b11Enabled);
@@ -323,13 +319,47 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
-    private boolean isItemTypeFilteringEnabled() {
+    private boolean isRelease1B11Enabled() {
         boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
             FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
         if (!enabled) {
-            log.debug(":isItemTypeFilteringEnabled: default item type filtering is being used because {} is disabled",
+            log.debug(":isRelease1B11Enabled: {} is disabled; existing legacy behaviour is being used",
                 FeatureFlags.RELEASE_1B_1_1);
         }
         return enabled;
+    }
+
+    private Short resolveLegacyBusinessUnitId(Long minorCreditorAccountId) {
+        try {
+            Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> response =
+                fetchLegacyHeaderSummary(minorCreditorAccountId);
+
+            if (response != null) {
+                checkResponseForError(response, "resolveLegacyBusinessUnitId");
+
+                if (response.isSuccessful() && response.responseEntity != null
+                    && response.responseEntity.getBusinessUnit() != null) {
+                    return Short.parseShort(response.responseEntity.getBusinessUnit().getBusinessUnitId());
+                }
+            }
+        } catch (RuntimeException exception) {
+            log.warn(":resolveLegacyBusinessUnitId: Unable to resolve business unit for creditor account {}, cause={}",
+                minorCreditorAccountId, exception.getClass().getSimpleName());
+            return null;
+        }
+
+        log.warn(":resolveLegacyBusinessUnitId: Missing or unsuccessful legacy business unit for creditor account {}",
+            minorCreditorAccountId);
+        return null;
+    }
+
+    private Response<GetMinorCreditorAccountHeaderSummaryLegacyResponse> fetchLegacyHeaderSummary(Long accountId) {
+        return gatewayService.postToGateway(GET_MINOR_CREDITORS_ACCOUNT_HEADER_SUMMARY,
+            GetMinorCreditorAccountHeaderSummaryLegacyResponse.class,
+            GetMinorCreditorAccountHeaderSummaryLegacyRequest.builder()
+                .creditorAccountId(String.valueOf(accountId))
+                .build(),
+            null
+        );
     }
 }
