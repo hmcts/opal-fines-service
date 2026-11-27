@@ -93,6 +93,7 @@ paths:
             application/problem+json:
               schema:
                 $ref: './common.yaml#/components/schemas/ProblemDetail'
+
   /suspense-items/{suspense_item_id}/repay-third-party:
     post:
       tags:
