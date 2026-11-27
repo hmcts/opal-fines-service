@@ -12,12 +12,14 @@ import uk.gov.hmcts.opal.dto.legacy.AddDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.AddressDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.ContactDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.generated.model.LanguagePreferenceCommonStrict;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountParty;
 import uk.gov.hmcts.opal.generated.model.PartyResponseDefendantAccount;
+import uk.gov.hmcts.opal.generated.model.PartyDetailsCommonStrict;
 
 class DefendantAccountPartyLegacyResponseMapperTest {
 
@@ -31,11 +33,19 @@ class DefendantAccountPartyLegacyResponseMapperTest {
             .defendantAccountParty(DefendantAccountPartyLegacy.builder()
                 .defendantAccountPartyType("Defendant")
                 .isDebtor(true)
-                .partyDetails(PartyDetailsLegacy.builder()
+                .partyDetails(LegacyPartyDetails.builder()
                     .partyId("20010")
                     .organisationFlag(false)
-                    .individualDetails(IndividualDetailsLegacy.builder()
+                    .individualDetails(IndividualDetails.builder()
                         .surname("Alex Smith")
+                        .individualAliases(new IndividualDetails.IndividualAlias[] {
+                            IndividualDetails.IndividualAlias.builder()
+                                .aliasId("30010")
+                                .sequenceNumber((short) 1)
+                                .surname("Smith")
+                                .forenames("Alex")
+                                .build()
+                        })
                         .build())
                     .build())
                 .address(AddressDetailsLegacy.builder()
@@ -66,6 +76,8 @@ class DefendantAccountPartyLegacyResponseMapperTest {
                 party.getDefendantAccountPartyType()),
             () -> assertNull(party.getPartyDetails().getIndividualDetails().get().getForenames().get()),
             () -> assertEquals("Alex Smith", party.getPartyDetails().getIndividualDetails().get().getSurname()),
+            () -> assertEquals("30010", party.getPartyDetails().getIndividualDetails().get()
+                .getIndividualAliases().get().getFirst().getAliasId()),
             () -> assertEquals("1 High Street", party.getAddress().getAddressLine1()),
             () -> assertEquals("alex@example.com",
                 party.getContactDetails().get().getPrimaryEmailAddress().get()),
@@ -73,5 +85,25 @@ class DefendantAccountPartyLegacyResponseMapperTest {
             () -> assertEquals(LanguagePreferenceCommonStrict.LanguageDisplayNameEnum.ENGLISH_ONLY,
                 language.getLanguageDisplayName())
         );
+    }
+
+    @Test
+    void mapsOrganisationAliases() {
+        PartyDetailsCommonStrict result = mapper.toGeneratedResponse(LegacyPartyDetails.builder()
+            .organisationFlag(true)
+            .organisationDetails(OrganisationDetails.builder()
+                .organisationName("Example Ltd")
+                .organisationAliases(new OrganisationDetails.OrganisationAlias[] {
+                    OrganisationDetails.OrganisationAlias.builder()
+                        .aliasId("40010")
+                        .sequenceNumber((short) 1)
+                        .organisationName("Example Trading")
+                        .build()
+                })
+                .build())
+            .build());
+
+        assertEquals("40010", result.getOrganisationDetails().get().getOrganisationAliases().get()
+            .getFirst().getAliasId());
     }
 }

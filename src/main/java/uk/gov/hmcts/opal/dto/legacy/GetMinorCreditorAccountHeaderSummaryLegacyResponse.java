@@ -16,6 +16,7 @@ import uk.gov.hmcts.opal.common.legacy.model.HasErrorResponse;
 import uk.gov.hmcts.opal.dto.ToXmlString;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.legacy.common.CreditorAccountTypeReference;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 
 @XmlRootElement(name = "response")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -29,7 +30,7 @@ public class GetMinorCreditorAccountHeaderSummaryLegacyResponse implements ToXml
     private ErrorResponse errorResponse;
 
     @XmlElement(name = "party")
-    private PartyDetailsLegacy partyDetails;
+    private LegacyPartyDetails partyDetails;
 
     @XmlElement(name = "business_unit")
     private BusinessUnitSummary businessUnit;

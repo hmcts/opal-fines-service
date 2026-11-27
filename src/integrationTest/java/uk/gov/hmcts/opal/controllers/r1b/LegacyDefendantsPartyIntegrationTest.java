@@ -100,6 +100,30 @@ class LegacyDefendantsPartyIntegrationTest extends AbstractLegacyDefendantsInteg
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.surname")
                 .value("Alex Graham"))
             .andExpect(jsonPath("$.defendant_account_party.party_details.individual_details.forenames").doesNotExist())
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[0].alias_id")
+                .value("777"))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[0].forenames")
+                .value("welsh test account"))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[0].sequence_number")
+                .value(1))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[0].surname")
+                .value("HAS WELSH CHARACTERS"))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[1].alias_id")
+                .value("778"))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[1].forenames")
+                .value("Alias 2 fn"))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[1].sequence_number")
+                .value(2))
+            .andExpect(jsonPath(
+                "$.defendant_account_party.party_details.individual_details.individual_aliases[1].surname")
+                .value("ALIAS 2 LN"))
             .andExpect(jsonPath("$.defendant_account_party.address.address_line_1").value("Lumber House"))
             .andExpect(header().string("ETag", matchesPattern("\"\\d+\"")));
 

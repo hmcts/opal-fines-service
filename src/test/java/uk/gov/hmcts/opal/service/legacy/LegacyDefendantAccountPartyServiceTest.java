@@ -16,6 +16,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import static uk.gov.hmcts.opal.util.VersionUtils.extractBigInteger;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,15 +44,15 @@ import uk.gov.hmcts.opal.dto.legacy.DefendantAccountPartyLegacy;
 import uk.gov.hmcts.opal.dto.legacy.EmployerDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.GetDefendantAccountPartyLegacyResponse;
-import uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LanguagePreferencesLegacy;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyRequest;
 import uk.gov.hmcts.opal.dto.legacy.LegacyReplaceDefendantAccountPartyResponse;
-import uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy;
-import uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyRequest;
 import uk.gov.hmcts.opal.dto.legacy.RemoveDefendantAccountPartyLegacyResponse;
 import uk.gov.hmcts.opal.dto.legacy.VehicleDetailsLegacy;
+import uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
+import uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails;
 import uk.gov.hmcts.opal.generated.model.AddPartyRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveDefendantAccountPartyResponseDefendantAccount;
 import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountPartyLegacyResponseMapper;
@@ -106,7 +107,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .isDebtor(false)
                     // partyDetails present but with nested organisation and individual null
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("20010")
                             .organisationFlag(null) // intentionally null -> modern should be null
                             .organisationDetails(null)
@@ -256,7 +257,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("300")
                             .organisationFlag(true)
                             .organisationDetails(null)
@@ -379,11 +380,11 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("300")
                             .organisationFlag(true)
                             .organisationDetails(
-                                uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy.builder()
+                                OrganisationDetails.builder()
                                     .organisationName("StillCo Ltd")
                                     .build()
                             )
@@ -454,16 +455,16 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("301")
                             .organisationFlag(false)
                             .organisationDetails(null) // explicitly null
                             .individualDetails(
-                                uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+                                IndividualDetails.builder()
                                     .title("Ms")
                                     .forenames("Jane")
                                     .surname("Roe")
-                                    .dateOfBirth("1990-05-10")
+                                    .dateOfBirth(LocalDate.parse("1990-05-10"))
                                     .age("35")
                                     .nationalInsuranceNumber("AB123456C")
                                     .build()
@@ -541,7 +542,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("400")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -627,7 +628,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(false)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("401")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -687,7 +688,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("500")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -768,7 +769,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(false)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("501")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -1077,9 +1078,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .primaryEmailAddress("sam@example.com")
             .build();
 
-        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+        LegacyPartyDetails pd = LegacyPartyDetails.builder()
             .partyId("77").organisationFlag(false)
-            .individualDetails(IndividualDetailsLegacy.builder().forenames("Sam").surname("Graham").build())
+            .individualDetails(IndividualDetails.builder().forenames("Sam").surname("Graham").build())
             .build();
 
         DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
@@ -1115,9 +1116,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
 
     @Test
     void getDefendantAccountParty_employer_dropped_whenAllFieldsNull() {
-        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+        LegacyPartyDetails pd = LegacyPartyDetails.builder()
             .partyId("555").organisationFlag(true)
-            .organisationDetails(OrganisationDetailsLegacy.builder().organisationName("TechCorp").build())
+            .organisationDetails(OrganisationDetails.builder().organisationName("TechCorp").build())
             .build();
 
         EmployerDetailsLegacy emptyEmp = EmployerDetailsLegacy.builder().build();
@@ -1162,9 +1163,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .postcode("AB1 2CD")
             .build();
 
-        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+        LegacyPartyDetails pd = LegacyPartyDetails.builder()
             .partyId("77").organisationFlag(false)
-            .individualDetails(IndividualDetailsLegacy.builder().forenames("Sam").surname("Graham").build())
+            .individualDetails(IndividualDetails.builder().forenames("Sam").surname("Graham").build())
             .build();
 
         DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
@@ -1215,9 +1216,9 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
             .hearingLanguagePreference(hear)
             .build();
 
-        var pd = uk.gov.hmcts.opal.dto.legacy.PartyDetailsLegacy.builder()
+        var pd = LegacyPartyDetails.builder()
             .partyId("77").organisationFlag(false)
-            .individualDetails(uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+            .individualDetails(IndividualDetails.builder()
                 .forenames("Sam").surname("Graham").build())
             .build();
 
@@ -1332,7 +1333,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .isDebtor(false)
                     // partyDetails present but with nested organisation and individual null
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("20010")
                             .organisationFlag(null) // intentionally null -> modern should be null
                             .organisationDetails(null)
@@ -1393,7 +1394,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("300")
                             .organisationFlag(true)
                             .organisationDetails(null)
@@ -1518,11 +1519,11 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("300")
                             .organisationFlag(true)
                             .organisationDetails(
-                                uk.gov.hmcts.opal.dto.legacy.OrganisationDetailsLegacy.builder()
+                                OrganisationDetails.builder()
                                     .organisationName("StillCo Ltd")
                                     .build()
                             )
@@ -1581,16 +1582,16 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("301")
                             .organisationFlag(false)
                             .organisationDetails(null) // explicitly null
                             .individualDetails(
-                                uk.gov.hmcts.opal.dto.legacy.IndividualDetailsLegacy.builder()
+                                IndividualDetails.builder()
                                     .title("Ms")
                                     .forenames("Jane")
                                     .surname("Roe")
-                                    .dateOfBirth("1990-05-10")
+                                    .dateOfBirth(LocalDate.parse("1990-05-10"))
                                     .age("35")
                                     .nationalInsuranceNumber("AB123456C")
                                     .build()
@@ -1651,7 +1652,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("400")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -1728,7 +1729,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(false)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("401")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -1777,7 +1778,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("500")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -1844,14 +1845,14 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(true)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("777")
                             .organisationFlag(false)
                             .individualDetails(
-                                IndividualDetailsLegacy.builder()
+                                IndividualDetails.builder()
                                     .title("Mr")
                                     .surname("John Smith")
-                                    .dateOfBirth("1990-01-01")
+                                    .dateOfBirth(LocalDate.parse("1990-01-01"))
                                     .age("36")
                                     .nationalInsuranceNumber("QQ123456C")
                                     .build()
@@ -1945,7 +1946,7 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
                     .defendantAccountPartyType("Defendant")
                     .isDebtor(false)
                     .partyDetails(
-                        PartyDetailsLegacy.builder()
+                        LegacyPartyDetails.builder()
                             .partyId("501")
                             .organisationFlag(false)
                             .organisationDetails(null)
@@ -2078,10 +2079,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     private GetDefendantAccountPartyLegacyResponse legacyPartyIndividual() {
-        IndividualDetailsLegacy ind = IndividualDetailsLegacy.builder()
+        IndividualDetails ind = IndividualDetails.builder()
             .title("Ms").forenames("Sam").surname("Graham").build();
 
-        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+        LegacyPartyDetails pd = LegacyPartyDetails.builder()
             .partyId("77").organisationFlag(false).individualDetails(ind).build();
 
         DefendantAccountPartyLegacy party = DefendantAccountPartyLegacy.builder()
@@ -2100,10 +2101,10 @@ class LegacyDefendantAccountPartyServiceTest extends LegacyTestsBase {
     }
 
     private GetDefendantAccountPartyLegacyResponse legacyPartyOrganisation(boolean withEmpLine1) {
-        OrganisationDetailsLegacy org = OrganisationDetailsLegacy.builder()
+        OrganisationDetails org = OrganisationDetails.builder()
             .organisationName("TechCorp Solutions Ltd").build();
 
-        PartyDetailsLegacy pd = PartyDetailsLegacy.builder()
+        LegacyPartyDetails pd = LegacyPartyDetails.builder()
             .partyId("555").organisationFlag(true).organisationDetails(org).build();
 
         AddressDetailsLegacy empAddr = withEmpLine1

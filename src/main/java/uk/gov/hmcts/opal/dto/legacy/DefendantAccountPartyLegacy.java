@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails;
 
 @Data
 @Builder
@@ -22,7 +23,7 @@ public class DefendantAccountPartyLegacy {
     private Boolean isDebtor;
 
     @XmlElement(name = "party_details")
-    private PartyDetailsLegacy partyDetails;
+    private LegacyPartyDetails partyDetails;
 
     @XmlElement(name = "address")
     private AddressDetailsLegacy address;
