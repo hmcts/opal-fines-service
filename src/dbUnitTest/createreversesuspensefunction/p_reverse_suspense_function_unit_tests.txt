@@ -1,0 +1,61 @@
+
+Task 'PostgreSQL script' started at Wed Nov 18 13:54:52 GMT 2026
+BEGIN
+
+NOTICE:  PO-10350: Test data created successfully
+
+NOTICE:  TEST 01 PASSED: Suspense balance reversed
+
+NOTICE:  TEST 02 PASSED: RV transaction created
+
+NOTICE:  TEST 03 PASSED: Report entry created
+
+NOTICE:  TEST 04 PASSED: Version incremented
+
+NOTICE:  Error in p_reverse_suspense_function: P0001 - Some information on this page may be out of date.
+
+NOTICE:  Error details: p_reverse_suspense_function: suspense item version mismatch
+
+NOTICE:  TEST 05 PASSED: Stale version rejected
+
+NOTICE:  TEST 06 PASSED: Failed reversal rolled back
+
+NOTICE:  TEST 07 PASSED: Dishonoured cheque reversal created
+
+NOTICE:  Error in p_reverse_suspense_function: P4006 - Suspense item 9900000000594906 must have a positive balance. Current balance: -10.00
+
+NOTICE:  TEST 08 PASSED: Negative balance rejected (P4006)
+
+NOTICE:  Error in p_reverse_suspense_function: P4006 - Suspense item 9900000000594907 must have a positive balance. Current balance: 0.00
+
+NOTICE:  TEST 09 PASSED: Zero balance rejected (P4006)
+
+NOTICE:  TEST 10 PASSED: Zero-balance rejection left data unchanged
+
+NOTICE:  Error in p_reverse_suspense_function: P4001 - Suspense item ID cannot be null
+
+NOTICE:  TEST 11 PASSED: Mandatory parameter validation (P4001)
+
+NOTICE:  Error in p_reverse_suspense_function: P4002 - Suspense item version cannot be null
+
+NOTICE:  TEST 12 PASSED: Mandatory parameter validation (P4002)
+
+NOTICE:  Error in p_reverse_suspense_function: P4003 - Posted by cannot be null
+
+NOTICE:  TEST 13 PASSED: Mandatory parameter validation (P4003)
+
+NOTICE:  Error in p_reverse_suspense_function: P4004 - Posted by name cannot be null
+
+NOTICE:  TEST 14 PASSED: Mandatory parameter validation (P4004)
+
+NOTICE:  Error in p_reverse_suspense_function: P4005 - Dishonoured cheque indicator cannot be null
+
+NOTICE:  TEST 15 PASSED: Mandatory parameter validation (P4005)
+
+NOTICE:  PO-10350: ALL 15 UNIT TESTS PASSED
+
+DO
+
+ROLLBACK
+
+Task 'PostgreSQL script' finished at Wed Nov 18 13:54:52 GMT 2026
