@@ -1,0 +1,9 @@
+Timing is on.
+psql:f_get_item_num_for_imp_cat_unit_tests.sql:53: NOTICE:  === TEST 1 - Context = MAC ===
+psql:f_get_item_num_for_imp_cat_unit_tests.sql:53: NOTICE:  TEST 1 PASSED: For all Imposition Categories for context MAC
+DO
+Time: 8.496 ms
+psql:f_get_item_num_for_imp_cat_unit_tests.sql:74: NOTICE:  === TEST 2 - Imposition Category not implemented in the Function ===
+psql:f_get_item_num_for_imp_cat_unit_tests.sql:74: NOTICE:  TEST 2 PASSED: Imposition Category not implemented in the Function
+DO
+Time: 1.608 ms
