@@ -122,7 +122,7 @@ class DraftAccountServiceTest {
     private FeatureToggleApi featureToggleApi;
 
     @Spy
-    private TransactionTemplate transactionTemplate = new FakeTransactionTemplate();
+    private TransactionTemplate transactionTemplate = new StubTransactionTemplate();
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -1021,7 +1021,7 @@ class DraftAccountServiceTest {
             """;
     }
 
-    private static class FakeTransactionTemplate extends TransactionTemplate {
+    private static class StubTransactionTemplate extends TransactionTemplate {
         @Override
         public <T extends @Nullable Object> T execute(TransactionCallback<T> callback) throws TransactionException {
             return callback.doInTransaction(new SimpleTransactionStatus());
