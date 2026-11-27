@@ -20,8 +20,8 @@ import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
@@ -47,7 +47,7 @@ import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.OpalLocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -76,7 +76,7 @@ public class OpalDefendantAccountEnforcementService
 
     private final DefendantAccountRepositoryService defendantAccountRepositoryService;
 
-    private final LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+    private final OpalLocalJusticeAreaRepositoryService opalLocalJusticeAreaRepositoryService;
 
     private final EnforcerRepositoryService enforcerRepositoryService;
 
@@ -143,7 +143,7 @@ public class OpalDefendantAccountEnforcementService
                         case JAIL_DAYS, DAYS_IN_DEFAULT -> jailDays = Integer.valueOf(result.getResponse());
                         case ENFORCER_ID -> enforcerId = Long.valueOf(result.getResponse());
                         case ENFORCER -> {
-                            Optional<EnforcerEntity> enforcer = enforcerRepository
+                            Optional<EnforcerLegacyEntity> enforcer = enforcerRepository
                                 .findByEnforcerCodeAndBusinessUnit_businessUnitId(Short.valueOf(
                                     result.getResponse()), businessUnitId);
                             if (enforcer.isPresent()) {
@@ -156,7 +156,7 @@ public class OpalDefendantAccountEnforcementService
                         case EARLIEST_RELEASE_DATE, EARLIESTRELEASEDATE ->
                             earliestReleaseDate = LocalDateTime.parse(result.getResponse());
                         case COURT_CODE -> {
-                            Optional<CourtEntity> court = courtRepository
+                            Optional<CourtLegacyEntity> court = courtRepository
                                 .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
                             if (court.isPresent()) {
                                 hearingCourtId = court.get().getCourtId();
@@ -182,7 +182,7 @@ public class OpalDefendantAccountEnforcementService
                     earliestReleaseDate = LocalDateTime.parse(result.getResponse());
                 }
                 if (Objects.equals(result.getParameterName(), COURT_CODE)) {
-                    Optional<CourtEntity> court = courtRepository
+                    Optional<CourtLegacyEntity> court = courtRepository
                         .findByCourtCodeAndBusinessUnitId(Short.valueOf(result.getResponse()), businessUnitId);
                     if (court.isPresent()) {
                         hearingCourtId = court.get().getCourtId();
@@ -366,7 +366,8 @@ public class OpalDefendantAccountEnforcementService
                 .enforcer(OpalDefendantAccountBuilders.buildEnforcer(
                     enforcerRepositoryService.findById(entity.getEnforcementOverrideEnforcerId()).orElse(null)))
                 .lja(OpalDefendantAccountBuilders.buildLja(
-                    localJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId()).orElse(null)))
+                    opalLocalJusticeAreaRepositoryService.getLjaById(entity.getEnforcementOverrideTfoLjaId())
+                        .orElse(null)))
                 .build();
         }
     }

@@ -27,7 +27,7 @@ import uk.gov.hmcts.opal.dto.reference.MajorCreditorReferenceData;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorMapper;
 import uk.gov.hmcts.opal.repository.MajorCreditorRepository;
 import uk.gov.hmcts.opal.service.opal.MajorCreditorService;
@@ -52,11 +52,11 @@ class MajorCreditorServiceTest {
     void testGetMajorCreditor() {
         // Arrange
 
-        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
-        when(majorCreditorRepository.findById(any())).thenReturn(Optional.of(majorCreditorEntity));
+        MajorCreditorLegacyEntity majorCreditorLegacyEntity = MajorCreditorLegacyEntity.builder().build();
+        when(majorCreditorRepository.findById(any())).thenReturn(Optional.of(majorCreditorLegacyEntity));
 
         // Act
-        MajorCreditorEntity result = majorCreditorService.getMajorCreditorById(1);
+        MajorCreditorLegacyEntity result = majorCreditorService.getMajorCreditorById(1);
 
         // Assert
         assertNotNull(result);
@@ -70,19 +70,20 @@ class MajorCreditorServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder().build();
-        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
+        MajorCreditorLegacyEntity majorCreditorLegacyEntity = MajorCreditorLegacyEntity.builder().build();
+        Page<MajorCreditorLegacyEntity> mockPage =
+            new PageImpl<>(List.of(majorCreditorLegacyEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
         // Act
-        List<MajorCreditorEntity> result = majorCreditorService.searchMajorCreditors(
+        List<MajorCreditorLegacyEntity> result = majorCreditorService.searchMajorCreditors(
             MajorCreditorSearchDto.builder().build());
 
         // Assert
-        assertEquals(List.of(majorCreditorEntity), result);
+        assertEquals(List.of(majorCreditorLegacyEntity), result);
 
     }
 
@@ -93,7 +94,7 @@ class MajorCreditorServiceTest {
         SpecificationFluentQuery sfq = mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
+        MajorCreditorLegacyEntity majorCreditorLegacyEntity = MajorCreditorLegacyEntity.builder()
             .businessUnitId((short) 7)
             .creditorAccountEntity(
                 CreditorAccountEntity.builder()
@@ -109,28 +110,30 @@ class MajorCreditorServiceTest {
             .build();
 
         MajorCreditorReferenceData referenceData = MajorCreditorReferenceData.builder()
-            .majorCreditorId(majorCreditorEntity.getMajorCreditorId())
-            .businessUnitId(majorCreditorEntity.getBusinessUnitId())
-            .majorCreditorCode(majorCreditorEntity.getMajorCreditorCode())
-            .name(majorCreditorEntity.getName())
-            .postcode(majorCreditorEntity.getPostcode())
-            .creditorAccountId(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountId())
-            .accountNumber(majorCreditorEntity.getCreditorAccountEntity().getAccountNumber())
-            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
-            .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
-            .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
-            .repayment(majorCreditorEntity.getCreditorAccountEntity().isRepayment())
-            .holdPayout(majorCreditorEntity.getCreditorAccountEntity().isHoldPayout())
-            .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
+            .majorCreditorId(majorCreditorLegacyEntity.getMajorCreditorId())
+            .businessUnitId(majorCreditorLegacyEntity.getBusinessUnitId())
+            .majorCreditorCode(majorCreditorLegacyEntity.getMajorCreditorCode())
+            .name(majorCreditorLegacyEntity.getName())
+            .postcode(majorCreditorLegacyEntity.getPostcode())
+            .creditorAccountId(majorCreditorLegacyEntity.getCreditorAccountEntity().getCreditorAccountId())
+            .accountNumber(majorCreditorLegacyEntity.getCreditorAccountEntity().getAccountNumber())
+            .creditorAccountType(
+                majorCreditorLegacyEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
+            .prosecutionService(majorCreditorLegacyEntity.getCreditorAccountEntity().isProsecutionService())
+            .minorCreditorPartyId(majorCreditorLegacyEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
+            .repayment(majorCreditorLegacyEntity.getCreditorAccountEntity().isRepayment())
+            .holdPayout(majorCreditorLegacyEntity.getCreditorAccountEntity().isHoldPayout())
+            .lastChangedDate(majorCreditorLegacyEntity.getCreditorAccountEntity().getLastChangedDate())
             .build();
 
-        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
+        Page<MajorCreditorLegacyEntity> mockPage =
+            new PageImpl<>(List.of(majorCreditorLegacyEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
-        when(majorCreditorMapper.toRefData(majorCreditorEntity)).thenReturn(referenceData);
+        when(majorCreditorMapper.toRefData(majorCreditorLegacyEntity)).thenReturn(referenceData);
         when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B)).thenReturn(true);
 
         // Act
@@ -139,7 +142,7 @@ class MajorCreditorServiceTest {
 
         // Assert
         assertEquals(List.of(referenceData), result);
-        Mockito.verify(majorCreditorMapper).toRefData(majorCreditorEntity);
+        Mockito.verify(majorCreditorMapper).toRefData(majorCreditorLegacyEntity);
     }
 
     @Test
@@ -149,7 +152,7 @@ class MajorCreditorServiceTest {
         SpecificationFluentQuery sfq = Mockito.mock(SpecificationFluentQuery.class);
         when(sfq.sortBy(any())).thenReturn(sfq);
 
-        MajorCreditorEntity majorCreditorEntity = MajorCreditorEntity.builder()
+        MajorCreditorLegacyEntity majorCreditorLegacyEntity = MajorCreditorLegacyEntity.builder()
             .businessUnitId((short) 7)
             .creditorAccountEntity(
                 CreditorAccountEntity.builder()
@@ -165,28 +168,30 @@ class MajorCreditorServiceTest {
             .build();
 
         MajorCreditorReferenceData referenceData = MajorCreditorReferenceData.builder()
-            .majorCreditorId(majorCreditorEntity.getMajorCreditorId())
-            .businessUnitId(majorCreditorEntity.getBusinessUnitId())
-            .majorCreditorCode(majorCreditorEntity.getMajorCreditorCode())
-            .name(majorCreditorEntity.getName())
-            .postcode(majorCreditorEntity.getPostcode())
-            .creditorAccountId(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountId())
-            .accountNumber(majorCreditorEntity.getCreditorAccountEntity().getAccountNumber())
-            .creditorAccountType(majorCreditorEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
-            .prosecutionService(majorCreditorEntity.getCreditorAccountEntity().isProsecutionService())
-            .minorCreditorPartyId(majorCreditorEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
-            .repayment(majorCreditorEntity.getCreditorAccountEntity().isRepayment())
-            .holdPayout(majorCreditorEntity.getCreditorAccountEntity().isHoldPayout())
-            .lastChangedDate(majorCreditorEntity.getCreditorAccountEntity().getLastChangedDate())
+            .majorCreditorId(majorCreditorLegacyEntity.getMajorCreditorId())
+            .businessUnitId(majorCreditorLegacyEntity.getBusinessUnitId())
+            .majorCreditorCode(majorCreditorLegacyEntity.getMajorCreditorCode())
+            .name(majorCreditorLegacyEntity.getName())
+            .postcode(majorCreditorLegacyEntity.getPostcode())
+            .creditorAccountId(majorCreditorLegacyEntity.getCreditorAccountEntity().getCreditorAccountId())
+            .accountNumber(majorCreditorLegacyEntity.getCreditorAccountEntity().getAccountNumber())
+            .creditorAccountType(
+                majorCreditorLegacyEntity.getCreditorAccountEntity().getCreditorAccountType().toString())
+            .prosecutionService(majorCreditorLegacyEntity.getCreditorAccountEntity().isProsecutionService())
+            .minorCreditorPartyId(majorCreditorLegacyEntity.getCreditorAccountEntity().getMinorCreditorPartyId())
+            .repayment(majorCreditorLegacyEntity.getCreditorAccountEntity().isRepayment())
+            .holdPayout(majorCreditorLegacyEntity.getCreditorAccountEntity().isHoldPayout())
+            .lastChangedDate(majorCreditorLegacyEntity.getCreditorAccountEntity().getLastChangedDate())
             .build();
 
-        Page<MajorCreditorEntity> mockPage = new PageImpl<>(List.of(majorCreditorEntity), Pageable.unpaged(), 999L);
+        Page<MajorCreditorLegacyEntity> mockPage =
+            new PageImpl<>(List.of(majorCreditorLegacyEntity), Pageable.unpaged(), 999L);
         when(majorCreditorRepository.findBy(any(Specification.class), any())).thenAnswer(iom -> {
             iom.getArgument(1, Function.class).apply(sfq);
             return mockPage;
         });
 
-        when(majorCreditorMapper.toRefData(majorCreditorEntity)).thenReturn(referenceData);
+        when(majorCreditorMapper.toRefData(majorCreditorLegacyEntity)).thenReturn(referenceData);
         when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1B)).thenReturn(false);
 
         // Act
@@ -195,6 +200,6 @@ class MajorCreditorServiceTest {
 
         // Assert
         assertEquals(List.of(referenceData), result);
-        verify(majorCreditorMapper).toRefData(majorCreditorEntity);
+        verify(majorCreditorMapper).toRefData(majorCreditorLegacyEntity);
     }
 }
