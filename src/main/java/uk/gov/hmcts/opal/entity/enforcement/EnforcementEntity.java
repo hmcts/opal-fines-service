@@ -25,11 +25,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.converter.EnforcementAccountTypeExtendedConverter;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.util.LocalDateTimeAdapter;
 
 @Getter
@@ -84,7 +84,7 @@ public class EnforcementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "result_id", insertable = false, updatable = false)
-    private ResultEntity result;
+    private ResultLegacyEntity result;
 
     @Column(name = "reason", length = 50)
     private String reason;
@@ -128,9 +128,9 @@ public class EnforcementEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "enforcer_id", insertable = false, updatable = false)
-    private EnforcerEntity enforcer;
+    private EnforcerLegacyEntity enforcer;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "hearing_court_id", nullable = true, insertable = false, updatable = false)
-    private CourtEntity hearingCourt;
+    private CourtLegacyEntity hearingCourt;
 }
