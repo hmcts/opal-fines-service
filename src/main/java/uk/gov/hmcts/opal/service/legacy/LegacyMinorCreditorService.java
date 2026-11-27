@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpServerErrorException;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService.Response;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
@@ -48,7 +47,6 @@ import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.service.iface.MinorCreditorServiceInterface;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @Service
 @RequiredArgsConstructor
@@ -74,7 +72,6 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
     private final MinorCreditorMapper minorCreditorMapper;
     private final LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
-    private final FeatureToggleApi featureToggleApi;
 
     @Override
     public MinorCreditorAccountsSearchResponse searchMinorCreditors(MinorCreditorSearchRequest minorCreditorEntity) {
@@ -187,10 +184,8 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
     public GetMinorCreditorHistoryResponse getMinorCreditorHistory(
         Long minorCreditorAccountId,
         MinorCreditorHistoryFilters filters) {
-        boolean release1b11Enabled = isItemTypeFilteringEnabled();
-
         LegacyGetMinorCreditorAccountHistoryRequest request =
-            minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters, release1b11Enabled);
+            minorCreditorHistoryMapper.toLegacyRequest(minorCreditorAccountId, filters);
 
         Response<MinorCreditorHistoryLegacyResponse> response =
             gatewayService.postToGateway(
@@ -323,13 +318,4 @@ public class LegacyMinorCreditorService implements MinorCreditorServiceInterface
         return HttpServerErrorException.create(statusCode, statusText, HttpHeaders.EMPTY, body, StandardCharsets.UTF_8);
     }
 
-    private boolean isItemTypeFilteringEnabled() {
-        boolean enabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false);
-        if (!enabled) {
-            log.debug(":isItemTypeFilteringEnabled: default item type filtering is being used because {} is disabled",
-                FeatureFlags.RELEASE_1B_1_1);
-        }
-        return enabled;
-    }
 }
