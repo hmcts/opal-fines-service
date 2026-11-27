@@ -23,6 +23,8 @@ import java.util.UUID;
 public class ActivityNoteStepDef extends BaseStepDef {
 
     private static final int MAX_NOTE_LENGTH = 1000;
+    // Both account fixtures belong to business unit 77.
+    private static final int FIXTURE_BUSINESS_UNIT_ID = 77;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private String noteMarker;
@@ -35,8 +37,9 @@ public class ActivityNoteStepDef extends BaseStepDef {
     public void maximumLengthActivityNoteFixture() {
         noteMarker = "PO-11194 " + UUID.randomUUID() + " ";
         String content = "Activity note: account reviewed; follow-up required. ";
-        submittedNoteText = noteMarker + content.repeat(MAX_NOTE_LENGTH).substring(
-            0, MAX_NOTE_LENGTH - noteMarker.length());
+        int remainingLength = MAX_NOTE_LENGTH - noteMarker.length();
+        submittedNoteText = noteMarker + content.repeat(remainingLength / content.length() + 1)
+            .substring(0, remainingLength);
         assertEquals(MAX_NOTE_LENGTH, submittedNoteText.length(), "Fixture note_text length");
     }
 
@@ -79,7 +82,7 @@ public class ActivityNoteStepDef extends BaseStepDef {
             .put("note_type", "AA");
         Response response = authorisedJsonRequest()
             .header(HttpHeaders.IF_MATCH, etag)
-            .header("Business-Unit-Id", 77)
+            .header("Business-Unit-Id", FIXTURE_BUSINESS_UNIT_ID)
             .body(new JSONObject().put("activity_note", note).toString())
             .when().post(getTestUrl() + "/notes");
 
