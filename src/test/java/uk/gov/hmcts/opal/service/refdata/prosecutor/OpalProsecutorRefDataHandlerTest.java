@@ -13,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorOpalEntity;
 import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
@@ -41,7 +41,7 @@ class OpalProsecutorRefDataHandlerTest {
     void findsEntityUsingProsecutorCode() {
         // Given
         OpalProsecutorRecord record = validRecord();
-        OpalProsecutorEntity entity = new OpalProsecutorEntity();
+        ProsecutorOpalEntity entity = new ProsecutorOpalEntity();
         when(repository.findById("1234")).thenReturn(Optional.of(entity));
 
         // When
@@ -57,7 +57,7 @@ class OpalProsecutorRefDataHandlerTest {
         OpalProsecutorRecord record = validRecord();
 
         // When
-        OpalProsecutorEntity entity = handler.createEntityFromDto(record);
+        ProsecutorOpalEntity entity = handler.createEntityFromDto(record);
 
         // Then
         assertThat(entity.getProsecutorCode()).isEqualTo("1234");
@@ -68,7 +68,7 @@ class OpalProsecutorRefDataHandlerTest {
     void updatesEntityUsingMapper() {
         // Given
         OpalProsecutorRecord record = validRecord();
-        OpalProsecutorEntity entity = new OpalProsecutorEntity();
+        ProsecutorOpalEntity entity = new ProsecutorOpalEntity();
 
         // When
         handler.updateEntityFromDto(record, entity);
@@ -80,7 +80,7 @@ class OpalProsecutorRefDataHandlerTest {
     @Test
     void savesEntity() {
         // Given
-        OpalProsecutorEntity entity = new OpalProsecutorEntity();
+        ProsecutorOpalEntity entity = new ProsecutorOpalEntity();
         when(repository.save(entity)).thenReturn(entity);
 
         // When

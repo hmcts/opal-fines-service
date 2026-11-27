@@ -15,7 +15,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestConstructor;
 import tools.jackson.databind.ObjectMapper;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorOpalEntity;
 import uk.gov.hmcts.opal.refdata.RefDataHandlerRegistry;
 import uk.gov.hmcts.opal.refdata.RefDataMessageDecoder;
 import uk.gov.hmcts.opal.refdata.RefDataMessageProcessor;
@@ -99,7 +99,7 @@ class OpalProsecutorMessageProcessingIntegrationTest extends AbstractIntegration
     @JiraTestKey("PO-11021")
     void updatesExistingProsecutorWithoutUpdatingEndDateAndClearsNullableAddress() {
         LocalDateTime existingEndDate = LocalDateTime.of(2027, 3, 4, 0, 0);
-        OpalProsecutorEntity existing = OpalProsecutorEntity.builder()
+        ProsecutorOpalEntity existing = ProsecutorOpalEntity.builder()
             .prosecutorCode(UPDATE_CODE)
             .name("Existing Prosecutor")
             .addressLine1("Existing address")

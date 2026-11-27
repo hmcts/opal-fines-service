@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
-import uk.gov.hmcts.opal.entity.OpalProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorOpalEntity;
 import uk.gov.hmcts.opal.service.refdata.common.Address;
 
 class OpalProsecutorRefDataMapperTest {
@@ -32,7 +32,7 @@ class OpalProsecutorRefDataMapperTest {
                     .build()))
             .build();
         LocalDateTime endDate = LocalDateTime.of(2026, 1, 1, 0, 0);
-        OpalProsecutorEntity entity = new OpalProsecutorEntity();
+        ProsecutorOpalEntity entity = new ProsecutorOpalEntity();
         entity.setProsecutorCode("9999");
         entity.setEndDate(endDate);
 
@@ -57,7 +57,7 @@ class OpalProsecutorRefDataMapperTest {
         OpalProsecutorRecord record = OpalProsecutorRecord.builder()
             .name("Test Prosecutor")
             .build();
-        OpalProsecutorEntity entity = OpalProsecutorEntity.builder()
+        ProsecutorOpalEntity entity = ProsecutorOpalEntity.builder()
             .addressLine1("Existing line")
             .postcode("GIR 0AA")
             .build();
