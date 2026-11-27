@@ -3,6 +3,7 @@ package uk.gov.hmcts.opal.mapper;
 import static org.springframework.util.StringUtils.hasText;
 
 import java.util.Arrays;
+import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
@@ -108,22 +109,35 @@ public class SuspenseItemHistoryMapper {
                     .paymentDetails(toPayment(row))
                     .payerDetails(payer) : null;
         }
-        if ("UN".equals(row.getTransactionType()) && "UN".equals(row.getSuspenseItemType())
-            && !StringUtils.isEmpty(row.getOriginatorReference())) {
-            return new ManualPaymentUnidentifiedDetailsCommonStrict()
-                .paymentDetails(toPayment(row))
-                .relevantDetails(row.getRelevantDetails());
+        if ("UN".equals(row.getTransactionType()) && "UN".equals(row.getSuspenseItemType())) {
+            if (!StringUtils.isEmpty(row.getOriginatorReference())) {
+                Long defendantAccountNumber = StringUtils.isEmpty(row.getDefendantAccountNumber())
+                    ? Long.valueOf(0) : toAccountNumber(row.getDefendantAccountNumber());
+
+                return new AutoPaymentDetailsCommonStrict()
+                    .defendantAccountNumber(defendantAccountNumber)
+                    .originatorReference(row.getOriginatorReference())
+                    .paymentSource(row.getPaymentSource());
+            } else {
+                return new ManualPaymentUnidentifiedDetailsCommonStrict()
+                    .paymentDetails(toPayment(row))
+                    .relevantDetails(row.getRelevantDetails());
+            }
         }
         if ("OF".equals(row.getTransactionType()) && "OF".equals(row.getSuspenseItemType())) {
-            Long defendantAccountNumber = StringUtils.isEmpty(row.getDefendantAccountNumber())
-                ? Long.valueOf(0) : toAccountNumber(row.getDefendantAccountNumber());
-            if (defendantAccountNumber == null || row.getPaymentSource() == null) {
-                return null;
+            if (Objects.equals(row.getPaymentAssociatedRecordType(), "miscellaneous_accounts")) {
+                return new ManualPaymentPayerDetailsCommonStrict()
+                    .paymentDetails(toPayment(row))
+                    .payerDetails(toPayer(row));
+            } else {
+                Long defendantAccountNumber = StringUtils.isEmpty(row.getDefendantAccountNumber())
+                    ? Long.valueOf(0) : toAccountNumber(row.getDefendantAccountNumber());
+
+                return new AutoPaymentDetailsCommonStrict()
+                    .defendantAccountNumber(defendantAccountNumber)
+                    .originatorReference(row.getOriginatorReference())
+                    .paymentSource(row.getPaymentSource());
             }
-            return new AutoPaymentDetailsCommonStrict()
-                .defendantAccountNumber(defendantAccountNumber)
-                .originatorReference(row.getOriginatorReference())
-                .paymentSource(row.getPaymentSource());
         }
         PayerDetailsCommonStrict payer = toPayer(row);
         return payer == null ? null : new ManualPaymentPayerDetailsCommonStrict()

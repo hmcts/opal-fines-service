@@ -256,7 +256,7 @@ INSERT INTO court_fees_received (
     court_fee_received_id, business_unit_id, court_fee_id, overpayment, suspense_transaction_id, number_of_items
 ) VALUES (99000000979811, 29101, 99000000979801, FALSE, 99000000979865, 1);
 
--- UN selection needs an originator reference; OF selection depends on both transaction and item types.
+-- A nonempty UN originator reference selects automatic details; OF also checks the payment association.
 INSERT INTO payments_in (
     payment_in_id, till_id, payment_amount, payment_date, payment_method, destination_type,
     receipt, allocated, auto_payment, associated_record_type, associated_record_id, additional_information
@@ -286,3 +286,17 @@ INSERT INTO suspense_transactions (
     (99000000979878, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979818'),
     (99000000979879, 99000000979802, '2026-11-03', 'UN', 10, NULL, '99000000979806'),
     (99000000979880, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979813');
+
+-- Contrast miscellaneous-account payments with defendant-account payments on the same OF item.
+INSERT INTO payments_in (
+    payment_in_id, till_id, payment_amount, payment_date, payment_method, destination_type,
+    receipt, allocated, auto_payment, associated_record_type, associated_record_id, additional_information
+) VALUES (99000000979819, 99000000979802, 10, '2026-11-03', 'CT', 'S', FALSE, TRUE, FALSE,
+    'defendant_accounts', '99000000979801', '{"originator_reference":"DEFENDANT-MANUAL"}');
+INSERT INTO suspense_transactions (
+    suspense_transaction_id, suspense_item_id, posted_date, transaction_type, amount,
+    associated_record_type, associated_record_id
+) VALUES
+    (99000000979881, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979807'),
+    (99000000979882, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979808'),
+    (99000000979883, 99000000979802, '2026-11-03', 'OF', 10, NULL, '99000000979819');

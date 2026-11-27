@@ -38,6 +38,9 @@ public interface SuspenseTransactionHistoryProjection {
     Long getPaymentInId();
 
     @Nullable
+    String getPaymentAssociatedRecordType();
+
+    @Nullable
     Boolean getAutoPayment();
 
     @Nullable

@@ -180,18 +180,18 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = {99000000979701L, 99000000979702L})
+    @CsvSource({"99000000979701, BANK-REFERENCE", "99000000979702, FLAT-REFERENCE"})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("Imported UN payments use unidentified payment details and the till source")
-    void getHistory_mapsImportedUnidentifiedPaymentDetails(long transactionId) throws Exception {
+    @DisplayName("Imported UN payments with an originator reference use automatic details and the till source")
+    void getHistory_mapsImportedAutomaticPaymentDetails(long transactionId, String reference) throws Exception {
         String transaction = transactionPath(transactionId);
         getPaymentHistory()
             .andExpect(jsonPath(transaction, hasSize(1)))
-            .andExpect(jsonPath(transaction + ".details.payment_details.payment_method", contains("CT")))
-            .andExpect(jsonPath(transaction + ".details.payment_details.payment_source.payment_source",
-                contains("NATWEST")))
-            .andExpect(jsonPath(transaction + ".details.originator_reference").doesNotExist());
+            .andExpect(jsonPath(transaction + ".details.defendant_account_number", contains(0)))
+            .andExpect(jsonPath(transaction + ".details.originator_reference", contains(reference)))
+            .andExpect(jsonPath(transaction + ".details.payment_source", contains("NATWEST")))
+            .andExpect(jsonPath(transaction + ".details.payment_details").doesNotExist());
     }
 
     @ParameterizedTest
@@ -226,15 +226,19 @@ class SuspenseAccountsApiControllerDbTest extends AbstractIntegrationTest {
     }
 
     @ParameterizedTest
-    @ValueSource(longs = {99000000979705L, 99000000979713L})
+    @CsvSource({"99000000979705, PO", "99000000979713, CT"})
     @JiraStory("PO-9026")
     @JiraEpic("PO-9026")
-    @DisplayName("UN payments without an originator reference or payer return null details")
-    void getHistory_returnsNullWithoutOriginatorReference(long transactionId) throws Exception {
+    @DisplayName("UN payments without an originator reference retain unidentified details with optional fields null")
+    void getHistory_mapsUnidentifiedWithoutOptionalInformation(long transactionId, String method) throws Exception {
         String payment = transactionPath(transactionId);
         getPaymentHistory()
             .andExpect(jsonPath(payment, hasSize(1)))
-            .andExpect(jsonPath(payment + ".details", everyItem(nullValue())));
+            .andExpect(jsonPath(payment + ".details.payment_details.payment_method", contains(method)))
+            .andExpect(jsonPath(payment + ".details.payment_details.payment_reference", everyItem(nullValue())))
+            .andExpect(jsonPath(payment + ".details.payment_details.received_from", everyItem(nullValue())))
+            .andExpect(jsonPath(payment + ".details.relevant_details", everyItem(nullValue())))
+            .andExpect(jsonPath(payment + ".details.originator_reference").doesNotExist());
     }
 
     @ParameterizedTest

@@ -24,6 +24,7 @@ public interface SuspenseTransactionRepository extends JpaRepository<SuspenseTra
                st.reversed::text AS reversed,
                si.suspense_item_type::text AS suspense_item_type,
                p.payment_in_id,
+               p.associated_record_type AS "paymentAssociatedRecordType",
                p.auto_payment,
                p.payment_method::text AS payment_method,
                COALESCE(p.additional_information::jsonb ->> 'payment_received_from',
