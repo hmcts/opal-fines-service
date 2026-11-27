@@ -43,6 +43,7 @@ import uk.gov.hmcts.opal.generated.model.TillsAllocateItem;
 import uk.gov.hmcts.opal.generated.model.TillsAllocateRequest;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
 import uk.gov.hmcts.opal.repository.TillRepository;
+import uk.gov.hmcts.opal.service.messaging.TillQueueMessage;
 import uk.gov.hmcts.opal.service.messaging.TillQueuePublisher;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
@@ -93,7 +94,11 @@ class TillAllocationIntegrationTest extends AbstractIntegrationWithSecurityTest 
 
         assertStatus(createdId, Processing);
         assertStatus(failedId, Processing);
-        verify(publisher).publish(List.of(createdId, failedId));
+        verify(publisher).publish(List.of(
+            new TillQueueMessage(createdId, FIRST_BU, "L078JG", userStateStub.getUserState().getName(),
+                userStateStub.getUserState().getUserId()),
+            new TillQueueMessage(failedId, SECOND_BU, "L077JG", userStateStub.getUserState().getName(),
+                userStateStub.getUserState().getUserId())));
         verify(featureToggleApi).isFeatureEnabledWithPropertyValueDefault(
             RELEASE_1C_PAYMENT, RELEASE_1C_PAYMENT_ENABLED_PROPERTY, false);
     }
@@ -103,7 +108,11 @@ class TillAllocationIntegrationTest extends AbstractIntegrationWithSecurityTest 
     @JiraEpic("PO-2116")
     void publicationFailureRollsBackStatuses() throws Exception {
         doThrow(new UncategorizedJmsException("Queue unavailable"))
-            .when(publisher).publish(List.of(createdId, failedId));
+            .when(publisher).publish(List.of(
+                new TillQueueMessage(createdId, FIRST_BU, "L078JG", userStateStub.getUserState().getName(),
+                    userStateStub.getUserState().getUserId()),
+                new TillQueueMessage(failedId, SECOND_BU, "L077JG", userStateStub.getUserState().getName(),
+                    userStateStub.getUserState().getUserId())));
 
         allocate(item(createdId, FIRST_BU), item(failedId, SECOND_BU))
             .andExpect(status().isServiceUnavailable())
@@ -123,7 +132,9 @@ class TillAllocationIntegrationTest extends AbstractIntegrationWithSecurityTest 
         allocate(item(createdId, FIRST_BU)).andExpect(status().isConflict());
 
         assertStatus(createdId, Processing);
-        verify(publisher).publish(List.of(createdId));
+        verify(publisher).publish(List.of(
+            new TillQueueMessage(createdId, FIRST_BU, "L078JG", userStateStub.getUserState().getName(),
+                userStateStub.getUserState().getUserId())));
     }
 
     @ParameterizedTest

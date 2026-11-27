@@ -31,6 +31,10 @@ import uk.gov.hmcts.opal.config.TillQueueProperties;
 @ExtendWith(MockitoExtension.class)
 class TillQueuePublisherTest {
 
+    private static final List<TillQueueMessage> BATCH_MESSAGES = List.of(
+        new TillQueueMessage(12L, (short) 77, "BU-USER-77", "opal_user01", 42L),
+        new TillQueueMessage(13L, (short) 78, "BU-USER-78", "opal_user02", 42L));
+
     @Mock
     private ConnectionFactory connectionFactory;
     @Mock
@@ -63,7 +67,7 @@ class TillQueuePublisherTest {
     void commitsCompleteBatch() throws JMSException {
         prepareBatch();
 
-        publisher.publish(List.of(12L, 13L));
+        publisher.publish(BATCH_MESSAGES);
 
         verify(producer).send(firstMessage);
         verify(producer).send(secondMessage);
@@ -79,7 +83,7 @@ class TillQueuePublisherTest {
         doNothing().when(producer).send(firstMessage);
         doThrow(failure).when(producer).send(secondMessage);
 
-        assertThatThrownBy(() -> publisher.publish(List.of(12L, 13L)))
+        assertThatThrownBy(() -> publisher.publish(BATCH_MESSAGES))
             .isInstanceOf(JmsException.class).hasCause(failure);
 
         verify(producer).send(firstMessage);
@@ -94,7 +98,7 @@ class TillQueuePublisherTest {
         JMSException failure = new JMSException("Commit failed");
         doThrow(failure).when(session).commit();
 
-        assertThatThrownBy(() -> publisher.publish(List.of(12L, 13L)))
+        assertThatThrownBy(() -> publisher.publish(BATCH_MESSAGES))
             .isInstanceOf(JmsException.class).hasCause(failure);
 
         verify(session).rollback();
@@ -109,7 +113,7 @@ class TillQueuePublisherTest {
         doThrow(failure).when(producer).send(secondMessage);
         doThrow(rollbackFailure).when(session).rollback();
 
-        assertThatThrownBy(() -> publisher.publish(List.of(12L, 13L)))
+        assertThatThrownBy(() -> publisher.publish(BATCH_MESSAGES))
             .isSameAs(failure).hasSuppressedException(rollbackFailure);
 
         verify(session, never()).commit();
@@ -119,11 +123,13 @@ class TillQueuePublisherTest {
     void serializationFailureDoesNotOpenConnection() {
         ObjectMapper mapper = mock(ObjectMapper.class);
         JacksonException failure = mock(JacksonException.class);
-        when(mapper.writeValueAsString(new TillQueueMessage(12L))).thenReturn("{\"till_id\":12}");
-        when(mapper.writeValueAsString(new TillQueueMessage(13L))).thenThrow(failure);
+        when(mapper.writeValueAsString(BATCH_MESSAGES.getFirst()))
+            .thenReturn("{\"till_id\":12,\"business_unit_id\":77,\"posted_by\":\"BU-USER-77\","
+                + "\"posted_by_name\":\"opal_user01\",\"requested_by\":42}");
+        when(mapper.writeValueAsString(BATCH_MESSAGES.get(1))).thenThrow(failure);
         publisher = new TillQueuePublisher(template, mapper, properties);
 
-        assertThatThrownBy(() -> publisher.publish(List.of(12L, 13L)))
+        assertThatThrownBy(() -> publisher.publish(BATCH_MESSAGES))
             .isInstanceOf(IllegalStateException.class).hasCause(failure);
 
         verifyNoInteractions(connectionFactory);
@@ -134,7 +140,7 @@ class TillQueuePublisherTest {
         JMSException failure = new JMSException("Unavailable");
         when(connectionFactory.createConnection()).thenThrow(failure);
 
-        assertThatThrownBy(() -> publisher.publish(List.of(12L)))
+        assertThatThrownBy(() -> publisher.publish(List.of(BATCH_MESSAGES.getFirst())))
             .isInstanceOf(JmsException.class).hasCause(failure);
     }
 
@@ -143,7 +149,11 @@ class TillQueuePublisherTest {
         when(connection.createSession(true, Session.AUTO_ACKNOWLEDGE)).thenReturn(session);
         when(session.createQueue("allocate-tills")).thenReturn(queue);
         when(session.createProducer(queue)).thenReturn(producer);
-        when(session.createTextMessage("{\"till_id\":12}")).thenReturn(firstMessage);
-        when(session.createTextMessage("{\"till_id\":13}")).thenReturn(secondMessage);
+        when(session.createTextMessage("{\"till_id\":12,\"business_unit_id\":77,"
+            + "\"posted_by\":\"BU-USER-77\",\"posted_by_name\":\"opal_user01\",\"requested_by\":42}"))
+            .thenReturn(firstMessage);
+        when(session.createTextMessage("{\"till_id\":13,\"business_unit_id\":78,"
+            + "\"posted_by\":\"BU-USER-78\",\"posted_by_name\":\"opal_user02\",\"requested_by\":42}"))
+            .thenReturn(secondMessage);
     }
 }

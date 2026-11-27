@@ -18,6 +18,8 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +32,10 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceRequestReports;
+import uk.gov.hmcts.opal.generated.model.CreateReportInstanceResponseReports;
 import uk.gov.hmcts.opal.entity.ReportInstanceEntity;
 import uk.gov.hmcts.opal.exception.ReportGenerationException;
 import uk.gov.hmcts.opal.repository.ReportInstanceRepository;
@@ -49,6 +54,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
 
     private static final long REPORT_INSTANCE_ID = 99000000343000L;
     private static final long TILL_ID = 99000000343100L;
+    private static final short BUSINESS_UNIT_ID = 1777;
     private static final UUID CASH_LIST_JSON_LOCATION = UUID.fromString("00000000-0000-0000-0000-000000000004");
 
     private final ReportQueueConsumerService reportQueueConsumerService;
@@ -56,6 +62,7 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
     private ReportQueueListener reportQueueListener;
 
     private final ReportInstanceRepository reportInstanceRepository;
+    private final GenericReportService genericReportService;
 
     @MockitoBean
     private ReportBlobStore blobStore;
@@ -77,6 +84,44 @@ class CashListReportServiceIntegrationTest extends AbstractIntegrationTest {
     @Sql(scripts = "classpath:db/deleteData/delete_from_cash_list_report_data.sql",
         executionPhase = ExecutionPhase.AFTER_TEST_METHOD)
     class GenerateCashListSuccessCases {
+
+        @Test
+        @JiraStory("PO-3432")
+        @JiraEpic("PO-2116")
+        void addReportInstance_generatesCashListUsingTillId() {
+            // Arrange
+            when(blobStore.storeReport(any(InputStream.class))).thenReturn(CASH_LIST_JSON_LOCATION);
+
+            CreateReportInstanceRequestReports request = CreateReportInstanceRequestReports.builder()
+                .reportId("cash_list")
+                .businessUnitIds(List.of(BUSINESS_UNIT_ID))
+                .reportParameters(Map.of("till_id", TILL_ID))
+                .reportName("Cash List test")
+                .build();
+
+            // Act
+            CreateReportInstanceResponseReports response =
+                genericReportService.addReportInstance(request, 42L, "Opal User", false);
+
+            // Assert
+            ReportInstanceEntity saved = reportInstanceRepository.findById(response.getReportInstanceId())
+                .orElseThrow();
+            assertThat(saved.getGenerationStatus()).isEqualTo(READY);
+            assertThat(saved.getLocation()).isEqualTo(CASH_LIST_JSON_LOCATION);
+            assertThat(saved.getNoOfRecords()).isEqualTo((short) 2);
+            assertThat(objectMapper.readTree(saved.getReportParameters()))
+                .isEqualTo(objectMapper.valueToTree(Map.of("till_id", TILL_ID)));
+
+            ArgumentCaptor<InputStream> jsonCaptor = ArgumentCaptor.forClass(InputStream.class);
+            verify(blobStore).storeReport(jsonCaptor.capture());
+            JsonNode storedContent = objectMapper.readTree(jsonCaptor.getValue());
+            CashListReportData reportData = objectMapper.treeToValue(
+                storedContent.path("reportData"), CashListReportData.class);
+
+            assertThat(reportData.getTillDetails().getTillId()).isEqualTo(TILL_ID);
+            assertThat(reportData.getTillDetails().getTillId()).isEqualTo(TILL_ID);
+            assertThat(reportData.getTotal()).isEqualByComparingTo("165.50");
+        }
 
         @Test
         @JiraStory("PO-3435")
