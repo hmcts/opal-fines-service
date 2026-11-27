@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.Period;
+import org.mapstruct.Context;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Mappings;
@@ -25,8 +26,10 @@ import uk.gov.hmcts.opal.generated.model.IndividualDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.OrganisationDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PartyDetailsCommon;
 import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
+import uk.gov.hmcts.opal.mapper.common.BusinessUnitSummaryMapper;
 
-@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE,
+    uses = BusinessUnitSummaryMapper.class)
 public interface DefendantAccountHeaderSummaryMapper {
 
     @Mappings({
@@ -48,10 +51,11 @@ public interface DefendantAccountHeaderSummaryMapper {
         @Mapping(target = "response.prosecutorCaseReference", source = "entity.prosecutorCaseReference"),
         @Mapping(target = "response.hasConsolidatedAccounts"),
     })
-    DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity);
+    DefendantAccountHeaderSummary toDto(DefendantAccountHeaderViewEntity entity, @Context boolean welshLanguageEnabled);
 
-    @Mapping(target = "welshSpeaking", constant = "N")
-    BusinessUnitSummaryCommon toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity);
+    @Mapping(target = "welshSpeaking", source = "welshLanguage", qualifiedByName = "toHeaderWelshSpeaking")
+    BusinessUnitSummaryCommon toBusinessUnitSummary(DefendantAccountHeaderViewEntity entity,
+                                                  @Context boolean welshLanguageEnabled);
 
     @Mapping(target = "imposedAmount", source = "imposed")
     @Mapping(target = "arrearsAmount", source = "arrears")

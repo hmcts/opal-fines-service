@@ -1,5 +1,8 @@
 package uk.gov.hmcts.opal.service.opal;
 
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1;
+import static uk.gov.hmcts.opal.util.FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY;
+
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.util.List;
@@ -7,12 +10,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountAtAGlanceEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorAccountHeaderEntity;
 import uk.gov.hmcts.opal.mapper.MajorCreditorAccountHeaderEntityMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.MajorCreditorAccountAtAGlanceRepository;
@@ -34,6 +39,7 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
     private final MajorCreditorAccountHeaderRepository majorCreditorAccountHeaderRepository;
     private final MajorCreditorAccountHeaderEntityMapper majorCreditorAccountHeaderEntityMapper;
     private final MajorCreditorHistoryService majorCreditorHistoryService;
+    private final FeatureToggleApi featureToggleApi;
 
     @Override
     @Transactional(readOnly = true)
@@ -79,11 +85,15 @@ public class OpalMajorCreditorAccountService implements MajorCreditorAccountServ
     public GetMajorCreditorAccountHeaderSummaryResponse getHeaderSummary(Long majorCreditorAccountId) {
         log.debug(":getHeaderSummary (Opal): majorCreditorAccountId={}", majorCreditorAccountId);
 
-        return majorCreditorAccountHeaderRepository.findById(majorCreditorAccountId)
-            .map(majorCreditorAccountHeaderEntityMapper::toResponse)
+        MajorCreditorAccountHeaderEntity entity = majorCreditorAccountHeaderRepository.findById(majorCreditorAccountId)
             .orElseThrow(() -> new EntityNotFoundException(
                 ACCOUNT_NOT_FOUND + majorCreditorAccountId
             ));
+
+        boolean welshLanguageEnabled = featureToggleApi.isFeatureEnabledWithPropertyValueDefault(
+            RELEASE_1B_1_1, RELEASE_1B_1_1_ENABLED_PROPERTY, false);
+
+        return majorCreditorAccountHeaderEntityMapper.toResponse(entity, welshLanguageEnabled);
     }
 
     @Override
