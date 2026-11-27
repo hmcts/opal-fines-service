@@ -326,7 +326,9 @@ public class MockRestClient implements RestClient {
             return responseSpec;
         }
 
+        // ResponseSpec still requires this deprecated overload.
         @Override
+        @SuppressWarnings("removal")
         public ResponseSpec onStatus(ResponseErrorHandler errorHandler) {
             return responseSpec;
         }
