@@ -540,7 +540,7 @@ environment variables.
 ```
 
 Available Zephyr tasks:
-
+ 
 Use the task that matches the populated raw JSON source above.
 
 | Task | Purpose |

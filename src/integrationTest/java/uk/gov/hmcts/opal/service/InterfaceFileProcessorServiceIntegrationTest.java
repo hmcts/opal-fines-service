@@ -1,6 +1,7 @@
 package uk.gov.hmcts.opal.service;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.okJson;
@@ -35,6 +36,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
@@ -178,7 +180,7 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
 
         final long filesBefore = interfaceFileRepository.count();
         final long jobsBefore = interfaceJobRepository.count();
-        
+
         try (var executor = Executors.newFixedThreadPool(2)) {
             var first = executor.submit(() -> service.process(SOURCE_ID));
             var second = executor.submit(() -> service.process(SOURCE_ID));
@@ -238,9 +240,13 @@ class InterfaceFileProcessorServiceIntegrationTest extends AbstractIntegrationTe
     }
 
     private void assertFileHandlerCalledOnce() {
-        wireMockServer.verify(1, getRequestedFor(urlEqualTo("/interface-files/987")));
-        wireMockServer.verify(1, getRequestedFor(urlEqualTo("/interface-files/987/content")));
-        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files")));
+        String domain = "fines";
+        wireMockServer.verify(1, getRequestedFor(urlEqualTo("/interface-files/987"))
+            .withHeader(HttpHeaders.USER_AGENT, equalTo(domain)));
+        wireMockServer.verify(1, getRequestedFor(urlEqualTo("/interface-files/987/content"))
+            .withHeader(HttpHeaders.USER_AGENT, equalTo(domain)));
+        wireMockServer.verify(1, postRequestedFor(urlEqualTo("/interface-files"))
+            .withHeader(HttpHeaders.USER_AGENT, equalTo(domain)));
     }
 
     private void stubSuccessfulFileHandler(PaymentType paymentType) {

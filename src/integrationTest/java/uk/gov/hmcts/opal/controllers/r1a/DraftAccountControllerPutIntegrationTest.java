@@ -23,10 +23,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.LocalJusticeAreaLegacyEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
-import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.SchemaPaths;
 import uk.gov.hmcts.opal.dto.DraftAccountResponseDto;
 import uk.gov.hmcts.opal.dto.PdplIdentifierType;
@@ -588,6 +594,46 @@ class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControl
                 expectedSingleReferenceValidationError("$.originator_id: local justice area id 32010 does not exist"),
                 "https://hmcts.gov.uk/problems/invalid-reference-validation"
             ));
+    }
+
+    @Autowired
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
+
+    @Autowired
+    private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
+    void replaceDraftAccount_validatesLjaNameAgainstOpalTable() throws Exception {
+        short id = 1;
+        LocalJusticeAreaLegacyEntity legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();
+        legacyArea.setName("Legacy Split LJA");
+        localJusticeAreaLegacyRepository.saveAndFlush(legacyArea);
+        OpalLocalJusticeAreaEntity opalArea = opalLocalJusticeAreaRepository.findById(id).orElseGet(
+            () -> OpalLocalJusticeAreaEntity.builder()
+                .localJusticeAreaId(id)
+                .addressLine1("Split Street")
+                .ljaType(OpalLocalJusticeAreaType.LJA)
+                .build());
+        opalArea.setName("Opal Split LJA");
+        opalLocalJusticeAreaRepository.saveAndFlush(opalArea);
+        String request = replaceRequestBody(0L, "Confiscation", "TFO", id, "Legacy Split LJA");
+
+        mockMvc.perform(put(URL_BASE + "/5")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(5L))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request))
+            .andExpect(status().isBadRequest())
+            .andExpect(expectBadRequestWithoutStatus(
+                expectedSingleReferenceValidationError(
+                    "$.originator_name: originator name 'Legacy Split LJA' does not match local justice area name "
+                        + "'Opal Split LJA' for id " + id),
+                "https://hmcts.gov.uk/problems/invalid-reference-validation"));
     }
 
     @Test

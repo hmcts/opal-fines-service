@@ -50,7 +50,7 @@ import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountHeaderViewEntit
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountSummaryViewEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.AccountStatusReferenceCommon;
 import uk.gov.hmcts.opal.generated.model.AtAGlanceResponseDefendantAccount.AccountStatusCodeEnum;
 import uk.gov.hmcts.opal.generated.model.EnforcementActionDefendantAccount;
@@ -89,7 +89,7 @@ class OpalDefendantAccountBuildersTest {
 
     @Test
     void buildEnforcementAction_mapsResultResponsesFromKeyedJson() {
-        ResultEntity result = ResultEntity.builder()
+        ResultLegacyEntity result = ResultLegacyEntity.builder()
             .resultId("FE")
             .resultTitle("Further Enforcement")
             .resultParameters("""
