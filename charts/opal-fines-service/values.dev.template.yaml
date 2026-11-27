@@ -54,7 +54,7 @@ java:
     OPAL_FINES_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
     RUN_DB_MIGRATION_ON_STARTUP: true
     OPAL_FRONTEND_URL: "${OPAL_FRONT_END_URL}"
-    OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net/"
+    OPAL_USER_SERVICE_API_URL: "${OPAL_USER_SERVICE_API_URL}"
     OPAL_FILE_HANDLER_SERVICE_API_URL: "https://opal-file-handler-service.staging.platform.hmcts.net"
     OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-staging.platform.hmcts.net/opal
     TESTING_SUPPORT_ENDPOINTS_ENABLED: true
@@ -66,6 +66,7 @@ java:
     RELEASE_1B_1_1_ENABLED: true
     RELEASE_1B_1_2_ENABLED: true
     RELEASE_1C_ENABLED: true
+    RELEASE_1C_WRITE_OFF_ENABLED: true
     RELEASE_1C_PAYMENT_ENABLED: true
     RELEASE_1C_BANKING_INTERFACES_ENABLED: true
     RELEASE_1C_ENFORCEMENT_OPERATIONAL_REPORTING_ENABLED: true
@@ -76,6 +77,11 @@ java:
     SERVICEBUS_INTERFACE_JOBS_QUEUE_NAME: "{{ .Release.Name}}-servicebus-auto-payments-process-interface-files"
     SERVICEBUS_LOGGING_PDPL_PROTOCOL: amqps
     SERVICEBUS_PROTOCOL: amqps
+    SERVICEBUS_FULLY_QUALIFIED_NAMESPACE: opal-sb-dev.servicebus.windows.net
+    REFDATA_CONSUMER_ENABLED: true
+    REFDATA_FIXED_DELAY_SECONDS: 60
+    SERVICEBUS_REFDATA_TOPIC_NAME: "{{ .Release.Name }}-servicebus-refdata"
+    SERVICEBUS_REFDATA_SUBSCRIPTION_NAME: "{{ .Release.Name }}-servicebus-refdata"
     INTERFACE_FILE_CONSUMER_ENABLED: true
     REPORT_CONSUMER_ENABLED: true
   postgresql:
@@ -96,19 +102,21 @@ opal-frontend:
   nodejs:
     releaseNameOverride: ${SERVICE_NAME}-frontend
     image: 'hmctsprod.azurecr.io/opal/frontend:${DEV_OPAL_FRONT_END_IMAGE_SUFFIX}'
-    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-frontend.dev.apps.hmcts.net"
+    ingressHost: "opal-fines-service-pr-${CHANGE_ID}-frontend.dev.platform.hmcts.net"
     keyVaults:
       opal:
         secrets:
           - app-insights-connection-string
           - launch-darkly-client-id
     environment:
-      REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-redis-master:6379
+      REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
       OPAL_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
+      OPAL_FINES_SERVICE_API_URL: "https://opal-fines-service-pr-${CHANGE_ID}.dev.platform.hmcts.net"
       OPAL_LEGACY_GATEWAY_URL: https://opal-legacy-db-stub-staging.platform.hmcts.net/opal
-      OPAL_USER_SERVICE_API_URL: "https://opal-user-service.staging.platform.hmcts.net"
+      OPAL_USER_SERVICE_API_URL: "${OPAL_USER_SERVICE_API_URL}"
       FRONTEND_HOSTNAME: "${OPAL_FRONT_END_URL}"
       FEATURES_LAUNCH_DARKLY_ENABLED: false
+      FEATURE_FLAGS_OVERRIDE: true
       FEATURES_SSO_ENABLED: false
       FEATURES_APP_INSIGHTS_ENABLED: false
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-frontend"
@@ -134,15 +142,18 @@ opal-user-service:
           - name: OpalTestUserPassword
             alias: OPAL_TEST_USER_PASSWORD
     environment:
+      REDIS_CONNECTION_STRING: redis://${SERVICE_NAME}-hmcts-redis-master:6379
       OPAL_USER_DB_HOST: "{{ .Release.Name }}-postgresql"
       OPAL_USER_DB_NAME: "opal-user-db"
       OPAL_USER_DB_USERNAME: "{{ .Values.global.postgresUsername}}"
       OPAL_USER_DB_PASSWORD: "{{ .Values.global.postgresPassword}}"
       OPAL_USER_DB_OPTIONS: "{{ .Values.global.postgresOptions}}"
       RUN_DB_MIGRATION_ON_STARTUP: true
+      FLYWAY_LOCATIONS: classpath:db/migration/ddl, classpath:db/migration/data/allEnvs, classpath:db/migration/data/nle, classpath:db/migration/data/dev
       OPAL_FRONTEND_URL: "${OPAL_FRONT_END_URL}"
       TESTING_SUPPORT_ENDPOINTS_ENABLED: true
       LAUNCH_DARKLY_ENABLED: false
+      IS_LEGACY_MODE: ${IS_LEGACY_MODE}
       APPLICATIONINSIGHTS_ROLE_NAME: "opal-fines-service-pr-${CHANGE_ID}-user-service"
       RELEASE_1A_ENABLED: true
     postgresql:
@@ -199,6 +210,10 @@ servicebus:
       - name: "report"
       - name: "banking-interfaces-preprocess-interface-file-fines"
       - name: "auto-payments-process-interface-files"
+    topics:
+      - name: "refdata"
+        subscriptionNeeded: true
+        requiresSession: true
 hmcts-redis:
   enabled: true
   master:

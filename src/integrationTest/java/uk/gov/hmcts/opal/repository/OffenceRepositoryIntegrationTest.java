@@ -12,8 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import uk.gov.hmcts.opal.AbstractIntegrationTest;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity;
-import uk.gov.hmcts.opal.entity.offence.OffenceEntity_;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity;
+import uk.gov.hmcts.opal.entity.offence.OffenceLegacyEntity_;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 
@@ -56,7 +56,7 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     void shouldKeepBusinessUnitLazyWhenNoEntityGraphIsUsed() {
         entityManager.clear();
 
-        OffenceEntity offence = entityManager.find(OffenceEntity.class, OFFENCE_ID);
+        OffenceLegacyEntity offence = entityManager.find(OffenceLegacyEntity.class, OFFENCE_ID);
         PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         assertNotNull(offence);
@@ -71,7 +71,7 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     void shouldLoadFullEntityGraphForDirectFetch() {
         entityManager.clear();
 
-        OffenceEntity offence = offenceRepository.findById(OFFENCE_ID).orElseThrow();
+        OffenceLegacyEntity offence = offenceRepository.findById(OFFENCE_ID).orElseThrow();
         PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         assertTrue(unitUtil.isLoaded(offence, "businessUnit"));
@@ -87,11 +87,11 @@ class OffenceRepositoryIntegrationTest extends AbstractIntegrationTest {
     void shouldKeepBusinessUnitLazyForLiteSpecificationFetch() {
         entityManager.clear();
 
-        Page<OffenceEntity> page = offenceRepository.findBy(
-            (root, query, builder) -> builder.equal(root.get(OffenceEntity_.offenceId), OFFENCE_ID),
+        Page<OffenceLegacyEntity> page = offenceRepository.findBy(
+            (root, query, builder) -> builder.equal(root.get(OffenceLegacyEntity_.offenceId), OFFENCE_ID),
             ffq -> ffq.page(Pageable.unpaged())
         );
-        OffenceEntity offence = page.getContent().getFirst();
+        OffenceLegacyEntity offence = page.getContent().getFirst();
         PersistenceUnitUtil unitUtil = entityManagerFactory.getPersistenceUnitUtil();
 
         assertEquals(1, page.getContent().size());
