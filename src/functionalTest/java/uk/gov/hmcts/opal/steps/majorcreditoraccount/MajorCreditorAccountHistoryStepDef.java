@@ -33,6 +33,7 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String HISTORY_PATH = "/major-creditor-accounts/%d/history";
     private static final long DEFAULT_ACCOUNT_ID = 10770000000041L;
+    private static final long LEGACY_MAJOR_CREDITOR_ACCOUNT_ID_PREFIX = 10_770_000_000_000L;
     private static final String HISTORY_RESPONSE_SCHEMA =
         "opal/major-creditor/getMajorCreditorHistoryResponse.json";
     private static final Set<String> HISTORY_TYPES = Set.of("Financial", "Note");
@@ -313,7 +314,9 @@ public class MajorCreditorAccountHistoryStepDef extends BaseStepDef {
     }
 
     private long nonExistentMajorCreditorAccountId() {
-        return 92_000_000_000_000L + Math.abs(System.nanoTime() % 10_000_000_000L);
+        return LEGACY_MAJOR_CREDITOR_ACCOUNT_ID_PREFIX
+            + 1
+            + Math.abs(System.nanoTime() % 9_999_999_999L);
     }
 
     private JsonNode latestJsonBody() {

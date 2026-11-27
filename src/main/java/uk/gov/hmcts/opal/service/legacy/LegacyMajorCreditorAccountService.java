@@ -1,5 +1,6 @@
 package uk.gov.hmcts.opal.service.legacy;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +37,8 @@ import uk.gov.hmcts.opal.util.FeatureFlags;
 @RequiredArgsConstructor
 @Slf4j(topic = "opal.LegacyMajorCreditorAccountService")
 public class LegacyMajorCreditorAccountService implements MajorCreditorAccountServiceInterface {
+
+    private static final String LEGACY_ACCOUNT_NOT_FOUND_ERROR_CODE = "-20013";
 
     public static final String GET_MAJOR_CREDITOR_ACCOUNT_AT_A_GLANCE =
         "getMajorCreditorAccountAtAGlance";
@@ -84,6 +87,11 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
                 null
             );
 
+        if (isLegacyHeaderSummaryAccountNotFound(response)) {
+            log.info(":getHeaderSummary: Legacy reports major creditor account not found");
+            throw new EntityNotFoundException("Major creditor account not found");
+        }
+
         checkResponseForError(response, "getHeaderSummary");
 
         GetMajorCreditorAccountHeaderSummaryResponse mapped = headerSummaryResponseMapper.toOpal(
@@ -106,9 +114,49 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
             gatewayService.postToGateway(GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
                 LegacyMajorCreditorHistoryResponse.class, majorCreditorAccountHistoryRequest, null);
 
+        if (isLegacyHistoryAccountNotFound(response)) {
+            log.info(":getHistory: Legacy reports major creditor account history not found");
+            throw new EntityNotFoundException("Major creditor account history not found");
+        }
+
         checkResponseForError(response, "getHistory");
 
+        if (response.responseEntity != null && isHistoryEmpty(response.responseEntity)) {
+            checkAccountExistsForEmptyHistory(majorCreditorAccountId);
+        }
+
         return historyResponseMapper.toOpal(response.responseEntity);
+    }
+
+    private void checkAccountExistsForEmptyHistory(Long majorCreditorAccountId) {
+        Response<GetMajorCreditorAccountHeaderSummaryLegacyResponse> response = gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            GetMajorCreditorAccountHeaderSummaryLegacyRequest.builder()
+                .creditorAccountId(String.valueOf(majorCreditorAccountId))
+                .build(),
+            null
+        );
+
+        if (isLegacyHeaderSummaryAccountNotFound(response)) {
+            log.info(":getHistory: Legacy reports major creditor account not found during account check");
+            throw new EntityNotFoundException("Major creditor account history not found");
+        }
+
+        checkResponseForError(response, "getHistory.accountCheck");
+
+        if (response.responseEntity == null || response.responseEntity.getMajorCreditor() == null) {
+            throw createGatewayException(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Legacy returned an empty major creditor account response",
+                response.body,
+                null
+            );
+        }
+    }
+
+    private static boolean isHistoryEmpty(LegacyMajorCreditorHistoryResponse response) {
+        return response.getHistoryItems() == null || response.getHistoryItems().isEmpty();
     }
 
     private void applyResolvedBusinessUnitCode(
@@ -142,6 +190,22 @@ public class LegacyMajorCreditorAccountService implements MajorCreditorAccountSe
         } else if (response.isSuccessful()) {
             log.info(":{}: Legacy Gateway response: Success.", method);
         }
+    }
+
+    private static boolean isLegacyHistoryAccountNotFound(
+        Response<LegacyMajorCreditorHistoryResponse> response
+    ) {
+        return response.hasErrorResponse()
+            && LEGACY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode());
+    }
+
+    private static boolean isLegacyHeaderSummaryAccountNotFound(
+        Response<GetMajorCreditorAccountHeaderSummaryLegacyResponse> response
+    ) {
+        return response.hasErrorResponse()
+            && LEGACY_ACCOUNT_NOT_FOUND_ERROR_CODE.equals(
+                response.responseEntity.getErrorResponse().getErrorCode());
     }
 
     private static RuntimeException createGatewayException(

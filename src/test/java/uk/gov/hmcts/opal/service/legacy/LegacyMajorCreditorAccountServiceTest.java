@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigInteger;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
+import uk.gov.hmcts.opal.common.legacy.model.ErrorResponse;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountAtAGlanceResponse;
 import uk.gov.hmcts.opal.dto.GetMajorCreditorAccountHeaderSummaryResponse;
@@ -35,6 +37,7 @@ import uk.gov.hmcts.opal.dto.legacy.LegacyMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.dto.legacy.common.BusinessUnitSummary;
 import uk.gov.hmcts.opal.dto.response.GetMajorCreditorHistoryResponse;
 import uk.gov.hmcts.opal.generated.model.BusinessUnitSummaryCommon;
+import uk.gov.hmcts.opal.generated.model.GetMajorCreditorHistory200Response;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountAtAGlanceResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHeaderSummaryResponseLegacyMapper;
 import uk.gov.hmcts.opal.mapper.legacy.GetMajorCreditorAccountHistoryRequestLegacyMapper;
@@ -137,6 +140,56 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         );
+    }
+
+    @Test
+    void getHeaderSummary_whenLegacyReportsAccountNotFound_throwsEntityNotFoundException() {
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse response =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-20013")
+                    .errorMessage("Account not found")
+                    .build())
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, response));
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
+        );
+
+        assertEquals("Major creditor account not found", exception.getMessage());
+        verifyNoInteractions(headerSummaryResponseMapper);
+    }
+
+    @Test
+    void getHeaderSummary_whenLegacyReportsProcedureFailure_preservesServerError() {
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse response =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-6550")
+                    .errorMessage("ORA-06550: procedure failure")
+                    .build())
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, response));
+
+        assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHeaderSummary(123L)
+        );
+        verifyNoInteractions(headerSummaryResponseMapper);
     }
 
     @Test
@@ -277,7 +330,7 @@ class LegacyMajorCreditorAccountServiceTest {
                 .build();
         LegacyMajorCreditorHistoryResponse legacyResponse =
             LegacyMajorCreditorHistoryResponse.builder().version(BigInteger.valueOf(7L)).build();
-        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+        final GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
             .version(BigInteger.valueOf(7))
             .build();
 
@@ -290,6 +343,7 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        stubExistingAccountHeaderSummary();
         when(historyRequestMapper.toLegacyRequest(123L, dateFrom, dateTo, List.of("Financial")))
             .thenReturn(expectedRequest);
         when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
@@ -320,7 +374,7 @@ class LegacyMajorCreditorAccountServiceTest {
                 .build();
         LegacyMajorCreditorHistoryResponse legacyResponse =
             LegacyMajorCreditorHistoryResponse.builder().version(BigInteger.valueOf(7L)).build();
-        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+        final GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
             .version(BigInteger.valueOf(7))
             .build();
 
@@ -333,6 +387,7 @@ class LegacyMajorCreditorAccountServiceTest {
             expectedRequest,
             null
         )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        stubExistingAccountHeaderSummary();
         when(historyRequestMapper.toLegacyRequest(123L, dateFrom, dateTo, List.of("Note")))
             .thenReturn(expectedRequest);
         when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
@@ -380,6 +435,201 @@ class LegacyMajorCreditorAccountServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, exception.getStatusCode());
         verify(historyRequestMapper).toLegacyRequest(123L, null, null, List.of("Financial"));
         verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_whenLegacyReportsAccountNotFound_throwsEntityNotFoundException() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+        LegacyMajorCreditorHistoryResponse legacyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-20013")
+                .errorMessage("Account not found")
+                .build())
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            LegacyMajorCreditorHistoryResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null, List.of("Financial")))
+            .thenReturn(expectedRequest);
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("Financial"))
+        );
+
+        assertEquals("Major creditor account history not found", exception.getMessage());
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_whenLegacyReportsProcedureFailure_doesNotTreatItAsNotFound() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+        LegacyMajorCreditorHistoryResponse legacyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .errorResponse(ErrorResponse.builder()
+                .errorCode("-6550")
+                .errorMessage("ORA-06550: PLS-00201: identifier must be declared")
+                .build())
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            LegacyMajorCreditorHistoryResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null, List.of("Financial")))
+            .thenReturn(expectedRequest);
+
+        assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("Financial"))
+        );
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_whenHistoryIsEmptyAndHeaderSummaryFindsAccount_returnsEmptyHistory() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+        LegacyMajorCreditorHistoryResponse legacyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorHistoryResponse mappedResponse = GetMajorCreditorHistoryResponse.builder()
+            .payload(new GetMajorCreditorHistory200Response().historyItems(List.of()))
+            .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            LegacyMajorCreditorHistoryResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse()));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null, List.of("Financial")))
+            .thenReturn(expectedRequest);
+        when(historyResponseMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
+
+        GetMajorCreditorHistoryResponse result =
+            legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("Financial"));
+
+        assertEquals(mappedResponse, result);
+        verify(gatewayService).postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        );
+    }
+
+    @Test
+    void getHistory_whenHistoryIsEmptyAndHeaderSummaryReportsNotFound_throwsEntityNotFoundException() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+        LegacyMajorCreditorHistoryResponse legacyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse notFoundResponse =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-20013")
+                    .errorMessage("Account not found")
+                    .build())
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            LegacyMajorCreditorHistoryResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, notFoundResponse));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null, List.of("Financial")))
+            .thenReturn(expectedRequest);
+
+        EntityNotFoundException exception = assertThrows(
+            EntityNotFoundException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("Financial"))
+        );
+
+        assertEquals("Major creditor account history not found", exception.getMessage());
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    @Test
+    void getHistory_whenEmptyHistoryAccountCheckHasProcedureFailure_preservesServerError() {
+        GetMajorCreditorAccountHistoryLegacyRequest expectedRequest =
+            GetMajorCreditorAccountHistoryLegacyRequest.builder()
+                .creditorAccountId("123")
+                .itemTypes(List.of("Financial"))
+                .build();
+        LegacyMajorCreditorHistoryResponse legacyResponse = LegacyMajorCreditorHistoryResponse.builder()
+            .historyItems(List.of())
+            .build();
+        GetMajorCreditorAccountHeaderSummaryLegacyResponse procedureFailure =
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.builder()
+                .errorResponse(ErrorResponse.builder()
+                    .errorCode("-6550")
+                    .errorMessage("ORA-06550: procedure failure")
+                    .build())
+                .build();
+
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HISTORY,
+            LegacyMajorCreditorHistoryResponse.class,
+            expectedRequest,
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse));
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, procedureFailure));
+        when(historyRequestMapper.toLegacyRequest(123L, null, null, List.of("Financial")))
+            .thenReturn(expectedRequest);
+
+        assertThrows(
+            HttpServerErrorException.class,
+            () -> legacyMajorCreditorAccountService.getHistory(123L, null, null, List.of("Financial"))
+        );
+        verifyNoInteractions(historyResponseMapper);
+    }
+
+    private void stubExistingAccountHeaderSummary() {
+        when(gatewayService.postToGateway(
+            GET_MAJOR_CREDITOR_ACCOUNT_HEADER_SUMMARY,
+            GetMajorCreditorAccountHeaderSummaryLegacyResponse.class,
+            legacyRequest(),
+            null
+        )).thenReturn(new GatewayService.Response<>(HttpStatus.OK, legacyResponse()));
     }
 
     @Test
