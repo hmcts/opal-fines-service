@@ -5,23 +5,23 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
 
 import java.util.Optional;
 import java.util.function.Function;
 
 @Repository
-public interface MajorCreditorRepository extends JpaRepository<MajorCreditorEntity, Long>,
-    JpaSpecificationExecutor<MajorCreditorEntity> {
+public interface MajorCreditorRepository extends JpaRepository<MajorCreditorLegacyEntity, Long>,
+    JpaSpecificationExecutor<MajorCreditorLegacyEntity> {
 
     @Override
-    @EntityGraph(value = MajorCreditorEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
-    Optional<MajorCreditorEntity> findById(Long majorCreditorId);
+    @EntityGraph(value = MajorCreditorLegacyEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    Optional<MajorCreditorLegacyEntity> findById(Long majorCreditorId);
 
     @Override
-    @EntityGraph(value = MajorCreditorEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
-    <S extends MajorCreditorEntity, R> R findBy(
-        Specification<MajorCreditorEntity> spec,
+    @EntityGraph(value = MajorCreditorLegacyEntity.ENTITY_GRAPH_FULL, type = EntityGraph.EntityGraphType.FETCH)
+    <S extends MajorCreditorLegacyEntity, R> R findBy(
+        Specification<MajorCreditorLegacyEntity> spec,
         Function<? super JpaSpecificationExecutor.SpecificationFluentQuery<S>, R> queryFunction
     );
 }

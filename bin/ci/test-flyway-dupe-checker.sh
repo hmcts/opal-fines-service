@@ -240,6 +240,26 @@ test_auto_update_does_not_rename_master_files() {
   assert_contains "$summary" "V1_3__new_pr_migration.sql"
 }
 
+test_auto_update_compares_against_the_specified_base_branch() {
+  local repo summary
+  repo="$(init_repo auto-update-stacked-pr-base)"
+  summary="$repo/rename-summary.md"
+
+  git -C "$repo" checkout -b stacked-base >/dev/null
+  printf "base branch migration\n" > "$repo/src/main/resources/db/migration/ddl/V1_3__base_branch_migration.sql"
+  commit_pr_changes "$repo"
+  git -C "$repo" checkout -b feature-on-stack >/dev/null
+  printf "stacked PR migration\n" > "$repo/src/main/resources/db/migration/ddl/V1_3__stacked_pr_migration.sql"
+  commit_pr_changes "$repo"
+  git -C "$repo" update-ref refs/remotes/origin/stacked-base refs/heads/stacked-base
+
+  run_script "$repo" --mode=auto-update --base-ref origin/stacked-base --summary-file "$summary"
+
+  assert_file_missing "$repo/src/main/resources/db/migration/ddl/V1_3__stacked_pr_migration.sql"
+  assert_file_exists "$repo/src/main/resources/db/migration/ddl/V1_4__stacked_pr_migration.sql"
+  assert_contains "$summary" "V1_4__stacked_pr_migration.sql"
+}
+
 test_auto_update_fails_when_target_exists_unexpectedly() {
   local repo summary
   repo="$(init_repo auto-update-target-exists)"
@@ -305,6 +325,7 @@ test_auto_update_sorts_added_files_by_numeric_version_then_path
 test_auto_update_leaves_already_valid_added_files
 test_auto_update_with_no_added_migrations_leaves_no_diff
 test_auto_update_does_not_rename_master_files
+test_auto_update_compares_against_the_specified_base_branch
 test_auto_update_fails_when_target_exists_unexpectedly
 test_auto_update_handles_targets_that_are_also_added_sources
 test_auto_update_validates_malformed_filenames_before_renaming

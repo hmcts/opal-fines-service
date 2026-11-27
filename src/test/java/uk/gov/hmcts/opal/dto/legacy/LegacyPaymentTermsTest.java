@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import tools.jackson.databind.JsonNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.util.XmlUtil;
 
 class LegacyPaymentTermsTest {
 
@@ -56,5 +57,19 @@ class LegacyPaymentTermsTest {
         assertFalse(json.get("instalment_period").has("instalmentPeriodCode"));
         assertFalse(json.get("posted_details").has("postedBy"));
         assertFalse(json.get("posted_details").has("postedByName"));
+    }
+
+    @Test
+    void unmarshalXmlString_preservesDateDaysInDefaultImposed() throws Exception {
+        String xml = """
+            <payment_terms>
+                <days_in_default>14</days_in_default>
+                <date_days_in_default_imposed>2030-06-15</date_days_in_default_imposed>
+            </payment_terms>
+            """;
+
+        LegacyPaymentTerms paymentTerms = XmlUtil.unmarshalXmlString(xml, LegacyPaymentTerms.class);
+
+        assertEquals(LocalDate.of(2030, 6, 15), paymentTerms.getDateDaysInDefaultImposed());
     }
 }

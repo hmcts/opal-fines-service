@@ -4,6 +4,7 @@ package uk.gov.hmcts.opal.controllers.r1b;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -15,17 +16,29 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPatchIntegrationTest")
 class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Autowired
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
+
+    @Autowired
+    private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
 
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - account controls return 422 for protected field change")
@@ -329,9 +342,21 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
     @Test
     @DisplayName("OPAL: PATCH Update Defendant Account - Update Enforcement Override [@PO-1565]")
     @JiraStory("PO-1565")
-    @JiraEpic("PO-812")
     @JiraTestKey("PO-6024")
+    @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
     void patch_updatesEnforcementOverride() throws Exception {
+        short opalLjaId = 32020;
+        assertFalse(localJusticeAreaLegacyRepository.existsById(opalLjaId));
+        assertFalse(opalLocalJusticeAreaRepository.existsById(opalLjaId));
+        opalLocalJusticeAreaRepository.saveAndFlush(OpalLocalJusticeAreaEntity.builder()
+            .localJusticeAreaId(opalLjaId)
+            .name("Opal-only LJA")
+            .addressLine1("Split Street")
+            .ljaType(OpalLocalJusticeAreaType.LJA)
+            .build());
+
         Integer currentVersion = versionFor(77L);
         HttpHeaders headers = authorisedHeaders("good_token", "78", "\"" + currentVersion + "\"");
 
@@ -347,8 +372,8 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
                   "enforcer_name": "North East Enforcement"
                 },
                 "lja": {
-                  "lja_id": 240,
-                  "lja_name": "Tyne & Wear LJA"
+                  "lja_id": 32020,
+                  "lja_name": "Opal-only LJA"
                 }
               }
             }
@@ -369,7 +394,7 @@ class OpalDefendantsPatchIntegrationTest extends AbstractOpalDefendantsIntegrati
             .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_id")
                 .value("FWEC"))
             .andExpect(jsonPath("$.enforcement_override.enforcer.enforcer_id").value(21))
-            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240));
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value((int) opalLjaId));
     }
 
     @Test
