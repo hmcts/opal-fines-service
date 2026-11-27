@@ -134,7 +134,8 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
         assertThat(requestCaptor.getValue().getCreditorAccountId()).isEqualTo("99264500000001");
         assertThat(requestCaptor.getValue().getFromDate()).isNull();
         assertThat(requestCaptor.getValue().getToDate()).isNull();
-        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Financial", "Note");
     }
 
     @Test
@@ -280,7 +281,8 @@ class LegacyMinorCreditorHistoryIntegrationTest extends AbstractIntegrationTest 
             String.valueOf(MINOR_CREDITOR_ACCOUNT_ID));
         assertThat(requestCaptor.getValue().getFromDate()).isEqualTo(LocalDate.of(2025, 1, 1));
         assertThat(requestCaptor.getValue().getToDate()).isEqualTo(LocalDate.of(2026, 11, 30));
-        assertThat(requestCaptor.getValue().getItemTypes()).isNull();
+        assertThat(requestCaptor.getValue().getItemTypes())
+            .containsExactly("Amendment", "Financial", "Note");
     }
 
     @Test
