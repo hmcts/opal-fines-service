@@ -19,7 +19,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorOpalEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
 import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
@@ -30,7 +30,7 @@ import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
-import uk.gov.hmcts.opal.repository.ProsecutorRepository;
+import uk.gov.hmcts.opal.repository.OpalProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,10 +53,10 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private CreditorAccountRepository creditorAccountRepository;
 
     @Mock
-    private OpalLocalJusticeAreaRepository localJusticeAreaRepository;
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
 
     @Mock
-    private ProsecutorRepository prosecutorRepository;
+    private OpalProsecutorRepository opalProsecutorRepository;
 
     @InjectMocks
     private OpalDraftAccountReferenceValidationService service;
@@ -432,7 +432,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_whenNewFineOriginatorMatchesLja_shouldPass() {
-        when(localJusticeAreaRepository.findById((short)32001))
+        when(opalLocalJusticeAreaRepository.findById((short)32001))
             .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
                 OpalLocalJusticeAreaType.LJA)));
 
@@ -443,13 +443,13 @@ class OpalDraftAccountReferenceValidationServiceTest {
             "Draft Account Validation LJA"
         )));
 
-        verify(localJusticeAreaRepository).findById((short)32001);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32001);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenNewFineOriginatorMatchesCrwcrt_shouldPass() {
-        when(localJusticeAreaRepository.findById((short)32002))
+        when(opalLocalJusticeAreaRepository.findById((short)32002))
             .thenReturn(Optional.of(localJusticeArea((short)32002, "Draft Account Validation Crown Court",
                 OpalLocalJusticeAreaType.CRWCRT)));
 
@@ -460,13 +460,13 @@ class OpalDraftAccountReferenceValidationServiceTest {
             "Draft Account Validation Crown Court"
         )));
 
-        verify(localJusticeAreaRepository).findById((short)32002);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32002);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenNewConfiscationOriginatorMatchesLja_shouldPass() {
-        when(localJusticeAreaRepository.findById((short)32001))
+        when(opalLocalJusticeAreaRepository.findById((short)32001))
             .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
                 OpalLocalJusticeAreaType.LJA)));
 
@@ -477,29 +477,45 @@ class OpalDraftAccountReferenceValidationServiceTest {
             "Draft Account Validation LJA"
         )));
 
-        verify(localJusticeAreaRepository).findById((short)32001);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32001);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenNewConditionalCautionOriginatorMatchesProsecutor_shouldPass() {
-        when(prosecutorRepository.findById(32010L))
-            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+        when(opalProsecutorRepository.findById("32010"))
+            .thenReturn(Optional.of(prosecutor("32010", "Draft Account Validation Prosecutor")));
 
         assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
             DraftAccountType.CONDITIONAL_CAUTION,
             "NEW",
-            32010L,
+            "32010",
             "Draft Account Validation Prosecutor"
         )));
 
-        verify(prosecutorRepository).findById(32010L);
-        verifyNoInteractions(localJusticeAreaRepository);
+        verify(opalProsecutorRepository).findById("32010");
+        verifyNoInteractions(opalLocalJusticeAreaRepository);
+    }
+
+    @Test
+    void validateReferences_whenProsecutorCodeHasLeadingZeros_shouldPreserveCode() {
+        when(opalProsecutorRepository.findById("0012"))
+            .thenReturn(Optional.of(prosecutor("0012", "Draft Account Validation Prosecutor")));
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
+            DraftAccountType.FIXED_PENALTY,
+            "FP",
+            "0012",
+            "Draft Account Validation Prosecutor"
+        )));
+
+        verify(opalProsecutorRepository).findById("0012");
+        verifyNoInteractions(opalLocalJusticeAreaRepository);
     }
 
     @Test
     void validateReferences_whenTfoFineOriginatorMatchesLja_shouldPass() {
-        when(localJusticeAreaRepository.findById((short)32001))
+        when(opalLocalJusticeAreaRepository.findById((short)32001))
             .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
                 OpalLocalJusticeAreaType.LJA)));
 
@@ -510,13 +526,13 @@ class OpalDraftAccountReferenceValidationServiceTest {
             "Draft Account Validation LJA"
         )));
 
-        verify(localJusticeAreaRepository).findById((short)32001);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32001);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenTfoConfiscationOriginatorMatchesCrwcrt_shouldPass() {
-        when(localJusticeAreaRepository.findById((short)32002))
+        when(opalLocalJusticeAreaRepository.findById((short)32002))
             .thenReturn(Optional.of(localJusticeArea((short)32002, "Draft Account Validation Crown Court",
                 OpalLocalJusticeAreaType.CRWCRT)));
 
@@ -527,45 +543,45 @@ class OpalDraftAccountReferenceValidationServiceTest {
             "Draft Account Validation Crown Court"
         )));
 
-        verify(localJusticeAreaRepository).findById((short)32002);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32002);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenFixedPenaltyOriginatorMatchesProsecutor_shouldPass() {
-        when(prosecutorRepository.findById(32010L))
-            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+        when(opalProsecutorRepository.findById("32010"))
+            .thenReturn(Optional.of(prosecutor("32010", "Draft Account Validation Prosecutor")));
 
         assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
             DraftAccountType.FIXED_PENALTY,
             "FP",
-            32010L,
+            "32010",
             "Draft Account Validation Prosecutor"
         )));
 
-        verify(prosecutorRepository).findById(32010L);
-        verifyNoInteractions(localJusticeAreaRepository);
+        verify(opalProsecutorRepository).findById("32010");
+        verifyNoInteractions(opalLocalJusticeAreaRepository);
     }
 
     @Test
     void validateReferences_whenTfoFixedPenaltyOriginatorMatchesProsecutor_shouldPass() {
-        when(prosecutorRepository.findById(32010L))
-            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+        when(opalProsecutorRepository.findById("32010"))
+            .thenReturn(Optional.of(prosecutor("32010", "Draft Account Validation Prosecutor")));
 
         assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
             DraftAccountType.FIXED_PENALTY,
             "TFO",
-            32010L,
+            "32010",
             "Draft Account Validation Prosecutor"
         )));
 
-        verify(prosecutorRepository).findById(32010L);
-        verifyNoInteractions(localJusticeAreaRepository);
+        verify(opalProsecutorRepository).findById("32010");
+        verifyNoInteractions(opalLocalJusticeAreaRepository);
     }
 
     @Test
     void validateReferences_whenOriginatorIdIsUnknown_shouldFail() {
-        when(localJusticeAreaRepository.findById((short)32004)).thenReturn(Optional.empty());
+        when(opalLocalJusticeAreaRepository.findById((short)32004)).thenReturn(Optional.empty());
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
             () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
@@ -576,13 +592,13 @@ class OpalDraftAccountReferenceValidationServiceTest {
             )));
 
         assertContains(exception.getMessage(), "$.originator_id: local justice area id 32004 does not exist");
-        verify(localJusticeAreaRepository).findById((short)32004);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)32004);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenOriginatorExistsInWrongSource_shouldFail() {
-        when(localJusticeAreaRepository.findById((short)1111)).thenReturn(Optional.empty());
+        when(opalLocalJusticeAreaRepository.findById((short)1111)).thenReturn(Optional.empty());
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
             () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
@@ -593,13 +609,13 @@ class OpalDraftAccountReferenceValidationServiceTest {
             )));
 
         assertContains(exception.getMessage(), "$.originator_id: local justice area id 1111 does not exist");
-        verify(localJusticeAreaRepository).findById((short)1111);
-        verifyNoInteractions(prosecutorRepository);
+        verify(opalLocalJusticeAreaRepository).findById((short)1111);
+        verifyNoInteractions(opalProsecutorRepository);
     }
 
     @Test
     void validateReferences_whenOriginatorIdMatchesDisallowedLjaType_shouldFail() {
-        when(localJusticeAreaRepository.findById((short)32003))
+        when(opalLocalJusticeAreaRepository.findById((short)32003))
             .thenReturn(Optional.of(localJusticeArea((short)32003, "Draft Account Validation SJ Court",
                 OpalLocalJusticeAreaType.SJCRT)));
 
@@ -616,7 +632,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_whenOriginatorNameDoesNotMatch_shouldFail() {
-        when(localJusticeAreaRepository.findById((short)32001))
+        when(opalLocalJusticeAreaRepository.findById((short)32001))
             .thenReturn(Optional.of(localJusticeArea((short)32001, "Draft Account Validation LJA",
                 OpalLocalJusticeAreaType.LJA)));
 
@@ -635,14 +651,14 @@ class OpalDraftAccountReferenceValidationServiceTest {
 
     @Test
     void validateReferences_whenProsecutorOriginatorNameDoesNotMatch_shouldFail() {
-        when(prosecutorRepository.findById(32010L))
-            .thenReturn(Optional.of(prosecutor(32010L, "Draft Account Validation Prosecutor")));
+        when(opalProsecutorRepository.findById("32010"))
+            .thenReturn(Optional.of(prosecutor("32010", "Draft Account Validation Prosecutor")));
 
         InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
             () -> service.validateReferences(BUSINESS_UNIT_ID, originatorAccountJson(
                 DraftAccountType.FIXED_PENALTY,
                 "TFO",
-                32010L,
+                "32010",
                 "Wrong Prosecutor Name"
             )));
 
@@ -664,7 +680,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
         assertContains(exception.getMessage(),
             "$.originator_type: unsupported originator/account type combination: originator_type FP, "
                 + "account_type Fine");
-        verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
+        verifyNoInteractions(opalLocalJusticeAreaRepository, opalProsecutorRepository);
     }
 
     @Test
@@ -678,7 +694,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
             )));
 
         assertContains(exception.getMessage(), "$.account_type: unsupported account type 'Unknown'");
-        verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
+        verifyNoInteractions(opalLocalJusticeAreaRepository, opalProsecutorRepository);
     }
 
     @Test
@@ -692,7 +708,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
             )));
 
         assertContains(exception.getMessage(), "$.originator_type: unsupported originator type 'CASE'");
-        verifyNoInteractions(localJusticeAreaRepository, prosecutorRepository);
+        verifyNoInteractions(opalLocalJusticeAreaRepository, opalProsecutorRepository);
     }
 
     private static void assertContains(String message, String fragment) {
@@ -810,11 +826,25 @@ class OpalDraftAccountReferenceValidationServiceTest {
                                                 String originatorType,
                                                 Long originatorId,
                                                 String originatorName) {
+        return originatorAccountJson(accountType, originatorType, originatorId.toString(), originatorName);
+    }
+
+    private static String originatorAccountJson(DraftAccountType accountType,
+                                                String originatorType,
+                                                String originatorId,
+                                                String originatorName) {
+        return originatorAccountJson(accountType.getLabel(), originatorType, originatorId, originatorName);
+    }
+
+    private static String originatorAccountJson(String accountType,
+                                                String originatorType,
+                                                String originatorId,
+                                                String originatorName) {
         return """
             {
               "account_type": "%s",
               "originator_type": "%s",
-              "originator_id": %d,
+              "originator_id": "%s",
               "originator_name": "%s"
             }
             """.formatted(accountType, originatorType, originatorId, originatorName);
@@ -830,9 +860,9 @@ class OpalDraftAccountReferenceValidationServiceTest {
             .build();
     }
 
-    private static ProsecutorLegacyEntity prosecutor(Long id, String name) {
-        return ProsecutorLegacyEntity.builder()
-            .prosecutorId(id)
+    private static ProsecutorOpalEntity prosecutor(String code, String name) {
+        return ProsecutorOpalEntity.builder()
+            .prosecutorCode(code)
             .name(name)
             .build();
     }

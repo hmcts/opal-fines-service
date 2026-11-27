@@ -1,27 +1,17 @@
 package uk.gov.hmcts.opal.repository.jpa;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity_;
 
-import java.time.LocalDateTime;
-import java.util.Optional;
-
-public class ProsecutorSpecs extends EntitySpecs<ProsecutorLegacyEntity> {
+public class ProsecutorLegacySpecs extends EntitySpecs<ProsecutorLegacyEntity> {
 
     public Specification<ProsecutorLegacyEntity> referenceDataFilter(Optional<String> filter) {
         return Specification.allOf(specificationList(
-            filter.filter(s -> !s.isBlank()).map(this::likeAnyProsecutor)
+            filter.filter(value -> !value.isBlank()).map(this::likeAnyProsecutor)
         ));
-    }
-
-    public static Specification<ProsecutorLegacyEntity> equalsProsecutorId(String prosecutorId) {
-        return (root, query, builder) -> builder.equal(root.get(ProsecutorLegacyEntity_.prosecutorId), prosecutorId);
-    }
-
-    public static Specification<ProsecutorLegacyEntity> equalsProsecutorCode(String prosecutorCode) {
-        return (root, query, builder) ->
-            builder.equal(root.get(ProsecutorLegacyEntity_.prosecutorCode), prosecutorCode);
     }
 
     public static Optional<Specification<ProsecutorLegacyEntity>> endDateGreaterThenEqualToDate(
@@ -34,7 +24,8 @@ public class ProsecutorSpecs extends EntitySpecs<ProsecutorLegacyEntity> {
     }
 
     public Specification<ProsecutorLegacyEntity> likeName(String name) {
-        return (root, query, builder) -> likeWildcardPredicate(root.get(ProsecutorLegacyEntity_.name), builder, name);
+        return (root, query, builder) ->
+            likeWildcardPredicate(root.get(ProsecutorLegacyEntity_.name), builder, name);
     }
 
     public Specification<ProsecutorLegacyEntity> likeAddress1(String address) {
@@ -84,5 +75,4 @@ public class ProsecutorSpecs extends EntitySpecs<ProsecutorLegacyEntity> {
             likePostcode(filter)
         );
     }
-
 }

@@ -32,8 +32,8 @@
             "description": "Name of the originator - LJS, Police Force or CTO"
         },
         "originator_id": {
-            "type": "integer",
-            "description": "ID for the originator"
+            "type": "string",
+            "description": "ID for a local justice area or prosecutor code"
         },
         "originator_type": {
             "type": "string",

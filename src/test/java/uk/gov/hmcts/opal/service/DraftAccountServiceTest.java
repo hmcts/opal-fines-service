@@ -919,7 +919,7 @@ class DraftAccountServiceTest {
                     "account_type": "Fine",
                     "defendant_type": "Adult",
                     "originator_name": "Police Force",
-                    "originator_id": 12345,
+                    "originator_id": "12345",
                     "originator_type": "NEW",
                     "enforcement_court_id": 101,
                     "collection_order_made": true,

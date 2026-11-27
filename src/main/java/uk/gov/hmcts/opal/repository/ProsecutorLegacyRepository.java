@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 
 @Repository
-public interface ProsecutorRepository extends JpaRepository<ProsecutorLegacyEntity, Long>,
+public interface ProsecutorLegacyRepository extends JpaRepository<ProsecutorLegacyEntity, Short>,
     JpaSpecificationExecutor<ProsecutorLegacyEntity> {
 }
