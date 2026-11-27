@@ -1,32 +1,21 @@
 package uk.gov.hmcts.opal.service.legacy;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.SEARCH_DEFENDANT_ACCOUNTS;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.hmcts.opal.dto.legacy.LegacyDefendantAccountsSearchResults;
 import uk.gov.hmcts.opal.dto.search.AccountSearchDto;
 import uk.gov.hmcts.opal.dto.search.DefendantAccountSearchResultsDto;
 
 class LegacyDefAccServiceSearchTest extends AbstractLegacyDefAccServiceTest {
 
     @Test
-    @SuppressWarnings("unchecked")
     void testSearchDefendantAccounts_success() {
         AccountSearchDto searchDto = AccountSearchDto.builder().build();
 
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(getDummyXml(), HttpStatus.OK));
-
-        LegacyDefendantAccountsSearchResults legacyResponse =
-            LegacyDefendantAccountsSearchResults.builder().build();
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyDefendantAccountsSearchResults>>any()
-        )).thenReturn(legacyResponse);
+        mockGatewayResponse(SEARCH_DEFENDANT_ACCOUNTS, new ResponseEntity<>(getDummyXml(), HttpStatus.OK));
 
         DefendantAccountSearchResultsDto result =
             legacyDefendantAccountService.searchDefendantAccounts(searchDto);

@@ -15,7 +15,6 @@ import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.PAT
 
 import java.math.BigInteger;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
@@ -133,13 +132,9 @@ class LegacyDefAccServiceUpdateTest extends AbstractLegacyDefAccServiceTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testUpdateDefendantAccount_error5xx_noEntity_throwsHttpServerErrorException() {
-        ParameterizedTypeReference<LegacyUpdateDefendantAccountResponse> typeRef =
-            new ParameterizedTypeReference<>() {};
-        when(restClient.responseSpec.body(any(typeRef.getClass()))).thenReturn(null);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>("<response><error/></response>", HttpStatus.INTERNAL_SERVER_ERROR));
+        mockGatewayResponse(PATCH_DEFENDANT_ACCOUNT,
+            new ResponseEntity<>("<response><error/></response>", HttpStatus.INTERNAL_SERVER_ERROR));
 
         UpdateDefendantAccountRequest request = UpdateDefendantAccountRequest.builder()
             .defendantAccountId(77L)

@@ -7,16 +7,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static uk.gov.hmcts.opal.service.legacy.LegacyDefendantAccountService.GET_HEADER_SUMMARY;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpServerErrorException;
@@ -36,16 +38,11 @@ import uk.gov.hmcts.opal.generated.model.PaymentStateSummaryCommon;
 
 class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTest {
 
-    @SuppressWarnings("unchecked")
     @Test
     void testGetHeaderSummary_success() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary actual = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -102,7 +99,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_nonZeroAmounts_andCustomBu() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -138,11 +134,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 )
                 .build();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -162,7 +154,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_resolvesBusinessUnitCodeFromBusinessUnitId() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -201,11 +192,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         when(businessUnitRepository.findById((short) 78)).thenReturn(
             Optional.of(BusinessUnitEntity.builder().businessUnitId((short) 78).businessUnitCode("NE").build())
         );
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -213,16 +200,11 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_setsDefendantPartyIdCorrectly() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
         responseBody.setDefendantPartyId("77");
 
-        when(restClient.responseSpec.body(Mockito.<ParameterizedTypeReference
-            <LegacyGetDefendantAccountHeaderSummaryResponse>>any()))
-            .thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary result = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -231,7 +213,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_blankAmounts_defaultToZero() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -263,11 +244,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
         PaymentStateSummaryCommon paymentStateSummary = published.getResponse().getPaymentStateSummary();
@@ -288,7 +265,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withIndividualDetails_executesMappingBranches() {
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails legacyInd =
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.builder()
@@ -306,11 +282,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -319,7 +291,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_whenCommonSectionsNull_executesNullBranches() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody =
             LegacyGetDefendantAccountHeaderSummaryResponse.builder()
@@ -329,11 +300,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .partyDetails(uk.gov.hmcts.opal.dto.legacy.common.LegacyPartyDetails.builder().build())
                 .build();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -345,7 +312,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_withOrganisationDetails_executesMappingBranches() {
         uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] orgAliasArr =
             new uk.gov.hmcts.opal.dto.legacy.common.OrganisationDetails.OrganisationAlias[] {
@@ -370,11 +336,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
         responseBody.setPartyDetails(party);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(responseBody.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary published = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -383,36 +345,27 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_legacyFailure5xx_logsAndThrowsHttpServerErrorException() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
+        mockGatewayResponse(GET_HEADER_SUMMARY,
+            new ResponseEntity<>(responseBody.toXml(), HttpStatus.SERVICE_UNAVAILABLE));
 
         assertThatThrownBy(() -> legacyDefendantAccountService.getHeaderSummary(1L))
             .isInstanceOf(HttpServerErrorException.class).hasMessage("503 Legacy gateway returned failure");
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_exceptionBranch_rethrows() {
         LegacyGetDefendantAccountHeaderSummaryResponse responseBody = createHeaderSummaryResponse();
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(responseBody);
-        when(restClient.responseSpec.toEntity(String.class))
+        when(gatewayClient.post(eq(GET_HEADER_SUMMARY), anyString(), any()))
             .thenThrow(new RuntimeException("boom"));
 
         assertThrows(RuntimeException.class, () -> legacyDefendantAccountService.getHeaderSummary(1L));
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_numberInputs_mapToBigDecimal() {
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         PaymentStateSummary pay = PaymentStateSummary.builder()
@@ -431,11 +384,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
                 .build()
         );
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -447,7 +396,6 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_unsupportedPaymentType_defaultsZero() {
         uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary pay =
             uk.gov.hmcts.opal.dto.legacy.common.PaymentStateSummary.builder()
@@ -457,18 +405,13 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setPaymentStateSummary(pay);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertEquals(BigDecimal.ZERO, out.getResponse().getPaymentStateSummary().getImposedAmount());
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void testGetHeaderSummary_individualAliases_areMapped() {
         uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias alias =
             uk.gov.hmcts.opal.dto.legacy.common.IndividualDetails.IndividualAlias.builder()
@@ -493,11 +436,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setPartyDetails(party);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertNotNull(out.getResponse().getPartyDetails().getIndividualDetails().getIndividualAliases());
@@ -509,11 +448,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setHasConsolidatedAccounts(Boolean.TRUE);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertTrue(out.getResponse().getHasConsolidatedAccounts());
@@ -524,11 +459,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.getBusinessUnitSummary().setWelshSpeaking("true");
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
 
@@ -540,11 +471,7 @@ class LegacyDefAccServiceHeaderSummaryTest extends AbstractLegacyDefAccServiceTe
         LegacyGetDefendantAccountHeaderSummaryResponse resp = createHeaderSummaryResponse();
         resp.setHasConsolidatedAccounts(Boolean.FALSE);
 
-        when(restClient.responseSpec.body(
-            Mockito.<ParameterizedTypeReference<LegacyGetDefendantAccountHeaderSummaryResponse>>any()
-        )).thenReturn(resp);
-        when(restClient.responseSpec.toEntity(String.class))
-            .thenReturn(new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
+        mockGatewayResponse(GET_HEADER_SUMMARY, new ResponseEntity<>(resp.toXml(), HttpStatus.OK));
 
         DefendantAccountHeaderSummary out = legacyDefendantAccountService.getHeaderSummary(1L);
         assertFalse(out.getResponse().getHasConsolidatedAccounts());
