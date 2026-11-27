@@ -43,6 +43,9 @@ legacy-gateway:
   url: http://localhost:4553/opal
 
 opal:
+  common:
+    docmosis:
+      url: http://localhost:9999
   ref-data:
     service-bus:
       consumer-enabled: false
@@ -53,8 +56,3 @@ user:
 
 security-it:
   key: ...some random string...
-
-opal:
-  common:
-    docmosis:
-      url: http://localhost:9999
