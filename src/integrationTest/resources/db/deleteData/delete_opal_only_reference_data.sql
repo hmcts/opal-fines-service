@@ -1,5 +1,5 @@
 DELETE FROM results WHERE result_id = 'OPONLY';
-DELETE FROM prosecutors WHERE prosecutor_id = 32760;
+DELETE FROM prosecutors WHERE prosecutor_code = 'OPAL';
 DELETE FROM prisons WHERE prison_id = 59000000000005;
 DELETE FROM offences WHERE offence_id = 59000000000004;
 DELETE FROM major_creditors WHERE major_creditor_id = 59000000000003;

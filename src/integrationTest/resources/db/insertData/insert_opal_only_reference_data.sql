@@ -35,9 +35,9 @@ INSERT INTO prisons (
 );
 
 INSERT INTO prosecutors (
-    prosecutor_id, prosecutor_code, name
+    prosecutor_code, name
 ) VALUES (
-    32760, 'OPAL', 'OPAL_ONLY Prosecutor'
+    'OPAL', 'OPAL_ONLY Prosecutor'
 );
 
 INSERT INTO results (

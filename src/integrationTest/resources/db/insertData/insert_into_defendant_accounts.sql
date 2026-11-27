@@ -59,6 +59,13 @@ ON CONFLICT (enforcer_id) DO UPDATE
       enforcer_code    = EXCLUDED.enforcer_code,
       name             = EXCLUDED.name;
 
+INSERT INTO enforcers
+SELECT * FROM enforcers_legacy WHERE enforcer_id = 780000000021
+ON CONFLICT (enforcer_id) DO UPDATE
+  SET business_unit_id = EXCLUDED.business_unit_id,
+      enforcer_code    = EXCLUDED.enforcer_code,
+      name             = EXCLUDED.name;
+
 --  Small-ID Enforcer for integration tests (fits in 32-bit int)
 INSERT INTO enforcers_legacy
   (enforcer_id, business_unit_id, enforcer_code, name, warrant_reference_sequence, warrant_register_sequence)
