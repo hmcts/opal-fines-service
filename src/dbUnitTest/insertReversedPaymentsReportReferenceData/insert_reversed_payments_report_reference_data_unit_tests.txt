@@ -1,0 +1,15 @@
+NOTICE:  === TEST 1: Verify Reversed Payments Report record exists ===
+DO
+NOTICE:  TEST 1 PASSED
+Time: 101.842 ms
+NOTICE:  === TEST 2: Verify Reversed Payments Report reference data ===
+DO
+NOTICE:  TEST 2 PASSED
+Time: 8.757 ms
+NOTICE:  === TEST 3: Verify supported file type configuration ===
+NOTICE:  TEST 3 PASSED
+DO
+Time: 2.353 ms
+DO
+Time: 0.287 ms
+NOTICE:  === PO-10345: All unit tests completed successfully ===
