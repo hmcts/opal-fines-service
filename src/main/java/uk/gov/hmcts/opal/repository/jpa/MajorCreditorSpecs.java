@@ -5,14 +5,14 @@ import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import uk.gov.hmcts.opal.dto.search.MajorCreditorSearchDto;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity;
-import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorEntity_;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity;
+import uk.gov.hmcts.opal.entity.majorcreditor.MajorCreditorLegacyEntity_;
 
 import java.util.Optional;
 
-public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
+public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorLegacyEntity> {
 
-    public Specification<MajorCreditorEntity> findBySearchCriteria(MajorCreditorSearchDto criteria) {
+    public Specification<MajorCreditorLegacyEntity> findBySearchCriteria(MajorCreditorSearchDto criteria) {
         return Specification.allOf(specificationList(
             findByAddressCriteria(criteria),
             numericLong(criteria.getMajorCreditorId()).map(MajorCreditorSpecs::equalsMajorCreditorId),
@@ -21,7 +21,7 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         ));
     }
 
-    public Specification<MajorCreditorEntity> referenceDataFilter(Optional<String> filter,
+    public Specification<MajorCreditorLegacyEntity> referenceDataFilter(Optional<String> filter,
                                                                   Optional<Short> businessUnitId) {
         return Specification.allOf(specificationList(
             filter.filter(s -> !s.isBlank()).map(this::likeAnyMajorCreditor),
@@ -29,33 +29,34 @@ public class MajorCreditorSpecs extends AddressSpecs<MajorCreditorEntity> {
         ));
     }
 
-    public static Specification<MajorCreditorEntity> equalsMajorCreditorId(Long majorCreditorId) {
+    public static Specification<MajorCreditorLegacyEntity> equalsMajorCreditorId(Long majorCreditorId) {
         return (root, query, builder) -> equalsMajorCreditorIdPredicate(root, builder, majorCreditorId);
     }
 
     public static Predicate equalsMajorCreditorIdPredicate(
-            From<?, MajorCreditorEntity> from, CriteriaBuilder builder, Long majorCreditorId) {
-        return builder.equal(from.get(MajorCreditorEntity_.majorCreditorId), majorCreditorId);
+            From<?, MajorCreditorLegacyEntity> from, CriteriaBuilder builder, Long majorCreditorId) {
+        return builder.equal(from.get(MajorCreditorLegacyEntity_.majorCreditorId), majorCreditorId);
     }
 
 
-    public static Specification<MajorCreditorEntity> equalsBusinessUnitId(Short businessUnitId) {
+    public static Specification<MajorCreditorLegacyEntity> equalsBusinessUnitId(Short businessUnitId) {
         return (root, query, builder) ->
-            builder.equal(root.get(MajorCreditorEntity_.businessUnitId), businessUnitId);
+            builder.equal(root.get(MajorCreditorLegacyEntity_.businessUnitId), businessUnitId);
     }
 
 
 
-    public static Specification<MajorCreditorEntity> likeMajorCreditorCode(String majorCreditorCode) {
+    public static Specification<MajorCreditorLegacyEntity> likeMajorCreditorCode(String majorCreditorCode) {
         return (root, query, builder) -> likeMajorCreditorCodePredicate(root, builder, majorCreditorCode);
     }
 
     public static Predicate likeMajorCreditorCodePredicate(
-            From<?, MajorCreditorEntity> from, CriteriaBuilder builder, String majorCreditorCode) {
-        return likeWildcardPredicate(from.get(MajorCreditorEntity_.majorCreditorCode), builder, majorCreditorCode);
+            From<?, MajorCreditorLegacyEntity> from, CriteriaBuilder builder, String majorCreditorCode) {
+        return likeWildcardPredicate(
+            from.get(MajorCreditorLegacyEntity_.majorCreditorCode), builder, majorCreditorCode);
     }
 
-    public Specification<MajorCreditorEntity> likeAnyMajorCreditor(String filter) {
+    public Specification<MajorCreditorLegacyEntity> likeAnyMajorCreditor(String filter) {
         return Specification.anyOf(
             likeName(filter),
             likeMajorCreditorCode(filter)

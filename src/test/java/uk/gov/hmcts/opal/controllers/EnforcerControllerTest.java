@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.EnforcerReferenceDataResults;
 import uk.gov.hmcts.opal.dto.search.EnforcerSearchDto;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.entity.projection.EnforcerReferenceData;
 import uk.gov.hmcts.opal.service.opal.EnforcerService;
 
@@ -34,12 +34,12 @@ class EnforcerControllerTest {
     @Test
     void testGetEnforcer_Success() {
         // Arrange
-        EnforcerEntity entity = EnforcerEntity.builder().build();
+        EnforcerLegacyEntity entity = EnforcerLegacyEntity.builder().build();
 
         when(enforcerService.getEnforcerById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<EnforcerEntity> response = enforcerController.getEnforcerById(1L);
+        ResponseEntity<EnforcerLegacyEntity> response = enforcerController.getEnforcerById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -50,14 +50,14 @@ class EnforcerControllerTest {
     @Test
     void testSearchEnforcers_Success() {
         // Arrange
-        EnforcerEntity entity = EnforcerEntity.builder().build();
-        List<EnforcerEntity> enforcerList = List.of(entity);
+        EnforcerLegacyEntity entity = EnforcerLegacyEntity.builder().build();
+        List<EnforcerLegacyEntity> enforcerList = List.of(entity);
 
         when(enforcerService.searchEnforcers(any())).thenReturn(enforcerList);
 
         // Act
         EnforcerSearchDto searchDto = EnforcerSearchDto.builder().build();
-        ResponseEntity<List<EnforcerEntity>> response = enforcerController.postEnforcersSearch(searchDto);
+        ResponseEntity<List<EnforcerLegacyEntity>> response = enforcerController.postEnforcersSearch(searchDto);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

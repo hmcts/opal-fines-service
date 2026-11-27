@@ -11,17 +11,15 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaType;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
-import uk.gov.hmcts.opal.entity.defendantaccount.OriginatorType;
-import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.repository.LocalJusticeAreaRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
 import uk.gov.hmcts.opal.repository.ResultRepository;
@@ -32,24 +30,20 @@ import uk.gov.hmcts.opal.util.JsonPathUtil;
 public class OpalDraftAccountReferenceValidationService extends AbstractDraftAccountReferenceValidationService {
 
     private static final String ROOT_PATH = "$";
-    private static final String ACCOUNT_TYPE_PATH = ROOT_PATH + ".account_type";
-    private static final String ORIGINATOR_ID_PATH = ROOT_PATH + ".originator_id";
-    private static final String ORIGINATOR_NAME_PATH = ROOT_PATH + ".originator_name";
-    private static final String ORIGINATOR_TYPE_PATH = ROOT_PATH + ".originator_type";
     private static final String ENFORCEMENT_COURT_ID_PATH = ROOT_PATH + ".enforcement_court_id";
     private static final String ENFORCEMENT_COURT_ID_ERROR_PATH = "account.enforcement_court_id";
     private static final String DOES_NOT_EXIST = " does not exist";
     private static final String RESULT_ID_PREFIX = ".result_id: result id ";
     private static final String IS_NOT_AN_ENFORCEMENT_RESULT = " is not an enforcement result";
     private static final String IS_NOT_AN_ACTIVE_RESULT = " is not an active result";
-    private static final Set<LocalJusticeAreaType> VALID_ORIGINATOR_LJA_TYPES =
-        Set.of(LocalJusticeAreaType.LJA, LocalJusticeAreaType.CRWCRT);
+    private static final Set<OpalLocalJusticeAreaType> VALID_ORIGINATOR_LJA_TYPES =
+        Set.of(OpalLocalJusticeAreaType.LJA, OpalLocalJusticeAreaType.CRWCRT);
 
     private final CourtLiteRepository courtLiteRepository;
     private final OffenceRepository offenceRepository;
     private final ResultRepository resultRepository;
     private final CreditorAccountRepository creditorAccountRepository;
-    private final LocalJusticeAreaRepository localJusticeAreaRepository;
+    private final OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
     private final ProsecutorRepository prosecutorRepository;
 
 
@@ -73,7 +67,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
             return;
         }
 
-        Map<String, Optional<ResultEntity>> resultCache = new HashMap<>();
+        Map<String, Optional<ResultLegacyEntity>> resultCache = new HashMap<>();
         for (int offenceIndex = 0; offenceIndex < offences.size(); offenceIndex++) {
             String offencePath = ROOT_PATH + ".offences[" + offenceIndex + "]";
             String offenceDisplayPath = "account.offences[" + offenceIndex + "]";
@@ -98,7 +92,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
                 String impositionPath = offencePath + ".impositions[" + impositionIndex + "]";
 
                 String resultId = safeReadString(docContext, impositionPath + ".result_id", null);
-                Optional<ResultEntity> result = findResult(resultId, resultCache);
+                Optional<ResultLegacyEntity> result = findResult(resultId, resultCache);
                 if (resultId != null && result.isEmpty()) {
                     failures.add(impositionPath + ".result_id: result id " + resultId + DOES_NOT_EXIST);
                     continue;
@@ -121,7 +115,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     void validatePaymentTermsEnforcements(
         JsonPathUtil.DocContext docContext,
         List<String> failures,
-        Map<String, Optional<ResultEntity>> resultCache) {
+        Map<String, Optional<ResultLegacyEntity>> resultCache) {
         List<?> enforcements = safeReadList(docContext, ROOT_PATH + ".payment_terms.enforcements");
         if (enforcements == null) {
             return;
@@ -132,7 +126,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
 
             String resultId = safeReadString(docContext, enforcementPath + ".result_id", null);
             if (resultId != null) {
-                Optional<ResultEntity> result = findResult(resultId, resultCache);
+                Optional<ResultLegacyEntity> result = findResult(resultId, resultCache);
                 if (result.isEmpty()) {
                     failures.add(enforcementPath + RESULT_ID_PREFIX + resultId + DOES_NOT_EXIST);
                 } else if (!result.get().isEnforcement()) {
@@ -144,7 +138,8 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
         }
     }
 
-    private Optional<ResultEntity> findResult(String resultId, Map<String, Optional<ResultEntity>> resultCache) {
+    private Optional<ResultLegacyEntity> findResult(
+        String resultId, Map<String, Optional<ResultLegacyEntity>> resultCache) {
         if (resultId == null) {
             return Optional.empty();
         }
@@ -154,7 +149,7 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     private boolean validateImpositionResult(
         String resultId,
         String resultPath,
-        ResultEntity result,
+        ResultLegacyEntity result,
         List<String> failures
     ) {
         boolean valid = true;
@@ -271,127 +266,14 @@ public class OpalDraftAccountReferenceValidationService extends AbstractDraftAcc
     }
 
     @Override
-    void validateOriginator(JsonPathUtil.DocContext docContext, List<String> failures) {
-        Long originatorId = safeReadLong(docContext, ORIGINATOR_ID_PATH);
-        String originatorName = safeReadString(docContext, ORIGINATOR_NAME_PATH, null);
-        DraftAccountType accountType = readDraftAccountType(docContext, failures);
-        OriginatorType originatorType = readOriginatorType(docContext, failures);
-
-        if (originatorId == null || originatorName == null || accountType == null || originatorType == null) {
-            return;
-        }
-
-        OriginatorReferenceSource source = resolveOriginatorReferenceSource(originatorType, accountType);
-        if (source == null) {
-            failures.add(ORIGINATOR_TYPE_PATH + ": unsupported originator/account type combination: originator_type "
-                + originatorType.getLabel() + ", account_type " + accountType.getLabel());
-            return;
-        }
-
-        if (source == OriginatorReferenceSource.LOCAL_JUSTICE_AREA) {
-            validateLocalJusticeAreaOriginator(originatorId, originatorName, failures);
-            return;
-        }
-
-        validateProsecutorOriginator(originatorId, originatorName, failures);
-    }
-
-    private void validateLocalJusticeAreaOriginator(Long originatorId, String originatorName, List<String> failures) {
-        Short localJusticeAreaId = toShort(originatorId);
-        if (localJusticeAreaId == null) {
-            failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
-            return;
-        }
-
-        LocalJusticeAreaEntity localJusticeArea = localJusticeAreaRepository.findById(localJusticeAreaId)
+    Optional<String> findLocalJusticeAreaName(Short localJusticeAreaId) {
+        return opalLocalJusticeAreaRepository.findById(localJusticeAreaId)
             .filter(entity -> VALID_ORIGINATOR_LJA_TYPES.contains(entity.getLjaType()))
-            .orElse(null);
-
-        if (localJusticeArea == null) {
-            failures.add(ORIGINATOR_ID_PATH + ": local justice area id " + originatorId + DOES_NOT_EXIST);
-            return;
-        }
-
-        if (!originatorName.equals(localJusticeArea.getName())) {
-            failures.add(ORIGINATOR_NAME_PATH + ": originator name '" + originatorName
-                + "' does not match local justice area name '" + localJusticeArea.getName()
-                + "' for id " + originatorId);
-        }
+            .map(OpalLocalJusticeAreaEntity::getName);
     }
 
-    private void validateProsecutorOriginator(Long originatorId, String originatorName, List<String> failures) {
-        ProsecutorEntity prosecutor = prosecutorRepository.findById(originatorId).orElse(null);
-        if (prosecutor == null) {
-            failures.add(ORIGINATOR_ID_PATH + ": prosecutor id " + originatorId + DOES_NOT_EXIST);
-            return;
-        }
-
-        if (!originatorName.equals(prosecutor.getName())) {
-            failures.add(ORIGINATOR_NAME_PATH + ": originator name '" + originatorName
-                + "' does not match prosecutor name '" + prosecutor.getName() + "' for id " + originatorId);
-        }
-    }
-
-    private DraftAccountType readDraftAccountType(JsonPathUtil.DocContext docContext, List<String> failures) {
-        String accountTypeLabel = safeReadString(docContext, ACCOUNT_TYPE_PATH, null);
-        if (accountTypeLabel == null) {
-            return null;
-        }
-
-        try {
-            return DraftAccountType.getByLabel(accountTypeLabel);
-        } catch (IllegalArgumentException ignored) {
-            failures.add(ACCOUNT_TYPE_PATH + ": unsupported account type '" + accountTypeLabel + "'");
-            return null;
-        }
-    }
-
-    private OriginatorType readOriginatorType(JsonPathUtil.DocContext docContext, List<String> failures) {
-        String originatorTypeLabel = safeReadString(docContext, ORIGINATOR_TYPE_PATH, null);
-        if (originatorTypeLabel == null) {
-            return null;
-        }
-
-        try {
-            return OriginatorType.getByLabel(originatorTypeLabel);
-        } catch (IllegalArgumentException ignored) {
-            failures.add(ORIGINATOR_TYPE_PATH + ": unsupported originator type '" + originatorTypeLabel + "'");
-            return null;
-        }
-    }
-
-    private OriginatorReferenceSource resolveOriginatorReferenceSource(OriginatorType originatorType,
-                                                                       DraftAccountType accountType) {
-        if (originatorType == OriginatorType.MAC_NEW_ACCOUNT) {
-            if (accountType == DraftAccountType.FINE || accountType == DraftAccountType.CONFISCATION) {
-                return OriginatorReferenceSource.LOCAL_JUSTICE_AREA;
-            }
-            return accountType == DraftAccountType.CONDITIONAL_CAUTION ? OriginatorReferenceSource.PROSECUTOR : null;
-        }
-
-        if (originatorType == OriginatorType.TRANSFER_IN_ACCOUNT) {
-            if (accountType == DraftAccountType.FINE || accountType == DraftAccountType.CONFISCATION) {
-                return OriginatorReferenceSource.LOCAL_JUSTICE_AREA;
-            }
-            return accountType == DraftAccountType.FIXED_PENALTY ? OriginatorReferenceSource.PROSECUTOR : null;
-        }
-
-        if (originatorType == OriginatorType.FIXED_PENALTY && accountType == DraftAccountType.FIXED_PENALTY) {
-            return OriginatorReferenceSource.PROSECUTOR;
-        }
-
-        return null;
-    }
-
-    private Short toShort(Long value) {
-        if (value == null || value < Short.MIN_VALUE || value > Short.MAX_VALUE) {
-            return null;
-        }
-        return value.shortValue();
-    }
-
-    private enum OriginatorReferenceSource {
-        LOCAL_JUSTICE_AREA,
-        PROSECUTOR
+    @Override
+    Optional<String> findProsecutorName(Long prosecutorId) {
+        return prosecutorRepository.findById(prosecutorId).map(ProsecutorLegacyEntity::getName);
     }
 }
