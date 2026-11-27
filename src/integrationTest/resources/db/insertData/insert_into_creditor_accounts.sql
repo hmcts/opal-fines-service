@@ -13,7 +13,7 @@
 * 05/08/2025   J SHEEN     1.1        PO-2972 Insert data for major creditors R1B disabled integration test
 **/
 
-INSERT INTO major_creditors (
+INSERT INTO major_creditors_legacy (
   major_creditor_id, business_unit_id, major_creditor_code,
   name, address_line_1, address_line_2,
   address_line_3, postcode
@@ -22,6 +22,10 @@ VALUES
   (0001, 78, 'AAAA',
  'AAAA Credit Services', 'Credit Lane',
  'Creditville', 'Crediton', 'CR1 1CR');
+
+INSERT INTO major_creditors
+SELECT * FROM major_creditors_legacy WHERE major_creditor_id = 1
+ON CONFLICT (major_creditor_id) DO NOTHING;
 
 INSERT INTO creditor_accounts (
   creditor_account_id, business_unit_id, account_number,

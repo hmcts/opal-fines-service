@@ -35,11 +35,17 @@ jpa:
     ddl-auto: validate
   show-sql: true
 
+# test containers
 testcontainers:
   reuse:
     enable: true
 legacy-gateway:
   url: http://localhost:4553/opal
+
+opal:
+  ref-data:
+    service-bus:
+      consumer-enabled: false
 
 user:
   service:

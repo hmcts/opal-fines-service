@@ -9,7 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.hmcts.opal.dto.reference.ProsecutorReferenceData;
 import uk.gov.hmcts.opal.dto.response.RefDataResponse;
-import uk.gov.hmcts.opal.entity.ProsecutorEntity;
+import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.service.opal.ProsecutorService;
 
 import java.util.List;
@@ -33,12 +33,12 @@ class ProsecutorControllerTest {
     @Test
     void testGetProsecutor_Success() {
         // Arrange
-        ProsecutorEntity entity = ProsecutorEntity.builder().build();
+        ProsecutorLegacyEntity entity = ProsecutorLegacyEntity.builder().build();
 
         when(prosecutorService.getProsecutorById(any(Long.class))).thenReturn(entity);
 
         // Act
-        ResponseEntity<ProsecutorEntity> response = prosecutorController.getProsecutorById(1L);
+        ResponseEntity<ProsecutorLegacyEntity> response = prosecutorController.getProsecutorById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());

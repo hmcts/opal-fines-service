@@ -17,6 +17,7 @@ spring:
       - org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration
       - org.springframework.boot.security.autoconfigure.actuate.web.servlet.ManagementWebSecurityAutoConfiguration
       - org.springframework.boot.security.oauth2.client.autoconfigure.OAuth2ClientAutoConfiguration
+      - org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration
       -
 launchdarkly:
   enabled: false
@@ -31,6 +32,12 @@ launchdarkly:
 
 logging:
   level:
+    com:
+      azure:
+        core:
+          amqp: OFF
+        messaging:
+          servicebus: OFF
     org:
       hibernate:
         SQL: INFO
@@ -67,6 +74,9 @@ opal:
   report:
     service-bus:
       consumer-enabled: false
+  ref-data:
+    service-bus:
+      consumer-enabled: false
   interface-jobs:
     service-bus:
       consumer-enabled: false
@@ -74,7 +84,7 @@ opal:
     service-bus:
       consumer-enabled: false
   redis:
-    enabled: true
+    enabled: false
     ttl-duration: 8H
     hmrc-auth-token-ttl-duration: PT3H30M
   hmrc:

@@ -75,7 +75,7 @@ Feature: Add Draft Account Error Handling
       | submitted_by_name        | Laura Clerk                                            |
       | account_originator_type   | NEW                                                    |
       | account_originator_id     | 1                                                      |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the request is rejected as bad request
 
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
@@ -105,5 +105,5 @@ Feature: Add Draft Account Error Handling
       | submitted_by_name        | Laura Clerk                                           |
       | account_originator_type   | FP                                                    |
       | account_originator_id     | 1                                                     |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the request is rejected as bad request

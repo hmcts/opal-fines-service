@@ -20,7 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.repository.DefendantAccountRepository;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
+import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.ResultActions;
 import tools.jackson.databind.JsonNode;
@@ -34,6 +39,40 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.OpalDefendantsReadIntegrationTest")
 class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
+
+    @Autowired
+    private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
+
+    @Autowired
+    private OpalLocalJusticeAreaRepository opalLocalJusticeAreaRepository;
+
+    @Autowired
+    private DefendantAccountRepository defendantAccountRepository;
+
+    @Test
+    @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
+    void atAGlance_readsLjaNameFromOpalTable() throws Exception {
+        short id = 240;
+        var legacyArea = localJusticeAreaLegacyRepository.findById(id).orElseThrow();
+        legacyArea.setName("Legacy at-a-glance LJA");
+        localJusticeAreaLegacyRepository.saveAndFlush(legacyArea);
+        var opalArea = opalLocalJusticeAreaRepository.findById(id).orElseThrow();
+        opalArea.setName("Opal at-a-glance LJA");
+        opalLocalJusticeAreaRepository.saveAndFlush(opalArea);
+        var account = defendantAccountRepository.findById(77L).orElseThrow();
+        account.setEnforcementOverrideTfoLjaId(id);
+        defendantAccountRepository.saveAndFlush(account);
+
+        mockMvc.perform(get(URL_BASE + "/77/at-a-glance")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_id").value((int) id))
+            .andExpect(jsonPath("$.enforcement_status.enforcement_override.lja.lja_name")
+                .value("Opal at-a-glance LJA"));
+    }
 
     @MockitoBean
     private LoggingService personalDataloggingService;

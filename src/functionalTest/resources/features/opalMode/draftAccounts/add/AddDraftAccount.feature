@@ -166,14 +166,14 @@ Feature: Create Draft Accounts
       | submitted_by_name        | Laura Clerk                                           |
       | account_originator_type   | NEW                                                   |
       | account_originator_id     | 1                                                     |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the draft account is created successfully with the following data
       | business_unit_id                   | 73                                                      |
       | account_type                        | Conditional Caution                                     |
       | account_status                      | Submitted                                               |
       | account.originator_type             | NEW                                                     |
       | account.originator_id               | 1                                                       |
-      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+      | account.originator_name             | Met Police Traffic Offence Reports |
 
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - TFO fine originator resolves against a valid LJA
@@ -208,14 +208,14 @@ Feature: Create Draft Accounts
       | submitted_by_name        | Laura Clerk                                           |
       | account_originator_type   | TFO                                                   |
       | account_originator_id     | 1                                                     |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the draft account is created successfully with the following data
       | business_unit_id                   | 73                                                      |
       | account_type                        | Fixed Penalty                                           |
       | account_status                      | Submitted                                               |
       | account.originator_type             | TFO                                                     |
       | account.originator_id               | 1                                                       |
-      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+      | account.originator_name             | Met Police Traffic Offence Reports |
 
   @JIRA-STORY:PO-5742 @JIRA-EPIC:PO-8248 @cleanUpData
   Scenario: Create draft account - FP fixed penalty originator resolves against a prosecutor
@@ -229,14 +229,14 @@ Feature: Create Draft Accounts
       | submitted_by_name        | Laura Clerk                                           |
       | account_originator_type   | FP                                                    |
       | account_originator_id     | 1                                                     |
-      | account_originator_name   | Met Camera Processing Services / Traffic Offence Reports |
+      | account_originator_name   | Met Police Traffic Offence Reports |
     Then the draft account is created successfully with the following data
       | business_unit_id                   | 73                                                      |
       | account_type                        | Fixed Penalty                                           |
       | account_status                      | Submitted                                               |
       | account.originator_type             | FP                                                      |
       | account.originator_id               | 1                                                       |
-      | account.originator_name             | Met Camera Processing Services / Traffic Offence Reports |
+      | account.originator_name             | Met Police Traffic Offence Reports |
 
   @JIRA-STORY:PO-559 @JIRA-STORY:PO-2357 @JIRA-EPIC:PO-2219 @cleanUpData @JIRA-TEST-KEY:PO-5624
   Scenario: Reject draft-account creation with an invalid token

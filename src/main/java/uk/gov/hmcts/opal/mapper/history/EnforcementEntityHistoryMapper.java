@@ -9,7 +9,7 @@ import org.mapstruct.ReportingPolicy;
 import uk.gov.hmcts.opal.dto.CourtReferenceDto;
 import uk.gov.hmcts.opal.dto.history.DefendantAccountHistoryItem;
 import uk.gov.hmcts.opal.dto.history.EnforcementDetails;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
@@ -36,7 +36,7 @@ public interface EnforcementEntityHistoryMapper {
 
     @Mapping(target = "courtId", source = "courtId")
     @Mapping(target = "courtName", source = "name")
-    CourtReferenceDto toCourtReference(CourtEntity entity);
+    CourtReferenceDto toCourtReference(CourtLegacyEntity entity);
 
     @Named("toLocalDate")
     default LocalDate toLocalDate(LocalDateTime dateTime) {

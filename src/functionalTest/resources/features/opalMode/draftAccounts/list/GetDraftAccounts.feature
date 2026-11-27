@@ -107,7 +107,7 @@ Feature: List Draft Accounts
       | status_filter | submitted_by_filter | expected_status | expected_submitted_by | excluded_submitted_by |
       | SUBMITTED     | BUUID_TWO           | Submitted       | BUUID_TWO             | BUUID                 |
 
-  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5659
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5659 @ExtendedTest
   Scenario: Retrieving all draft accounts produces defendant PDPO logs
 
     And the following draft accounts exist
@@ -126,7 +126,7 @@ Feature: List Draft Accounts
 
     # Cleanup
 
-  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5660
+  @JIRA-STORY:PO-2361 @JIRA-EPIC:PO-2355 @cleanUpData @JIRA-TEST-KEY:PO-5660 @ExtendedTest
   Scenario: Retrieving all draft accounts with parent or guardian data produces two PDPO log categories
 
     And the following draft accounts exist
@@ -151,6 +151,6 @@ Feature: List Draft Accounts
     When I attempt to get draft accounts with an invalid token
     Then the request is rejected as unauthorized
 
-    # DraftAccountListSecurityIT verifies no PDPO publisher calls for rejected requests.
+    # DraftAccountReadSecurityIT verifies no PDPO publisher calls for rejected requests.
     # A valid list request elsewhere can log any draft on a shared environment, so even a
     # newly created draft ID cannot isolate this request in the logging search API.

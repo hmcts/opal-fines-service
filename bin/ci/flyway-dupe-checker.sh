@@ -20,6 +20,10 @@ while [[ $# -gt 0 ]]; do
       SUMMARY_FILE="$2"
       shift 2
       ;;
+    --base-ref)
+      BASE_REF="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 2
@@ -214,7 +218,7 @@ auto_update_added_migrations() {
   done
 
   if [[ "$needs_update" == false ]]; then
-    echo "PR-added Flyway migration scripts already follow master"
+    echo "PR-added Flyway migration scripts already follow the base branch"
     check_for_duplicate_versions
     return
   fi

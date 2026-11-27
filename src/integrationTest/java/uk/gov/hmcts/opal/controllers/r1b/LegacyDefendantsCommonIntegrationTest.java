@@ -2,11 +2,17 @@ package uk.gov.hmcts.opal.controllers.r1b;
 
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_CLASS;
 import static org.springframework.test.context.jdbc.Sql.ExecutionPhase.BEFORE_TEST_CLASS;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.repository.LocalJusticeAreaLegacyRepository;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
@@ -16,6 +22,26 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyDefendantsCommonIntegrationTest")
 class LegacyDefendantsCommonIntegrationTest extends AbstractCommonDefendantsIntegrationTest {
+
+    @Autowired
+    private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;
+
+    @Test
+    @Transactional
+    @JiraStory("PO-10738")
+    @JiraEpic("PO-9031")
+    void enforcementStatus_readsLjaCodeFromLegacyTable() throws Exception {
+        var legacyArea = localJusticeAreaLegacyRepository.findById((short) 240).orElseThrow();
+        legacyArea.setLjaCode("T987");
+        localJusticeAreaLegacyRepository.saveAndFlush(legacyArea);
+
+        mockMvc.perform(get(URL_BASE + "/78/enforcement-status")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_id").value(240))
+            .andExpect(jsonPath("$.enforcement_override.lja.lja_code").value("T987"));
+    }
 
     @Test
     @JiraStory("PO-1907")

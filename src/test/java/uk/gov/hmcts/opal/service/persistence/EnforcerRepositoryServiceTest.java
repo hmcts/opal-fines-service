@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
 import uk.gov.hmcts.opal.repository.EnforcerRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,13 +28,13 @@ class EnforcerRepositoryServiceTest {
     void shouldReturnEnforcerWhenIdExistsAndEnforcerIdIsNotNull() {
         // given
         Long enforcerId = 1L;
-        EnforcerEntity entity = mock(EnforcerEntity.class);
+        EnforcerLegacyEntity entity = mock(EnforcerLegacyEntity.class);
 
         when(entity.getEnforcerId()).thenReturn(enforcerId);
         when(enforcerRepository.findById(enforcerId)).thenReturn(Optional.of(entity));
 
         // when
-        Optional<EnforcerEntity> result = service.findById(enforcerId);
+        Optional<EnforcerLegacyEntity> result = service.findById(enforcerId);
 
         // then
         assertThat(result).isPresent();
@@ -46,13 +46,13 @@ class EnforcerRepositoryServiceTest {
     void shouldReturnEmptyWhenEnforcerFoundButEnforcerIdIsNull() {
         // given
         Long enforcerId = 2L;
-        EnforcerEntity entity = mock(EnforcerEntity.class);
+        EnforcerLegacyEntity entity = mock(EnforcerLegacyEntity.class);
 
         when(entity.getEnforcerId()).thenReturn(null);
         when(enforcerRepository.findById(enforcerId)).thenReturn(Optional.of(entity));
 
         // when
-        Optional<EnforcerEntity> result = service.findById(enforcerId);
+        Optional<EnforcerLegacyEntity> result = service.findById(enforcerId);
 
         // then
         assertThat(result).isEmpty();
@@ -62,7 +62,7 @@ class EnforcerRepositoryServiceTest {
     @Test
     void shouldReturnEmptyAndNotCallRepositoryWhenEnforcerIdIsNull() {
         // when
-        Optional<EnforcerEntity> result = service.findById(null);
+        Optional<EnforcerLegacyEntity> result = service.findById(null);
 
         // then
         assertThat(result).isEmpty();
