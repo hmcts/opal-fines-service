@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 import java.util.Arrays;
+import java.util.EnumSet;
 
 public enum DraftAccountStatus {
 
@@ -15,8 +16,8 @@ public enum DraftAccountStatus {
     PUBLISHING_PENDING("Publishing Pending"),
     LEGACY_PENDING("Legacy Response Pending"),
     PUBLISHED("Published"),
-    PUBLISHING_FAILED("Publishing Failed");
-
+    PUBLISHING_FAILED("Publishing Failed"),
+    PUBLISHING_FAILURE_RESOLVED("Publishing Failure Resolved");
 
     private final String label;
 
@@ -51,5 +52,13 @@ public enum DraftAccountStatus {
 
     public boolean isRejected() {
         return this == REJECTED;
+    }
+
+    public boolean isPublishingFailureResolved() {
+        return this == PUBLISHING_FAILURE_RESOLVED;
+    }
+
+    public boolean canUpdateTo(DraftAccountStatus nextStatus) {
+        return nextStatus != PUBLISHING_FAILURE_RESOLVED || this == PUBLISHING_FAILED;
     }
 }

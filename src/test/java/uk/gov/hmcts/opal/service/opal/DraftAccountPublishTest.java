@@ -139,7 +139,7 @@ class DraftAccountPublishTest {
         entity.setDraftAccountId(9_999_901L);
         entity.setVersionNumber(0L);
         entity.setTimelineData(timelineData.toJson());
-        entity.setAccountStatus(DraftAccountStatus.PUBLISHING_PENDING);
+        entity.changeStatus(DraftAccountStatus.PUBLISHING_PENDING, clock);
         entity.setStatusMessage(null);
         entity.setAccountId(null);
         entity.setAccountNumber(null);
@@ -149,7 +149,7 @@ class DraftAccountPublishTest {
     private DraftAccountEntity createPublishedDraft() {
         DraftAccountEntity entity = createPendingDraft();
         entity.setVersionNumber(1L);
-        entity.setAccountStatus(DraftAccountStatus.PUBLISHED);
+        entity.changeStatus(DraftAccountStatus.PUBLISHED, clock);
         entity.setAccountId(12345L);
         entity.setAccountNumber("DEF-12345");
         return entity;
