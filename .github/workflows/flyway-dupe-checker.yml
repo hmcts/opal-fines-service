@@ -36,10 +36,10 @@ jobs:
         run: |
           echo "Automatic Flyway migration updates are supported only for same-repository pull requests. Add the disable_migration_update label to run duplicate detection without automatic renaming." >&2
           exit 1
-      - name: Fetch master
-        run: git fetch "https://github.com/${{ github.event.pull_request.base.repo.full_name }}.git" master:refs/remotes/origin/master
+      - name: Fetch pull request base branch
+        run: git fetch "https://github.com/${{ github.event.pull_request.base.repo.full_name }}.git" "${{ github.event.pull_request.base.ref }}:refs/remotes/origin/pr-base"
       - name: Check for duplicate Flyway scripts
-        run: ./bin/ci/flyway-dupe-checker.sh --mode=${{ steps.flyway_mode.outputs.mode }} --summary-file flyway-rename-summary.md
+        run: ./bin/ci/flyway-dupe-checker.sh --mode=${{ steps.flyway_mode.outputs.mode }} --base-ref origin/pr-base --summary-file flyway-rename-summary.md
       - name: Detect Flyway migration renames
         id: flyway_changes
         run: |

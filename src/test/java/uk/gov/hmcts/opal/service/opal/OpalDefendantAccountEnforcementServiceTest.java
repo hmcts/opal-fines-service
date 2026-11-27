@@ -56,21 +56,21 @@ import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.EnforcementStatus;
 import uk.gov.hmcts.opal.dto.common.EnforcementOverride;
+import uk.gov.hmcts.opal.entity.EnforcerLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.NoteCommon;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.RemoveEnforcementHoldResponseDefendantAccount;
 import uk.gov.hmcts.opal.entity.AssociatedRecordType;
 import uk.gov.hmcts.opal.generated.model.AddNoteRequestNotes;
-import uk.gov.hmcts.opal.entity.EnforcerEntity;
-import uk.gov.hmcts.opal.entity.LocalJusticeAreaEntity;
+import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.PartyEntity;
-import uk.gov.hmcts.opal.entity.court.CourtEntity;
+import uk.gov.hmcts.opal.entity.court.CourtLegacyEntity;
 import uk.gov.hmcts.opal.entity.debtordetail.DebtorDetailEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.AssociationType;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountPartiesEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountStatus;
-import uk.gov.hmcts.opal.entity.result.ResultEntity;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.exception.UnprocessableException;
 import uk.gov.hmcts.opal.generated.model.AddEnforcementRequestDefendantAccount;
@@ -90,7 +90,7 @@ import uk.gov.hmcts.opal.service.persistence.DebtorDetailRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.DefendantAccountRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcementRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.EnforcerRepositoryService;
-import uk.gov.hmcts.opal.service.persistence.LocalJusticeAreaRepositoryService;
+import uk.gov.hmcts.opal.service.persistence.OpalLocalJusticeAreaRepositoryService;
 import uk.gov.hmcts.opal.service.persistence.ResultRepositoryService;
 import uk.gov.hmcts.opal.service.proxy.NotesProxy;
 import uk.gov.hmcts.opal.util.VersionUtils;
@@ -126,7 +126,7 @@ class OpalDefendantAccountEnforcementServiceTest {
     private EnforcerRepositoryService enforcerRepositoryService;
 
     @Mock
-    private LocalJusticeAreaRepositoryService localJusticeAreaRepositoryService;
+    private OpalLocalJusticeAreaRepositoryService opalLocalJusticeAreaRepositoryService;
 
     @Mock
     private NotesProxy notesProxy;
@@ -176,25 +176,25 @@ class OpalDefendantAccountEnforcementServiceTest {
             .enforcementOverrideTfoLjaId((short) 66)
             .build();
 
-        ResultEntity result = ResultEntity.builder()
+        ResultLegacyEntity result = ResultLegacyEntity.builder()
             .resultId("FWEC")
             .resultTitle("Witness Expenses")
             .build();
 
-        EnforcerEntity enforcer = EnforcerEntity.builder()
+        EnforcerLegacyEntity enforcer = EnforcerLegacyEntity.builder()
             .enforcerId(55L)
             .name("North East Enforcement")
             .build();
 
-        LocalJusticeAreaEntity lja = LocalJusticeAreaEntity.builder()
+        OpalLocalJusticeAreaEntity lja = OpalLocalJusticeAreaEntity.builder()
             .localJusticeAreaId((short) 66)
-            .ljaCode("L066")
             .name("Tyne & Wear LJA")
             .build();
 
         when(resultRepositoryService.getResultById("FWEC")).thenReturn(java.util.Optional.of(result));
         when(enforcerRepositoryService.findById(55L)).thenReturn(java.util.Optional.of(enforcer));
-        when(localJusticeAreaRepositoryService.getLjaById((short) 66)).thenReturn(java.util.Optional.of(lja));
+        when(opalLocalJusticeAreaRepositoryService.getLjaById((short) 66))
+            .thenReturn(java.util.Optional.of(lja));
 
         EnforcementOverride override = service.buildEnforcementOverride(entity);
 
@@ -214,7 +214,8 @@ class OpalDefendantAccountEnforcementServiceTest {
         EnforcementOverride override = service.buildEnforcementOverride(entity);
 
         assertNull(override);
-        verifyNoInteractions(resultRepositoryService, enforcerRepositoryService, localJusticeAreaRepositoryService);
+        verifyNoInteractions(resultRepositoryService, enforcerRepositoryService,
+            opalLocalJusticeAreaRepositoryService);
     }
 
     @Test
@@ -288,7 +289,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         when(defendant.getProsecutorCaseReference()).thenReturn(PROSECUTOR_CASE_REFERENCE);
         when(defendantAccountRepositoryService.findById(DEFENDANT_ACCOUNT_ID)).thenReturn(defendant);
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+            .thenReturn(Optional.of(CourtLegacyEntity.builder().courtId(654L).build()));
         mockCreatedEnforcement();
         whenFeatureIsEnabled(false);
 
@@ -584,7 +585,7 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockCreatedEnforcement();
         whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+            .thenReturn(Optional.of(EnforcerLegacyEntity.builder().enforcerId(55L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             EnforcementResultResponseDefendantAccount.builder().parameterName("reason").response("test reason").build(),
@@ -723,9 +724,9 @@ class OpalDefendantAccountEnforcementServiceTest {
         mockCreatedEnforcement();
         whenFeatureIsEnabled(true);
         when(enforcerRepository.findByEnforcerCodeAndBusinessUnit_businessUnitId((short) 21, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(EnforcerEntity.builder().enforcerId(55L).build()));
+            .thenReturn(Optional.of(EnforcerLegacyEntity.builder().enforcerId(55L).build()));
         when(courtRepository.findByCourtCodeAndBusinessUnitId((short) 123, BUSINESS_UNIT_ID))
-            .thenReturn(Optional.of(CourtEntity.builder().courtId(654L).build()));
+            .thenReturn(Optional.of(CourtLegacyEntity.builder().courtId(654L).build()));
 
         List<EnforcementResultResponseDefendantAccount> responses = List.of(
             new EnforcementResultResponseDefendantAccount().parameterName("enforcer_id").response("999"),
