@@ -1415,10 +1415,11 @@ ext['postgresql.version'] = '42.7.13'
 
 dependencies {
 
-  implementation 'uk.gov.hmcts:opal-common-lib:0.3.40'
+  implementation 'uk.gov.hmcts:opal-common-lib:0.3.42'
   implementation 'uk.gov.hmcts:opal-refdata-common-lib:0.0.3'
   implementation 'com.azure:azure-identity:1.17.0'
   implementation 'com.azure:azure-messaging-servicebus:7.19.1'
+
 
 
   zephyrCucumberReportProcessor 'uk.gov.hmcts:zephyr-automation:2.0.2'
