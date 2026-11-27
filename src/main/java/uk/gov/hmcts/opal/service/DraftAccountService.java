@@ -82,8 +82,8 @@ public class DraftAccountService {
     private final Clock clock;
     private final FeatureToggleApi featureToggleApi;
 
-    private DraftAccountRepository draftAccountRepository;
-    private TransactionTemplate transactionTemplate;
+    private final DraftAccountRepository draftAccountRepository;
+    private final TransactionTemplate transactionTemplate;
 
     public DraftAccountResponseDto getDraftAccount(long draftAccountId) {
 

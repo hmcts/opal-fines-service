@@ -21,11 +21,14 @@ import jakarta.persistence.StoredProcedureParameter;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigInteger;
+import java.time.Clock;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -46,7 +49,7 @@ import static uk.gov.hmcts.opal.entity.draft.StoredProcedureNames.POSTED_BY_NAME
 
 @Entity
 @Table(name = "draft_accounts")
-@Data
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -67,6 +70,7 @@ public class DraftAccountEntity implements Versioned {
     @SequenceGenerator(name = "draft_account_id_seq_generator", sequenceName = "draft_account_id_seq",
         allocationSize = 1)
     @Column(name = "draft_account_id", nullable = false)
+    @Setter
     private Long draftAccountId;
 
     @ManyToOne
@@ -76,34 +80,43 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "created_date", nullable = false)
     private LocalDateTime createdDate;
 
+    @Setter
     @Column(name = "submitted_by", length = 20, nullable = false)
     private String submittedBy;
 
+    @Setter
     @Column(name = "submitted_by_name", length = 100, nullable = false)
     private String submittedByName;
 
+    @Setter
     @Column(name = "validated_date")
     private LocalDateTime validatedDate;
 
+    @Setter
     @Column(name = "validated_by", length = 20)
     private String validatedBy;
 
+    @Setter
     @Column(name = "validated_by_name", length = 100)
     private String validatedByName;
 
+    @Setter
     @Column(name = "account", columnDefinition = "json", nullable = false)
     @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
     private String account;
 
+    @Setter
     @Column(name = "account_type", length = 30, nullable = false, columnDefinition = "t_da_account_type_enum")
     @ColumnTransformer(write = "?::t_da_account_type_enum")
     @Convert(converter = DraftAccountTypeConverter.class)
     private DraftAccountType accountType;
 
+    @Setter
     @Column(name = "account_id")
     private Long accountId;
 
+    @Setter
     @Column(name = "account_snapshot", columnDefinition = "json", nullable = false)
     @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
@@ -118,14 +131,17 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "account_status_date", nullable = false)
     private LocalDateTime accountStatusDate;
 
+    @Setter
     @Column(name = "status_message")
     private String statusMessage;
 
+    @Setter
     @Column(name = "timeline_data", columnDefinition = "json")
     @ColumnTransformer(write = "?::jsonb")
     @JsonRawValue
     private String timelineData;
 
+    @Setter
     @Column(name = "account_number", length = 25)
     private String accountNumber;
 
@@ -138,6 +154,7 @@ public class DraftAccountEntity implements Versioned {
     @Column(name = "source_reference")
     private Long sourceReference;
 
+    @Setter
     @Column(name = "version_number")
     @Version
     private Long versionNumber;
@@ -145,5 +162,10 @@ public class DraftAccountEntity implements Versioned {
     @Override
     public BigInteger getVersion() {
         return Optional.ofNullable(versionNumber).map(BigInteger::valueOf).orElse(null);
+    }
+
+    public void changeStatus(DraftAccountStatus newStatus, Clock clock) {
+        accountStatus = newStatus;
+        accountStatusDate = LocalDateTime.now(clock);
     }
 }

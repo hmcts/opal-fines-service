@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -27,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,12 +38,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.TransactionException;
+import org.springframework.transaction.support.SimpleTransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 import uk.gov.hmcts.common.exceptions.standard.BadRequestException;
 import uk.gov.hmcts.opal.authorisation.model.FinesPermission;
 import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
 import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.exception.PermissionNotAllowedException;
+import uk.gov.hmcts.opal.common.user.authorisation.model.BusinessUnitUser;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.controllers.util.UserStateUtil;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -59,6 +67,7 @@ import uk.gov.hmcts.opal.exception.JsonSchemaValidationException;
 import uk.gov.hmcts.opal.exception.ResourceConflictException;
 import uk.gov.hmcts.opal.mapper.DraftAccountMapper;
 import uk.gov.hmcts.opal.repository.BusinessUnitRepository;
+import uk.gov.hmcts.opal.repository.DraftAccountRepository;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService;
 import uk.gov.hmcts.opal.service.opal.DraftAccountPdplLoggingService.Action;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
@@ -107,7 +116,13 @@ class DraftAccountServiceTest {
     private Clock clock;
 
     @Mock
+    private DraftAccountRepository draftAccountRepository;
+
+    @Mock
     private FeatureToggleApi featureToggleApi;
+
+    @Spy
+    private TransactionTemplate transactionTemplate = new FakeTransactionTemplate();
 
     @InjectMocks
     private DraftAccountService draftAccountService;
@@ -709,9 +724,15 @@ class DraftAccountServiceTest {
         verify(jsonSchemaValidationService).validateOrError(any(), any());
     }
 
+    // This test isn't testing what it claims it is - should we delete ?
     @Test
     void testUpdateDraftAccount_businessUnitMismatch() {
         // Arrange
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitId((short)1)
+            .businessUnitUserId("USER01")
+            .build();
+        doReturn(businessUnitUser).when(transactionTemplate).execute(any());
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .businessUnitId((short) 2)
@@ -737,6 +758,11 @@ class DraftAccountServiceTest {
     @Test
     void testUpdateDraftAccount_publishPending() {
         // Arrange
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitId((short)2)
+            .businessUnitUserId("USER01")
+            .build();
+        doReturn(businessUnitUser).when(transactionTemplate).execute(any());
         Long draftAccountId = 1L;
         final UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.PUBLISHING_PENDING)
@@ -786,6 +812,13 @@ class DraftAccountServiceTest {
 
     @Test
     void testUpdateDraftAccount_rejected_preservesValidatedBy() {
+        // This test isn't testing what it claims it is. The test for this should be on the
+        // draftAccountTransactional - should we delete ?
+        BusinessUnitUser businessUnitUser = BusinessUnitUser.builder()
+            .businessUnitId((short)2)
+            .businessUnitUserId("USER01")
+            .build();
+        doReturn(businessUnitUser).when(transactionTemplate).execute(any());
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
             .accountStatus(DraftAccountStatus.REJECTED)
@@ -986,5 +1019,12 @@ class DraftAccountServiceTest {
                     ]
                }
             """;
+    }
+
+    private static class FakeTransactionTemplate extends TransactionTemplate {
+        @Override
+        public <T extends @Nullable Object> T execute(TransactionCallback<T> callback) throws TransactionException {
+            return callback.doInTransaction(new SimpleTransactionStatus());
+        }
     }
 }

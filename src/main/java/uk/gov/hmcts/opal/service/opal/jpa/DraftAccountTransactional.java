@@ -182,8 +182,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         existingAccount.setAccount(dto.getAccount());
         existingAccount.setAccountSnapshot(newSnapshot);
         existingAccount.setAccountType(dto.getAccountType());
-        existingAccount.setAccountStatus(DraftAccountStatus.RESUBMITTED);
-        existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
+        existingAccount.changeStatus(DraftAccountStatus.RESUBMITTED, clock);
         existingAccount.setTimelineData(
             appendTimelineEntry(
                 existingAccount.getTimelineData(),
@@ -208,7 +207,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
 
         log.info(":updateDraftAccount: existing account: {}", existingAccount);
 
-        if (!(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
+        if (!featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)
+            && !(existingAccount.getBusinessUnit().getBusinessUnitId().equals(dto.getBusinessUnitId()))) {
             log.warn("DTO BU does not match entity for draft account with ID: {}", draftAccountId);
             throw new ResourceConflictException(
                 "DraftAccount", Long.toString(draftAccountId),
@@ -224,7 +224,7 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
                                                                 + dto.getAccountStatus()));
 
         log.info(":updateDraftAccount: new status: {}", newStatus);
-        existingAccount.setAccountStatus(newStatus);
+        existingAccount.changeStatus(newStatus, clock);
         existingAccount.setVersionNumber(updateVersion.longValueExact());
 
         if (newStatus.isPublishingPending()) {
@@ -235,17 +235,11 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
             existingAccount.setValidatedBy(validatedBy);
             existingAccount.setValidatedByName(validatedByName);
             existingAccount.setAccountSnapshot(addSnapshotApprovedDate(existingAccount));
-            existingAccount.setAccountStatusDate(validationTimestamp);
         }
 
         if (newStatus.isDeleted()) {
             checkDeleterIsNotSubmitter(existingAccount.getSubmittedBy(), validatedBy, draftAccountId,
                 userState, dto.getBusinessUnitId());
-            existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
-        }
-
-        if (newStatus.isRejected()) {
-            existingAccount.setAccountStatusDate(LocalDateTime.now(clock));
         }
 
         existingAccount.setTimelineData(
@@ -276,9 +270,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         DraftAccountEntity dbDraftAccount = proxy.getDraftAccount(draftAccountId);
         verifyVersions(dbDraftAccount, entity, draftAccountId, "updateStatus");
 
-        dbDraftAccount.setAccountStatus(status);
+        dbDraftAccount.changeStatus(status, clock);
         dbDraftAccount.setVersionNumber(entity.getVersion().longValueExact());
-        dbDraftAccount.setAccountStatusDate(LocalDateTime.now(clock));
 
         // These are specific to the results from the 'publish' activity, success
         dbDraftAccount.setAccountNumber(entity.getAccountNumber());
@@ -301,9 +294,8 @@ public class DraftAccountTransactional implements DraftAccountTransactionalProxy
         DraftAccountEntity dbDraftAccount = this.getDraftAccount(draftAccountId);
         verifyVersions(dbDraftAccount, publishEntity, draftAccountId, "updateStatus");
 
-        dbDraftAccount.setAccountStatus(PUBLISHED);
+        dbDraftAccount.changeStatus(PUBLISHED, clock);
         dbDraftAccount.setVersionNumber(publishEntity.getVersion().longValueExact());
-        dbDraftAccount.setAccountStatusDate(LocalDateTime.now(clock));
 
         // These are specific to the results from the 'publish' activity, success
         dbDraftAccount.setAccountNumber(accountNumber);

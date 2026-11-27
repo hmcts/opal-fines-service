@@ -42,6 +42,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor.SpecificationFluentQuery;
+import uk.gov.hmcts.opal.common.launchdarkly.FeatureFlags;
+import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.common.user.authorisation.model.UserState;
 import uk.gov.hmcts.opal.dto.AddDraftAccountRequestDto;
@@ -69,6 +71,9 @@ class DraftAccountTransactionalTest {
 
     @Mock
     private BusinessUnitRepository businessUnitRepository;
+
+    @Mock
+    private FeatureToggleApi featureToggleApi;
 
     @Spy
     private Clock clock = Clock.fixed(Instant.parse("2026-05-07T10:15:00Z"), ZoneOffset.UTC);
@@ -556,6 +561,41 @@ class DraftAccountTransactionalTest {
     }
 
     @Test
+    void testUpdateDraftAccountToPublishingFailureResolved_success() {
+        // Arrange
+        when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)).thenReturn(true);
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.PUBLISHING_FAILURE_RESOLVED)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .accountStatus(DraftAccountStatus.PUBLISHING_FAILED)
+            .accountSnapshot("{\"created_date\":\"2024-10-01T10:00:00Z\"}")
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+        when(draftAccountRepository.save(any(DraftAccountEntity.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserState userState = UserState.builder().userName("USER_NAME_1").build();
+
+        // Act
+        DraftAccountEntity result = draftAccountTransactional
+            .updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional, BigInteger.ZERO, userState,
+                "TestValidator", "Test Validator");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(draftAccountId, result.getDraftAccountId());
+        assertEquals(DraftAccountStatus.PUBLISHING_FAILURE_RESOLVED, result.getAccountStatus());
+        assertEquals(LocalDateTime.of(2026, 5, 7, 10, 15), result.getAccountStatusDate());
+    }
+
+    @Test
     void testUpdateDraftAccount_invalidAccountSnapshot_throwsRuntimeException() {
         Long draftAccountId = 1L;
         UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
@@ -768,6 +808,40 @@ class DraftAccountTransactionalTest {
                 BigInteger.ZERO, userState, "Validator", "Validator Name")
         );
         assertEquals("Invalid account status for update: SUBMITTED", exception.getMessage());
+
+        verify(draftAccountRepository).findById(draftAccountId);
+        verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
+    }
+
+    @Test
+    void testUpdateDraftAccount_cannotUpdateToPublishingStatusResolvedWhenFeatureDisabled() {
+        // Arrange
+
+        when(featureToggleApi.isFeatureEnabled(FeatureFlags.RELEASE_1C_BANKING_INTERFACES)).thenReturn(false);
+        Long draftAccountId = 1L;
+        UpdateDraftAccountRequestDto updateDto = UpdateDraftAccountRequestDto.builder()
+            .accountStatus(DraftAccountStatus.PUBLISHING_FAILURE_RESOLVED)
+            .businessUnitId((short) 2)
+            .build();
+
+        DraftAccountEntity existingAccount = DraftAccountEntity.builder()
+            .draftAccountId(draftAccountId)
+            .businessUnit(BusinessUnitEntity.builder().businessUnitId((short) 2).build())
+            .accountStatus(DraftAccountStatus.PUBLISHING_FAILED)
+            .timelineData(createTimelineDataString())
+            .versionNumber(0L)
+            .build();
+
+        when(draftAccountRepository.findById(draftAccountId)).thenReturn(Optional.of(existingAccount));
+
+        UserState userState = UserState.builder().userName("BUUID1").build();
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+            draftAccountTransactional.updateDraftAccount(draftAccountId, updateDto, draftAccountTransactional,
+                BigInteger.ZERO, userState, "Validator", "Validator Name")
+        );
+        assertEquals("Invalid account status for update: PUBLISHING_FAILURE_RESOLVED", exception.getMessage());
 
         verify(draftAccountRepository).findById(draftAccountId);
         verify(draftAccountRepository, never()).save(any(DraftAccountEntity.class));
