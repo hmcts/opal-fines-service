@@ -24,7 +24,6 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
-import uk.gov.hmcts.opal.common.launchdarkly.service.FeatureToggleApi;
 import uk.gov.hmcts.opal.common.legacy.service.GatewayService;
 import uk.gov.hmcts.opal.dto.MinorCreditorAccountResponse;
 import uk.gov.hmcts.opal.dto.legacy.CreditorAccount;
@@ -69,7 +68,6 @@ import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateMinorCreditorAccountResponseM
 import uk.gov.hmcts.opal.mapper.request.UpdateMinorCreditorAccountRequestMapper;
 import uk.gov.hmcts.opal.mapper.response.MinorCreditorAccountAtAGlanceResponseMapper;
 import uk.gov.hmcts.opal.repository.CreditorAccountRepository;
-import uk.gov.hmcts.opal.util.FeatureFlags;
 
 @ExtendWith(MockitoExtension.class)
 class LegacyMinorCreditorServiceTest {
@@ -110,9 +108,6 @@ class LegacyMinorCreditorServiceTest {
     @Mock
     private LegacyMinorCreditorHistoryMapper minorCreditorHistoryMapper;
 
-    @Mock
-    private FeatureToggleApi featureToggleApi;
-
     @InjectMocks
     private LegacyMinorCreditorService legacyMinorCreditorService;
 
@@ -139,7 +134,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
         when(gatewayService.postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
@@ -147,15 +142,13 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
 
         // Assert
         assertSame(mappedResponse, result);
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
         verify(gatewayService).postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
@@ -166,7 +159,7 @@ class LegacyMinorCreditorServiceTest {
     }
 
     @Test
-    void getMinorCreditorHistory_shouldCallGatewayAndReturnMappedResponseInRelease1B11Mode() {
+    void getMinorCreditorHistory_shouldCallGatewayWithAllTypesWhenNoFilterIsProvided() {
         // Arrange
         MinorCreditorHistoryFilters filters = MinorCreditorHistoryFilters.from(
             LocalDate.of(2026, 1, 1),
@@ -191,7 +184,7 @@ class LegacyMinorCreditorServiceTest {
                 MinorCreditorHistoryItemHistory.builder().type(TypeEnum.NOTE).build())))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, true)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
         when(gatewayService.postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
@@ -199,15 +192,13 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(legacyResponse)).thenReturn(mappedResponse);
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(true);
 
         // Act
         GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
 
         // Assert
         assertSame(mappedResponse, result);
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, true);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
         verify(gatewayService).postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
@@ -233,15 +224,13 @@ class LegacyMinorCreditorServiceTest {
                 new RuntimeException("Gateway error")
             );
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
         when(gatewayService.postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         RuntimeException exception = assertThrows(RuntimeException.class,
@@ -249,7 +238,7 @@ class LegacyMinorCreditorServiceTest {
 
         // Assert
         assertEquals("500 Gateway error", exception.getMessage());
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
         verify(minorCreditorHistoryMapper, never()).toOpal(any());
     }
 
@@ -271,15 +260,13 @@ class LegacyMinorCreditorServiceTest {
                 null
             );
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
         when(gatewayService.postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
             request,
             null
         )).thenReturn(gatewayResponse);
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         RuntimeException exception = assertThrows(RuntimeException.class,
@@ -287,7 +274,7 @@ class LegacyMinorCreditorServiceTest {
 
         // Assert
         assertEquals("500 Legacy gateway returned failure", exception.getMessage());
-        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters, false);
+        verify(minorCreditorHistoryMapper).toLegacyRequest(101L, filters);
         verify(minorCreditorHistoryMapper, never()).toOpal(any());
     }
 
@@ -305,7 +292,7 @@ class LegacyMinorCreditorServiceTest {
             .payload(new GetMinorCreditorHistory200Response().historyItems(List.of()))
             .build();
 
-        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters, false)).thenReturn(request);
+        when(minorCreditorHistoryMapper.toLegacyRequest(101L, filters)).thenReturn(request);
         when(gatewayService.postToGateway(
             GET_MINOR_CREDITOR_ACCOUNT_HISTORY,
             MinorCreditorHistoryLegacyResponse.class,
@@ -313,8 +300,6 @@ class LegacyMinorCreditorServiceTest {
             null
         )).thenReturn(gatewayResponse);
         when(minorCreditorHistoryMapper.toOpal(null)).thenReturn(mappedResponse);
-        when(featureToggleApi.isFeatureEnabledWithPropertyValueDefault(FeatureFlags.RELEASE_1B_1_1,
-            FeatureFlags.RELEASE_1B_1_1_ENABLED_PROPERTY, false)).thenReturn(false);
 
         // Act
         GetMinorCreditorHistoryResponse result = legacyMinorCreditorService.getMinorCreditorHistory(101L, filters);
