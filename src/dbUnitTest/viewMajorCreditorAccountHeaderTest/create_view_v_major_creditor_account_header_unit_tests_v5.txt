@@ -1,0 +1,26 @@
+Timing is on.
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:70: NOTICE:  === Cleanup data before tests ===
+DO
+Time: 7.790 ms
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:70: NOTICE:  === Test cleanup completed ===
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  === Setting up test data for v_major_creditor_account_header tests ===
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 1 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 2 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 3 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 4 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 5 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 6 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 7 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  --- Running test scenario 8 ---
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:374: NOTICE:  === All tests completed and passed for v_major_creditor_account_header view ===
+DO
+Time: 41.613 ms
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:408: NOTICE:  === PO-11608: Checking column names, order and welsh_language type ===
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:408: NOTICE:  === PO-11608: Column structure checks passed ===
+DO
+Time: 7.130 ms
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:429: NOTICE:  === Final targeted cleanup: removing test rows ===
+psql:src/dbUnitTest/viewMajorCreditorAccountHeaderTest/create_view_v_major_creditor_account_header_unit_tests_v5.sql:429: NOTICE:  === Final targeted cleanup completed ===
+DO
+Time: 14.172 ms
+Timing is off.
