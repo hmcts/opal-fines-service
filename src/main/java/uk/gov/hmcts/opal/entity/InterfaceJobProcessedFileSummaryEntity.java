@@ -38,4 +38,7 @@ public class InterfaceJobProcessedFileSummaryEntity {
 
     @Column(name = "total_errors")
     private Long totalErrors;
+
+    @Column(name = "till_id")
+    private Long tillId;
 }
