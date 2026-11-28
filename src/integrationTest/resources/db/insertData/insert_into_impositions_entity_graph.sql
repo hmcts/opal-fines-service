@@ -29,6 +29,10 @@ VALUES
     5501, 'IGL1', 'Graph Test LJA', '3 LJA Street', NULL, NULL, NULL
     );
 
+INSERT INTO local_justice_areas (local_justice_area_id, name, address_line_1, lja_type)
+VALUES (5501, 'Graph Test LJA', '3 LJA Street', 'LJA')
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
 INSERT INTO courts_legacy (
     court_id, business_unit_id, court_code, parent_court_id, name, name_cy, address_line_1,
     address_line_2, address_line_3, address_line_1_cy, address_line_2_cy, address_line_3_cy,
@@ -65,8 +69,15 @@ VALUES
     FALSE, NULL, FALSE
     );
 
-INSERT INTO results (result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement)
-SELECT result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category::text::t_imposition_category_enum, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement
+INSERT INTO results
+SELECT result_id, result_title, result_title_cy, result_type, active, imposition,
+       imposition_category::t_imposition_category_enum, imposition_allocation_priority,
+       imposition_accruing, imposition_creditor, enforcement, enforcement_override,
+       further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer,
+       generates_hearing, generates_warrant, collection_order, extend_ttp_disallow,
+       extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters,
+       allow_payment_terms, requires_employment_data, allow_additional_action,
+       enf_next_permitted_actions, requires_lja, manual_enforcement
 FROM results_legacy WHERE result_id = 'IGR001'
 ON CONFLICT (result_id) DO NOTHING;
 

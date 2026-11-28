@@ -36,6 +36,10 @@ INSERT INTO local_justice_areas_legacy (
     '1 Graph Street'
 );
 
+INSERT INTO local_justice_areas (local_justice_area_id, name, address_line_1, lja_type)
+VALUES (910, 'Entity Graph LJA', '1 Graph Street', 'LJA')
+ON CONFLICT (local_justice_area_id) DO NOTHING;
+
 INSERT INTO courts_legacy (
     court_id,
     business_unit_id,
@@ -134,8 +138,15 @@ INSERT INTO results_legacy (
     NULL
 );
 
-INSERT INTO results (result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement)
-SELECT result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category::text::t_imposition_category_enum, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement
+INSERT INTO results
+SELECT result_id, result_title, result_title_cy, result_type, active, imposition,
+       imposition_category::t_imposition_category_enum, imposition_allocation_priority,
+       imposition_accruing, imposition_creditor, enforcement, enforcement_override,
+       further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer,
+       generates_hearing, generates_warrant, collection_order, extend_ttp_disallow,
+       extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters,
+       allow_payment_terms, requires_employment_data, allow_additional_action,
+       enf_next_permitted_actions, requires_lja, manual_enforcement
 FROM results_legacy WHERE result_id = 'ER9100'
 ON CONFLICT (result_id) DO NOTHING;
 

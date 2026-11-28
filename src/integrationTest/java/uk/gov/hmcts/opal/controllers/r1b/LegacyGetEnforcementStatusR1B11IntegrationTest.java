@@ -12,6 +12,10 @@ import org.apache.http.HttpHeaders;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
@@ -28,6 +32,32 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 @Sql(scripts = "classpath:db/deleteData/delete_from_defendant_accounts.sql", executionPhase = AFTER_TEST_CLASS)
 @Slf4j(topic = "opal.LegacyGetEnforcementStatusR1B11IntegrationTest")
 public class LegacyGetEnforcementStatusR1B11IntegrationTest extends AbstractIntegrationTest {
+
+    @Autowired
+    private ResultLegacyRepository legacyResults;
+
+    @Autowired
+    private ResultOpalRepository opalResults;
+
+    @Test
+    @Transactional
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void nextPermittedActionsComeFromLegacyResults() throws Exception {
+        var legacy = legacyResults.findById("MPSO").orElseThrow();
+        var opal = opalResults.findById("MPSO").orElseThrow();
+        legacy.setEnfNextPermittedActions("LEGACY");
+        opal.setEnfNextPermittedActions("OPAL");
+        legacyResults.saveAndFlush(legacy);
+        opalResults.saveAndFlush(opal);
+
+        mockMvc.perform(get("/defendant-accounts/1234/enforcement-status")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header(HttpHeaders.AUTHORIZATION, userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.next_enforcement_action_data").value("LEGACY"));
+    }
+
 
     @Test
     @JiraEpic("PO-978")

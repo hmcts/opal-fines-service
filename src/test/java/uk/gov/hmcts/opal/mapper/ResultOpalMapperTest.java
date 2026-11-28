@@ -3,9 +3,9 @@ package uk.gov.hmcts.opal.mapper;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
-import uk.gov.hmcts.opal.entity.ImpositionCategoriesEntity;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ImpositionCategory;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
@@ -15,14 +15,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class ResultMapperTest {
+class ResultOpalMapperTest {
 
-    private final ResultMapper resultMapper = Mappers.getMapper(ResultMapper.class);
+    private final ResultOpalMapper resultMapper = Mappers.getMapper(ResultOpalMapper.class);
 
     @Test
     void toRefData_shouldMapLiteEntityToDto() {
-        // Arrange
-        ResultLegacyEntity entity = ResultLegacyEntity.builder()
+        // Given
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R123")
             .resultTitle("Test Result")
             .resultTitleCy("Test Result Welsh")
@@ -32,10 +32,10 @@ class ResultMapperTest {
             .impositionCreditor(ImpositionCreditor.CF)
             .build();
 
-        // Act
+        // When
         ResultReferenceData result = resultMapper.toRefData(entity);
 
-        // Assert
+        // Then
         assertNotNull(result);
         assertEquals("R123", result.getResultId());
         assertEquals("Test Result", result.getResultTitle());
@@ -48,12 +48,8 @@ class ResultMapperTest {
 
     @Test
     void toRefDataFromFull_shouldMapFullEntityToDto() {
-        // Arrange
-        ImpositionCategoriesEntity finesCategory = ImpositionCategoriesEntity.builder()
-            .impositionCategory("Fines")
-            .build();
-
-        ResultLegacyEntity entity = ResultLegacyEntity.builder()
+        // Given
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R456")
             .resultTitle("Full Result")
             .resultTitleCy("Full Result Welsh")
@@ -63,14 +59,14 @@ class ResultMapperTest {
             .impositionCreditor(ImpositionCreditor.ANY)
             // Include additional fields present only in Full entity
             .imposition(true)
-            .impositionCategory(finesCategory)
+            .impositionCategory(ImpositionCategory.FINES)
             .impositionAccruing(false)
             .build();
 
-        // Act
+        // When
         ResultReferenceData result = resultMapper.toRefData(entity);
 
-        // Assert
+        // Then
         assertNotNull(result);
         assertEquals("R456", result.getResultId());
         assertEquals("Full Result", result.getResultTitle());
@@ -83,16 +79,18 @@ class ResultMapperTest {
 
     @Test
     void toReferenceDataResponse_shouldConvertListToResponse() {
-        // Arrange
-        ResultLegacyEntity entity1 = ResultLegacyEntity.builder()
+        // Given
+        ResultOpalEntity entity1 = ResultOpalEntity.builder()
             .resultId("R1")
             .resultTitle("Result 1")
             .resultTitleCy("Result 1 Welsh")
             .resultType(ResultType.ACTION)
             .active(true)
+            .impositionAllocationPriority((short) 7)
+            .impositionCreditor(ImpositionCreditor.NOT_CPS)
             .build();
 
-        ResultLegacyEntity entity2 = ResultLegacyEntity.builder()
+        ResultOpalEntity entity2 = ResultOpalEntity.builder()
             .resultId("R2")
             .resultTitle("Result 2")
             .resultTitleCy("Result 2 Welsh")
@@ -100,29 +98,30 @@ class ResultMapperTest {
             .active(false)
             .build();
 
-        List<ResultLegacyEntity> entities = List.of(entity1, entity2);
+        List<ResultOpalEntity> entities = List.of(entity1, entity2);
 
-        // Act
+        // When
         ResultsRefDataResponse response = resultMapper.toReferenceDataResponse(entities);
 
-        // Assert
+        // Then
         assertNotNull(response);
         assertNotNull(response.getRefData());
         assertEquals(2, response.getRefData().size());
+        assertEquals(2, response.getCount());
         assertEquals("R1", response.getRefData().get(0).getResultId().get());
         assertEquals("Result 1", response.getRefData().get(0).getResultTitle().get());
+        assertEquals((short) 7, response.getRefData().get(0).getImpositionAllocationOrder().get());
+        assertEquals("!CPS", response.getRefData().get(0).getImpositionCreditor().get());
+        assertEquals("Action", response.getRefData().get(0).getResultType().get());
+        assertEquals(null, response.getRefData().get(1).getImpositionCreditor().get());
         assertEquals("R2", response.getRefData().get(1).getResultId().get());
         assertEquals("Result 2", response.getRefData().get(1).getResultTitle().get());
     }
 
     @Test
     void toDto_mapsFullEntityToGeneratedResponse() {
-        // Arrange
-        ImpositionCategoriesEntity compensationCategory = ImpositionCategoriesEntity.builder()
-            .impositionCategory("Compensation")
-            .build();
-
-        ResultLegacyEntity entity = ResultLegacyEntity.builder()
+        // Given
+        ResultOpalEntity entity = ResultOpalEntity.builder()
             .resultId("R999")
             .resultTitle("Full Title")
             .resultTitleCy("Teitl Llawn")
@@ -131,7 +130,7 @@ class ResultMapperTest {
             .impositionAllocationPriority((short) 3)
             .impositionCreditor(ImpositionCreditor.CF)
             .imposition(true)
-            .impositionCategory(compensationCategory)
+            .impositionCategory(ImpositionCategory.COMPENSATION)
             .impositionAccruing(false)
             .enforcement(true)
             .enforcementOverride(false)
@@ -155,10 +154,10 @@ class ResultMapperTest {
             .enfNextPermittedActions("ACTION1,ACTION2")
             .build();
 
-        // Act
+        // When
         GetResultByIdResponseResults dto = resultMapper.toDto(entity);
 
-        // Assert — every field 1:1
+        // Then — every field 1:1
         assertNotNull(dto);
         assertEquals(entity.getResultId(), dto.getResultId());
         assertEquals(entity.getResultTitle(), dto.getResultTitle());
@@ -169,7 +168,7 @@ class ResultMapperTest {
         assertEquals(entity.getImpositionCreditor().getLabel(), dto.getImpositionCreditor());
         assertEquals(entity.isImposition(), dto.getImposition());
         assertEquals("Compensation", dto.getImpositionCategory());
-        assertEquals(entity.getImpositionAccruing(), dto.getImpositionAccruing());
+        assertEquals(entity.isImpositionAccruing(), dto.getImpositionAccruing());
         assertEquals(entity.isEnforcement(), dto.getEnforcement());
         assertEquals(entity.isEnforcementOverride(), dto.getEnforcementOverride());
         assertEquals(entity.isFurtherEnforcementWarn(), dto.getFurtherEnforcementWarn());
@@ -188,7 +187,7 @@ class ResultMapperTest {
         assertEquals(entity.getAllowAdditionalAction(), dto.getAllowAdditionalAction());
         assertEquals(entity.isGeneratesWarrant(), dto.getGeneratesWarrant());
         assertEquals(entity.getRequiresLja(), dto.getRequiresLja());
-        assertEquals(entity.isManualEnforcement(), dto.getManualEnforcement());
+        assertEquals(entity.getManualEnforcement(), dto.getManualEnforcement());
         assertEquals(entity.getEnfNextPermittedActions(), dto.getEnfNextPermittedActions());
     }
 

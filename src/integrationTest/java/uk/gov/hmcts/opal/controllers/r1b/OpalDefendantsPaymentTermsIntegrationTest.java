@@ -7,6 +7,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -22,6 +29,64 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
 @Slf4j(topic = "opal.OpalDefendantsPaymentTermsIntegrationTest")
 class OpalDefendantsPaymentTermsIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
+
+    @Autowired
+    private ResultLegacyRepository legacyResults;
+
+    @Autowired
+    private ResultOpalRepository opalResults;
+
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    @Transactional
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void paymentTermsUseOpalResultPreservationFlag(boolean preserve) throws Exception {
+        var legacy = legacyResults.findById("FEES").orElseThrow();
+        var opal = opalResults.findById("FEES").orElseThrow();
+        legacy.setExtendTtpPreserveLastEnf(!preserve);
+        opal.setExtendTtpPreserveLastEnf(preserve);
+        legacyResults.saveAndFlush(legacy);
+        opalResults.saveAndFlush(opal);
+
+        var account = defendantAccountRepository.findById(78L).orElseThrow();
+        account.setLastEnforcement("FEES");
+        defendantAccountRepository.saveAndFlush(account);
+
+        authorise((short) 78, FinesPermission.AMEND_PAYMENT_TERMS);
+        HttpHeaders headers = authorisedHeaders(userStateStub.getBearerToken(), "78", "\"" + versionFor(78L) + "\"");
+        String request = """
+            {
+              "payment_terms": {
+                "days_in_default": 30,
+                "date_days_in_default_imposed": "2025-11-05",
+                "extension": true,
+                "reason_for_extension": "extn reason text",
+                "effective_date": "2025-11-01",
+                "payment_terms_type": { "payment_terms_type_code": "B",
+                "payment_terms_type_display_name": "By date"},
+                "instalment_period": { "instalment_period_code": "W" ,
+                "instalment_period_display_name": "Weekly"},
+                "lump_sum_amount": 120.00,
+                "instalment_amount": 10.00,
+                "posted_details": {
+                  "posted_by": "clerk1",
+                  "posted_date": "2025-02-02T10:11:12",
+                  "posted_by_name": "aa"
+                }
+              },
+              "request_payment_card": false,
+              "generate_payment_terms_change_letter": false
+            }
+            """;
+
+        mockMvc.perform(post("/defendant-accounts/78/payment-terms")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .headers(headers).contentType(MediaType.APPLICATION_JSON).content(request))
+            .andExpect(status().isOk());
+        assertEquals(preserve ? "FEES" : null, lastEnforcementFor(78L));
+    }
+
 
     @Test
     @DisplayName("OPAL: Add Payment Terms - account controls return 422 for blocked last enforcement")

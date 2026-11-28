@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.Optional;
 
 @Component
-public class ResultSpecs extends EntitySpecs<ResultLegacyEntity> {
+public class ResultLegacySpecs extends EntitySpecs<ResultLegacyEntity> {
 
     public Specification<ResultLegacyEntity> findBySearchCriteria(ResultSearchDto criteria) {
         return Specification.allOf(specificationList(
-            notBlank(criteria.getResultId()).map(ResultSpecs::likeResultId),
-            notBlank(criteria.getResultTitle()).map(ResultSpecs::likeResultTitle),
-            notBlank(criteria.getResultTitleCy()).map(ResultSpecs::likeResultTitleCy),
-            notBlank(criteria.getResultType()).map(ResultSpecs::likeResultType),
+            notBlank(criteria.getResultId()).map(ResultLegacySpecs::likeResultId),
+            notBlank(criteria.getResultTitle()).map(ResultLegacySpecs::likeResultTitle),
+            notBlank(criteria.getResultTitleCy()).map(ResultLegacySpecs::likeResultTitleCy),
+            notBlank(criteria.getResultType()).map(ResultLegacySpecs::likeResultType),
             numericShort(criteria.getImpositionAllocationPriority())
-                .map(ResultSpecs::equalsImpositionAllocationPriority),
-            notBlank(criteria.getImpositionCreditor()).map(ResultSpecs::likeImpositionCreditor)
+                .map(ResultLegacySpecs::equalsImpositionAllocationPriority),
+            notBlank(criteria.getImpositionCreditor()).map(ResultLegacySpecs::likeImpositionCreditor)
         ));
     }
 
@@ -41,13 +41,13 @@ public class ResultSpecs extends EntitySpecs<ResultLegacyEntity> {
 
         return Specification.allOf(specificationList(
             // optional resultIds clause
-            resultIds.map(ResultSpecs::equalsAnyResultId),
+            resultIds.map(ResultLegacySpecs::equalsAnyResultId),
 
-            Optional.ofNullable(active).map(ResultSpecs::hasActive),
-            Optional.ofNullable(manualEnforcement).map(ResultSpecs::hasManualEnforcementOnly),
-            Optional.ofNullable(generatesHearing).map(ResultSpecs::hasGeneratesHearing),
-            Optional.ofNullable(enforcement).map(ResultSpecs::hasEnforcement),
-            Optional.ofNullable(enforcementOverride).map(ResultSpecs::hasEnforcementOverride)
+            Optional.ofNullable(active).map(ResultLegacySpecs::hasActive),
+            Optional.ofNullable(manualEnforcement).map(ResultLegacySpecs::hasManualEnforcementOnly),
+            Optional.ofNullable(generatesHearing).map(ResultLegacySpecs::hasGeneratesHearing),
+            Optional.ofNullable(enforcement).map(ResultLegacySpecs::hasEnforcement),
+            Optional.ofNullable(enforcementOverride).map(ResultLegacySpecs::hasEnforcementOverride)
 
         ));
     }

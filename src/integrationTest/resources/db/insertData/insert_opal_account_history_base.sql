@@ -11,18 +11,16 @@ INSERT INTO results_legacy (
     FALSE, FALSE, FALSE, FALSE, FALSE
 ) ON CONFLICT (result_id) DO NOTHING;
 
-INSERT INTO results (
-    result_id, result_title, result_title_cy, result_type, active, imposition, imposition_accruing,
-    enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow,
-    enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order,
-    extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies,
-    manual_enforcement, allow_payment_terms, requires_employment_data, allow_additional_action,
-    requires_lja
-) VALUES (
-    'HST01', 'History enforcement', 'History enforcement', 'Result', TRUE, FALSE, FALSE,
-    TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE,
-    FALSE, FALSE, FALSE, FALSE, FALSE
-)
+INSERT INTO results
+SELECT result_id, result_title, result_title_cy, result_type, active, imposition,
+       imposition_category::t_imposition_category_enum, imposition_allocation_priority,
+       imposition_accruing, imposition_creditor, enforcement, enforcement_override,
+       further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer,
+       generates_hearing, generates_warrant, collection_order, extend_ttp_disallow,
+       extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters,
+       allow_payment_terms, requires_employment_data, allow_additional_action,
+       enf_next_permitted_actions, requires_lja, manual_enforcement
+FROM results_legacy WHERE result_id = 'HST01'
 ON CONFLICT (result_id) DO NOTHING;
 
 INSERT INTO defendant_accounts (

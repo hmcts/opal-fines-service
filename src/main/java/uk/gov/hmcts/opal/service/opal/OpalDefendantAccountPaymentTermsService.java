@@ -15,7 +15,7 @@ import uk.gov.hmcts.opal.entity.PaymentCardRequestEntity;
 import uk.gov.hmcts.opal.entity.defendantaccount.DefendantAccountEntity;
 import uk.gov.hmcts.opal.entity.enforcement.EnforcementEntity;
 import uk.gov.hmcts.opal.entity.paymentterms.PaymentTermsEntity;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.generated.model.AddPaymentTermsRequestDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.GetPaymentTermsResponseDefendantAccount;
 import uk.gov.hmcts.opal.generated.model.DefendantAccountPaymentTermsResponse;
@@ -57,7 +57,7 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
 
     private final DocumentService documentService;
 
-    private final ResultService resultService;
+    private final OpalResultService resultService;
 
     private final EnforcementRepository enforcementRepository;
 
@@ -228,11 +228,11 @@ public class OpalDefendantAccountPaymentTermsService implements DefendantAccount
         EnforcementEntity mostRecentEnforcement = fetchEnforcementMostRecent(defAccount);
 
         if (mostRecentEnforcement != null) {
-            ResultLegacyEntity resultLegacyEntityLite =
+            ResultOpalEntity resultEntity =
                 resultService.getResultById(mostRecentEnforcement.getResultId());
 
             // If resultEntity exists and extend_ttp_preserve_last_enf is not TRUE, clear last_enforcement
-            if (!resultLegacyEntityLite.isExtendTtpPreserveLastEnf()) {
+            if (!resultEntity.isExtendTtpPreserveLastEnf()) {
                 log.debug(":clearLastEnforcementAction: Clearing last_enforcement={} for account {}",
                     defAccount.getLastEnforcement(), defAccount.getDefendantAccountId());
                 defAccount.setLastEnforcement(null);

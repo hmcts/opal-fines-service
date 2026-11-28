@@ -49,6 +49,72 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 class DraftAccountControllerPutIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
 
     @Test
+    @Transactional
+    @DisplayName("Replace draft account validates payment-term enforcement against Opal results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void replaceValidatesPaymentTermsEnforcementAgainstSelectedResults() throws Exception {
+        seedConflictingEnforcementResults();
+        long id = 5L;
+        String request = validReplaceRequestBody(0L);
+        String response = mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "PRIS")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.payment_terms.enforcements[0].result_id").value("PRIS"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        String savedAccount = getDraftAccount(id).getAccount();
+        assertEquals("PRIS", objectMapper.readTree(savedAccount)
+            .at("/payment_terms/enforcements/0/result_id").asText());
+        mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "NOENF")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id NOENF is not an enforcement result")));
+        assertEquals(objectMapper.readTree(savedAccount), objectMapper.readTree(getDraftAccount(id).getAccount()));
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Replace draft account validates impositions against Opal results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void putValidatesImpositionsAgainstOpalResults() throws Exception {
+        seedConflictingImpositionResults();
+        long id = 5L;
+        String request = validReplaceRequestBody(0L);
+        String response = mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"OPIM\"")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.offences[0].impositions[0].result_id").value("OPIM"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        assertEquals("OPIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+        mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"LGIM\"")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id LGIM is not an imposition result")));
+        assertEquals("OPIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+    }
+
+    @Test
     @DisplayName("Replace draft account - Should return updated draft account [@PO-973, @PO-746]")
     @JiraStory("PO-973")
     @JiraStory("PO-746")
