@@ -38,4 +38,17 @@ class LegacyReferenceDataSourceIntegrationTest extends ReferenceDataSourceIntegr
             .andExpect(jsonPath("$.refData").isEmpty());
     }
 
+    @Test
+    @DisplayName("Result reference data excludes rows held only in the Opal table")
+    @JiraStory("PO-11209")
+    @JiraEpic("PO-9031")
+    void resultReferenceDataExcludesOpalOnlyRows() throws Exception {
+        mockMvc.perform(get("/results")
+                .param("result_ids", "OPONLY")
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.count").value(0))
+            .andExpect(jsonPath("$.refData").isEmpty());
+    }
 }

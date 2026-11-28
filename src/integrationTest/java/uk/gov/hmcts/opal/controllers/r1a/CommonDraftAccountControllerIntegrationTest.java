@@ -20,6 +20,11 @@ import uk.gov.hmcts.opal.common.logging.SecurityEventLoggingService;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountEntity;
 import uk.gov.hmcts.opal.logging.integration.service.LoggingService;
 import uk.gov.hmcts.opal.repository.DraftAccountRepository;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
+import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
+import uk.gov.hmcts.opal.entity.result.ResultType;
 import uk.gov.hmcts.opal.service.opal.JsonSchemaValidationService;
 
 @ActiveProfiles({"integration"})
@@ -71,6 +76,34 @@ class CommonDraftAccountControllerIntegrationTest extends AbstractIntegrationTes
 
     @Autowired
     protected DraftAccountRepository draftAccountRepository;
+
+    @Autowired
+    private ResultOpalRepository resultOpalRepository;
+
+    @Autowired
+    private ResultLegacyRepository resultLegacyRepository;
+
+    protected void seedConflictingImpositionResults() {
+        for (boolean opalImposition : new boolean[] {true, false}) {
+            String id = opalImposition ? "OPIM" : "LGIM";
+            resultOpalRepository.saveAndFlush(ResultOpalEntity.builder().resultId(id).resultTitle(id)
+                .resultType(ResultType.RESULT).active(true).imposition(opalImposition).build());
+            resultLegacyRepository.saveAndFlush(ResultLegacyEntity.builder().resultId(id).resultTitle(id)
+                .resultTitleCy(id).resultType(ResultType.RESULT).active(true).imposition(!opalImposition)
+                .impositionAccruing(false).build());
+        }
+    }
+
+    protected void seedConflictingEnforcementResults() {
+        for (boolean opalEnforcement : new boolean[] {true, false}) {
+            String id = opalEnforcement ? "PRIS" : "NOENF";
+            resultOpalRepository.saveAndFlush(ResultOpalEntity.builder().resultId(id).resultTitle(id)
+                .resultType(ResultType.RESULT).active(true).enforcement(opalEnforcement).build());
+            resultLegacyRepository.saveAndFlush(ResultLegacyEntity.builder().resultId(id).resultTitle(id)
+                .resultTitleCy(id).resultType(ResultType.RESULT).active(true).enforcement(!opalEnforcement)
+                .impositionAccruing(false).build());
+        }
+    }
 
     static Clock fixedClock() {
         return FIXED_CLOCK;

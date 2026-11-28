@@ -2,9 +2,12 @@ package uk.gov.hmcts.opal.controllers.r1a;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.testutil.JsonErrorAssertions.expectBadRequestWithoutStatus;
 
@@ -35,6 +38,140 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
     "launchdarkly.default-flag-values.release-1a=true"
 })
 public class LegacyDraftAccountIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @DisplayName("Replace draft account validates payment-term enforcement against legacy results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void replaceValidatesPaymentTermsEnforcementAgainstSelectedResults() throws Exception {
+        seedConflictingEnforcementResults();
+        long id = 5L;
+        String request = createRequestBody("Fine", "NEW", 1, "AAAA Trial Court")
+            .replace("\"source\": \"MAC\",", "");
+        String response = mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "NOENF")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.payment_terms.enforcements[0].result_id").value("NOENF"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        String savedAccount = getDraftAccount(id).getAccount();
+        assertEquals("NOENF", objectMapper.readTree(savedAccount)
+            .at("/payment_terms/enforcements/0/result_id").asText());
+        mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "PRIS")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id PRIS is not an enforcement result")));
+        assertEquals(objectMapper.readTree(savedAccount), objectMapper.readTree(getDraftAccount(id).getAccount()));
+    }
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @DisplayName("Create draft account validates payment-term enforcement against legacy results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void createValidatesPaymentTermsEnforcementAgainstSelectedResults() throws Exception {
+        seedConflictingEnforcementResults();
+        String request = createRequestBody("Fine", "NEW", 1, "AAAA Trial Court");
+        long count = draftAccountRepository.count();
+        String response = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "NOENF")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.account.payment_terms.enforcements[0].result_id").value("NOENF"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        long id = objectMapper.readTree(response).get("draft_account_id").asLong();
+        assertEquals("NOENF", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/payment_terms/enforcements/0/result_id").asText());
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "PRIS")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id PRIS is not an enforcement result")));
+        assertEquals(count + 1, draftAccountRepository.count());
+    }
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @DisplayName("Create draft account validates impositions against legacy results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void createValidatesImpositionsAgainstLegacyResults() throws Exception {
+        seedConflictingImpositionResults();
+        String request = createRequestBody("Fine", "NEW", 1, "AAAA Trial Court");
+        long count = draftAccountRepository.count();
+        String response = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"LGIM\"")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.account.offences[0].impositions[0].result_id").value("LGIM"))
+            .andReturn().getResponse().getContentAsString();
+        long id = objectMapper.readTree(response).get("draft_account_id").asLong();
+        assertEquals("LGIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"OPIM\"")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id OPIM is not an imposition result")));
+        assertEquals(count + 1, draftAccountRepository.count());
+    }
+
+    @Test
+    @Transactional
+    @Sql(scripts = "classpath:db/insertData/insert_into_local_justice_area_legacy.sql")
+    @DisplayName("Replace draft account validates impositions against legacy results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void replaceValidatesImpositionsAgainstLegacyResults() throws Exception {
+        seedConflictingImpositionResults();
+        long id = 5L;
+        String request = createRequestBody("Fine", "NEW", 1, "AAAA Trial Court")
+            .replace("\"source\": \"MAC\",", "");
+        String response = mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"LGIM\"")))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.account.offences[0].impositions[0].result_id").value("LGIM"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        assertEquals("LGIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+        mockMvc.perform(put(URL_BASE + "/" + id)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .header("If-Match", getIfMatchForDraftAccount(id))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"OPIM\"")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id OPIM is not an imposition result")));
+        assertEquals("LGIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+    }
 
     @Test
     @DisplayName("Publish draft account does not return legacy server error in response [@PO-2819]")

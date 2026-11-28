@@ -16,6 +16,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static uk.gov.hmcts.opal.controllers.shared.util.OpenApiContractAssertions.assertGet200JsonResponseMatchesBundledSpec;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +44,54 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 @Slf4j(topic = "opal.OpalDefendantsReadIntegrationTest")
 class OpalDefendantsReadIntegrationTest extends AbstractOpalDefendantsIntegrationTest {
 
+    @Autowired
+    private ResultLegacyRepository legacyResults;
+
+    @Autowired
+    private ResultOpalRepository opalResults;
+
+    @Test
+    @Transactional
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void enforcementOverrideUsesOpalResultTitle() throws Exception {
+        var legacy = legacyResults.findById("FWEC").orElseThrow();
+        var opal = opalResults.findById("FWEC").orElseThrow();
+        legacy.setResultTitle("Legacy override");
+        opal.setResultTitle("Opal override");
+        legacyResults.saveAndFlush(legacy);
+        opalResults.saveAndFlush(opal);
+
+        mockMvc.perform(get("/defendant-accounts/78/enforcement-status")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.enforcement_override.enforcement_override_result.enforcement_override_result_name")
+                .value("Opal override"));
+    }
+
+    @Test
+    @Transactional
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-10769")
+    void mostRecentEnforcementUsesOpalResult() throws Exception {
+        var legacy = legacyResults.findById("MPSO").orElseThrow();
+        var opal = opalResults.findById("MPSO").orElseThrow();
+        legacy.setResultTitle("Legacy enforcement");
+        legacy.setEnfNextPermittedActions("LEGACY");
+        opal.setResultTitle("Opal enforcement");
+        opal.setEnfNextPermittedActions("OPAL");
+        legacyResults.saveAndFlush(legacy);
+        opalResults.saveAndFlush(opal);
+
+        mockMvc.perform(get("/defendant-accounts/78/enforcement-status")
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_id").value("MPSO"))
+            .andExpect(jsonPath("$.last_enforcement_action.enforcement_action.result_title").value("Opal enforcement"))
+            .andExpect(jsonPath("$.next_enforcement_action_data").value("OPAL"));
+    }
 
     @Autowired
     private LocalJusticeAreaLegacyRepository localJusticeAreaLegacyRepository;

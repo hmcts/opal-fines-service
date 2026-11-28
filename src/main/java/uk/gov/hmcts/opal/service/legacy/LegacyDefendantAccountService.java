@@ -104,7 +104,7 @@ import uk.gov.hmcts.opal.mapper.legacy.DefendantAccountHistoryLegacyResponseMapp
 import uk.gov.hmcts.opal.mapper.legacy.LegacyConsolidatedAccountMapper;
 import uk.gov.hmcts.opal.mapper.legacy.LegacyUpdateDefendantAccountResponseMapper;
 import uk.gov.hmcts.opal.mapper.request.UpdateDefendantAccountRequestMapper;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
 import uk.gov.hmcts.opal.repository.jpa.SpecificationUtils;
 import uk.gov.hmcts.opal.service.iface.DefendantAccountServiceInterface;
 import uk.gov.hmcts.opal.service.opal.CourtService;
@@ -143,7 +143,7 @@ public class LegacyDefendantAccountService implements DefendantAccountServiceInt
     private final HistoryItemOrderingService historyItemOrderingService;
     private final LegacyBusinessUnitCodeResolver legacyBusinessUnitCodeResolver;
 
-    private final ResultRepository resultRepository;
+    private final ResultLegacyRepository resultRepository;
 
     private final FeatureToggleApi featureToggleApi;
 

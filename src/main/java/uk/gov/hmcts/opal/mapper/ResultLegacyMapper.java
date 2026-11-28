@@ -14,7 +14,7 @@ import uk.gov.hmcts.opal.generated.model.ResultsRefData;
 import java.util.List;
 
 @Mapper(componentModel = "spring")
-public interface ResultMapper {
+public interface ResultLegacyMapper {
 
     ResultReferenceData toRefData(ResultLegacyEntity entity);
 

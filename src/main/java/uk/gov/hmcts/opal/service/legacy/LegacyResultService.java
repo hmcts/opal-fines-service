@@ -1,4 +1,4 @@
-package uk.gov.hmcts.opal.service.opal;
+package uk.gov.hmcts.opal.service.legacy;
 
 
 import jakarta.persistence.EntityNotFoundException;
@@ -18,23 +18,24 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import uk.gov.hmcts.opal.dto.ToJsonString;
+import uk.gov.hmcts.opal.service.iface.ResultsServiceInterface;
 import uk.gov.hmcts.opal.dto.reference.ResultReferenceData;
 import uk.gov.hmcts.opal.dto.search.ResultSearchDto;
 import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
 import uk.gov.hmcts.opal.generated.model.GetResultByIdResponseResults;
 import uk.gov.hmcts.opal.generated.model.ResultsRefDataResponse;
-import uk.gov.hmcts.opal.mapper.ResultMapper;
-import uk.gov.hmcts.opal.repository.ResultRepository;
-import uk.gov.hmcts.opal.repository.jpa.ResultSpecs;
+import uk.gov.hmcts.opal.mapper.ResultLegacyMapper;
+import uk.gov.hmcts.opal.repository.ResultLegacyRepository;
+import uk.gov.hmcts.opal.repository.jpa.ResultLegacySpecs;
 
 @Service
 @RequiredArgsConstructor
-@Qualifier("resultService")
-public class ResultService {
+@Qualifier("legacyResultService")
+public class LegacyResultService implements ResultsServiceInterface {
 
-    private final ResultRepository resultRepository;
-    private final ResultMapper resultMapper;
-    private final ResultSpecs resultSpecs;
+    private final ResultLegacyRepository resultRepository;
+    private final ResultLegacyMapper resultMapper;
+    private final ResultLegacySpecs resultSpecs;
     private static final String WELSH_PARAMETER_PREFIX = "cy_";
     private static final String WELSH_PARAMETER_HINT = "Provide a welsh version for the defendant";
     private static final Set<String> WELSH_PARAMETER_TYPES = Set.of(
@@ -61,7 +62,7 @@ public class ResultService {
         return resultMapper.toRefData(getResultById(resultId));
     }
 
-    @Cacheable(value = "resultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
+    @Cacheable(value = "legacyResultsCache", key = "#root.method.name + '_' + #resultId + '_' + #includeWelsh")
     @Transactional(readOnly = true)
     public GetResultByIdResponseResults getResult(String resultId, boolean includeWelsh) {
         ResultLegacyEntity entity = resultRepository.findWithFullGraphByResultId(resultId)
@@ -141,7 +142,7 @@ public class ResultService {
         return page.getContent();
     }
 
-    @Cacheable(cacheNames = "resultReferenceDataCache", key = "#filter.orElse('noFilter')")
+    @Cacheable(cacheNames = "legacyResultReferenceDataCache", key = "#filter.orElse('noFilter')")
     public List<ResultReferenceData> getReferenceData(Optional<String> filter) {
 
         Sort nameSort = Sort.by(Sort.Direction.ASC, "resultTitle");

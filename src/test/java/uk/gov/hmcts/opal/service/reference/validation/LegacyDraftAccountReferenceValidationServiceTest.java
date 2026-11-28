@@ -2,7 +2,6 @@ package uk.gov.hmcts.opal.service.reference.validation;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
@@ -51,8 +50,6 @@ public class LegacyDraftAccountReferenceValidationServiceTest {
 
             // Assert
             verify(delegateService, times(1)).validateEnforcementCourt(eq(docContext), anyList());
-            verify(delegateService, times(1)).validateOffences(eq(BUSINESS_UNIT_ID), eq(docContext), anyList());
-            verify(delegateService, times(1)).validatePaymentTermsEnforcements(eq(docContext), anyList(), anyMap());
         }
     }
 

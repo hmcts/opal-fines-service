@@ -26,6 +26,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,9 +43,72 @@ import uk.hmcts.zephyr.automation.junit5.annotations.JiraEpic;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraStory;
 import uk.hmcts.zephyr.automation.junit5.annotations.JiraTestKey;
 
+@ActiveProfiles("opal")
 @Slf4j(topic = "opal.DraftAccountControllerPostIntegrationTest")
 @DisplayName("DraftAccountControllerPostIntegrationTest")
 class DraftAccountControllerPostIntegrationTest extends CommonDraftAccountControllerIntegrationTest {
+
+    @Test
+    @Transactional
+    @DisplayName("Create draft account validates payment-term enforcement against Opal results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void createValidatesPaymentTermsEnforcementAgainstSelectedResults() throws Exception {
+        seedConflictingEnforcementResults();
+        String request = validCreateRequestBody();
+        long count = draftAccountRepository.count();
+        String response = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "PRIS")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.account.payment_terms.enforcements[0].result_id").value("PRIS"))
+            .andReturn().getResponse().getContentAsString();
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        long id = objectMapper.readTree(response).get("draft_account_id").asLong();
+        assertEquals("PRIS", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/payment_terms/enforcements/0/result_id").asText());
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(withPaymentTermsEnforcement(request, "NOENF")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id NOENF is not an enforcement result")));
+        assertEquals(count + 1, draftAccountRepository.count());
+    }
+
+    @Test
+    @Transactional
+    @DisplayName("Create draft account validates impositions against Opal results")
+    @JiraStory("PO-11027")
+    @JiraEpic("PO-5741")
+    void postValidatesImpositionsAgainstOpalResults() throws Exception {
+        seedConflictingImpositionResults();
+        String request = validCreateRequestBody();
+        long count = draftAccountRepository.count();
+        String response = mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"OPIM\"")))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.account.offences[0].impositions[0].result_id").value("OPIM"))
+            .andReturn().getResponse().getContentAsString();
+        long id = objectMapper.readTree(response).get("draft_account_id").asLong();
+        assertEquals("OPIM", objectMapper.readTree(getDraftAccount(id).getAccount())
+            .at("/offences/0/impositions/0/result_id").asText());
+        jsonSchemaValidationService.validateOrError(response, GET_DRAFT_ACCOUNT_RESPONSE);
+        mockMvc.perform(post(URL_BASE)
+                .with(userStateStub.getAuthenticaitonRequestPostProcessor())
+                .header("authorization", userStateStub.getBearerToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(request.replace("\"result_id\": \"FO\"", "\"result_id\": \"LGIM\"")))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.detail").value(containsString("result id LGIM is not an imposition result")));
+        assertEquals(count + 1, draftAccountRepository.count());
+    }
 
     private String validRawJsonCreateRequestBody() {
         AddDraftAccountRequestDto dto = AddDraftAccountRequestDto.builder()

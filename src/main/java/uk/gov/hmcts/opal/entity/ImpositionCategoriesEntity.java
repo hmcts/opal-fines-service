@@ -23,6 +23,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+@Deprecated
 public class ImpositionCategoriesEntity {
 
     @Id

@@ -22,7 +22,7 @@ import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaEntity;
 import uk.gov.hmcts.opal.entity.ProsecutorLegacyEntity;
 import uk.gov.hmcts.opal.entity.creditoraccount.CreditorAccountType;
 import uk.gov.hmcts.opal.entity.result.ImpositionCreditor;
-import uk.gov.hmcts.opal.entity.result.ResultLegacyEntity;
+import uk.gov.hmcts.opal.entity.result.ResultOpalEntity;
 import uk.gov.hmcts.opal.entity.OpalLocalJusticeAreaType;
 import uk.gov.hmcts.opal.entity.draft.DraftAccountType;
 import uk.gov.hmcts.opal.exception.InvalidReferenceValidationException;
@@ -31,7 +31,7 @@ import uk.gov.hmcts.opal.repository.CourtLiteRepository;
 import uk.gov.hmcts.opal.repository.OpalLocalJusticeAreaRepository;
 import uk.gov.hmcts.opal.repository.OffenceRepository;
 import uk.gov.hmcts.opal.repository.ProsecutorRepository;
-import uk.gov.hmcts.opal.repository.ResultRepository;
+import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 
 @ExtendWith(MockitoExtension.class)
 class OpalDraftAccountReferenceValidationServiceTest {
@@ -47,7 +47,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private OffenceRepository offenceRepository;
 
     @Mock
-    private ResultRepository resultRepository;
+    private ResultOpalRepository resultRepository;
 
     @Mock
     private CreditorAccountRepository creditorAccountRepository;
@@ -299,6 +299,55 @@ class OpalDraftAccountReferenceValidationServiceTest {
     }
 
     @Test
+    void notCps_rejectsMajorCreditorWhenNonCpsLookupFails() {
+        stubResult("FCOST", ImpositionCreditor.NOT_CPS);
+        when(creditorAccountRepository
+            .existsByBusinessUnitIdAndCreditorAccountTypeAndProsecutionServiceAndMajorCreditorId(
+                BUSINESS_UNIT_ID, CreditorAccountType.MJ, false, VALID_MAJOR_CREDITOR_ID))
+            .thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(BUSINESS_UNIT_ID, accountJson("FCOST", VALID_MAJOR_CREDITOR_ID, false)));
+
+        assertContains(exception.getMessage(), "$.offences[0].impositions[0].major_creditor_id");
+        assertContains(exception.getMessage(), "is not valid for business unit 78");
+    }
+
+    @Test
+    void notCps_acceptsMinorCreditorWhenMajorCreditorIsAbsent() {
+        stubResult("FCOST", ImpositionCreditor.NOT_CPS);
+
+        assertDoesNotThrow(() -> service.validateReferences(BUSINESS_UNIT_ID, accountJson("FCOST", null, true)));
+        verifyNoInteractions(creditorAccountRepository);
+    }
+
+    @Test
+    void notCps_rejectsMissingMajorAndMinorCreditors() {
+        stubResult("FCOST", ImpositionCreditor.NOT_CPS);
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(BUSINESS_UNIT_ID, accountJson("FCOST", null, false)));
+
+        assertContains(exception.getMessage(), "$.offences[0].impositions[0].minor_creditor");
+        assertContains(exception.getMessage(), "a minor creditor or valid major creditor id is required");
+        verifyNoInteractions(creditorAccountRepository);
+    }
+
+    @Test
+    void any_rejectsInvalidMajorCreditorEvenWhenMinorCreditorIsPresent() {
+        stubResult("FCOMP", ImpositionCreditor.ANY);
+        when(creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndMajorCreditorId(
+            BUSINESS_UNIT_ID, CreditorAccountType.MJ, OTHER_BUSINESS_UNIT_MAJOR_CREDITOR_ID)).thenReturn(false);
+
+        InvalidReferenceValidationException exception = assertThrows(InvalidReferenceValidationException.class,
+            () -> service.validateReferences(BUSINESS_UNIT_ID,
+                accountJson("FCOMP", OTHER_BUSINESS_UNIT_MAJOR_CREDITOR_ID, true)));
+
+        assertContains(exception.getMessage(), "$.offences[0].impositions[0].major_creditor_id");
+        assertContains(exception.getMessage(), "is not valid for business unit 78");
+    }
+
+    @Test
     void validateReferences_whenMajorCreditorBelongsToAnotherBusinessUnit_shouldFail() {
         stubResult("FCOMP", ImpositionCreditor.ANY);
         when(creditorAccountRepository.existsByBusinessUnitIdAndCreditorAccountTypeAndMajorCreditorId(
@@ -378,7 +427,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     private void stubResult(String resultId, ImpositionCreditor impositionCreditor) {
         when(resultRepository.findById(resultId)).thenReturn(
             Optional.of(
-                ResultLegacyEntity.builder()
+                ResultOpalEntity.builder()
                     .resultId(resultId)
                     .active(true)
                     .imposition(true)
@@ -392,7 +441,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsNotAnEnforcement_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultLegacyEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultOpalEntity.builder()
             .resultId("COLLO")
             .enforcement(false)
             .active(true)
@@ -413,7 +462,7 @@ class OpalDraftAccountReferenceValidationServiceTest {
     void validateReferences_whenPaymentTermsEnforcementResultIsInactive_shouldFail() {
         when(resultRepository.findById("FO")).thenReturn(Optional.of(activeImpositionResult("FO")));
         when(resultRepository.findById("FVS")).thenReturn(Optional.of(activeImpositionResult("FVS")));
-        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultLegacyEntity.builder()
+        when(resultRepository.findById("COLLO")).thenReturn(Optional.of(ResultOpalEntity.builder()
             .resultId("COLLO")
             .enforcement(true)
             .active(false)
@@ -767,32 +816,32 @@ class OpalDraftAccountReferenceValidationServiceTest {
             """.formatted(resultId, majorCreditorValue, minorCreditorValue);
     }
 
-    private static ResultLegacyEntity activeImpositionResult(String resultId) {
-        return ResultLegacyEntity.builder()
+    private static ResultOpalEntity activeImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(true)
             .build();
     }
 
-    private static ResultLegacyEntity activeNonImpositionResult(String resultId) {
-        return ResultLegacyEntity.builder()
+    private static ResultOpalEntity activeNonImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .imposition(false)
             .build();
     }
 
-    private static ResultLegacyEntity inactiveImpositionResult(String resultId) {
-        return ResultLegacyEntity.builder()
+    private static ResultOpalEntity inactiveImpositionResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(false)
             .imposition(true)
             .build();
     }
 
-    private static ResultLegacyEntity activeEnforcementResult(String resultId) {
-        return ResultLegacyEntity.builder()
+    private static ResultOpalEntity activeEnforcementResult(String resultId) {
+        return ResultOpalEntity.builder()
             .resultId(resultId)
             .active(true)
             .enforcement(true)
