@@ -77,6 +77,7 @@ VALUES
         FALSE
     );
 
-INSERT INTO results
-SELECT * FROM results_legacy WHERE result_id = 'COLLO'
+INSERT INTO results (result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement)
+SELECT result_id, result_title, result_title_cy, result_type, active, imposition, imposition_category::text::t_imposition_category_enum, imposition_allocation_priority, imposition_accruing, imposition_creditor, enforcement, enforcement_override, further_enforcement_warn, further_enforcement_disallow, enforcement_hold, requires_enforcer, generates_hearing, generates_warrant, collection_order, extend_ttp_disallow, extend_ttp_preserve_last_enf, prevent_payment_card, lists_monies, result_parameters, allow_payment_terms, requires_employment_data, allow_additional_action, enf_next_permitted_actions, requires_lja, manual_enforcement
+FROM results_legacy WHERE result_id = 'COLLO'
 ON CONFLICT (result_id) DO NOTHING;
