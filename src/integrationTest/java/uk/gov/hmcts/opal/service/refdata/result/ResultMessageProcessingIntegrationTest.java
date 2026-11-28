@@ -34,10 +34,39 @@ import uk.gov.hmcts.opal.refdata.RefDataUpdateHandler;
 import uk.gov.hmcts.opal.refdata.schemavalidation.SchemaValidationService;
 import uk.gov.hmcts.opal.repository.ResultOpalRepository;
 
-@SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=true")
+@SpringBootTest(properties = "opal.ref-data.service-bus.consumer-enabled=false")
+@Import(ResultMessageProcessingIntegrationTest.TestRefDataConfiguration.class)
 @ActiveProfiles("integration")
 @Isolated
 class ResultMessageProcessingIntegrationTest extends AbstractIntegrationTest {
+    @TestConfiguration
+    static class TestRefDataConfiguration {
+
+        @Bean
+        RefDataHandlerRegistry refDataHandlerRegistry(List<RefDataUpdateHandler<?, ?>> handlers) {
+            return new RefDataHandlerRegistry(handlers);
+        }
+
+        @Bean
+        SchemaValidationService schemaValidationService() {
+            return new SchemaValidationService();
+        }
+
+        @Bean
+        RefDataMessageDecoder refDataMessageDecoder(ObjectMapper objectMapper,
+                                                    SchemaValidationService schemaValidationService,
+                                                    RefDataHandlerRegistry handlerRegistry) {
+            return new RefDataMessageDecoder(objectMapper, schemaValidationService, handlerRegistry);
+        }
+
+        @Bean
+        RefDataMessageProcessor refDataMessageProcessor(CacheManager cacheManager,
+                                                        RefDataMessageDecoder decoder,
+                                                        RefDataHandlerRegistry handlerRegistry) {
+            return new RefDataRefDataMessageProcessorImpl(cacheManager, decoder, handlerRegistry);
+        }
+    }
+
     private static final String RESULT_ID = "ZRIT01";
     private static final String SECOND_ID = "ZRIT02";
 
